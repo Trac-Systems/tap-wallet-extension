@@ -15,10 +15,10 @@ import {AxiosRequest} from './axios';
 import {isEmpty} from 'lodash';
 export const PAID_API_TESTNET = 'https://open-api-testnet.unisat.io';
 export const PAID_API_KEY_TESTNET =
-  '16d3a0a95a231b8f692d4cd9b8d107810285046faedee5d23d8cfff00a0126f1';
+  '9390cb53fbd387be6fe5e3d997e5759805de93fbfcae9298a314bf500df2a527';
 export const PAID_API_MAINNET = 'https://open-api.unisat.io';
 export const PAID_API_KEY_MAINNET =
-  '6e3648cd4ff373a6452efdd08d592637c1cd932cd52c441f88ddf4a3ea5adc39';
+  'e3133d5812314a4e912e3e3aaaef2e5980e476663543811c92aee34cf7887875';
 
 export interface IResponseAddressBalance {
   address: string;

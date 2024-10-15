@@ -1,25 +1,31 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "allowJs": true, // Allows JavaScript files to be compiled.
+    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export.
+    "esModuleInterop": true, // Enables emit interoperability between CommonJS and ES Modules.
+    "isolatedModules": true, // Ensures each file can be transpiled separately (necessary for Vite).
+    "noImplicitAny": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": false, // Enables all strict type-checking options.
+    "skipLibCheck": true, // Skips type checking of declaration files.
+    "jsx": "react-jsx", // For React 17+ to use the new JSX transform.
+    "lib": ["esnext", "dom"], // Includes the latest ECMAScript features and DOM library.
+    "moduleResolution": "node", // Resolves modules using Node's resolution algorithm.
+    "types": ["chrome", "node", "react", "react-dom"],
+    "baseUrl": ".", // Base directory for non-relative module names.
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "noEmit": true, // Prevents TypeScript from emitting files.
+    "resolveJsonModule": true, // Allows importing JSON files.
+    "target": "esnext" // Compiles to the latest ECMAScript version.
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "exclude": [
+    "node_modules",
+    "dist", // Excludes the output directory for builds.
+    "babel.config.js", // Excludes Babel configuration file.
+    "metro.config.js", // Excludes Metro configuration file.
+    "jest.config.js" // Excludes Jest configuration file if it's present.
+  ]
 }

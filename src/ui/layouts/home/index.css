@@ -1,0 +1,34 @@
+.container_home {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  background-color: black;
+}
+.body_home {
+  flex: 1;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.footer_home {
+  background-color: black;
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid #545454;
+  padding-top: 8px;
+  height: 60px;
+  line-height: 60px;
+}
+@media only screen and (min-width: 600px) {
+  .container_home {
+    justify-content: center;
+    align-items: center;
+  }
+  .body_home {
+    width: 500px;
+  }
+  .footer_home {
+    width: 500px;
+  }
+}

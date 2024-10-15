@@ -1,0 +1,42 @@
+/* styles.css */
+.pin-container {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+.pin-wrap {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #545454;
+  justify-content: center;
+  align-items: center;
+  outline: none;
+  /* transition: border-color 0.3s ease; */
+  background-color: rgb(0, 0, 0);
+}
+
+.pin-input {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  text-align: center;
+  font-size: 10px;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+/* .pin-input:focus {
+  border-color: blue;
+} */
+
+.pin-input.filled {
+  background-color: #d16b7c; /* Change this color as needed */
+  color: #d16b7c;
+}
+
+.hidden-caret {
+  caret-color: transparent;
+}

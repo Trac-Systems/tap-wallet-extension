@@ -1,0 +1,9 @@
+.widthText {
+  color: #fff;
+  width: 290px;
+}
+@media only screen and (min-width: 600px) {
+  .widthText {
+    width: 420px;
+  }
+}

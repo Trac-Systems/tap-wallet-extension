@@ -1,0 +1,30 @@
+.container_tap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  padding: 0 24px;
+  background-color: black;
+}
+.body_tap {
+  flex: 1;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media only screen and (min-width: 600px) {
+  .container_tap {
+    justify-content: center;
+    align-items: center;
+  }
+  .header_tap {
+    width: 500px;
+  }
+  .body_tap {
+    width: 500px;
+  }
+  .footer_tap {
+    width: 500px;
+  }
+}

@@ -1,0 +1,66 @@
+@import url('./font.css');
+
+body {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+:root {
+  color-scheme: dark;
+  /* min-width: 100vw;
+  min-height: 100vh; */
+  justify-content: center;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+
+.Toastify__toast-theme--light {
+  background-color: transparent !important;
+  z-index: 10000;
+}
+.Toastify__close-button--light {
+  opacity: 0 !important;
+}
+.Toastify__progress-bar--wrp {
+  opacity: 0 !important;
+}
+.Toastify__toast-container--bottom-center {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.heightAddress {
+  max-height: 75vh;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+@media only screen and (min-width: 600px) {
+  .textareaWidth {
+    width: 450px;
+  }
+}
+.responsive {
+  width: 500px;
+  height: 600px;
+}
+
+.responsive-ext {
+  width: 390px;
+  height: 600px;
+}
+
+@media only screen and (min-width: 600px) {
+  .responsive {
+    width: auto;
+    height: auto;
+  }
+  .responsive-ext {
+    width: auto;
+    height: auto;
+  }
+  .heightAddress {
+    max-height: 80vh;
+  }
+}

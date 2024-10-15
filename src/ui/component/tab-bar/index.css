@@ -1,0 +1,43 @@
+.tab-label {
+  cursor: pointer;
+  display: inline-block;
+  padding: 12px 0;
+}
+
+.tab-label.active {
+  padding: 12px 0;
+  width: fit-content;
+}
+
+.tabs-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.tab-box {
+  cursor: pointer;
+  flex: 1;
+  justify-items: center;
+  align-items: center;
+  border: 1px solid #FFFFFFB0;
+  border-radius: 10px;
+}
+
+.tab-box-active {
+  cursor: pointer;
+  flex: 1;
+  justify-items: center;
+  align-items: center;
+  border: 1px solid #F79E6D;
+  border-radius: 10px;
+}
+
+.tab-content {
+  margin-top: 16px;
+}

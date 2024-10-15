@@ -1,0 +1,15 @@
+export const spaces = {
+  xss_s: '4px',
+  xss: '8px',
+  xs: '10px',
+  sm: '12px',
+  xl: '16px',
+  xlg: '20px',
+  xxl: '24px',
+  xxl_sm: '28px',
+  xxl_lg: '32px',
+  xxl_xl: '36px',
+  xxl_xxl: '40px',
+  xxl_xxl_xl: '60px',
+  xxl_xxl_xxl: '80px',
+};

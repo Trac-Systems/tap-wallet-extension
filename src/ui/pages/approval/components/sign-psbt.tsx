@@ -1,8 +1,10 @@
-import {UX} from '@/src/ui/component';
-import {useCustomToast} from '@/src/ui/component/toast-custom';
-import {copyToClipboard} from '@/src/ui/helper';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
+import { satoshisToAmount } from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { useCustomToast } from '@/src/ui/component/toast-custom';
+import { copyToClipboard } from '@/src/ui/helper';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
 import {
   formatAddressLongText,
   getAddressType,
@@ -10,29 +12,26 @@ import {
   useAppSelector,
   validateBtcAddress,
 } from '@/src/ui/utils';
-import {isEmpty} from 'lodash';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {
+  ExtractPsbt,
+  InputForSigning,
+  RawTxInfo,
+  TransactionSigningOptions,
+  TxType
+} from '@/src/wallet-instance';
+import { isEmpty } from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getUtxoDustThreshold } from '../../../../background/utils';
+import WebsiteBar from '../../../component/website-bar';
+import { useWalletProvider } from '../../../gateway/wallet-provider';
+import { GlobalSelector } from '../../../redux/reducer/global/selector';
 import {
   usePrepareSendBTCCallback,
   usePrepareSendOrdinalsInscriptionCallback,
   usePrepareSendOrdinalsInscriptionsCallback,
 } from '../../send-receive/hook';
-import {
-  COIN_DUST,
-  ExtractPsbt,
-  InputForSigning,
-  RawTxInfo,
-  TransactionSigningOptions,
-  TxType,
-} from '@/src/wallet-instance';
-import {useApproval} from '../hook';
+import { useApproval } from '../hook';
 import LayoutApprove from '../layouts';
-import WebsiteBar from '../../../component/website-bar';
-import {getUtxoDustThreshold} from '../../../../background/utils';
-import {GlobalSelector} from '../../../redux/reducer/global/selector';
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
-import {useWalletProvider} from '../../../gateway/wallet-provider';
 interface Props {
   params: {
     data: {
@@ -153,9 +152,6 @@ const SignPsbt = ({
     }
     const toAddressInfo = {address: toAddress};
     if (type === TxType.SEND_BITCOIN) {
-      if (satoshis < COIN_DUST) {
-        rejectApproval('Amount must be at least 1000 satoshi');
-      }
       prepareSendBTC({
         toAddressInfo,
         toAmount: satoshis,

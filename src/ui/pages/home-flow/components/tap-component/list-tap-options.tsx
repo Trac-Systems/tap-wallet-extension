@@ -176,13 +176,6 @@ const ListTapOptions = () => {
           </UX.Box>
           <UX.Box layout="row" spacing="xl">
             <UX.Button
-              title="Mint"
-              svgIcon={<SVG.MintIcon color="white" width={20} height={20} />}
-              styleType="disable"
-              withIcon
-              customStyles={{flex: 1, flexDirection: 'row-reverse'}}
-            />
-            <UX.Button
               title="Transfer"
               isDisable={!enableTransfer}
               onClick={handleNavigate}

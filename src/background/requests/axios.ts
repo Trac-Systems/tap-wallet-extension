@@ -37,17 +37,13 @@ export class AxiosRequest {
     );
   }
   get = async (endpoint: string, params: any) => {
-    try {
-      const response = await this.api.get(endpoint, {params});
-      return await Promise.resolve({
-        success: true,
-        message: response?.statusText,
-        statusCode: response?.status,
-        data: response?.data,
-      });
-    } catch (error) {
-      throw error;
-    }
+   const response = await this.api.get(endpoint, {params});
+    return await Promise.resolve({
+      success: true,
+      message: response?.statusText,
+      statusCode: response?.status,
+      data: response?.data,
+    });
   };
 
   post = async (endpoint: string, bodyData: any) => {

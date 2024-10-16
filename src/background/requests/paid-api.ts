@@ -10,9 +10,9 @@ import {
   Network,
   UnspentOutput,
 } from '@/src/wallet-instance';
-import {networkConfig} from '../service/singleton';
-import {AxiosRequest} from './axios';
-import {isEmpty} from 'lodash';
+import { isEmpty } from 'lodash';
+import { networkConfig } from '../service/singleton';
+import { AxiosRequest } from './axios';
 export const PAID_API_TESTNET = 'https://open-api-testnet.unisat.io';
 export const PAID_API_KEY_TESTNET =
   '9390cb53fbd387be6fe5e3d997e5759805de93fbfcae9298a314bf500df2a527';
@@ -194,7 +194,10 @@ export class PaidApi {
       devAddress: address,
       devFee: 0,
     });
-    return {...res?.data.data, totalFee: res?.data?.data.amount};
+    if (!res.data?.data) {
+      throw new Error('Unisat API request failed');
+    }
+    return {...res?.data?.data, totalFee: res?.data?.data?.amount};
   }
 
   async getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer> {

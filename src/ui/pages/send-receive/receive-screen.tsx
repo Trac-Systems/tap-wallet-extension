@@ -34,26 +34,11 @@ const Receive = () => {
       header={<UX.TextHeader text="Receive" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column_center" spacing="xl">
-          <UX.Box
-            layout="row"
-            spacing="xl"
-            style={{
-              borderRadius: '10px',
-              padding: '16px',
-              background: 'rgba(244, 194, 66, 0.60)',
-            }}>
-            <SVG.WaringIcon />
-            <UX.Text
-              title="Only for Bitcoin network tokens."
-              styleType="body_16_normal"
-              customStyles={{color: 'white'}}
-            />
-          </UX.Box>
           <UX.Box spacing="xl">
             <UX.Text
-              title="qr code"
+              title="Qr code"
               styleType="heading_16"
-              customStyles={{color: 'white'}}
+              customStyles={{color: 'white', textTransform: 'uppercase'}}
             />
             <QRCode
               value={address || ''}
@@ -87,27 +72,16 @@ const Receive = () => {
         </UX.Box>
       }
       footer={
-        <UX.Box
-          layout="column"
-          spacing="xl"
-          style={{
-            padding: '10px 0',
-          }}>
-          <UX.Button
-            styleType="primary"
-            title="Share"
-            withIcon
-            svgIcon={<SVG.ShareIcon />}
-            // onClick={handleNavigate}
-          />
-          <UX.Button
-            styleType="dark"
-            withIcon
-            svgIcon={<SVG.CopyPink color="white" width={20} height={20} />}
-            title="Copy address"
-            onClick={handleCopyAddress}
-          />
-        </UX.Box>
+        <UX.Button
+          styleType="dark"
+          withIcon
+          customStyles={{
+            width: '100%',
+          }}
+          svgIcon={<SVG.CopyPink color="white" width={20} height={20} />}
+          title="Copy address"
+          onClick={handleCopyAddress}
+        />
       }
     />
   );

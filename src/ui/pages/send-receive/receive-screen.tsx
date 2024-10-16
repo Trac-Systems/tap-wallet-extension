@@ -34,7 +34,7 @@ const Receive = () => {
       header={<UX.TextHeader text="Receive" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column_center" spacing="xl">
-          <UX.Box spacing="xl">
+          <UX.Box spacing="xlg">
             <UX.Text
               title="Qr code"
               styleType="heading_16"
@@ -51,7 +51,7 @@ const Receive = () => {
               }}
             />
           </UX.Box>
-          <UX.Box spacing="xl">
+          <UX.Box spacing="xlg">
             <UX.Text
               title="Wallet address"
               styleType="heading_16"
@@ -72,16 +72,18 @@ const Receive = () => {
         </UX.Box>
       }
       footer={
-        <UX.Button
-          styleType="dark"
-          withIcon
-          customStyles={{
-            width: '100%',
-          }}
-          svgIcon={<SVG.CopyPink color="white" width={20} height={20} />}
-          title="Copy address"
-          onClick={handleCopyAddress}
-        />
+       <UX.Box layout='row'>
+          <UX.Button
+            styleType="dark"
+            withIcon
+            customStyles={{
+              flex: 1
+            }}
+            svgIcon={<SVG.CopyPink color="white" width={20} height={20} />}
+            title="Copy address"
+            onClick={handleCopyAddress}
+          />
+       </UX.Box>
       }
     />
   );

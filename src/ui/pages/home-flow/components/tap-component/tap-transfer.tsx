@@ -262,7 +262,7 @@ const TapTransfer = () => {
             <UX.Box
               layout="box_border"
               spacing="xs"
-              style={{flexDirection: 'column'}}>
+              style={{flexDirection: 'column', minWidth: '300px'}}>
               <UX.Text title="Inscribe Transfer" styleType="heading_12" />
               <UX.Box layout="row_center" spacing="xs">
                 <UX.Text

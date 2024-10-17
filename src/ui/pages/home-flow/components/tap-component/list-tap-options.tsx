@@ -15,6 +15,7 @@ import {
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
+import { formatNumberValue } from '@/src/shared/utils/btc-helper';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -164,7 +165,7 @@ const ListTapOptions = () => {
         <UX.Box>
           <UX.Box layout="row_center" style={{margin: '20px 0'}}>
             <UX.Text
-              title={`${balance.toFixed()} `}
+              title={`${formatNumberValue(String(balance??'0'))} `}
               styleType="body_16_bold"
               customStyles={{color: colors.white, marginRight: '8px'}}
             />

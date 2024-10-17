@@ -53,6 +53,7 @@ const TapTransfer = () => {
   const ticker = state?.ticker || '';
 
   //! State
+  const [doNotShowAgain, setDoNotShowAgain] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [showAttentionModal, setShowAttentionModal] = useState<boolean>(false);
   const [items, setItems] = useState<TokenTransfer[]>([]);
@@ -94,6 +95,13 @@ const TapTransfer = () => {
   //! Function
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const isShow = localStorage.getItem('show');
+    if (isShow !== '' && isShow) {
+      setDoNotShowAgain(true);
+    }
   }, []);
 
   const fetchData = async () => {
@@ -296,7 +304,10 @@ const TapTransfer = () => {
           />
           <InscribeAttentionModal
             visible={showAttentionModal}
+            doNotShowAgain={doNotShowAgain}
+            setDoNotShowAgain={setDoNotShowAgain}
             onNext={() => {
+              localStorage.setItem('show', JSON.stringify(doNotShowAgain));
               setShowAttentionModal(false);
               navigate('/home/inscribe-transfer-tap', {
                 state: {ticker: tokenBalance.ticker},

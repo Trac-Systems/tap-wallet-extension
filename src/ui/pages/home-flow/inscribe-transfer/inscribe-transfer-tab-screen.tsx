@@ -249,7 +249,7 @@ const InscribeTransferTapScreen = () => {
                   />
                   <UX.Box layout="row" spacing="xs">
                     <UX.Text
-                      title={`${Number(contextData?.tokenBalance?.availableBalance ?? 0).toFixed()}`}
+                      title={formatNumberValue(contextData?.tokenBalance?.availableBalance ?? "0")}
                       styleType="body_12_bold"
                       customStyles={{color: colors.white}}
                     />

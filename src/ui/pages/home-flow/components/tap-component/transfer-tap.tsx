@@ -1,17 +1,16 @@
-import {getUtxoDustThreshold} from '@/src/background/utils';
-import {UX} from '@/src/ui/component';
-import {useCustomToast} from '@/src/ui/component/toast-custom';
+import { getUtxoDustThreshold } from '@/src/background/utils';
+import { UX } from '@/src/ui/component';
+import { useCustomToast } from '@/src/ui/component/toast-custom';
 import LayoutTap from '@/src/ui/layouts/tap';
-import {TransactionSelector} from '@/src/ui/redux/reducer/transaction/selector';
-import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
-import {colors} from '@/src/ui/themes/color';
-import {getAddressType, useAppSelector} from '@/src/ui/utils';
-import {debounce} from 'lodash';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
-import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
-import {OutputValueBar} from '../../../send-receive/component/output-value';
-import {RBFBar} from '../../../send-receive/component/rbf-bar';
+import { TransactionSelector } from '@/src/ui/redux/reducer/transaction/selector';
+import { WalletSelector } from '@/src/ui/redux/reducer/wallet/selector';
+import { colors } from '@/src/ui/themes/color';
+import { getAddressType, useAppSelector } from '@/src/ui/utils';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FeeRateBar } from '../../../send-receive/component/fee-rate-bar';
+import { OutputValueBar } from '../../../send-receive/component/output-value';
+import { RBFBar } from '../../../send-receive/component/rbf-bar';
 import {
   useFetchUtxosCallback,
   usePrepareSendOrdinalsInscriptionCallback,

@@ -3,11 +3,14 @@ import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
 import {SVG} from '../../svg';
 import {useBlockStreamUrl} from '../settings/hooks';
+import { GlobalSelector } from '../../redux/reducer/global/selector';
+import { useAppSelector } from '../../utils';
 
 const SuccessScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const blockStreamURL = useBlockStreamUrl();
+  const networkType = useAppSelector(GlobalSelector.networkType);
+  const blockStreamURL = useBlockStreamUrl(networkType);
   const {txid}: {txid: string} = location.state;
 
   return (

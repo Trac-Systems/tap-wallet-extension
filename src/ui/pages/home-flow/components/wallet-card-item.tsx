@@ -5,11 +5,12 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {useAppSelector} from '@/src/ui/utils';
-import {WalletDisplay} from '@/src/wallet-instance';
+import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance} from '../hook';
 import './index.css';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -21,6 +22,7 @@ const WalletCard = (props: IWalletCardProps) => {
   //! State
   const {keyring, handleOpenDrawerEdit, handleOpenDrawerAccount} = props;
   const navigate = useNavigate();
+    const networkType = useAppSelector(GlobalSelector.networkType);
   const ref = useRef<HTMLDivElement>(null);
   const accountBalance = useAccountBalance();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -42,7 +44,7 @@ const WalletCard = (props: IWalletCardProps) => {
 
   //! Function
   const handleShowHistory = () => {
-    const url = 'https://mempool.space/testnet/address/' + address;
+    const url = networkType === NETWORK_TYPES.MAINNET.label ? 'https://mempool.space/address/' + address:  'https://mempool.space/testnet/address/' + address;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };

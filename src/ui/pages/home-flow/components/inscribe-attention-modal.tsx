@@ -7,9 +7,12 @@ interface InscribeAttentionModalProps {
   onNext?: () => void;
   onCancel?: () => void;
   visible: boolean;
+  doNotShowAgain: boolean;
+  setDoNotShowAgain: (value: boolean) => void;
+  isShow?: boolean
 }
 const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
-  const {onNext, onCancel, visible} = props;
+  const {onNext, onCancel, visible,isShow, doNotShowAgain, setDoNotShowAgain} = props;
   const [isUnderstand, setUnderstand] = useState(false);
 
   return (
@@ -55,6 +58,21 @@ const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
             customStyles={{color: colors.white, maxWidth: '80%'}}
           />
         </UX.Box>
+        {isShow ? null : (
+          <UX.Box layout="row" spacing="xs">
+            <UX.CheckBox
+              checked={doNotShowAgain}
+              onChange={() => {
+                setDoNotShowAgain(!doNotShowAgain);
+              }}
+            />
+            <UX.Text
+              title="Do not show this message again"
+              styleType="body_12_normal"
+              customStyles={{color: colors.white, maxWidth: '80%'}}
+            />
+          </UX.Box>
+        )}
 
         <UX.Box layout="row" spacing="xs">
           <UX.Button

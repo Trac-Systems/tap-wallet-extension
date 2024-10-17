@@ -51,8 +51,10 @@ const TapTransfer = () => {
   const selectedAmount = state?.selectedAmount || 0;
   const selectedInscriptionIds = state?.selectedInscriptionIds || [];
   const ticker = state?.ticker || '';
+  const isShow = localStorage.getItem('show');
 
   //! State
+  const [doNotShowAgain, setDoNotShowAgain] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [showAttentionModal, setShowAttentionModal] = useState<boolean>(false);
   const [items, setItems] = useState<TokenTransfer[]>([]);
@@ -94,6 +96,12 @@ const TapTransfer = () => {
   //! Function
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (isShow !== '' && isShow) {
+      setDoNotShowAgain(true);
+    }
   }, []);
 
   const fetchData = async () => {
@@ -138,6 +146,12 @@ const TapTransfer = () => {
   };
 
   const handleInscriptionTransfer = () => {
+    if (isShow) {
+      navigate('/home/inscribe-transfer-tap', {
+        state: {ticker: tokenBalance.ticker},
+      });
+      return;
+    }
     setShowAttentionModal(true);
   };
 
@@ -294,18 +308,26 @@ const TapTransfer = () => {
               marginTop: '5px',
             }}
           />
-          <InscribeAttentionModal
-            visible={showAttentionModal}
-            onNext={() => {
-              setShowAttentionModal(false);
-              navigate('/home/inscribe-transfer-tap', {
-                state: {ticker: tokenBalance.ticker},
-              });
-            }}
-            onCancel={() => {
-              setShowAttentionModal(false);
-            }}
-          />
+          {isShow ? null : (
+            <InscribeAttentionModal
+              visible={showAttentionModal}
+              isShow={!!JSON.parse(isShow)}
+              doNotShowAgain={doNotShowAgain}
+              setDoNotShowAgain={setDoNotShowAgain}
+              onNext={() => {
+                if (doNotShowAgain) {
+                  localStorage.setItem('show', JSON.stringify(doNotShowAgain));
+                }
+                setShowAttentionModal(false);
+                navigate('/home/inscribe-transfer-tap', {
+                  state: {ticker: tokenBalance.ticker},
+                });
+              }}
+              onCancel={() => {
+                setShowAttentionModal(false);
+              }}
+            />
+          )}
         </UX.Box>
       }
       footer={

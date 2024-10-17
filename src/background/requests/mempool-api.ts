@@ -4,11 +4,14 @@ import {AxiosRequest} from './axios';
 
 export const MEMPOOL_API_TESTNET = 'https://mempool.space/testnet';
 export const MEMPOOL_API_MAINNET = 'https://mempool.space';
+export const API_ELECTRS = 'https://electrs.tap3.link';
 
 export class MempoolApi {
-  api!: AxiosRequest;
+  api_mempool!: AxiosRequest;
+  api_electrs!: AxiosRequest;
+
   constructor() {
-    if (!this.api) {
+    if (!this.api_mempool || !this.api_electrs) {
       this.init();
     }
   }
@@ -20,30 +23,39 @@ export class MempoolApi {
     if (!network) {
       network = networkConfig.getActiveNetwork();
     }
-    this.api = new AxiosRequest({
+    this.api_mempool = new AxiosRequest({
       baseUrl: MEMPOOL_API_MAINNET,
       //   apiKey: PAID_API_KEY_MAINNET,
     });
     if (network === Network.TESTNET) {
-      this.api = new AxiosRequest({
+      this.api_mempool = new AxiosRequest({
         baseUrl: MEMPOOL_API_TESTNET,
         // apiKey: PAID_API_KEY_TESTNET,
+      });
+      this.api_electrs = new AxiosRequest({
+        baseUrl: MEMPOOL_API_TESTNET + '/api/'
+      });
+    }
+    else
+    {
+      this.api_electrs = new AxiosRequest({
+        baseUrl: API_ELECTRS
       });
     }
   }
 
   async getRecommendFee(): Promise<any> {
-    const response = await this.api.get('api/v1/fees/recommended', {});
+    const response = await this.api_mempool.get('api/v1/fees/recommended', {});
     return response.data;
   }
 
   async pushTx(rawTx: string) {
-    const response = await this.api.postAsPlainText('/api/tx', rawTx);
+    const response = await this.api_electrs.postAsPlainText('/tx', rawTx);
     return response?.data;
   }
 
   async getUtxoData(address: string) {
-    const response = await this.api.get(`api/address/${address}/utxo`, {});
+    const response = await this.api_electrs.get(`address/${address}/utxo`, {});
     return response.data;
   }
 }

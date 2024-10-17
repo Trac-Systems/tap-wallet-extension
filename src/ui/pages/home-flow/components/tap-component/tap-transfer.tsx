@@ -51,6 +51,7 @@ const TapTransfer = () => {
   const selectedAmount = state?.selectedAmount || 0;
   const selectedInscriptionIds = state?.selectedInscriptionIds || [];
   const ticker = state?.ticker || '';
+const isShow = localStorage.getItem('show');
 
   //! State
   const [doNotShowAgain, setDoNotShowAgain] = useState(false);
@@ -98,7 +99,6 @@ const TapTransfer = () => {
   }, []);
 
   useEffect(() => {
-    const isShow = localStorage.getItem('show');
     if (isShow !== '' && isShow) {
       setDoNotShowAgain(true);
     }
@@ -304,6 +304,7 @@ const TapTransfer = () => {
           />
           <InscribeAttentionModal
             visible={showAttentionModal}
+            isShow={(!!JSON.parse(isShow))}
             doNotShowAgain={doNotShowAgain}
             setDoNotShowAgain={setDoNotShowAgain}
             onNext={() => {

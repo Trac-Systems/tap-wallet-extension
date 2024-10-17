@@ -9,9 +9,10 @@ interface InscribeAttentionModalProps {
   visible: boolean;
   doNotShowAgain: boolean;
   setDoNotShowAgain: (value: boolean) => void;
+  isShow?: boolean
 }
 const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
-  const {onNext, onCancel, visible, doNotShowAgain, setDoNotShowAgain} = props;
+  const {onNext, onCancel, visible,isShow, doNotShowAgain, setDoNotShowAgain} = props;
   const [isUnderstand, setUnderstand] = useState(false);
 
   return (
@@ -57,7 +58,7 @@ const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
             customStyles={{color: colors.white, maxWidth: '80%'}}
           />
         </UX.Box>
-        {doNotShowAgain ? null : (
+        {isShow ? null : (
           <UX.Box layout="row" spacing="xs">
             <UX.CheckBox
               checked={doNotShowAgain}

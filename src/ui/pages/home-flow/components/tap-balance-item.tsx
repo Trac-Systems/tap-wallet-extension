@@ -158,7 +158,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               customStyles={{
                 display: 'block',
                 color: 'white',
-                maxWidth: '100px',
+                maxWidth: '150px',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',

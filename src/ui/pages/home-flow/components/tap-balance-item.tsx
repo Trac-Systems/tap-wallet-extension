@@ -149,32 +149,43 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               marginRight: '8px',
             }}
           />
-          <UX.Text
-            title={ticker}
-            styleType="body_16_normal"
-            customStyles={{color: 'white'}}
-          />
+          <UX.Tooltip text={ticker}>
+            <UX.Text
+              title={ticker}
+              styleType="body_16_normal"
+              customStyles={{
+                color: 'white',
+                maxWidth: '150px',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+              }}
+            />
+          </UX.Tooltip>
         </UX.Box>
 
-        <UX.Box
-          layout="row"
-          style={{cursor: 'pointer', overflow: 'hidden'}}
-          onClick={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handleShowDetailList(ticker, e)
-          }>
-          <UX.Text
-            title={`${balance}`}
-            styleType="body_16_normal"
-            customStyles={{
-              color: 'white',
-              textOverflow: 'ellipsis',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              flex: 1,
-            }}
-          />
-          <SVG.ArrowDownIcon />
-        </UX.Box>
+        <UX.Tooltip text={String(balance ?? '')}>
+          <UX.Box
+            layout="row"
+            style={{cursor: 'pointer', overflow: 'hidden'}}
+            onClick={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleShowDetailList(ticker, e)
+            }>
+            <UX.Text
+              title={`${balance}`}
+              styleType="body_16_normal"
+              customStyles={{
+                color: 'white',
+                maxWidth: '150px',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                flex: 1,
+              }}
+            />
+            <SVG.ArrowDownIcon />
+          </UX.Box>
+        </UX.Tooltip>
       </UX.Box>
       {isExpandView ? (
         <>

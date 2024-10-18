@@ -149,13 +149,13 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               marginRight: '8px',
             }}
           />
-          <UX.Tooltip text={ticker}>
+          <UX.Tooltip text={ticker} isText>
             <UX.Text
               title={ticker}
               styleType="body_16_normal"
               customStyles={{
                 color: 'white',
-                maxWidth: '150px',
+                maxWidth: '100px',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',
@@ -164,7 +164,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           </UX.Tooltip>
         </UX.Box>
 
-        <UX.Tooltip text={String(balance ?? '')}>
+        <UX.Tooltip text={String(balance ?? '')} isText>
           <UX.Box
             layout="row"
             style={{cursor: 'pointer', overflow: 'hidden'}}
@@ -176,7 +176,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               styleType="body_16_normal"
               customStyles={{
                 color: 'white',
-                maxWidth: '150px',
+                maxWidth: '100px',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',

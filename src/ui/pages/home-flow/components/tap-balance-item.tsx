@@ -140,6 +140,8 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
             alignItems: 'center',
           }}>
           <UX.Box
+            layout="row"
+            spacing="xlg"
             style={{
               height: '32px',
               width: '32px',
@@ -154,6 +156,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               title={ticker}
               styleType="body_16_normal"
               customStyles={{
+                display: 'block',
                 color: 'white',
                 maxWidth: '100px',
                 textOverflow: 'ellipsis',

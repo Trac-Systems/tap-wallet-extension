@@ -242,7 +242,7 @@ const ListTapOptions = () => {
           </UX.Box>
           {!isEmpty(dataForList) ? (
             <UX.Text
-              title="Click on the inscription for details. To transfer, click on the Transfer button above.”"
+              title="Click on the inscription for details. To transfer, click on the Transfer button above."
               styleType="body_14_normal"
               customStyles={{textAlign: 'center'}}
             />

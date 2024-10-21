@@ -13,7 +13,6 @@ import AccountUpdater from './hook/account-updater';
 import eventBus from '../gateway/event-bus';
 import {EVENTS} from '../wallet-instance';
 import {AppDimensions} from './component/responsive';
-import browser from 'webextension-polyfill';
 
 const portMessageChannel = new PortMessage();
 
@@ -46,11 +45,6 @@ const wallet: Record<string, any> = new Proxy(
     },
   },
 );
-
-// keep alive extension
-setInterval(() => {
-  browser.runtime.sendMessage({type: 'keep-alive'});
-}, 5000);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -19,6 +19,7 @@
   padding-top: 8px;
   height: 60px;
   line-height: 60px;
+  z-index: 100;
 }
 @media only screen and (min-width: 600px) {
   .container_home {

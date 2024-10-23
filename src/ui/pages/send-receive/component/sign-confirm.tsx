@@ -249,6 +249,9 @@ const SignConfirm = ({
                         <UX.Text
                           title={formatAddressLongText(v?.utxo?.address, 8, 6)}
                           styleType="body_14_normal"
+                          customStyles={{
+                            color: isToSign ? colors.white : colors.smoke,
+                          }}
                         />
                         {isToSign && (
                           <UX.Text
@@ -281,11 +284,15 @@ const SignConfirm = ({
             <UX.Box layout="box" spacing="xl">
               {!isEmpty(rawTxInfo?.outputs) &&
                 rawTxInfo?.outputs?.map((v, index) => {
+                  const isAddressAccount = v.address === activeAccountAddress;
                   return (
                     <UX.Box layout="row_between" key={index}>
                       <UX.Text
                         title={formatAddressLongText(v.address, 8, 6)}
                         styleType="body_14_normal"
+                        customStyles={{
+                          color: isAddressAccount ? colors.white : colors.smoke,
+                        }}
                       />
                       <UX.Text
                         title={`${satoshisToAmount(v.value)} BTC`}

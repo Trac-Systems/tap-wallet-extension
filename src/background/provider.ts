@@ -501,7 +501,6 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
-
     const {psbt, inputForSigns, outputs, inputs} = await sendBTC({
       btcUtxos: btcUtxos,
       tos: [{address: to, satoshis: amount}],
@@ -783,7 +782,7 @@ export class Provider {
     return psbt;
   };
 
-  extractTransactionFromPsbtHex = (psbtHex: string, signed: boolean) => {
+  extractTransactionFromPsbtHex = async (psbtHex: string, signed: boolean) => {
     const extractData: ExtractPsbt = {
       outputs: [],
       inputs: [],
@@ -799,14 +798,19 @@ export class Provider {
     const psbt = Psbt.fromHex(psbtHex, {network});
 
     psbt.data.inputs.forEach(v => {
-      const address = extractAddressFromScript(v.witnessUtxo?.script, network);
+      const address = extractAddressFromScript({
+        script: v?.witnessUtxo?.script,
+        tapInternalKey: v?.tapInternalKey,
+        network,
+      });
       extractData.inputs.push({
         address,
         value: v.witnessUtxo?.value,
       });
     });
     psbt.txOutputs.forEach(v => {
-      const address = extractAddressFromScript(v.script, network);
+      const address =
+        v.address ?? extractAddressFromScript({script: v.script, network});
       extractData.outputs.push({
         value: v.value,
         address,

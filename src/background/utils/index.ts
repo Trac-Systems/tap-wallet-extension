@@ -1,6 +1,5 @@
 import {AddressType, Network} from '../../wallet-instance';
 import {bitcoin} from './bitcoin-core';
-import {payments} from 'bitcoinjs-lib';
 
 export * from './bitcoin-core';
 export * from './tx-helper';
@@ -86,25 +85,41 @@ export function getUtxoDustThreshold(addressType: AddressType) {
   }
 }
 
-export function extractAddressFromScript(
-  script: Buffer,
-  network: bitcoin.Network,
-) {
+export function extractAddressFromScript({
+  script,
+  tapInternalKey,
+  network,
+}: {
+  script: Buffer;
+  tapInternalKey?: Buffer ;
+  network: bitcoin.Network;
+}) {
+  // For P2TR address
+  if (tapInternalKey) {
+    try {
+      return bitcoin.payments.p2tr({internalPubkey: tapInternalKey, network})
+        .address;
+    } catch {
+      throw new Error('Unknown output type');
+    }
+  }
+
+  // For another type
   let address = '';
   const paymentInput = {output: script, network};
   try {
-    address = payments.p2pkh(paymentInput).address || '';
+    address = bitcoin.payments.p2pkh(paymentInput).address || '';
   } catch {
     try {
-      address = payments.p2sh(paymentInput).address || '';
+      address = bitcoin.payments.p2sh(paymentInput).address || '';
     } catch {
       try {
-        address = payments.p2wpkh(paymentInput).address || '';
+        address = bitcoin.payments.p2wpkh(paymentInput).address || '';
       } catch {
         try {
-          address = payments.p2wsh(paymentInput).address || '';
+          address = bitcoin.payments.p2wsh(paymentInput).address || '';
         } catch {
-          console.log('Unknown output type');
+          throw new Error('Unknown output type');
         }
       }
     }

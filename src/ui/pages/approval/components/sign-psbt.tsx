@@ -454,13 +454,16 @@ const SignPsbt = ({
               customStyles={{flex: 1}}
             />
           )}
-          <UX.Button
-            title={type === TxType.SIGN_TX ? 'Sign' : 'Sign & Pay'}
-            styleType="primary"
-            onClick={handleConfirm}
-            customStyles={{flex: 1}}
-            isDisable={!isEnable}
-          />
+          <UX.Box style={{flex: 1}}>
+            <UX.Tooltip isText text={isEnable ? '' : 'No input needs signing'}>
+              <UX.Button
+                title={type === TxType.SIGN_TX ? 'Sign' : 'Sign & Pay'}
+                styleType="primary"
+                onClick={handleConfirm}
+                customStyles={{flex: 1}}
+                isDisable={!isEnable}></UX.Button>
+            </UX.Tooltip>
+          </UX.Box>
         </UX.Box>
       }
     />

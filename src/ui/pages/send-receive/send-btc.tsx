@@ -47,13 +47,6 @@ const SendBTC = () => {
     setTxStateInfo({toInfo: {address: address}});
   };
 
-  const onAmountChange = (input: string) => {
-    const formattedInput = input.replace(/,/g, '.');
-    if (validateAmountInput(formattedInput, AmountInput.BTC)) {
-      setTxStateInfo({inputAmount: formattedInput});
-    }
-  };
-
   useEffect(() => {
     fetchUtxos().finally(() => {});
   }, []);

@@ -368,6 +368,9 @@ const SignPsbt = ({
                       <UX.Text
                         title={formatAddressLongText(v?.address, 8, 6)}
                         styleType="body_14_normal"
+                        customStyles={{
+                          color: isToSign ? colors.main_500 : colors.smoke,
+                        }}
                       />
                       {isToSign && (
                         <UX.Text
@@ -400,11 +403,18 @@ const SignPsbt = ({
           <UX.Box layout="box" spacing="xl">
             {!isEmpty(extractTx?.outputs) &&
               extractTx?.outputs?.map((v, index) => {
+                const isAddressAccount = v.address === activeAccountAddress;
+
                 return (
                   <UX.Box layout="row_between" key={index}>
                     <UX.Text
                       title={formatAddressLongText(v.address, 8, 6)}
                       styleType="body_14_normal"
+                      customStyles={{
+                        color: isAddressAccount
+                          ? colors.main_500
+                          : colors.smoke,
+                      }}
                     />
                     <UX.Text
                       title={`${satoshisToAmount(v.value)} BTC`}

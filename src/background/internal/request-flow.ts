@@ -75,7 +75,7 @@ const flowContext = flow
       },
       mapMethod,
     } = ctx;
-    if (!Reflect.getMetadata('SAFE', providerController, mapMethod)) {
+    if (!['getNetwork', 'switchNetwork'].includes(mapMethod)) {
       if (!permissionService.hasPermission(origin)) {
         ctx.request.requestedApproval = true;
         await notificationService.requestApproval(

@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
 import './index.css';
 import {Tab, TabContent} from './TabContent';
 
@@ -13,10 +14,20 @@ interface TabsProps {
 
 const Tabs: React.FC<TabsProps> = ({tabs}) => {
   const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const tabFromUrl = new URLSearchParams(location.search).get('tab');
 
   const handleTabClick = (index: number) => {
+    navigate(`?tab=${index}`);
     setActiveTabIndex(index);
   };
+
+  useEffect(() => {
+    if (tabFromUrl) {
+      setActiveTabIndex(Number(tabFromUrl));
+    }
+  }, [tabFromUrl]);
 
   return (
     <div className="tabs-container">

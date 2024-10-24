@@ -250,7 +250,7 @@ const SignConfirm = ({
                           title={formatAddressLongText(v?.utxo?.address, 8, 6)}
                           styleType="body_14_normal"
                           customStyles={{
-                            color: isToSign ? colors.white : colors.smoke,
+                            color: isToSign ? colors.main_500 : colors.smoke,
                           }}
                         />
                         {isToSign && (
@@ -291,7 +291,9 @@ const SignConfirm = ({
                         title={formatAddressLongText(v.address, 8, 6)}
                         styleType="body_14_normal"
                         customStyles={{
-                          color: isAddressAccount ? colors.white : colors.smoke,
+                          color: isAddressAccount
+                            ? colors.main_500
+                            : colors.smoke,
                         }}
                       />
                       <UX.Text

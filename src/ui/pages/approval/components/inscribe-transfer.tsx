@@ -493,7 +493,9 @@ export const Step3 = ({
                   <UX.Text
                     title={formatAddressLongText(v?.utxo?.address, 8, 6)}
                     styleType="body_14_normal"
-                    customStyles={{color: isToSign ? 'white' : colors.smoke}}
+                    customStyles={{
+                      color: isToSign ? colors.main_500 : colors.smoke,
+                    }}
                   />
                   {isToSign && (
                     <UX.Text
@@ -533,7 +535,7 @@ export const Step3 = ({
                   title={formatAddressLongText(v.address, 8, 6)}
                   styleType="body_14_normal"
                   customStyles={{
-                    color: isAddressAccount ? colors.white : colors.smoke,
+                    color: isAddressAccount ? colors.main_500 : colors.smoke,
                   }}
                 />
                 <UX.Text

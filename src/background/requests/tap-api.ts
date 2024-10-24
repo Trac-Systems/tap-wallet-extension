@@ -16,7 +16,7 @@ import {
 import {calculateAmount} from '../../shared/utils/btc-helper';
 
 const TAP_API_TESTNET = 'https://turbo.tracnetwork.io:55008';
-const TAP_API_MAINNET = 'https://tap-reader.tap3.link';
+const TAP_API_MAINNET = 'https://tap-reader-tw.tap-hosting.xyz';
 
 export class TapApi {
   api!: AxiosRequest;

@@ -4,7 +4,7 @@ import {AxiosRequest} from './axios';
 
 export const MEMPOOL_API_TESTNET = 'https://mempool.space/testnet';
 export const MEMPOOL_API_MAINNET = 'https://mempool.space';
-export const API_ELECTRS = 'https://electrs.tap3.link';
+export const API_ELECTRS = 'https://electrs-tw.tap-hosting.xyz';
 
 export class MempoolApi {
   api_mempool!: AxiosRequest;

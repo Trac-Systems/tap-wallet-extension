@@ -9,9 +9,10 @@ import {
   useFetchBalanceCallback,
   useReloadAccounts,
 } from '../pages/home-flow/hook';
-import {IDisplayAccount} from '@/src/wallet-instance';
+import {IDisplayAccount, Network} from '@/src/wallet-instance';
 import {AccountActions} from '../redux/reducer/account/slice';
 import eventBus from '@/src/gateway/event-bus';
+import { GlobalActions } from '@/src/ui/redux/reducer/global/slice';
 
 export default function AccountUpdater() {
   const dispatch = useAppDispatch();
@@ -70,6 +71,21 @@ export default function AccountUpdater() {
     eventBus.addEventListener('accountsChanged', accountChangeHandler);
     return () => {
       eventBus.removeEventListener('accountsChanged', accountChangeHandler);
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    const networkChangedHandler = (networkType: Network) => {
+      dispatch(
+        GlobalActions.updateNetwork({
+          networkType,
+        }),
+      );
+    };
+
+    eventBus.addEventListener('networkChanged', networkChangedHandler);
+    return () => {
+      eventBus.removeEventListener('networkChanged', networkChangedHandler);
     };
   }, [dispatch]);
 

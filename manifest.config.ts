@@ -36,7 +36,7 @@ export default defineManifest(async env => ({
       matches: ['<all_urls>'],
     },
   ],
-  permissions: ['storage', 'activeTab'],
+  permissions: ['storage', 'unlimitedStorage', 'activeTab'],
   icons: {
     '16': 'images/logo.png',
     '48': 'images/logo.png',

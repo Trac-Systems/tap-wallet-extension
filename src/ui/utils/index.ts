@@ -6,6 +6,7 @@ import {networkConfig} from '@/src/background/service/singleton';
 import {bitcoin} from '../../background/utils';
 
 export const PAGE_SIZE = 100;
+export const TOKEN_PAGE_SIZE = 20
 
 export enum AmountInput {
   FEE_RATE,

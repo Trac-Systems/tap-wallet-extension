@@ -1,6 +1,6 @@
 import {UX} from '@/src/ui/component';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {generateUniqueColors, PAGE_SIZE, useAppSelector} from '@/src/ui/utils';
+import {generateUniqueColors, TOKEN_PAGE_SIZE, useAppSelector} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {isEmpty} from 'lodash';
@@ -25,14 +25,14 @@ const TapList = () => {
   const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
   const [pagination, setPagination] = useState({
     currentPage: 1,
-    pageSize: PAGE_SIZE,
+    pageSize: TOKEN_PAGE_SIZE,
   });
 
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;
     } else {
-      return generateUniqueColors(PAGE_SIZE);
+      return generateUniqueColors(TOKEN_PAGE_SIZE);
     }
   }, [randomColors]);
 

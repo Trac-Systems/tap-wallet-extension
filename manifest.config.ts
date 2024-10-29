@@ -20,7 +20,7 @@ export default defineManifest(async env => ({
     service_worker: 'src/background/index.ts',
     type: 'module',
   },
-  description: 'A extension about tap wallet',
+  description: "The official wallet of the TAP Protocol project.",
   content_scripts: [
     {
       matches: ['<all_urls>'],

@@ -824,7 +824,7 @@ export class Provider {
       extractData.fee = psbt.getFee();
       extractData.feeRate = psbt.getFeeRate();
 
-      const tx = psbt.extractTransaction();
+      const tx = psbt.extractTransaction(true);
       let rbf = false;
       for (const input of tx.ins) {
         const nSequence = input.sequence;

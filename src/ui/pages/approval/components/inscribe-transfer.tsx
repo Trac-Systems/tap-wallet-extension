@@ -691,10 +691,10 @@ export const Step5 = ({
       .getTapSummary(account.address, tokenBalance.ticker)
       .then(() => {
         resolveApproval({
-          inscriptionId: result.inscriptionId,
-          inscriptionNumber: result.inscriptionNumber,
+          inscriptionId: result?.inscriptionId,
+          inscriptionNumber: result?.inscriptionNumber,
           ticker: tokenBalance.ticker,
-          amount: result.amount,
+          amount: result?.amount,
         });
       })
       .finally(() => {

@@ -80,7 +80,7 @@ const ListTapOptions = () => {
       .then((tokenSummaryData: AddressTokenSummary) => {
         if (tokenSummaryData.tokenInfo.holder === activeAccount.address) {
           wallet
-            .getInscriptionInfo(tokenSummaryData.tokenInfo.inscriptionId)
+            .getInscriptionInfo(tokenSummaryData.tokenInfo?.inscriptionId)
             .then((inscription: Inscription) => {
               const data = inscription;
               setDeployInscription(data);
@@ -131,8 +131,8 @@ const ListTapOptions = () => {
           ...deployInscriptionState,
           ticker: brcTokenBalance?.ticker,
           amount: '0',
-          inscriptionNumber: deployInscriptionState.inscriptionNumber,
-          inscriptionId: deployInscriptionState.inscriptionId,
+          inscriptionNumber: deployInscriptionState?.inscriptionNumber,
+          inscriptionId: deployInscriptionState?.inscriptionId,
         }
       : undefined;
 
@@ -142,10 +142,10 @@ const ListTapOptions = () => {
   ].filter(Boolean) as TokenTransfer[];
 
   const tapPreviewItemOnPress = async (item: TokenTransfer) => {
-    const inscription = await wallet.getInscriptionInfo(item.inscriptionId);
+    const inscription = await wallet.getInscriptionInfo(item?.inscriptionId);
     navigate('/home/inscription-detail', {
       state: {
-        inscriptionId: inscription.inscriptionId,
+        inscriptionId: inscription?.inscriptionId,
       },
     });
   };

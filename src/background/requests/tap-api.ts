@@ -9,6 +9,7 @@ import {AxiosRequest} from './axios';
 import {isEmpty} from 'lodash';
 import {mempoolApi} from '.';
 import {
+  TapTokenInfo,
   convertTapTokenBalance,
   convertTapTokenInfo,
   convertTapTokenTransferList,
@@ -43,6 +44,11 @@ export class TapApi {
     }
   }
 
+  async getDeployment(ticker: string): Promise<TapTokenInfo> {
+    const response = await this.api.get(`/getDeployment/${encodeURIComponent(ticker)}`, {});
+    return response?.data?.result;
+  }
+
   async getAddressTapTokens(
     address: string,
     offset: number,
@@ -52,18 +58,23 @@ export class TapApi {
       offset,
       max,
     });
-    if (response?.data?.data?.list) {
-      const list = response.data?.data?.list.map(
-        (tokenBalance: TokenBalance) => {
-          return {
-            ...tokenBalance,
-            overallBalance: calculateAmount(tokenBalance.overallBalance),
-            transferableBalance: calculateAmount(
-              tokenBalance.transferableBalance,
-            ),
-          };
-        },
-      );
+    if (response?.data?.data?.list?.length > 0) {
+      const list = [];
+      // eslint-disable-next-line no-unsafe-optional-chaining
+      for (const tokenBalance of response.data?.data?.list) {
+        const tokenInfo = await this.getDeployment(tokenBalance.ticker);
+        list.push({
+          ...tokenBalance,
+          overallBalance: calculateAmount(
+            tokenBalance.overallBalance,
+            tokenInfo?.dec,
+          ),
+          transferableBalance: calculateAmount(
+            tokenBalance.transferableBalance,
+            tokenInfo?.dec,
+          ),
+        });
+      }
       return {
         list,
         total: response.data?.data?.total ?? 0,
@@ -92,12 +103,12 @@ export class TapApi {
     ticker: string,
   ): Promise<AddressTokenSummary> {
     const response = await this.api.get(
-      `/getAccountTokenDetail/${address}/${ticker}`,
+      `/getAccountTokenDetail/${address}/${encodeURIComponent(ticker)}`,
       {},
     );
 
     if (isEmpty(response.data)) {
-      throw new Error(`Token ${ticker} don't have in your account`);
+      throw new Error(`Token ${encodeURIComponent(ticker)} don't have in your account`);
     }
     const getUtxoResult = await mempoolApi.getUtxoData(address);
     const utxoMap = this.getUtxoMap(getUtxoResult);
@@ -109,9 +120,15 @@ export class TapApi {
     }
     const result = {
       tokenInfo: convertTapTokenInfo(response?.data?.data?.tokenInfo),
-      tokenBalance: convertTapTokenBalance(response?.data?.data?.tokenBalance),
+      tokenBalance: convertTapTokenBalance(
+        response?.data?.data?.tokenBalance,
+        response?.data?.data?.tokenInfo?.dec,
+      ),
       historyList: [],
-      transferableList: convertTapTokenTransferList(list),
+      transferableList: convertTapTokenTransferList(
+        list,
+        response?.data?.data?.tokenInfo?.dec,
+      ),
     };
     return result;
   }
@@ -121,7 +138,7 @@ export class TapApi {
     ticker: string,
   ): Promise<number> {
     const response = await this.api.get(
-      `/getAccountTransferListLength/${address}/${ticker}`,
+      `/getAccountTransferListLength/${address}/${encodeURIComponent(ticker)}`,
       {},
     );
     return response?.data?.result || 0;
@@ -135,7 +152,7 @@ export class TapApi {
   ) {
     let total = await this.getTapTransferAbleLength(address, ticker);
     const response = await this.api.get(
-      `/getAccountTransferList/${address}/${ticker}`,
+      `/getAccountTransferList/${address}/${encodeURIComponent(ticker)}`,
       {
         max,
         offset,
@@ -153,9 +170,10 @@ export class TapApi {
         }
       });
     }
+    const tokenInfo = await this.getDeployment(ticker);
     return {
       total,
-      list: convertTapTokenTransferList(list),
+      list: convertTapTokenTransferList(list, tokenInfo.dec),
     };
   }
 }

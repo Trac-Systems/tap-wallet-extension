@@ -912,7 +912,7 @@ export class Provider {
 
     if (tokenSummary?.tokenInfo?.inscriptionId) {
       const inscription = await this.getInscriptionInfo(
-        tokenSummary.tokenInfo.inscriptionId,
+        tokenSummary.tokenInfo?.inscriptionId,
       );
       tokenSummary.tokenInfo.holder = inscription.address;
     }

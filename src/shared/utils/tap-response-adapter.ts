@@ -48,15 +48,15 @@ export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo): TokenInfo => {
     return {
       totalSupply: '0',
       totalMinted: '0',
-      decimal: 18,
+      decimal: 0,
       holder: '',
       inscriptionId: '',
     };
   }
   return {
-    totalSupply: calculateAmount(tapTokenInfo.max),
+    totalSupply: calculateAmount(tapTokenInfo.max, tapTokenInfo.dec),
     totalMinted: '0',
-    decimal: tapTokenInfo.dec,
+    decimal: tapTokenInfo?.dec,
     holder: '',
     inscriptionId: tapTokenInfo.ins,
   };
@@ -64,6 +64,7 @@ export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo): TokenInfo => {
 
 export const convertTapTokenBalance = (
   tapTokenBalance: TapTokenBalance,
+  decimal: number,
 ): TokenBalance => {
   if (!tapTokenBalance) {
     return {
@@ -80,9 +81,12 @@ export const convertTapTokenBalance = (
     Number(tapTokenBalance.transferableBalance);
   return {
     ticker: tapTokenBalance.ticker,
-    overallBalance: calculateAmount(tapTokenBalance.overallBalance),
-    transferableBalance: calculateAmount(tapTokenBalance.transferableBalance),
-    availableBalance: calculateAmount(availableBalance.toString()),
+    overallBalance: calculateAmount(tapTokenBalance.overallBalance, decimal),
+    transferableBalance: calculateAmount(
+      tapTokenBalance.transferableBalance,
+      decimal,
+    ),
+    availableBalance: calculateAmount(availableBalance.toString(), decimal),
     availableBalanceSafe: '0',
     availableBalanceUnSafe: '0',
   };
@@ -90,12 +94,13 @@ export const convertTapTokenBalance = (
 
 export const convertTapTokenTransferList = (
   data: TapTokenTransfer[],
+  decimal: number,
 ): TokenTransfer[] => {
   const result: TokenTransfer[] = [];
   data.forEach(v => {
     const transfer: TokenTransfer = {
       ticker: '',
-      amount: calculateAmount(v.amt),
+      amount: calculateAmount(v.amt, decimal),
       inscriptionId: v.ins,
       inscriptionNumber: v.num,
       timestamp: v.ts,

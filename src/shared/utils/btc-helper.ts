@@ -70,12 +70,12 @@ export function convertScriptToAddress(
   }
 }
 
-export function calculateAmount(value) {
+export function calculateAmount(value, decimal = 0) {
   if (!Number(value)) {
     return '0';
   }
 
-  return (Number(value) / 10 ** 18).toString();
+  return (Number(value) / 10 ** decimal).toString();
 }
 
 export const formatNumberValue = (num: string) => {

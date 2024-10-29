@@ -4,7 +4,12 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {InscriptionActions} from '@/src/ui/redux/reducer/inscription/slice';
 import {WalletActions} from '@/src/ui/redux/reducer/wallet/slice';
-import {PAGE_SIZE, useAppDispatch, useAppSelector, TOKEN_PAGE_SIZE} from '@/src/ui/utils';
+import {
+  PAGE_SIZE,
+  useAppDispatch,
+  useAppSelector,
+  TOKEN_PAGE_SIZE,
+} from '@/src/ui/utils';
 import {useCallback} from 'react';
 
 export function useAccountBalance() {

@@ -137,7 +137,7 @@ class InternalProvider {
   ])
   sendBitcoin = async ({approvalRes: {psbtHex}}) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
-    const tx = psbt.extractTransaction();
+    const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
     return await walletProvider.pushTx(rawtx);
   };
@@ -154,7 +154,7 @@ class InternalProvider {
   ])
   sendInscription = async ({approvalRes: {psbtHex}}) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
-    const tx = psbt.extractTransaction();
+    const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
     return await walletProvider.pushTx(rawtx);
   };
@@ -171,7 +171,7 @@ class InternalProvider {
   ])
   sendTapTransfer = async ({approvalRes: {psbtHex}}) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
-    const tx = psbt.extractTransaction();
+    const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
     return await walletProvider.pushTx(rawtx);
   };

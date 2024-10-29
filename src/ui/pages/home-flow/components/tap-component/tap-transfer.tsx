@@ -204,7 +204,7 @@ const TapTransfer = () => {
                     balance={item?.amount}
                     inscriptionNumber={item?.inscriptionNumber}
                     selected={contextData.inscriptionIdSet.has(
-                      item.inscriptionId,
+                      item?.inscriptionId,
                     )}
                     onClick={async () => {
                       if (

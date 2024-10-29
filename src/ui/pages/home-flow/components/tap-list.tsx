@@ -1,6 +1,10 @@
 import {UX} from '@/src/ui/component';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {generateUniqueColors, TOKEN_PAGE_SIZE, useAppSelector} from '@/src/ui/utils';
+import {
+  generateUniqueColors,
+  TOKEN_PAGE_SIZE,
+  useAppSelector,
+} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {isEmpty} from 'lodash';

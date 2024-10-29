@@ -824,7 +824,7 @@ export class Provider {
       extractData.fee = psbt.getFee();
       extractData.feeRate = psbt.getFeeRate();
 
-      const tx = psbt.extractTransaction();
+      const tx = psbt.extractTransaction(true);
       let rbf = false;
       for (const input of tx.ins) {
         const nSequence = input.sequence;
@@ -912,7 +912,7 @@ export class Provider {
 
     if (tokenSummary?.tokenInfo?.inscriptionId) {
       const inscription = await this.getInscriptionInfo(
-        tokenSummary.tokenInfo.inscriptionId,
+        tokenSummary.tokenInfo?.inscriptionId,
       );
       tokenSummary.tokenInfo.holder = inscription.address;
     }

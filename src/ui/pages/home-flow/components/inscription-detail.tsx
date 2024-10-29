@@ -22,7 +22,7 @@ const InscriptionDetail = () => {
   const getInscriptionInfo = async () => {
     try {
       setLoading(true);
-      const inscription = await wallet.getInscriptionInfo(state.inscriptionId);
+      const inscription = await wallet.getInscriptionInfo(state?.inscriptionId);
       setInscriptionInfo(inscription);
     } catch (err) {
       showToast({

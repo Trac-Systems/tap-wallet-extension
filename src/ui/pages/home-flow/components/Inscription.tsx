@@ -40,7 +40,7 @@ export function InscriptionList() {
             onClick={() =>
               navigate('/home/inscription-detail', {
                 state: {
-                  inscriptionId: data.inscriptionId,
+                  inscriptionId: data?.inscriptionId,
                 },
               })
             }

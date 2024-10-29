@@ -76,7 +76,7 @@ export function usePrepareSendBTCCallback() {
       });
 
       const psbt = bitcoin.Psbt.fromHex(psbtHex);
-      const rawtx = psbt.extractTransaction().toHex();
+      const rawtx = psbt.extractTransaction(true).toHex();
       const fee = psbt.getFee();
       dispatch(
         TransactionsActions.updateBitcoinTx({
@@ -187,7 +187,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
         });
       const psbt = bitcoin.Psbt.fromHex(psbtHex);
       const fee = psbt.getFee();
-      const rawtx = psbt.extractTransaction().toHex();
+      const rawtx = psbt.extractTransaction(true).toHex();
       dispatch(
         TransactionsActions.updateOrdinalsTx({
           rawtx,
@@ -262,7 +262,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
       const psbt = bitcoin.Psbt.fromHex(psbtHex);
       const fee = psbt.getFee();
 
-      const rawtx = psbt.extractTransaction().toHex();
+      const rawtx = psbt.extractTransaction(true).toHex();
       dispatch(
         TransactionsActions.updateOrdinalsTx({
           rawtx,

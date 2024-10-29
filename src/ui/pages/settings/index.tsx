@@ -110,7 +110,7 @@ const SettingPage = () => {
   //! Render
   return (
     <LayoutScreenSettings
-      header={<UX.TextHeader text="Setting" disableIconBack />}
+      header={<UX.TextHeader text="Settings" disableIconBack />}
       body={
         <UX.Box
           layout="column_center"

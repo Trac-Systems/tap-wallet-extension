@@ -35,7 +35,7 @@ const Navbar = (props: INavbar) => {
           color={isActive === 'setting' ? '#D16B7C' : 'white'}
         />
         <UX.Text
-          title="Setting"
+          title="Settings"
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'setting' ? colors.main_500 : colors.white,

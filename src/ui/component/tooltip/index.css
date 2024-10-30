@@ -25,7 +25,7 @@
 
 .tooltip-text-normal {
   visibility: hidden;
-  /* width: fit-content; */
+  white-space: pre;
   background-color: black;
   border-radius: 10px;
   color: #fff !important;

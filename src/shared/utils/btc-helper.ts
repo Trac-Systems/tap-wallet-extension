@@ -19,25 +19,15 @@ export const schnorrValidator = (
   return ECPair.fromPublicKey(pubkey).verifySchnorr(msghash, signature);
 };
 
-// export function satoshisToAmount(val: number = 0): string {
-//   const num = new BigNumber(val);
-
-//   return num
-//     .dividedBy(100000000)
-//     .toFixed(8)
-// .replace(/\.?0+$/, '')
-//     .toLocaleString();
-// }
 export function satoshisToAmount(val: number = 0): string {
   if (val === 0) return '0';
   const num = new BigNumber(val);
   const btc = num.dividedBy(100000000);
   const [integerPart, decimalPart] = btc.toFixed(8).split('.');
   const formattedIntegerPart = Number(integerPart).toLocaleString();
-  const formattedAmount = decimalPart
+  const formattedAmount = decimalPart && Number(decimalPart) > 0
     ? `${formattedIntegerPart}.${decimalPart.replace(/0+$/, '')}`
     : formattedIntegerPart;
-
   return formattedAmount;
 }
 

@@ -118,13 +118,13 @@ const SignPsbt = ({
     });
   };
 
-  const dustThreshold = useMemo(() => {
-    if (toAddress) {
-      const getAddressTypeReceiver = getAddressType(toAddress);
+  // const dustThreshold = useMemo(() => {
+  //   if (toAddress) {
+  //     const getAddressTypeReceiver = getAddressType(toAddress);
 
-      return getUtxoDustThreshold(getAddressTypeReceiver);
-    }
-  }, []);
+  //     return getUtxoDustThreshold(getAddressTypeReceiver);
+  //   }
+  // }, []);
 
   const init = useCallback(async () => {
     if (type === TxType.SIGN_TX) {
@@ -174,7 +174,7 @@ const SignPsbt = ({
           toAddressInfo,
           inscriptionId,
           feeRate: feeRate,
-          outputValue: dustThreshold,
+          // outputValue: dustThreshold,
           enableRBF: false,
         })
           .then(data => {

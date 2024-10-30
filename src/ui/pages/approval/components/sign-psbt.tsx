@@ -449,21 +449,23 @@ const SignPsbt = ({
       }
       footer={
         <UX.Box layout="row" spacing="sm">
-          {onBackClick ? (
-            <UX.Button
-              title="Back"
-              styleType="dark"
-              onClick={onBackClick}
-              customStyles={{flex: 1}}
-            />
-          ) : (
-            <UX.Button
-              title="Reject"
-              styleType="dark"
-              onClick={handleCancel}
-              customStyles={{flex: 1}}
-            />
-          )}
+          <UX.Box style={{flex: 1}}>
+            {onBackClick ? (
+              <UX.Button
+                title="Back"
+                styleType="dark"
+                onClick={onBackClick}
+                customStyles={{flex: 1}}
+              />
+            ) : (
+              <UX.Button
+                title="Reject"
+                styleType="dark"
+                onClick={handleCancel}
+                customStyles={{flex: 1}}
+              />
+            )}
+          </UX.Box>
           <UX.Box style={{flex: 1}}>
             <UX.Tooltip isText text={isEnable ? '' : 'No input needs signing'}>
               <UX.Button

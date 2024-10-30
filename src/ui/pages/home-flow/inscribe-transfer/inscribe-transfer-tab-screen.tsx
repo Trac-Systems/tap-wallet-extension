@@ -23,7 +23,11 @@ import {getUtxoDustThreshold} from '@/src/background/utils';
 import {colors} from '@/src/ui/themes/color';
 import {OutputValueBar} from '../../send-receive/component/output-value';
 import {RBFBar} from '../../send-receive/component/rbf-bar';
-import {formatAmountNumber, formatNumberValue} from '@/src/shared/utils/btc-helper';
+import {
+  formatAmountNumber,
+  formatNumberValue,
+  formatTicker,
+} from '@/src/shared/utils/btc-helper';
 
 interface ContextData {
   ticker: string;
@@ -249,12 +253,14 @@ const InscribeTransferTapScreen = () => {
                   />
                   <UX.Box layout="row" spacing="xs">
                     <UX.Text
-                      title={formatNumberValue(contextData?.tokenBalance?.availableBalance ?? "0")}
+                      title={formatNumberValue(
+                        contextData?.tokenBalance?.availableBalance ?? '0',
+                      )}
                       styleType="body_12_bold"
                       customStyles={{color: colors.white}}
                     />
                     <UX.Text
-                      title={contextData?.tokenBalance?.ticker}
+                      title={formatTicker(contextData?.tokenBalance?.ticker)}
                       styleType="body_12_bold"
                       customStyles={{color: colors.main_500}}
                     />

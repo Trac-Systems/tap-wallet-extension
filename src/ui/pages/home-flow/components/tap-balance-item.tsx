@@ -5,7 +5,7 @@ import {useAppSelector} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AddressTokenSummary} from '@/src/wallet-instance';
-import {formatNumberValue} from '@/src/shared/utils/btc-helper';
+import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -151,9 +151,9 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               marginRight: '8px',
             }}
           />
-          <UX.Tooltip text={ticker} isText>
+          <UX.Tooltip text={formatTicker(ticker)} isText>
             <UX.Text
-              title={ticker}
+              title={formatTicker(ticker)}
               styleType="body_16_normal"
               customStyles={{
                 display: 'block',

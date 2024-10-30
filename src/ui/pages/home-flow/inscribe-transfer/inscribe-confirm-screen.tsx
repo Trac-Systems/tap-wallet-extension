@@ -1,4 +1,4 @@
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
@@ -63,7 +63,7 @@ const InscribeConfirmScreen = () => {
                 styleType="heading_16"
               />
               <UX.Text
-                title={contextDataParam?.tokenBalance.ticker}
+                title={formatTicker(contextDataParam?.tokenBalance.ticker)}
                 styleType="heading_16"
                 customStyles={{color: colors.main_500}}
               />

@@ -16,7 +16,7 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import BigNumber from 'bignumber.js';
 import {useCustomToast} from '@/src/ui/component/toast-custom';
 import InscribeAttentionModal from '../inscribe-attention-modal';
-import {formatNumberValue} from '@/src/shared/utils/btc-helper';
+import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 
 interface UpdateContextDataParams {
   transferAmount?: string;
@@ -180,7 +180,7 @@ const TapTransfer = () => {
               styleType="heading_16"
             />
             <UX.Text
-              title={contextData?.tokenBalance?.ticker}
+              title={formatTicker(contextData?.tokenBalance?.ticker)}
               styleType="body_16_bold"
               customStyles={{color: colors.main_500}}
             />
@@ -200,7 +200,7 @@ const TapTransfer = () => {
                 <UX.Box key={index}>
                   <CoinCount
                     type="TRANSFER"
-                    ticker={contextData?.tokenBalance?.ticker}
+                    ticker={formatTicker(contextData?.tokenBalance?.ticker)}
                     balance={item?.amount}
                     inscriptionNumber={item?.inscriptionNumber}
                     selected={contextData.inscriptionIdSet.has(
@@ -292,7 +292,7 @@ const TapTransfer = () => {
                   customStyles={{color: colors.white}}
                 />
                 <UX.Text
-                  title={contextData?.tokenBalance?.ticker}
+                  title={formatTicker(contextData?.tokenBalance?.ticker)}
                   styleType="body_12_normal"
                   customStyles={{color: colors.main_500}}
                 />

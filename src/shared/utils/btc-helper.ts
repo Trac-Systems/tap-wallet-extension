@@ -25,9 +25,10 @@ export function satoshisToAmount(val: number = 0): string {
   const btc = num.dividedBy(100000000);
   const [integerPart, decimalPart] = btc.toFixed(8).split('.');
   const formattedIntegerPart = Number(integerPart).toLocaleString();
-  const formattedAmount = decimalPart && Number(decimalPart) > 0
-    ? `${formattedIntegerPart}.${decimalPart.replace(/0+$/, '')}`
-    : formattedIntegerPart;
+  const formattedAmount =
+    decimalPart && Number(decimalPart) > 0
+      ? `${formattedIntegerPart}.${decimalPart.replace(/0+$/, '')}`
+      : formattedIntegerPart;
   return formattedAmount;
 }
 
@@ -85,4 +86,19 @@ export const formatAmountNumber = (num: string) => {
   }).format(Number(parts[0]));
 
   return parts.join('.');
+};
+
+export const formatTicker = (ticker: string) => {
+  if (!ticker) {
+    return '';
+  }
+  if (ticker.startsWith('"') && ticker.endsWith('"')) {
+    return `"${ticker}"`;
+  }
+
+  if (ticker.trim().length !== ticker.length) {
+    return `"${ticker}"`;
+  }
+
+  return ticker;
 };

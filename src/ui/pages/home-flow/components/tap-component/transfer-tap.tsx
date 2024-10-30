@@ -1,4 +1,5 @@
 import { getUtxoDustThreshold } from '@/src/background/utils';
+import { formatTicker } from '@/src/shared/utils/btc-helper';
 import { UX } from '@/src/ui/component';
 import { useCustomToast } from '@/src/ui/component/toast-custom';
 import LayoutTap from '@/src/ui/layouts/tap';
@@ -137,7 +138,7 @@ const TransferTap = () => {
         <UX.Box spacing="xl" style={{width: '100%'}}>
           <UX.Box spacing="xs">
             <UX.Text title="Send" styleType="heading_14" />
-            <UX.Input value={`${amount} ${ticker}`} disabled />
+            <UX.Input value={`${amount} ${formatTicker(ticker)}`} disabled />
           </UX.Box>
           <UX.Box spacing="xs">
             <UX.Text title="Receiver" styleType="heading_14" />

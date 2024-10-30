@@ -15,7 +15,7 @@ import {
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
-import { formatNumberValue } from '@/src/shared/utils/btc-helper';
+import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -165,12 +165,12 @@ const ListTapOptions = () => {
         <UX.Box>
           <UX.Box layout="row_center" style={{margin: '20px 0'}}>
             <UX.Text
-              title={`${formatNumberValue(String(balance??'0'))} `}
+              title={`${formatNumberValue(String(balance ?? '0'))} `}
               styleType="body_16_bold"
               customStyles={{color: colors.white, marginRight: '8px'}}
             />
             <UX.Text
-              title={brcTokenBalance?.ticker}
+              title={formatTicker(brcTokenBalance?.ticker)}
               styleType="body_14_bold"
               customStyles={{color: colors.main_500}}
             />
@@ -202,7 +202,7 @@ const ListTapOptions = () => {
                 customStyles={{color: colors.white}}
               />
               <UX.Text
-                title={brcTokenBalance?.ticker}
+                title={formatTicker(brcTokenBalance?.ticker)}
                 styleType="body_12_bold"
                 customStyles={{color: colors.main_500}}
               />
@@ -221,7 +221,7 @@ const ListTapOptions = () => {
                     {deployInscriptionState && index === 0 ? (
                       <CoinCount
                         type="DEPLOY"
-                        ticker={brcTokenBalance?.ticker}
+                        ticker={formatTicker(brcTokenBalance?.ticker)}
                         balance={item?.amount}
                         inscriptionNumber={item?.inscriptionNumber}
                         onClick={() => tapPreviewItemOnPress(item)}
@@ -229,7 +229,7 @@ const ListTapOptions = () => {
                     ) : (
                       <CoinCount
                         type="TRANSFER"
-                        ticker={brcTokenBalance?.ticker}
+                        ticker={formatTicker(brcTokenBalance?.ticker)}
                         balance={item?.amount}
                         inscriptionNumber={item?.inscriptionNumber}
                         onClick={() => tapPreviewItemOnPress(item)}

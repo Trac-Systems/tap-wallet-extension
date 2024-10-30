@@ -161,7 +161,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                 maxWidth: '150px',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'pre',
               }}
             />
           </UX.Tooltip>

@@ -65,7 +65,7 @@ const InscribeConfirmScreen = () => {
               <UX.Text
                 title={formatTicker(contextDataParam?.tokenBalance.ticker)}
                 styleType="heading_16"
-                customStyles={{color: colors.main_500}}
+                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
               />
             </UX.Box>
             <UX.Box spacing="xs" style={{margin: '16px 0'}}>

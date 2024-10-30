@@ -1,17 +1,17 @@
-import { getUtxoDustThreshold } from '@/src/background/utils';
-import { formatTicker } from '@/src/shared/utils/btc-helper';
-import { UX } from '@/src/ui/component';
-import { useCustomToast } from '@/src/ui/component/toast-custom';
+import {getUtxoDustThreshold} from '@/src/background/utils';
+import {formatTicker} from '@/src/shared/utils/btc-helper';
+import {UX} from '@/src/ui/component';
+import {useCustomToast} from '@/src/ui/component/toast-custom';
 import LayoutTap from '@/src/ui/layouts/tap';
-import { TransactionSelector } from '@/src/ui/redux/reducer/transaction/selector';
-import { WalletSelector } from '@/src/ui/redux/reducer/wallet/selector';
-import { colors } from '@/src/ui/themes/color';
-import { getAddressType, useAppSelector } from '@/src/ui/utils';
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { FeeRateBar } from '../../../send-receive/component/fee-rate-bar';
-import { OutputValueBar } from '../../../send-receive/component/output-value';
-import { RBFBar } from '../../../send-receive/component/rbf-bar';
+import {TransactionSelector} from '@/src/ui/redux/reducer/transaction/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
+import {colors} from '@/src/ui/themes/color';
+import {getAddressType, useAppSelector} from '@/src/ui/utils';
+import {useEffect, useMemo, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
+import {OutputValueBar} from '../../../send-receive/component/output-value';
+import {RBFBar} from '../../../send-receive/component/rbf-bar';
 import {
   useFetchUtxosCallback,
   usePrepareSendOrdinalsInscriptionCallback,
@@ -138,7 +138,11 @@ const TransferTap = () => {
         <UX.Box spacing="xl" style={{width: '100%'}}>
           <UX.Box spacing="xs">
             <UX.Text title="Send" styleType="heading_14" />
-            <UX.Input value={`${amount} ${formatTicker(ticker)}`} disabled />
+            <UX.Input
+              style={{whiteSpace: 'pre'}}
+              value={`${amount} ${formatTicker(ticker)}`}
+              disabled
+            />
           </UX.Box>
           <UX.Box spacing="xs">
             <UX.Text title="Receiver" styleType="heading_14" />

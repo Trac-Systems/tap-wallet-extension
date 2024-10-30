@@ -182,7 +182,7 @@ const TapTransfer = () => {
             <UX.Text
               title={formatTicker(contextData?.tokenBalance?.ticker)}
               styleType="body_16_bold"
-              customStyles={{color: colors.main_500}}
+              customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
             />
           </UX.Box>
           <UX.Text
@@ -294,7 +294,7 @@ const TapTransfer = () => {
                 <UX.Text
                   title={formatTicker(contextData?.tokenBalance?.ticker)}
                   styleType="body_12_normal"
-                  customStyles={{color: colors.main_500}}
+                  customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
                 />
               </UX.Box>
             </UX.Box>

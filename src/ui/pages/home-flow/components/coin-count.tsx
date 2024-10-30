@@ -13,14 +13,7 @@ interface ICoinCountProps {
 }
 const CoinCount = (props: ICoinCountProps) => {
   //! State
-  const {
-    ticker,
-    balance,
-    type,
-    selected,
-    inscriptionNumber,
-    onClick,
-  } = props;
+  const {ticker, balance, type, selected, inscriptionNumber, onClick} = props;
 
   //! Function
   //! Render
@@ -38,6 +31,7 @@ const CoinCount = (props: ICoinCountProps) => {
         title={ticker}
         styleType="body_14_bold"
         customStyles={{
+          whiteSpace: 'pre',
           color: '#D16B7C',
           padding: '2px',
           position: 'absolute',
@@ -45,7 +39,6 @@ const CoinCount = (props: ICoinCountProps) => {
           top: 0,
           background: '#545454',
           width: '70px',
-          whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}

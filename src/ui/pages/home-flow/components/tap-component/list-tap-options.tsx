@@ -172,7 +172,7 @@ const ListTapOptions = () => {
             <UX.Text
               title={formatTicker(brcTokenBalance?.ticker)}
               styleType="body_14_bold"
-              customStyles={{color: colors.main_500}}
+              customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
             />
           </UX.Box>
           <UX.Box layout="row" spacing="xl">
@@ -204,7 +204,7 @@ const ListTapOptions = () => {
               <UX.Text
                 title={formatTicker(brcTokenBalance?.ticker)}
                 styleType="body_12_bold"
-                customStyles={{color: colors.main_500}}
+                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
               />
             </UX.Box>
           </UX.Box>

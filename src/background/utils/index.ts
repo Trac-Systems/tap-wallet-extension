@@ -88,10 +88,12 @@ export function getUtxoDustThreshold(addressType: AddressType) {
 export function extractAddressFromScript({
   script,
   tapInternalKey,
+  finalScriptWitness,
   network,
 }: {
   script: Buffer;
-  tapInternalKey?: Buffer ;
+  tapInternalKey?: Buffer;
+  finalScriptWitness?: Buffer;
   network: bitcoin.Network;
 }) {
   // For P2TR address
@@ -119,7 +121,19 @@ export function extractAddressFromScript({
         try {
           address = bitcoin.payments.p2wsh(paymentInput).address || '';
         } catch {
-          throw new Error('Unknown output type');
+          try {
+            if (finalScriptWitness) {
+              tapInternalKey = finalScriptWitness.subarray(2, 34);
+              address = bitcoin.payments.p2tr({
+                internalPubkey: tapInternalKey,
+                network,
+              }).address;
+            } else {
+              throw new Error('Unknown output type');
+            }
+          } catch {
+            throw new Error('Unknown output type');
+          }
         }
       }
     }

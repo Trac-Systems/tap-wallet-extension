@@ -801,6 +801,7 @@ export class Provider {
       const address = extractAddressFromScript({
         script: v?.witnessUtxo?.script,
         tapInternalKey: v?.tapInternalKey,
+        finalScriptWitness: v?.finalScriptWitness,
         network,
       });
       extractData.inputs.push({

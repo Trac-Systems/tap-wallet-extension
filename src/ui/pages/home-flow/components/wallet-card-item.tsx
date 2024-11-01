@@ -1,7 +1,10 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 
+import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {useAppSelector} from '@/src/ui/utils';
@@ -9,8 +12,6 @@ import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance} from '../hook';
 import './index.css';
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
-import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -22,7 +23,8 @@ const WalletCard = (props: IWalletCardProps) => {
   //! State
   const {keyring, handleOpenDrawerEdit, handleOpenDrawerAccount} = props;
   const navigate = useNavigate();
-    const networkType = useAppSelector(GlobalSelector.networkType);
+  const wallet = useWalletProvider();
+  const networkType = useAppSelector(GlobalSelector.networkType);
   const ref = useRef<HTMLDivElement>(null);
   const accountBalance = useAccountBalance();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -31,23 +33,41 @@ const WalletCard = (props: IWalletCardProps) => {
     return activeWallet.accounts.find(acc => acc.key === activeAccount.key)
       ?.name;
   }, [activeAccount.key, activeWallet]);
-
+  const [usdPrice, setUsdPrice] = useState(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const checkIsSingleWallet = useMemo(() => {
     return activeWallet?.type?.includes('Single');
   }, [activeWallet]);
+
   const {address} = activeAccount;
+
   const balanceValue = useMemo(() => {
     return satoshisToAmount(Number(accountBalance.amount ?? 0));
   }, [accountBalance.amount]);
 
   //! Function
   const handleShowHistory = () => {
-    const url = networkType === NETWORK_TYPES.MAINNET.label ? 'https://mempool.space/address/' + address:  'https://mempool.space/testnet/address/' + address;
+    const url =
+      networkType === NETWORK_TYPES.MAINNET.label
+        ? 'https://mempool.space/address/' + address
+        : 'https://mempool.space/testnet/address/' + address;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };
+
+  const fetchDataUSD = async () => {
+    if (Number(balanceValue)) {
+      const response = await wallet.getUSDPrice(Number(balanceValue));
+      setUsdPrice(response);
+    } else {
+      setUsdPrice(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataUSD();
+  }, [address, balanceValue]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -123,7 +143,17 @@ const WalletCard = (props: IWalletCardProps) => {
         )}
 
         <UX.AddressBar address={address} />
-        <UX.Text styleType="heading_20" title={balanceValue + ' ' + 'BTC'} />
+        <UX.Box layout="row_between">
+          <UX.Text styleType="heading_20" title={balanceValue + ' ' + 'BTC'} />
+          <UX.Box layout="row" spacing="xss_s">
+            <UX.Text title="≈" styleType="body_16_normal" />
+            <UX.Text
+              title={`${usdPrice ?? 0} USD`}
+              styleType="body_16_normal"
+            />
+          </UX.Box>
+        </UX.Box>
+
         <div className="groupAction">
           <div className="groupBox" onClick={() => navigate('/home/send')}>
             <SVG.ArrowSendIcon />

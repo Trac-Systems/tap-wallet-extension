@@ -1,8 +1,18 @@
+import {getUtxoDustThreshold} from '@/src/background/utils';
+import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
 import LayoutTap from '@/src/ui/layouts/tap';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
+import {
+  formatAddressLongText,
+  shortAddress,
+  useAppSelector,
+} from '@/src/ui/utils';
 import {
   InscribeOrder,
   RawTxInfo,
@@ -10,31 +20,21 @@ import {
   TokenInfo,
   TokenTransfer,
 } from '@/src/wallet-instance';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {
-  formatAddressLongText,
-  shortAddress,
-  useAppSelector,
-} from '@/src/ui/utils';
-import {useApproval} from '../hook';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {
-  usePrepareSendBTCCallback,
-  useFetchUtxosCallback,
-  usePushBitcoinTxCallback,
-} from '../../send-receive/hook';
 import BigNumber from 'bignumber.js';
-import {getUtxoDustThreshold} from '@/src/background/utils';
-import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {isEmpty} from 'lodash';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import InscriptionPreview from '../../../component/inscription-preview';
 import {PinInputRef} from '../../../component/pin-input';
 import {useCustomToast} from '../../../component/toast-custom';
 import WebsiteBar from '../../../component/website-bar';
 import {FeeRateBar} from '../../send-receive/component/fee-rate-bar';
 import {OutputValueBar} from '../../send-receive/component/output-value';
-import InscriptionPreview from '../../../component/inscription-preview';
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {
+  useFetchUtxosCallback,
+  usePrepareSendBTCCallback,
+  usePushBitcoinTxCallback,
+} from '../../send-receive/hook';
+import {useApproval} from '../hook';
 
 enum TabKey {
   STEP1,
@@ -385,8 +385,10 @@ export const Step3 = ({
   //! State
   const {showToast} = useCustomToast();
   const {rawTxInfo, order} = contextData;
-  //! Function
+  const wallet = useWalletProvider();
+  const [usdPrice, setUsdPrice] = useState(0);
 
+  //! Function
   const handleCopied = text => {
     copyToClipboard(text).then(() => {
       showToast({
@@ -410,6 +412,19 @@ export const Step3 = ({
     () => satoshisToAmount(order.totalFee + rawTxInfo.fee),
     [order.totalFee],
   );
+
+  const fetchDataUSD = async () => {
+    if (Number(totalFee)) {
+      const response = await wallet.getUSDPrice(Number(totalFee));
+      setUsdPrice(response);
+    } else {
+      setUsdPrice(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataUSD();
+  }, [totalFee]);
 
   //! Render
   return (
@@ -449,14 +464,20 @@ export const Step3 = ({
           />
         </UX.Box>
       </UX.Box>
-      <UX.Box layout="box" spacing="xl">
-        <UX.Box layout="row_between">
-          <UX.Text title="Spend amount" styleType="body_14_normal" />
-          <UX.Text
-            title={`${totalFee} BTC`}
-            styleType="body_14_normal"
-            customStyles={{color: 'white'}}
-          />
+      <UX.Box>
+        <UX.Box layout="box" spacing="xl">
+          <UX.Box layout="row_between">
+            <UX.Text title="Spend amount" styleType="body_14_normal" />
+            <UX.Text
+              title={`${totalFee} BTC`}
+              styleType="body_14_normal"
+              customStyles={{color: 'white'}}
+            />
+          </UX.Box>
+          <UX.Box layout="row_end" spacing='xss_s'>
+            <UX.Text title="≈" styleType="body_14_normal" />
+            <UX.Text title={`${usdPrice} USD`} styleType="body_14_normal" />
+          </UX.Box>
         </UX.Box>
         <UX.Box layout="row_between">
           <UX.Text title="Network fee" styleType="body_14_normal" />

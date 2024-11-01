@@ -192,6 +192,7 @@ export interface IWalletProvider {
   getConnectedSites(): Promise<ConnectedSite[]>;
   removeConnectedSite(origin: string): Promise<void>;
   getCurrentConnectedSite(id: string): Promise<ConnectedSite>;
+  getUSDPrice(bits: number): Promise<any>;
 }
 
 const WalletContext = createContext<{

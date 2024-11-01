@@ -92,11 +92,11 @@ export const formatTicker = (ticker: string) => {
   if (!ticker) {
     return '';
   }
-  if (ticker.startsWith('"') && ticker.endsWith('"')) {
-    return `"${ticker}"`;
-  }
-
-  if (ticker.trim().length !== ticker.length) {
+  if (
+    ticker.startsWith('"') ||
+    ticker.endsWith('"') ||
+    ticker.trim().length !== ticker.length
+  ) {
     return `"${ticker}"`;
   }
 

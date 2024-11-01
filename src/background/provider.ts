@@ -29,7 +29,7 @@ import {
   extractAddressAndValueFromNonWetnessUtxo,
 } from './utils';
 import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
-import {mempoolApi, paidApi, tapApi} from './requests';
+import {mempoolApi, paidApi, tapApi, usdApi} from './requests';
 import {
   AddressType,
   IDisplayAccount,
@@ -1058,6 +1058,14 @@ export class Provider {
     const account = accountConfig.getActiveAccount();
     if (!account) throw new Error('no active account');
     return walletService.signMessage(account.pubkey, account.type, text);
+  };
+  getUSDPrice = async (bits: number) => {
+    const res = await usdApi.getUSDPrice();
+    if (res) {
+      const price = Number(res) * bits;
+      return price?.toFixed(2);
+    }
+    return 0;
   };
 }
 

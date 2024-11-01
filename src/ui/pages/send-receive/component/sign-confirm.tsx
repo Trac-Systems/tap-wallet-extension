@@ -12,7 +12,7 @@ import {
   InscribeOrder,
 } from '@/src/wallet-instance';
 import {isEmpty} from 'lodash';
-import {useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {
   formatAddressLongText,
@@ -20,6 +20,7 @@ import {
   useAppSelector,
 } from '@/src/ui/utils';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 interface Props {
   params: {
@@ -51,6 +52,9 @@ const SignConfirm = ({
 }: Props) => {
   const navigate = useNavigate();
   const {showToast} = useCustomToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [usdPrice, setUsdPrice] = useState(0);
+  const wallet = useWalletProvider();
 
   //! Function
   const handleGoBack = () => {
@@ -120,6 +124,41 @@ const SignConfirm = ({
     [rawTxInfo?.fee],
   );
 
+  const fetchDataUSD = async () => {
+    if (Number(spendAmount)) {
+      const response = await wallet.getUSDPrice(Number(spendAmount));
+      setUsdPrice(response);
+    } else {
+      setUsdPrice(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataUSD();
+  }, [spendAmount]);
+
+  useEffect(() => {
+    let timer: any;
+
+    if (!netSatoshis || !spendSatoshis) {
+      setIsLoading(true);
+
+      timer = setTimeout(() => {
+        if (!netSatoshis || !spendSatoshis) {
+          setIsLoading(false);
+        }
+      }, 2000);
+    } else {
+      setIsLoading(false);
+    }
+
+    return () => clearTimeout(timer);
+  }, [netSatoshis, spendSatoshis]);
+
+  if (isLoading) {
+    return <UX.Loading />;
+  }
+
   //! Render
   return (
     <LayoutSendReceive
@@ -175,13 +214,22 @@ const SignConfirm = ({
               </UX.Box>
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
-              <UX.Box layout="row_between">
-                <UX.Text title="Spend amount" styleType="body_14_normal" />
-                <UX.Text
-                  title={`${spendAmount} BTC`}
-                  styleType="body_14_normal"
-                  customStyles={{color: 'white'}}
-                />
+              <UX.Box>
+                <UX.Box layout="row_between">
+                  <UX.Text title="Spend amount" styleType="body_14_normal" />
+                  <UX.Text
+                    title={`${spendAmount} BTC`}
+                    styleType="body_14_normal"
+                    customStyles={{color: 'white'}}
+                  />
+                </UX.Box>
+                <UX.Box layout="row_end" spacing='xss_s'>
+                  <UX.Text title="≈" styleType="body_14_normal" />
+                  <UX.Text
+                    title={`${usdPrice} USD`}
+                    styleType="body_14_normal"
+                  />
+                </UX.Box>
               </UX.Box>
               <UX.Box layout="row_between">
                 <UX.Text title="Network fee" styleType="body_14_normal" />

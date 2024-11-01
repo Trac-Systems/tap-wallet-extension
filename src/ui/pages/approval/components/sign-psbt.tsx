@@ -78,6 +78,7 @@ const SignPsbt = ({
   const {showToast} = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
+  const [usdPrice, setUsdPrice] = useState(0);
   const [extractTx, setExtractTx] = useState<ExtractPsbt>({
     outputs: [],
     inputs: [],
@@ -118,14 +119,6 @@ const SignPsbt = ({
       });
     });
   };
-
-  // const dustThreshold = useMemo(() => {
-  //   if (toAddress) {
-  //     const getAddressTypeReceiver = getAddressType(toAddress);
-
-  //     return getUtxoDustThreshold(getAddressTypeReceiver);
-  //   }
-  // }, []);
 
   const init = useCallback(async () => {
     if (type === TxType.SIGN_TX) {
@@ -276,6 +269,19 @@ const SignPsbt = ({
     return true;
   }, [inputsForSign]);
 
+  const fetchDataUSD = async () => {
+    if (Number(spendAmount)) {
+      const response = await walletProvider.getUSDPrice(Number(spendAmount));
+      setUsdPrice(response);
+    } else {
+      setUsdPrice(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataUSD();
+  }, [spendAmount]);
+
   useEffect(() => {
     let timer: any;
 
@@ -342,13 +348,19 @@ const SignPsbt = ({
             </UX.Box>
           )}
           <UX.Box layout="box" spacing="xl">
-            <UX.Box layout="row_between">
-              <UX.Text title="Spend amount" styleType="body_14_normal" />
-              <UX.Text
-                title={`${spendAmount} BTC`}
-                styleType="body_14_normal"
-                customStyles={{color: 'white'}}
-              />
+            <UX.Box>
+              <UX.Box layout="row_between">
+                <UX.Text title="Spend amount" styleType="body_14_normal" />
+                <UX.Text
+                  title={`${spendAmount} BTC`}
+                  styleType="body_14_normal"
+                  customStyles={{color: 'white'}}
+                />
+              </UX.Box>
+              <UX.Box layout="row_end" spacing='xss_s'>
+                <UX.Text title="≈" styleType="body_14_normal" />
+                <UX.Text title={`${usdPrice} USD`} styleType="body_14_normal" />
+              </UX.Box>
             </UX.Box>
             {type !== TxType.SIGN_TX && (
               <>

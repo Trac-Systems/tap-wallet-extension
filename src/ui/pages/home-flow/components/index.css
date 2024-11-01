@@ -163,12 +163,23 @@
   background-color: #191919 !important;
   height: auto !important;
 }
+
+.textBalance {
+  display: block;
+  color: white;
+  max-width: 100px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
 @media only screen and (min-width: 600px) {
   .modal-edit-wallet {
     width: 500px !important;
     height: auto !important;
     left: auto !important;
     right: auto !important;
+  }
+  .textBalance {
+    max-width: 150px;
   }
 }
 

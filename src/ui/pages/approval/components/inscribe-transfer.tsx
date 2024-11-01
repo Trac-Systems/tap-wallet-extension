@@ -1,5 +1,8 @@
 import {getUtxoDustThreshold} from '@/src/background/utils';
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {
+  formatNumberValue,
+  satoshisToAmount,
+} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
@@ -386,7 +389,8 @@ export const Step3 = ({
   const {showToast} = useCustomToast();
   const {rawTxInfo, order} = contextData;
   const wallet = useWalletProvider();
-  const [usdPrice, setUsdPrice] = useState(0);
+  const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
+  const [usdPriceAmount, setUsdPriceAmount] = useState(0);
 
   //! Function
   const handleCopied = text => {
@@ -414,17 +418,20 @@ export const Step3 = ({
   );
 
   const fetchDataUSD = async () => {
-    if (Number(totalFee)) {
-      const response = await wallet.getUSDPrice(Number(totalFee));
-      setUsdPrice(response);
+    if (Number(totalFee) || Number(serviceFee)) {
+      const responseSpendAmount = await wallet.getUSDPrice(Number(totalFee));
+      const responseAmount = await wallet.getUSDPrice(Number(serviceFee));
+      setUsdPriceSpendAmount(responseSpendAmount);
+      setUsdPriceAmount(responseAmount);
     } else {
-      setUsdPrice(0);
+      setUsdPriceSpendAmount(0);
+      setUsdPriceAmount(0);
     }
   };
 
   useEffect(() => {
     fetchDataUSD();
-  }, [totalFee]);
+  }, [totalFee, serviceFee]);
 
   //! Render
   return (
@@ -445,6 +452,13 @@ export const Step3 = ({
           customStyles={{marginTop: '24px', marginBottom: '8px'}}
         />
         <UX.Text title={`${serviceFee} BTC`} styleType="heading_24" />
+        <UX.Box layout="row_center" spacing="xss_s">
+          <UX.Text title="≈" styleType="body_14_normal" />
+          <UX.Text
+            title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+            styleType="body_14_normal"
+          />
+        </UX.Box>
       </UX.Box>
       <UX.Box layout="box" spacing="xl">
         <UX.Box layout="row_between">
@@ -474,9 +488,12 @@ export const Step3 = ({
               customStyles={{color: 'white'}}
             />
           </UX.Box>
-          <UX.Box layout="row_end" spacing='xss_s'>
+          <UX.Box layout="row_end" spacing="xss_s">
             <UX.Text title="≈" styleType="body_14_normal" />
-            <UX.Text title={`${usdPrice} USD`} styleType="body_14_normal" />
+            <UX.Text
+              title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
+              styleType="body_14_normal"
+            />
           </UX.Box>
         </UX.Box>
         <UX.Box layout="row_between">

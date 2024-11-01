@@ -1,6 +1,9 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {
+  formatNumberValue,
+  satoshisToAmount,
+} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
@@ -144,13 +147,26 @@ const WalletCard = (props: IWalletCardProps) => {
 
         <UX.AddressBar address={address} />
         <UX.Box layout="row_between">
-          <UX.Text styleType="heading_20" title={balanceValue + ' ' + 'BTC'} />
+          <UX.Box layout="row" spacing="xss_s">
+            <UX.Tooltip text={formatNumberValue(balanceValue)} isText>
+              <UX.Text
+                styleType="heading_20"
+                title={balanceValue}
+                className="textBalance"
+              />
+            </UX.Tooltip>
+            <UX.Text styleType="heading_20" title={'BTC'} />
+          </UX.Box>
           <UX.Box layout="row" spacing="xss_s">
             <UX.Text title="≈" styleType="body_16_normal" />
-            <UX.Text
-              title={`${usdPrice ?? 0} USD`}
-              styleType="body_16_normal"
-            />
+            <UX.Tooltip text={formatNumberValue(String(usdPrice))} isText>
+              <UX.Text
+                title={`${formatNumberValue(String(usdPrice))}`}
+                styleType="body_16_normal"
+                className="textBalance"
+              />
+            </UX.Tooltip>
+            <UX.Text title="USD" styleType="body_16_normal" />
           </UX.Box>
         </UX.Box>
 

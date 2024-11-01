@@ -19,7 +19,10 @@ import {
   shortAddress,
   useAppSelector,
 } from '@/src/ui/utils';
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {
+  formatNumberValue,
+  satoshisToAmount,
+} from '@/src/shared/utils/btc-helper';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 interface Props {
@@ -53,7 +56,9 @@ const SignConfirm = ({
   const navigate = useNavigate();
   const {showToast} = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [usdPrice, setUsdPrice] = useState(0);
+  const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
+  const [usdPriceAmount, setUsdPriceAmount] = useState(0);
+
   const wallet = useWalletProvider();
 
   //! Function
@@ -125,17 +130,22 @@ const SignConfirm = ({
   );
 
   const fetchDataUSD = async () => {
-    if (Number(spendAmount)) {
-      const response = await wallet.getUSDPrice(Number(spendAmount));
-      setUsdPrice(response);
+    if (Number(spendAmount) || Number(netAmount)) {
+      const responseSpendAmount = await wallet.getUSDPrice(Number(spendAmount));
+      const responseAmount = await wallet.getUSDPrice(
+        rawTxInfo.ticker ? Number(rawTxInfo.assetAmount) : Number(netAmount),
+      );
+      setUsdPriceSpendAmount(responseSpendAmount);
+      setUsdPriceAmount(responseAmount);
     } else {
-      setUsdPrice(0);
+      setUsdPriceSpendAmount(0);
+      setUsdPriceAmount(0);
     }
   };
 
   useEffect(() => {
     fetchDataUSD();
-  }, [spendAmount]);
+  }, [spendAmount, rawTxInfo, netAmount]);
 
   useEffect(() => {
     let timer: any;
@@ -194,6 +204,13 @@ const SignConfirm = ({
                   customStyles={{textAlign: 'center'}}
                 />
               )}
+              <UX.Box layout="row_center" spacing="xss_s">
+                <UX.Text title="≈" styleType="body_14_normal" />
+                <UX.Text
+                  title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+                  styleType="body_14_normal"
+                />
+              </UX.Box>
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">
@@ -223,10 +240,10 @@ const SignConfirm = ({
                     customStyles={{color: 'white'}}
                   />
                 </UX.Box>
-                <UX.Box layout="row_end" spacing='xss_s'>
+                <UX.Box layout="row_end" spacing="xss_s">
                   <UX.Text title="≈" styleType="body_14_normal" />
                   <UX.Text
-                    title={`${usdPrice} USD`}
+                    title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
                     styleType="body_14_normal"
                   />
                 </UX.Box>

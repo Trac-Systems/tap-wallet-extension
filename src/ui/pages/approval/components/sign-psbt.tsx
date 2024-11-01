@@ -1,16 +1,18 @@
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
-import {UX} from '@/src/ui/component';
-import {useCustomToast} from '@/src/ui/component/toast-custom';
-import {copyToClipboard} from '@/src/ui/helper';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
+import {
+  formatNumberValue,
+  satoshisToAmount,
+} from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { useCustomToast } from '@/src/ui/component/toast-custom';
+import { copyToClipboard } from '@/src/ui/helper';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
 import {
   formatAddressLongText,
-  getAddressType,
   shortAddress,
   useAppSelector,
-  validateBtcAddress,
+  validateBtcAddress
 } from '@/src/ui/utils';
 import {
   ExtractPsbt,
@@ -19,18 +21,17 @@ import {
   TransactionSigningOptions,
   TxType,
 } from '@/src/wallet-instance';
-import {isEmpty} from 'lodash';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {getUtxoDustThreshold} from '../../../../background/utils';
+import { isEmpty } from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import WebsiteBar from '../../../component/website-bar';
-import {useWalletProvider} from '../../../gateway/wallet-provider';
-import {GlobalSelector} from '../../../redux/reducer/global/selector';
+import { useWalletProvider } from '../../../gateway/wallet-provider';
+import { GlobalSelector } from '../../../redux/reducer/global/selector';
 import {
   usePrepareSendBTCCallback,
   usePrepareSendOrdinalsInscriptionCallback,
   usePrepareSendOrdinalsInscriptionsCallback,
 } from '../../send-receive/hook';
-import {useApproval} from '../hook';
+import { useApproval } from '../hook';
 import LayoutApprove from '../layouts';
 interface Props {
   params: {
@@ -78,7 +79,8 @@ const SignPsbt = ({
   const {showToast} = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
-  const [usdPrice, setUsdPrice] = useState(0);
+  const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
+  const [usdPriceAmount, setUsdPriceAmount] = useState(0);
   const [extractTx, setExtractTx] = useState<ExtractPsbt>({
     outputs: [],
     inputs: [],
@@ -270,17 +272,24 @@ const SignPsbt = ({
   }, [inputsForSign]);
 
   const fetchDataUSD = async () => {
-    if (Number(spendAmount)) {
-      const response = await walletProvider.getUSDPrice(Number(spendAmount));
-      setUsdPrice(response);
+    if (Number(spendAmount) || Number(netAmount)) {
+      const responseSpendAmount = await walletProvider.getUSDPrice(
+        Number(spendAmount),
+      );
+      const responseAmount = await walletProvider.getUSDPrice(
+        Number(netAmount),
+      );
+      setUsdPriceAmount(responseAmount);
+      setUsdPriceSpendAmount(responseSpendAmount);
     } else {
-      setUsdPrice(0);
+      setUsdPriceSpendAmount(0);
+      setUsdPriceAmount(0);
     }
   };
 
   useEffect(() => {
     fetchDataUSD();
-  }, [spendAmount]);
+  }, [spendAmount, netAmount]);
 
   useEffect(() => {
     let timer: any;
@@ -326,6 +335,13 @@ const SignPsbt = ({
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
             />
             <UX.Text title={`${netAmount} BTC`} styleType="heading_24" />
+            <UX.Box layout="row_center" spacing="xss_s">
+                <UX.Text title="≈" styleType="body_14_normal" />
+                <UX.Text
+                  title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+                  styleType="body_14_normal"
+                />
+              </UX.Box>
           </UX.Box>
           {type !== TxType.SIGN_TX && (
             <UX.Box layout="box" spacing="xl">
@@ -357,9 +373,12 @@ const SignPsbt = ({
                   customStyles={{color: 'white'}}
                 />
               </UX.Box>
-              <UX.Box layout="row_end" spacing='xss_s'>
+              <UX.Box layout="row_end" spacing="xss_s">
                 <UX.Text title="≈" styleType="body_14_normal" />
-                <UX.Text title={`${usdPrice} USD`} styleType="body_14_normal" />
+                <UX.Text
+                  title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
+                  styleType="body_14_normal"
+                />
               </UX.Box>
             </UX.Box>
             {type !== TxType.SIGN_TX && (

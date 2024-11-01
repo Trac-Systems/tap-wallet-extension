@@ -122,21 +122,80 @@ export function extractAddressFromScript({
           address = bitcoin.payments.p2wsh(paymentInput).address || '';
         } catch {
           try {
-            if (finalScriptWitness) {
-              tapInternalKey = finalScriptWitness.subarray(2, 34);
-              address = bitcoin.payments.p2tr({
-                internalPubkey: tapInternalKey,
-                network,
-              }).address;
-            } else {
+            address = bitcoin.payments.p2tr(paymentInput).address;
+          } catch {
+            try {
+              if (finalScriptWitness) {
+                tapInternalKey = finalScriptWitness.subarray(2, 34);
+                address = bitcoin.payments.p2tr({
+                  internalPubkey: tapInternalKey,
+                  network,
+                }).address;
+              } else {
+                if (!script) {
+                  return '';
+                }
+                throw new Error('Unknown output type');
+              }
+            } catch {
               throw new Error('Unknown output type');
             }
-          } catch {
-            throw new Error('Unknown output type');
           }
         }
       }
     }
   }
   return address;
+}
+
+// Support for LEGACY Address
+export function extractAddressAndValueFromNonWetnessUtxo({
+  nonWitnessUtxo,
+  outputAddressMap,
+  network,
+}: {
+  nonWitnessUtxo?: Buffer;
+  outputAddressMap: {[key: string]: number};
+  network: bitcoin.Network;
+}) {
+  if (!nonWitnessUtxo) {
+    throw new Error('nonWitnessUtxo is required for non-SegWit inputs');
+  }
+
+  const legacyAddresses = [
+    {
+      address: '',
+      value: 0,
+    },
+  ];
+
+  // Decode the nonWitnessUtxo (full raw transaction)
+  const tx = bitcoin.Transaction.fromBuffer(nonWitnessUtxo);
+
+  for (const output of tx.outs) {
+    // Extract the value
+    const value = output.value; // in satoshis
+
+    // Extract the scriptPubKey
+    const scriptPubKey = output.script;
+
+    // Decode the address based on the script type
+    let address = '';
+    if (scriptPubKey[0] === 0x76 && scriptPubKey[1] === 0xa9) {
+      // P2PKH
+      const p2pkh = bitcoin.payments.p2pkh({output: scriptPubKey, network});
+      address = p2pkh.address;
+      if (outputAddressMap[address]) {
+        return {
+          address,
+          value,
+        };
+      }
+      legacyAddresses.push({
+        address,
+        value,
+      });
+    }
+  }
+  return legacyAddresses[legacyAddresses.length - 1];
 }

@@ -26,6 +26,7 @@ import {
   sendInscriptions,
   getBitcoinNetwork,
   extractAddressFromScript,
+  extractAddressAndValueFromNonWetnessUtxo,
 } from './utils';
 import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
 import {mempoolApi, paidApi, tapApi} from './requests';
@@ -797,18 +798,8 @@ export class Provider {
     // Step 1: Parse the PSBT from hex
     const psbt = Psbt.fromHex(psbtHex, {network});
 
-    psbt.data.inputs.forEach(v => {
-      const address = extractAddressFromScript({
-        script: v?.witnessUtxo?.script,
-        tapInternalKey: v?.tapInternalKey,
-        finalScriptWitness: v?.finalScriptWitness,
-        network,
-      });
-      extractData.inputs.push({
-        address,
-        value: v.witnessUtxo?.value,
-      });
-    });
+    const outputAddressMap: {[key: string]: number} = {};
+
     psbt.txOutputs.forEach(v => {
       const address =
         v.address ?? extractAddressFromScript({script: v.script, network});
@@ -819,6 +810,36 @@ export class Provider {
         vout: 0,
         sighashType: 0,
       });
+      outputAddressMap[address] = 1;
+    });
+
+    psbt.data.inputs.forEach(v => {
+      if (!v.witnessUtxo && v.nonWitnessUtxo) {
+        // FOR LEGACY
+        const {nonWitnessUtxo} = v;
+        const {address, value} = extractAddressAndValueFromNonWetnessUtxo({
+          nonWitnessUtxo,
+          outputAddressMap,
+          network,
+        });
+
+        extractData.inputs.push({
+          address,
+          value,
+        });
+      } else if (v.witnessUtxo || v.finalScriptWitness || v.tapInternalKey) {
+        const address = extractAddressFromScript({
+          script: v?.witnessUtxo?.script,
+          tapInternalKey: v?.tapInternalKey,
+          finalScriptWitness: v?.finalScriptWitness,
+          network,
+        });
+
+        extractData.inputs.push({
+          address,
+          value: v.witnessUtxo?.value,
+        });
+      }
     });
 
     if (signed) {

@@ -148,7 +148,7 @@ const WalletCard = (props: IWalletCardProps) => {
         <UX.AddressBar address={address} />
         <UX.Box layout="row_between">
           <UX.Box layout="row" spacing="xss_s">
-            <UX.Tooltip text={formatNumberValue(balanceValue)} isText>
+            <UX.Tooltip text={balanceValue} isText>
               <UX.Text
                 styleType="heading_20"
                 title={balanceValue}

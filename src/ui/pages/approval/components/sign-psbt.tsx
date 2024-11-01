@@ -76,6 +76,7 @@ const SignPsbt = ({
 }: Props) => {
   //! State
   const {showToast} = useCustomToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
   const [extractTx, setExtractTx] = useState<ExtractPsbt>({
     outputs: [],
@@ -262,6 +263,7 @@ const SignPsbt = ({
     () => satoshisToAmount(spendSatoshis),
     [spendSatoshis],
   );
+
   const networkFee = useMemo(
     () => satoshisToAmount(extractTx?.fee),
     [extractTx?.fee],
@@ -273,6 +275,28 @@ const SignPsbt = ({
     }
     return true;
   }, [inputsForSign]);
+
+  useEffect(() => {
+    let timer: any;
+
+    if (!netSatoshis || !spendSatoshis) {
+      setIsLoading(true);
+
+      timer = setTimeout(() => {
+        if (!netSatoshis || !spendSatoshis) {
+          setIsLoading(false);
+        }
+      }, 2000);
+    } else {
+      setIsLoading(false);
+    }
+
+    return () => clearTimeout(timer);
+  }, [netSatoshis, spendSatoshis]);
+
+  if (isLoading) {
+    return <UX.Loading />;
+  }
 
   //! Render
   return (

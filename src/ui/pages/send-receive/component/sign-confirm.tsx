@@ -21,6 +21,7 @@ import {
 } from '@/src/ui/utils';
 import {
   formatNumberValue,
+  formatTicker,
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
@@ -132,9 +133,7 @@ const SignConfirm = ({
   const fetchDataUSD = async () => {
     if (Number(spendAmount) || Number(netAmount)) {
       const responseSpendAmount = await wallet.getUSDPrice(Number(spendAmount));
-      const responseAmount = await wallet.getUSDPrice(
-        rawTxInfo.ticker ? Number(rawTxInfo.assetAmount) : Number(netAmount),
-      );
+      const responseAmount = await wallet.getUSDPrice(Number(netAmount));
       setUsdPriceSpendAmount(responseSpendAmount);
       setUsdPriceAmount(responseAmount);
     } else {
@@ -145,7 +144,7 @@ const SignConfirm = ({
 
   useEffect(() => {
     fetchDataUSD();
-  }, [spendAmount, rawTxInfo, netAmount]);
+  }, [spendAmount, netAmount]);
 
   useEffect(() => {
     let timer: any;
@@ -193,24 +192,26 @@ const SignConfirm = ({
               />
               {rawTxInfo.ticker ? (
                 <UX.Text
-                  title={`${rawTxInfo.assetAmount} ${rawTxInfo.ticker}`}
+                  title={`${rawTxInfo.assetAmount} ${formatTicker(rawTxInfo.ticker)}`}
                   styleType="heading_24"
                   customStyles={{textAlign: 'center'}}
                 />
               ) : (
-                <UX.Text
-                  title={`${netAmount} BTC`}
-                  styleType="heading_24"
-                  customStyles={{textAlign: 'center'}}
-                />
+                <>
+                  <UX.Text
+                    title={`${netAmount} BTC`}
+                    styleType="heading_24"
+                    customStyles={{textAlign: 'center'}}
+                  />
+                  <UX.Box layout="row_center" spacing="xss_s">
+                    <UX.Text title="≈" styleType="body_14_normal" />
+                    <UX.Text
+                      title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+                      styleType="body_14_normal"
+                    />
+                  </UX.Box>
+                </>
               )}
-              <UX.Box layout="row_center" spacing="xss_s">
-                <UX.Text title="≈" styleType="body_14_normal" />
-                <UX.Text
-                  title={`${formatNumberValue(String(usdPriceAmount))} USD`}
-                  styleType="body_14_normal"
-                />
-              </UX.Box>
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">

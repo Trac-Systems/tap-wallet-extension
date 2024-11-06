@@ -52,8 +52,9 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
 
   const balance = useMemo(() => {
     if (!tokenSummary) {
-      return formatNumberValue(overallBalance);
+      return overallBalance;
     }
+
     return (
       Number(tokenSummary?.tokenBalance.availableBalance) +
       transferableBalanceSafe
@@ -167,7 +168,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           </UX.Tooltip>
         </UX.Box>
 
-        <UX.Tooltip text={formatNumberValue(String((balance)))} isText>
+        <UX.Tooltip text={formatNumberValue(String(balance))} isText>
           <UX.Box
             layout="row"
             style={{cursor: 'pointer', overflow: 'hidden'}}
@@ -175,7 +176,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               handleShowDetailList(ticker, e)
             }>
             <UX.Text
-              title={`${formatNumberValue(String((balance)))}`}
+              title={`${formatNumberValue(String(balance))}`}
               styleType="body_16_normal"
               customStyles={{
                 color: 'white',

@@ -697,6 +697,7 @@ export class Provider {
       });
     } else {
       const networkType = this.getActiveNetwork();
+      const network = getBitcoinNetwork(networkType);
       const psbtNetwork = getBitcoinNetwork(networkType);
 
       const psbt =
@@ -704,20 +705,26 @@ export class Provider {
           ? bitcoin.Psbt.fromHex(_psbt as string, {network: psbtNetwork})
           : (_psbt as bitcoin.Psbt);
       psbt.data.inputs.forEach((v, index) => {
+        let address = '';
         let script: any = null;
         let value = 0;
         if (v.witnessUtxo) {
           script = v.witnessUtxo.script;
           value = v.witnessUtxo.value;
+          address = extractAddressFromScript({
+            script,
+            tapInternalKey: v.tapInternalKey,
+            network,
+          });
         } else if (v.nonWitnessUtxo) {
           const tx = bitcoin.Transaction.fromBuffer(v.nonWitnessUtxo);
           const output = tx.outs[psbt.txInputs[index].index];
           script = output.script;
+          address = convertScriptToAddress(script, networkType);
           value = output.value;
         }
         const isSigned = v.finalScriptSig || v.finalScriptWitness;
         if (script && !isSigned) {
-          const address = convertScriptToAddress(script, networkType);
           if (account.address === address) {
             inputForSigns.push({
               index,

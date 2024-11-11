@@ -1067,6 +1067,9 @@ export class Provider {
     return walletService.signMessage(account.pubkey, account.type, text);
   };
   getUSDPrice = async (bits: number) => {
+    if (bits === 0) {
+      return 0;
+    }
     const res = await usdApi.getUSDPrice();
     if (res) {
       const price = Number(res) * bits;

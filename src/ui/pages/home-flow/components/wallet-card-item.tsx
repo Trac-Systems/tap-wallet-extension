@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {
   formatNumberValue,
@@ -15,6 +15,7 @@ import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance} from '../hook';
 import './index.css';
+import {debounce} from 'lodash';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -59,18 +60,17 @@ const WalletCard = (props: IWalletCardProps) => {
     return window.open(url, '_blank')?.focus();
   };
 
-  const fetchDataUSD = async () => {
-    if (Number(balanceValue)) {
+  const debouncedFetchDataUSD = useCallback(
+    debounce(async (balanceValue, setUsdPrice) => {
       const response = await wallet.getUSDPrice(Number(balanceValue));
       setUsdPrice(response);
-    } else {
-      setUsdPrice(0);
-    }
-  };
+    }, 200),
+    [],
+  );
 
   useEffect(() => {
-    fetchDataUSD();
-  }, [address, balanceValue]);
+    debouncedFetchDataUSD(balanceValue, setUsdPrice);
+  }, [balanceValue, debouncedFetchDataUSD]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {

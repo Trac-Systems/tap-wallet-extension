@@ -238,6 +238,15 @@ class InternalProvider {
   };
 
   @Reflect.metadata('SAFE', true)
+  pushPsbt = async ({ data: { params: { psbtHex } } }) => {
+    const hexData = formatPsbtHex(psbtHex);
+    const psbt = bitcoin.Psbt.fromHex(hexData);
+    const tx = psbt.extractTransaction(true);
+    const rawtx = tx.toHex()
+    return await walletProvider.pushTx(rawtx)
+  }
+
+  @Reflect.metadata('SAFE', true)
   getBitcoinUtxos = async () => {
     const account = await walletProvider.getActiveAccount();
     if (!account) return [];

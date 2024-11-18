@@ -64,7 +64,7 @@ export default function Connect({params: {session}}: Props) {
   };
 
   const handleConnect = async () => {
-    resolveApproval();
+    await resolveApproval();
   };
 
   const wallets = useAppSelector(WalletSelector.wallets);

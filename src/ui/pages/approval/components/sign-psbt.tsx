@@ -2,17 +2,17 @@ import {
   formatNumberValue,
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
-import { UX } from '@/src/ui/component';
-import { useCustomToast } from '@/src/ui/component/toast-custom';
-import { copyToClipboard } from '@/src/ui/helper';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
-import { SVG } from '@/src/ui/svg';
-import { colors } from '@/src/ui/themes/color';
+import {UX} from '@/src/ui/component';
+import {useCustomToast} from '@/src/ui/component/toast-custom';
+import {copyToClipboard} from '@/src/ui/helper';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {SVG} from '@/src/ui/svg';
+import {colors} from '@/src/ui/themes/color';
 import {
   formatAddressLongText,
   shortAddress,
   useAppSelector,
-  validateBtcAddress
+  validateBtcAddress,
 } from '@/src/ui/utils';
 import {
   ExtractPsbt,
@@ -21,17 +21,17 @@ import {
   TransactionSigningOptions,
   TxType,
 } from '@/src/wallet-instance';
-import { isEmpty } from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {isEmpty} from 'lodash';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import WebsiteBar from '../../../component/website-bar';
-import { useWalletProvider } from '../../../gateway/wallet-provider';
-import { GlobalSelector } from '../../../redux/reducer/global/selector';
+import {useWalletProvider} from '../../../gateway/wallet-provider';
+import {GlobalSelector} from '../../../redux/reducer/global/selector';
 import {
   usePrepareSendBTCCallback,
   usePrepareSendOrdinalsInscriptionCallback,
   usePrepareSendOrdinalsInscriptionsCallback,
 } from '../../send-receive/hook';
-import { useApproval } from '../hook';
+import {useApproval} from '../hook';
 import LayoutApprove from '../layouts';
 interface Props {
   params: {
@@ -106,8 +106,8 @@ const SignPsbt = ({
     rejectApproval();
   };
 
-  const handleConfirm = () => {
-    resolveApproval({
+  const handleConfirm = async () => {
+    await resolveApproval({
       psbtHex: rawTxInfo?.psbtHex,
       signed: type !== TxType.SIGN_TX,
     });
@@ -336,12 +336,12 @@ const SignPsbt = ({
             />
             <UX.Text title={`${netAmount} BTC`} styleType="heading_24" />
             <UX.Box layout="row_center" spacing="xss_s">
-                <UX.Text title="≈" styleType="body_14_normal" />
-                <UX.Text
-                  title={`${formatNumberValue(String(usdPriceAmount))} USD`}
-                  styleType="body_14_normal"
-                />
-              </UX.Box>
+              <UX.Text title="≈" styleType="body_14_normal" />
+              <UX.Text
+                title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+                styleType="body_14_normal"
+              />
+            </UX.Box>
           </UX.Box>
           {type !== TxType.SIGN_TX && (
             <UX.Box layout="box" spacing="xl">

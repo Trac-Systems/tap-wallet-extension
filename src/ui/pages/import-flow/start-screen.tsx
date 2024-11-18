@@ -24,15 +24,6 @@ const StartScreen = () => {
     const isInNotification = uiType.isNotification;
     const _isTabOpen = await isTabOpen();
 
-    let approval = await getApproval();
-    if (isInNotification && !approval) {
-      window.close();
-      return;
-    }
-    if (!isInNotification) {
-      await rejectApproval();
-      approval = undefined;
-    }
     if (!hasWallet) {
       // if app don't have any wallet open in new tab
       if (!_isTabOpen) {
@@ -42,17 +33,28 @@ const StartScreen = () => {
       return;
     }
 
-    if (isUnlocked && !isInNotification) {
-      navigate('/home');
-      return;
-    }
     if (hasWallet && !isUnlocked) {
       navigate('/login');
       return;
     }
-    if (approval) {
-      navigate('/approval');
-      return;
+
+    let approval = await getApproval();
+    if (isInNotification) {
+      if (!approval) {
+        window.close();
+        return;
+      } else {
+        navigate('/approval');
+        return;
+      }
+    } else { // Current site isn't notification
+      await rejectApproval();
+      approval = undefined;
+
+      if (isUnlocked) {
+        navigate('/home');
+        return;
+      }
     }
   };
 
@@ -61,7 +63,7 @@ const StartScreen = () => {
     const timer = setTimeout(() => {
       setLoading(false);
       initLoadView();
-    }, 300);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 

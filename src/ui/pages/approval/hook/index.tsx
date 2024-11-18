@@ -15,7 +15,7 @@ export const useApproval = () => {
   ) => {
     const approval = await getApproval();
     if (approval) {
-      wallet.resolveApproval(data, forceReject);
+      await wallet.resolveApproval(data, forceReject);
     }
     if (stay) {
       return;

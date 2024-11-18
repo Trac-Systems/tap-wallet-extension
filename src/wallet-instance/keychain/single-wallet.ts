@@ -117,7 +117,8 @@ export class SingleWallet {
     if (!keyPair.privateKey) {
       throw new Error('Invalid key pair');
     }
-    return bitcoinMessage.sign(message, keyPair.privateKey, keyPair.compressed);
+    const signature =  bitcoinMessage.sign(message, keyPair.privateKey, keyPair.compressed);
+    return signature.toString('base64')
   }
 
   async verifyMessage(address: string, message: string, signature: string) {

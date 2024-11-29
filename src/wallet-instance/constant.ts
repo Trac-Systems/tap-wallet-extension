@@ -68,7 +68,7 @@ export const NETWORK_TYPES = {
   MAINNET: {
     value: Network.MAINNET,
     label: 'MAINNET',
-    name: 'mainnet',
+    name: 'livenet',
     validNames: [0, 'livenet', 'mainnet'],
   },
   TESTNET: {

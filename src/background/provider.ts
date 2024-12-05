@@ -26,7 +26,6 @@ import {
   sendInscriptions,
   getBitcoinNetwork,
   extractAddressFromScript,
-  extractAddressAndValueFromNonWetnessUtxo,
 } from './utils';
 import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
 import {mempoolApi, paidApi, tapApi, usdApi} from './requests';
@@ -820,16 +819,13 @@ export class Provider {
       outputAddressMap[address] = 1;
     });
 
-    psbt.data.inputs.forEach(v => {
+    psbt.data.inputs.forEach((v, index) => {
       if (!v.witnessUtxo && v.nonWitnessUtxo) {
-        // FOR LEGACY
-        const {nonWitnessUtxo} = v;
-        const {address, value} = extractAddressAndValueFromNonWetnessUtxo({
-          nonWitnessUtxo,
-          outputAddressMap,
-          network,
-        });
-
+        const tx = bitcoin.Transaction.fromBuffer(v.nonWitnessUtxo);
+        const output = tx.outs[psbt.txInputs[index].index];
+        const script = output.script;
+        const address = convertScriptToAddress(script, networkType);
+        const value = output.value;
         extractData.inputs.push({
           address,
           value,

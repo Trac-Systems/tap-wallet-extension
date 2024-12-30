@@ -32,6 +32,7 @@ import UnlockIcon from './Unlock';
 import WalletIcon from './Wallet';
 import WalletInfoIcon from './WalletInfor';
 import WaringIcon from './Warning';
+import DappIcon from './DappIcon';
 
 export const SVG = {
   ArrowBackIcon,
@@ -68,4 +69,5 @@ export const SVG = {
   EditIcon,
   ArrowIconRight,
   LoadingSpinner,
+  DappIcon,
 };

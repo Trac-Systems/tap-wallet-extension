@@ -33,6 +33,7 @@ import SendBTC from './pages/send-receive/send-btc';
 import SendBTCConfirm from './pages/send-receive/send-btc-confirm';
 import FailScreen from './pages/send-receive/transaction-fail';
 import SuccessScreen from './pages/send-receive/transaction-success-screen';
+import DappPage from './pages/dapp';
 import SettingPage from './pages/settings';
 import ChooseAddressType from './pages/settings/choose-address-type';
 import ConnectSite from './pages/settings/connect-site';
@@ -196,6 +197,9 @@ function App() {
         <Route path="/home/edit-account-name" element={<EditAccountName />} />
 
         <Route path="*" element={<NotFound />} />
+
+        {/* Dapp */}
+        <Route path="/dapp" element={<DappPage />} />
 
         {/* Setting */}
         <Route path="/setting" element={<SettingPage />} />

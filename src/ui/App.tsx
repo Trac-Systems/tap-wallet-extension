@@ -46,6 +46,8 @@ import {AccountActions} from './redux/reducer/account/slice';
 import {GlobalSelector} from './redux/reducer/global/selector';
 import {GlobalActions} from './redux/reducer/global/slice';
 import {generateUniqueColors, useAppDispatch} from './utils';
+import SendInscription from '@/src/ui/pages/send-receive/send-inscription';
+import SendInscriptionConfirm from '@/src/ui/pages/send-receive/send-inscription-confirm';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -183,6 +185,10 @@ function App() {
         {/* Send */}
         <Route path="/home/send" element={<SendBTC />} />
         <Route path="/home/send-btc-confirm" element={<SendBTCConfirm />} />
+
+        {/* Send inscriptions */}
+        <Route path="/home/send-inscription" element={<SendInscription />} />
+        <Route path="/home/send-inscription-confirm" element={<SendInscriptionConfirm />} />
 
         {/* Security */}
         <Route path="/home/security" element={<Security />} />

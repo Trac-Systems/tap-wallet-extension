@@ -97,6 +97,29 @@ const InscriptionDetail = () => {
           />
         </UX.Box>
       </UX.Box>
+
+      <footer className="footer_sr">
+        <UX.Box
+          layout="column"
+          spacing="xl"
+          style={{
+            padding: '10px 0',
+          }}>
+          <UX.Button
+            styleType="primary"
+            customStyles={{
+              margin: '0 24px',
+            }}
+            title={'Send'}
+            // isDisable={disabled}
+            onClick={() =>
+              navigate('/home/send-inscription', {
+                state: {inscription: inscriptionInfo},
+              })
+            }
+          />
+        </UX.Box>
+      </footer>
     </UX.Box>
   );
 };

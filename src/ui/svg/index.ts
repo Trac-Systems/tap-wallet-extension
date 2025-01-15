@@ -33,6 +33,7 @@ import WalletIcon from './Wallet';
 import WalletInfoIcon from './WalletInfor';
 import WaringIcon from './Warning';
 import DappIcon from './DappIcon';
+import FilterIcon from './FilterIcon';
 
 export const SVG = {
   ArrowBackIcon,
@@ -70,4 +71,5 @@ export const SVG = {
   ArrowIconRight,
   LoadingSpinner,
   DappIcon,
+  FilterIcon,
 };

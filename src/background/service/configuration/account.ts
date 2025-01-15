@@ -1,11 +1,16 @@
-import {EVENTS, IDisplayAccount} from '@/src/wallet-instance';
+import {EVENTS, IDisplayAccount, Inscription} from '@/src/wallet-instance';
 import createPersistStore from '../../storage/persistStore';
 import eventBus from '../../../gateway/event-bus';
 import sessionService from '../session.service';
 
+interface InscriptionMap {
+  [key: string]: Inscription;
+}
+
 interface IMemStore {
   activeAccount?: IDisplayAccount;
-  contactMap: {};
+  contactMap: {[key: string]: string};
+  spendableInscriptions: {[key: string]: InscriptionMap};
 }
 export class AccountConfigService {
   store!: IMemStore;
@@ -21,6 +26,7 @@ export class AccountConfigService {
       name: 'accountConfig',
       template: {
         contactMap: {},
+        spendableInscriptions: {},
       },
     });
   }
@@ -56,5 +62,54 @@ export class AccountConfigService {
 
   getActiveAccount() {
     return this.store?.activeAccount;
+  }
+
+  setAccountSpendableInscriptions(
+    accountKey: string,
+    inscription: Inscription,
+  ) {
+    if (!this.store?.spendableInscriptions) {
+      this.store.spendableInscriptions = {};
+    }
+    // Create a new object if accountKey doesn't exist
+    if (!this.store?.spendableInscriptions[accountKey]) {
+      this.store.spendableInscriptions[accountKey] = {};
+    }
+
+    // Create a new copy of current inscriptions
+    const updatedInscriptions = {
+      ...this.store.spendableInscriptions[accountKey],
+      [inscription.inscriptionId]: inscription,
+    };
+
+    // Update store with new reference
+    this.store.spendableInscriptions = {
+      ...this.store.spendableInscriptions,
+      [accountKey]: updatedInscriptions,
+    };
+  }
+
+  getAccountSpendableInscriptions(accountKey: string): Inscription[] {
+    const accountInscriptions = this.store.spendableInscriptions[accountKey];
+    if (!accountInscriptions) {
+      return [];
+    }
+    return Object.values(accountInscriptions);
+  }
+
+  deleteAccountSpendableInscription(accountKey: string, inscriptionId: string) {
+    if (!this.store.spendableInscriptions[accountKey]?.[inscriptionId]) {
+      return;
+    }
+
+    const updatedInscriptions = {
+      ...this.store.spendableInscriptions[accountKey],
+    };
+    delete updatedInscriptions[inscriptionId];
+
+    this.store.spendableInscriptions = {
+      ...this.store.spendableInscriptions,
+      [accountKey]: updatedInscriptions,
+    };
   }
 }

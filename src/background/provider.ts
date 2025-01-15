@@ -39,6 +39,7 @@ import {
   UnspentOutput,
   WalletDisplay,
   ExtractPsbt,
+  Inscription,
 } from '../wallet-instance';
 import {toXOnly} from 'bitcoinjs-lib/src/psbt/bip371';
 import {convertScriptToAddress} from '../shared/utils/btc-helper';
@@ -470,8 +471,13 @@ export class Provider {
   };
 
   getBTCUtxos = async (address: string) => {
-    const utxos = await this.paidApi.getAllBTCUtxo(address);
-    return utxos.filter(v => v.satoshi > UTXO_DUST);
+    const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
+    utxosWithoutInscription.filter(v => v.satoshi > UTXO_DUST);
+    const account = this.getActiveAccount();
+    const spendableUtxoInscriptions =
+      await this.getAccountSpendableInscriptions(account);
+
+    return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
   };
 
   sendBTC = async ({
@@ -1072,6 +1078,26 @@ export class Provider {
       return price?.toFixed(2);
     }
     return 0;
+  };
+
+  setAccountSpendableInscriptions = (
+    account: IDisplayAccount,
+    inscription: Inscription,
+  ) => {
+    console.log('🚀 ~ Provider ~ inscription:', inscription);
+    console.log('🚀 ~ Provider ~ account:', account);
+    accountConfig.setAccountSpendableInscriptions(account.key, inscription);
+  };
+
+  getAccountSpendableInscriptions = async (account: IDisplayAccount) => {
+    return accountConfig.getAccountSpendableInscriptions(account.key);
+  };
+
+  deleteAccountSpendableInscription = async (
+    account: IDisplayAccount,
+    inscriptionId: string,
+  ) => {
+    accountConfig.deleteAccountSpendableInscription(account.key, inscriptionId);
   };
 }
 

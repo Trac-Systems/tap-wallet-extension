@@ -1,7 +1,7 @@
 import createPersistStore from '../../storage/persistStore';
 interface IMemStore {
   activeWalletIndex: number;
-  contactMap: {};
+  contactMap:{ [key: string]: string };
 }
 export class WalletConfigService {
   store!: IMemStore;

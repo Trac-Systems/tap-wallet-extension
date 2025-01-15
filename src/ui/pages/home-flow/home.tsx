@@ -10,6 +10,7 @@ import TapList from './components/tap-list';
 import {useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {useInscriptionHook} from './hook';
+import {fakeData} from './data';
 
 const Home = () => {
   //! Hooks
@@ -18,10 +19,17 @@ const Home = () => {
 
   //! State
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<{[key: string]: boolean}>(
+    {},
+  );
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const tabItems = [
     {label: 'Tokens', content: <TapList />},
-    {label: 'Inscriptions', content: <InscriptionList />},
+    {
+      label: 'Inscriptions',
+      content: <InscriptionList setOpenDrawer={setOpenDrawerInscription} />,
+    },
   ];
 
   useEffect(() => {
@@ -36,6 +44,13 @@ const Home = () => {
       return;
     }
     navigate('/note-step');
+  };
+
+  const handleCheckboxChange = (id: string) => {
+    setCheckedItems(prevState => ({
+      ...prevState,
+      [id]: !prevState[id],
+    }));
   };
 
   //! Render
@@ -69,6 +84,65 @@ const Home = () => {
                 styleType="dark"
                 onClick={() => handleCreateWallet('isImport')}
               />
+            </UX.Box>
+          </UX.DrawerCustom>
+          <UX.DrawerCustom
+            className="filter-inscription-spendable"
+            open={openDrawerInscription}
+            onClose={() => setOpenDrawerInscription(false)}>
+            <UX.Box
+              style={{
+                padding: '16px',
+                height: '65vh',
+              }}>
+              <UX.Text
+                title="Mark inscriptions as spendable"
+                styleType="body_20_extra_bold"
+              />
+              <UX.Box style={{justifyContent: 'space-between', flex: 1}}>
+                <UX.Box spacing="xs" className="card-spendable">
+                  {fakeData.map(item => {
+                    return (
+                      <UX.Box layout="box_border" key={item.id}>
+                        <UX.Box
+                          layout="row"
+                          spacing="xs"
+                          style={{alignItems: 'center'}}>
+                          <UX.InscriptionPreview
+                            key={item.inscriptionId}
+                            data={item}
+                            asLogo
+                            preset="asLogo"
+                          />
+                          <UX.Text
+                            title={`#${item.inscriptionNumber}`}
+                            styleType="body_16_normal"
+                          />
+                        </UX.Box>
+                        <UX.CheckBox
+                          checked={!!checkedItems[item.id]}
+                          onChange={() => handleCheckboxChange(String(item.id))}
+                        />
+                      </UX.Box>
+                    );
+                  })}
+                   {/* <UX.Pagination
+                pagination={pagination}
+                total={totalInscription}
+                onChange={pagination => {
+                  getInscriptionList(
+                    (pagination.currentPage - 1) * pagination.pageSize,
+                  );
+                  setPagination(pagination);
+                }}
+              /> */}
+                </UX.Box>
+                <UX.Button
+                  title="Confirm"
+                  styleType="primary"
+                  onClick={() => setOpenDrawerInscription(false)}
+                />
+              </UX.Box>
             </UX.Box>
           </UX.DrawerCustom>
         </>

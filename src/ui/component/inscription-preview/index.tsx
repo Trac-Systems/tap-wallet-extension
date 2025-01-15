@@ -1,10 +1,9 @@
+import {UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
 import {CSSProperties} from 'react';
-import {Inscription} from '../../interfaces';
 import {colors} from '../../themes/color';
 import Box from '../box-custom';
 import Iframe from '../iframe-custom';
 import Text from '../text-custom';
-import {UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
 
 const $viewPresets = {
   large: {},
@@ -12,6 +11,7 @@ const $viewPresets = {
   medium: {},
 
   small: {},
+  asLogo: {},
 };
 
 const $containerPresets: Record<Presets, CSSProperties> = {
@@ -27,6 +27,10 @@ const $containerPresets: Record<Presets, CSSProperties> = {
     backgroundColor: colors.black,
     width: 120,
   },
+  asLogo: {
+    backgroundColor: colors.black,
+    width: 50,
+  },
 };
 
 const $iframePresets: Record<Presets, CSSProperties> = {
@@ -41,11 +45,17 @@ const $iframePresets: Record<Presets, CSSProperties> = {
     height: 144,
     borderTopLeftRadius: '10px',
     borderTopRightRadius: '10px',
-    borderWidth: '0px'
+    borderWidth: '0px',
   },
   small: {
     width: 100,
     height: 120,
+    borderTopLeftRadius: '10px',
+    borderTopRightRadius: '10px',
+  },
+  asLogo: {
+    width: 50,
+    height: 60,
     borderTopLeftRadius: '10px',
     borderTopRightRadius: '10px',
   },
@@ -54,7 +64,8 @@ const $iframePresets: Record<Presets, CSSProperties> = {
 type Presets = keyof typeof $viewPresets;
 
 export interface InscriptionProps {
-  data: Inscription;
+  // data: Inscription;
+  data: any;
   onClick?: () => void;
   preset: Presets;
   asLogo?: boolean;

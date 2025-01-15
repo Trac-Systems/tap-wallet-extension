@@ -397,8 +397,6 @@ const AddressInput = (props: InputProp) => {
 
     resetState();
     const isValid = validateBtcAddress(inputAddress, networkType);
-    // console.log('🚀 ~ handleInputAddress ~ isValid:', isValid);
-
     if (!isValid) {
       setFormatError('Recipient address is invalid');
       return;

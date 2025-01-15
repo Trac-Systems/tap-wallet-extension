@@ -113,6 +113,8 @@ export interface Inscription {
   contentBody: string;
   utxoHeight: number;
   utxoConfirmation: number;
+  // utxo info
+  utxoInfo?: UnspentOutput;
 }
 
 export interface InscriptionMintedItem {

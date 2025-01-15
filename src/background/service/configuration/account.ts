@@ -66,21 +66,21 @@ export class AccountConfigService {
 
   setAccountSpendableInscriptions(
     accountKey: string,
-    inscription: Inscription,
+    inscriptions: Inscription[],
   ) {
     if (!this.store?.spendableInscriptions) {
       this.store.spendableInscriptions = {};
     }
+
     // Create a new object if accountKey doesn't exist
     if (!this.store?.spendableInscriptions[accountKey]) {
       this.store.spendableInscriptions[accountKey] = {};
     }
 
-    // Create a new copy of current inscriptions
-    const updatedInscriptions = {
-      ...this.store.spendableInscriptions[accountKey],
-      [inscription.inscriptionId]: inscription,
-    };
+    // Create a new copy of current inscription
+    const updatedInscriptions = Object.fromEntries(
+      inscriptions.map((inscription) => [inscription.inscriptionId, inscription])
+    );
 
     // Update store with new reference
     this.store.spendableInscriptions = {

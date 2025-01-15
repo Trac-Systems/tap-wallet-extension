@@ -474,8 +474,12 @@ export class Provider {
     const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
     utxosWithoutInscription.filter(v => v.satoshi > UTXO_DUST);
     const account = this.getActiveAccount();
-    const spendableUtxoInscriptions =
+    const spendableInscriptions =
       await this.getAccountSpendableInscriptions(account);
+
+    const spendableUtxoInscriptions = spendableInscriptions.map(
+      v => v.utxoInfo,
+    );
 
     return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
   };
@@ -1082,11 +1086,9 @@ export class Provider {
 
   setAccountSpendableInscriptions = (
     account: IDisplayAccount,
-    inscription: Inscription,
+    inscriptions: Inscription[],
   ) => {
-    console.log('🚀 ~ Provider ~ inscription:', inscription);
-    console.log('🚀 ~ Provider ~ account:', account);
-    accountConfig.setAccountSpendableInscriptions(account.key, inscription);
+    accountConfig.setAccountSpendableInscriptions(account.key, inscriptions);
   };
 
   getAccountSpendableInscriptions = async (account: IDisplayAccount) => {

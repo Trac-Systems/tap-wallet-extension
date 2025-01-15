@@ -4,6 +4,7 @@ import {colors} from '../../themes/color';
 import Box from '../box-custom';
 import Iframe from '../iframe-custom';
 import Text from '../text-custom';
+import Button from '@/src/ui/component/button-custom';
 
 const $viewPresets = {
   large: {},
@@ -70,6 +71,7 @@ export interface InscriptionProps {
   preset: Presets;
   asLogo?: boolean;
   styleAslogo?: CSSProperties;
+  isSpendable?: boolean;
 }
 
 export default function InscriptionPreview({
@@ -78,6 +80,7 @@ export default function InscriptionPreview({
   preset,
   asLogo,
   styleAslogo,
+  isSpendable,
 }: InscriptionProps) {
   const url = '';
   let preview = data?.preview;
@@ -105,6 +108,22 @@ export default function InscriptionPreview({
         overflow: 'hidden',
         position: 'relative',
       }}>
+      {isSpendable && (
+        <Button
+          title="Spendable"
+          styleType="primary"
+          customStyles={{
+            width: 'fit-content',
+            height: 'auto',
+            lineHeight: 'normal',
+            padding: '5px 10px',
+            fontSize: '14px',
+            position: 'absolute',
+            top: 11,
+            left: 11,
+          }}
+        />
+      )}
       <Iframe preview={preview} style={$iframePresets[preset]} />
       <Box style={{padding: '12px 10px', background: '#272727'}}>
         <Text

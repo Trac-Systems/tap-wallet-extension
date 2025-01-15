@@ -7,23 +7,33 @@ import Navbar from './components/navbar-navigate';
 import {InscriptionList} from './components/Inscription';
 import {useNavigate} from 'react-router-dom';
 import TapList from './components/tap-list';
-import {useAppSelector} from '../../utils';
+import {PAGE_SIZE, useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {useInscriptionHook} from './hook';
-import {fakeData} from './data';
+import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import {Inscription} from '@/src/wallet-instance';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 const Home = () => {
   //! Hooks
   const navigate = useNavigate();
   const {getTapList, getInscriptionList} = useInscriptionHook();
+  const inscriptions = useAppSelector(InscriptionSelector.listInscription);
+  const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
+  const walletProvider = useWalletProvider();
 
   //! State
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<{[key: string]: boolean}>(
-    {},
-  );
+  const [checkedItems, setCheckedItems] = useState<{
+    [key: string]: Inscription;
+  }>({});
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: PAGE_SIZE,
+  });
+
   const tabItems = [
     {label: 'Tokens', content: <TapList />},
     {
@@ -47,11 +57,41 @@ const Home = () => {
   };
 
   const handleCheckboxChange = (id: string) => {
-    setCheckedItems(prevState => ({
-      ...prevState,
-      [id]: !prevState[id],
-    }));
+    setCheckedItems(prevState => {
+      const isCurrentlyChecked = !!prevState[id];
+      const newState = {...prevState};
+
+      if (isCurrentlyChecked) {
+        delete newState[id]; // Remove from checkedItems if unchecked
+      } else {
+        newState[id] = inscriptions.find(ins => ins.inscriptionId === id); // Add the inscription to checkedItems
+      }
+
+      return newState;
+    });
   };
+
+  const handleConfirm = async () => {
+    setOpenDrawerInscription(false);
+    await walletProvider.setAccountSpendableInscriptions(
+      activeAccount,
+      Object.values(checkedItems),
+    );
+    fetchSpendableInscriptions();
+  };
+
+  const fetchSpendableInscriptions = async () => {
+    const inscriptions =
+      await walletProvider.getAccountSpendableInscriptions(activeAccount);
+    const selectedInsMap = Object.fromEntries(
+      inscriptions.map(inscription => [inscription.inscriptionId, inscription]),
+    );
+    setCheckedItems(selectedInsMap);
+  };
+
+  useEffect(() => {
+    fetchSpendableInscriptions();
+  }, [activeAccount]);
 
   //! Render
   return (
@@ -101,9 +141,9 @@ const Home = () => {
               />
               <UX.Box style={{justifyContent: 'space-between', flex: 1}}>
                 <UX.Box spacing="xs" className="card-spendable">
-                  {fakeData.map(item => {
+                  {inscriptions.map((item, index) => {
                     return (
-                      <UX.Box layout="box_border" key={item.id}>
+                      <UX.Box layout="box_border" key={index}>
                         <UX.Box
                           layout="row"
                           spacing="xs"
@@ -120,27 +160,31 @@ const Home = () => {
                           />
                         </UX.Box>
                         <UX.CheckBox
-                          checked={!!checkedItems[item.id]}
-                          onChange={() => handleCheckboxChange(String(item.id))}
+                          checked={
+                            checkedItems[item.inscriptionId] ? true : false
+                          }
+                          onChange={() =>
+                            handleCheckboxChange(String(item.inscriptionId))
+                          }
                         />
                       </UX.Box>
                     );
                   })}
-                   {/* <UX.Pagination
-                pagination={pagination}
-                total={totalInscription}
-                onChange={pagination => {
-                  getInscriptionList(
-                    (pagination.currentPage - 1) * pagination.pageSize,
-                  );
-                  setPagination(pagination);
-                }}
-              /> */}
+                  <UX.Pagination
+                    pagination={pagination}
+                    total={totalInscription}
+                    onChange={pagination => {
+                      getInscriptionList(
+                        (pagination.currentPage - 1) * pagination.pageSize,
+                      );
+                      setPagination(pagination);
+                    }}
+                  />
                 </UX.Box>
                 <UX.Button
                   title="Confirm"
                   styleType="primary"
-                  onClick={() => setOpenDrawerInscription(false)}
+                  onClick={handleConfirm}
                 />
               </UX.Box>
             </UX.Box>

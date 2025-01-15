@@ -83,8 +83,6 @@ const SendInscription = () => {
       setError('Invalid fee rate');
       return;
     }
-
-    const dustUtxo = inscription.outputValue;
     // try {
     //   if (toInfo.address) {
     //     dustUtxo = getAddressUtxoDust(toInfo.address);
@@ -92,12 +90,6 @@ const SendInscription = () => {
     // } catch (e) {
     //   // console.log(e);
     // }
-
-    const maxOffset = inscriptions.reduce((pre, cur) => {
-      return Math.max(pre, cur.offset);
-    }, 0);
-
-    const minOutputValue = Math.max(maxOffset + 1, dustUtxo);
 
     if (outputValue < minOutputValue) {
       setError(`OutputValue must be at least ${minOutputValue}`);

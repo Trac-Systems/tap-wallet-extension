@@ -31,6 +31,7 @@ export const convertInscriptionTransferList = (
       contentBody: '',
       utxoHeight: v.height,
       utxoConfirmation: 0,
+      utxoInfo: v,
     };
     result.push(transfer);
   });

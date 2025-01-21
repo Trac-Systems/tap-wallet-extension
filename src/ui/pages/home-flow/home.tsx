@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {UX} from '../../component';
 import LayoutScreenHome from '../../layouts/home';
 import {SVG} from '../../svg';
@@ -13,6 +13,7 @@ import {useInscriptionHook} from './hook';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {Inscription} from '@/src/wallet-instance';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 
 const Home = () => {
   //! Hooks
@@ -20,32 +21,49 @@ const Home = () => {
   const {getTapList, getInscriptionList} = useInscriptionHook();
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
+  // const checkedItems = useAppSelector(
+  //   InscriptionSelector.spendableInscriptionsMap,
+  // );
+  const [checkedItems, setCheckedItems] = useState<{
+    [key: string]: Inscription;
+  }>({});
+  const [spendableMaps, setSpendableMaps] = useState<{
+    [key: string]: Inscription;
+  }>({});
+  const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
   const walletProvider = useWalletProvider();
 
   //! State
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<{
-    [key: string]: Inscription;
-  }>({});
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: PAGE_SIZE,
   });
 
+  const handleOpenDrawerIns = async (bool: boolean) => {
+    setOpenDrawerInscription(bool);
+  };
+
   const tabItems = [
     {label: 'Tokens', content: <TapList />},
     {
       label: 'Inscriptions',
-      content: <InscriptionList setOpenDrawer={setOpenDrawerInscription} />,
+      content: (
+        <InscriptionList
+          setOpenDrawer={handleOpenDrawerIns}
+          setSpendableInscriptionMap={setSpendableMaps}
+          spendableInscriptionsMap={spendableMaps}
+        />
+      ),
     },
   ];
 
   useEffect(() => {
     getTapList(1);
     getInscriptionList(0);
-  }, [activeAccount.address]);
+  }, [activeAccount.key]);
 
   //! Function
   const handleCreateWallet = (check: string) => {
@@ -57,18 +75,26 @@ const Home = () => {
   };
 
   const handleCheckboxChange = (id: string) => {
-    setCheckedItems(prevState => {
-      const isCurrentlyChecked = !!prevState[id];
-      const newState = {...prevState};
+    const newState = {...checkedItems};
+    const isCurrentlyChecked = checkedItems[id] ? true : false;
+    if (isCurrentlyChecked) {
+      delete newState[id]; // Remove from checkedItems if unchecked
+    } else {
+      newState[id] = inscriptions.find(ins => ins.inscriptionId === id); // Add the inscription to checkedItems
+    }
 
-      if (isCurrentlyChecked) {
-        delete newState[id]; // Remove from checkedItems if unchecked
-      } else {
-        newState[id] = inscriptions.find(ins => ins.inscriptionId === id); // Add the inscription to checkedItems
-      }
+    setCheckedItems(newState);
+  };
 
-      return newState;
-    });
+  const fetchSpendableInscriptions = async () => {
+    const inscriptions =
+      await walletProvider.getAccountSpendableInscriptions(activeAccount);
+    const selectedInsMap = Object.fromEntries(
+      inscriptions.map(inscription => [inscription.inscriptionId, inscription]),
+    );
+    setSpendableMaps(selectedInsMap);
+    setCheckedItems(selectedInsMap);
+    // dispatch(InscriptionActions.setSpendableInscriptionsMap(selectedInsMap));
   };
 
   const handleConfirm = async () => {
@@ -80,18 +106,66 @@ const Home = () => {
     fetchSpendableInscriptions();
   };
 
-  const fetchSpendableInscriptions = async () => {
-    const inscriptions =
-      await walletProvider.getAccountSpendableInscriptions(activeAccount);
-    const selectedInsMap = Object.fromEntries(
-      inscriptions.map(inscription => [inscription.inscriptionId, inscription]),
-    );
-    setCheckedItems(selectedInsMap);
-  };
-
   useEffect(() => {
     fetchSpendableInscriptions();
-  }, [activeAccount]);
+  }, [activeAccount.key, showSpendableList, openDrawerInscription]);
+
+  // useEffect(() => {
+  //   console.log('openDrawerInscription', openDrawerInscription);
+  //   console.log('spendableMaps', spendableMaps);
+  //   setCheckedItems(spendableMaps);
+  // }, [spendableMaps, showSpendableList, openDrawerInscription]);
+
+  useEffect(() => {}, [openDrawerInscription]);
+
+  const renderInscriptions = useMemo(() => {
+    return showSpendableList ? Object.values(checkedItems) : inscriptions;
+  }, [checkedItems, inscriptions, showSpendableList]);
+
+  const renderCheckedList = () => {
+    return (
+      <UX.Box spacing="xs" className="card-spendable">
+        {renderInscriptions.map((item, index) => {
+          const isChecked = checkedItems[item.inscriptionId] ? true : false;
+          return (
+            <UX.Box layout="box_border" key={index}>
+              <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
+                <UX.InscriptionPreview
+                  key={item.inscriptionId}
+                  data={item}
+                  asLogo
+                  preset="asLogo"
+                />
+                <UX.Text
+                  title={`#${item.inscriptionNumber}`}
+                  styleType="body_16_normal"
+                />
+              </UX.Box>
+              <UX.CheckBox
+                checked={isChecked}
+                onChange={() =>
+                  handleCheckboxChange(String(item.inscriptionId))
+                }
+              />
+            </UX.Box>
+          );
+        })}
+
+        {showSpendableList && (
+          <UX.Pagination
+            pagination={pagination}
+            total={totalInscription}
+            onChange={pagination => {
+              getInscriptionList(
+                (pagination.currentPage - 1) * pagination.pageSize,
+              );
+              setPagination(pagination);
+            }}
+          />
+        )}
+      </UX.Box>
+    );
+  };
 
   //! Render
   return (
@@ -140,47 +214,8 @@ const Home = () => {
                 styleType="body_20_extra_bold"
               />
               <UX.Box style={{justifyContent: 'space-between', flex: 1}}>
-                <UX.Box spacing="xs" className="card-spendable">
-                  {inscriptions.map((item, index) => {
-                    return (
-                      <UX.Box layout="box_border" key={index}>
-                        <UX.Box
-                          layout="row"
-                          spacing="xs"
-                          style={{alignItems: 'center'}}>
-                          <UX.InscriptionPreview
-                            key={item.inscriptionId}
-                            data={item}
-                            asLogo
-                            preset="asLogo"
-                          />
-                          <UX.Text
-                            title={`#${item.inscriptionNumber}`}
-                            styleType="body_16_normal"
-                          />
-                        </UX.Box>
-                        <UX.CheckBox
-                          checked={
-                            checkedItems[item.inscriptionId] ? true : false
-                          }
-                          onChange={() =>
-                            handleCheckboxChange(String(item.inscriptionId))
-                          }
-                        />
-                      </UX.Box>
-                    );
-                  })}
-                  <UX.Pagination
-                    pagination={pagination}
-                    total={totalInscription}
-                    onChange={pagination => {
-                      getInscriptionList(
-                        (pagination.currentPage - 1) * pagination.pageSize,
-                      );
-                      setPagination(pagination);
-                    }}
-                  />
-                </UX.Box>
+                {renderCheckedList()}
+
                 <UX.Button
                   title="Confirm"
                   styleType="primary"

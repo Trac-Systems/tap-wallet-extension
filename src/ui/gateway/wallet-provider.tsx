@@ -78,7 +78,7 @@ export interface IWalletProvider {
   ): Promise<{[key: string]: {addressType: AddressType}}>;
   changeAddressType(addressType: AddressType): Promise<void>;
   getRecommendFee(): Promise<any>;
-  pushTx(rawTx: string): Promise<any>;
+  pushTx(rawTx: string, spendUtxos?: UnspentOutput[]): Promise<any>;
   getBTCUtxos(address: string): Promise<UnspentOutput[]>;
 
   getMnemonics(pin: string, wallet: WalletDisplay): Promise<any>;

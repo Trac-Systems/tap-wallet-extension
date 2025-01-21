@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React from 'react';
 
 interface CustomCheckboxProps {
   checked?: boolean;
@@ -11,30 +11,30 @@ interface CustomCheckboxProps {
 }
 
 const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
-  checked = false,
+  checked,
   onChange,
   width = '16px',
   height = '16px',
   checkedColor = '#D16B7C',
   checkmarkColor = 'white',
 }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(checked);
+  // Derived value for controlled vs uncontrolled behavior
+  const isControlled = checked !== undefined;
+  const [internalChecked, setInternalChecked] = React.useState<boolean>(false);
+
+  const isChecked = isControlled ? checked : internalChecked;
 
   const handleCheckboxChange = () => {
+    const newChecked = !isChecked;
+
+    if (!isControlled) {
+      setInternalChecked(newChecked);
+    }
+
     if (onChange) {
-      const newCheckedStatus = !isChecked;
-      setIsChecked(!isChecked);
-      onChange(newCheckedStatus);
+      onChange(newChecked);
     }
   };
-
-  const checkedValue = useMemo(() => {
-    if (onChange) {
-      return isChecked;
-    } else {
-      return checked;
-    }
-  }, [onChange, checked, isChecked]);
 
   return (
     <div
@@ -47,10 +47,10 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         height,
         borderRadius: '4px',
         cursor: 'pointer',
-        border: `1px solid ${checkedValue ? checkedColor : '#fff'}`,
+        border: `1px solid ${isChecked ? checkedColor : '#fff'}`,
         transition: 'background-color 0.3s, border-color 0.3s',
       }}>
-      {checkedValue && (
+      {isChecked && (
         <svg
           width="100%"
           height="100%"

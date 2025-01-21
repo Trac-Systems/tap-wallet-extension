@@ -115,14 +115,14 @@ export function usePushBitcoinTxCallback() {
   const dispatch = useAppDispatch();
   const wallet = useWalletProvider();
   return useCallback(
-    async (rawtx: string) => {
+    async (rawtx: string, spendUtxos?: UnspentOutput[]) => {
       const ret = {
         success: false,
         txid: '',
         error: '',
       };
       try {
-        const txid = await wallet.pushTx(rawtx);
+        const txid = await wallet.pushTx(rawtx, spendUtxos);
         await sleep(3); // Wait for transaction synchronization
         dispatch(TransactionsActions.updateBitcoinTx({txid}));
         dispatch(AccountActions.expireBalance());
@@ -296,14 +296,14 @@ export function usePushOrdinalsTxCallback() {
   const dispatch = useAppDispatch();
   const wallet = useWalletProvider();
   return useCallback(
-    async (rawtx: string) => {
+    async (rawtx: string, spendUtxos?: UnspentOutput[]) => {
       const ret = {
         success: false,
         txid: '',
         error: '',
       };
       try {
-        const txid = await wallet.pushTx(rawtx);
+        const txid = await wallet.pushTx(rawtx, spendUtxos);
         await sleep(3); // Wait for transaction synchronization
         dispatch(TransactionsActions.updateOrdinalsTx({txid}));
 

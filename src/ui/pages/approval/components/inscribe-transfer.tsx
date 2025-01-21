@@ -621,11 +621,15 @@ export const Step4 = ({
   const pinInputRef = useRef<PinInputRef>(null);
   const {showToast} = useCustomToast();
 
+  const spendUtxos = useMemo(() => {
+    return contextData.rawTxInfo?.inputs.map(input => input.utxo);
+  }, [contextData.rawTxInfo?.inputs]);
+
   const handleSubmit = useCallback(async () => {
     await wallet
       .unlockApp(valueInput)
       .then(() => {
-        pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '').then(
+        pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos).then(
           ({success, error}) => {
             if (success) {
               updateContextData({

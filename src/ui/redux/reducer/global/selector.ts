@@ -8,4 +8,5 @@ export const GlobalSelector = {
   isBooted: (state: AppState) => state.globalReducer.isBooted,
   networkType: (state: AppState) => state.globalReducer.networkType,
   randomColors: (state: AppState) => state.globalReducer.randomColors,
+  showSpendableList: (state: AppState) => state.globalReducer.showSpendableList,
 };

@@ -462,7 +462,11 @@ export class Provider {
     return Object.assign({}, account, {name});
   };
 
-  pushTx = async (rawTx: string) => {
+  pushTx = async (rawTx: string, spendUtoxs?: UnspentOutput[]) => {
+    if (spendUtoxs) {
+      const activeAccount = this.getActiveAccount();
+      accountConfig.deleteSpendableUtxos(activeAccount.key, spendUtoxs);
+    }
     return await this.mempoolApi.pushTx(rawTx);
   };
 

@@ -106,9 +106,14 @@ const SignPsbt = ({
     rejectApproval();
   };
 
+  const spendUtxos = useMemo(() => {
+    return rawTxInfo.inputs.map(input => input.utxo);
+  }, [rawTxInfo]);
+
   const handleConfirm = () => {
     resolveApproval({
       psbtHex: rawTxInfo?.psbtHex,
+      spendUtxos,
       signed: type !== TxType.SIGN_TX,
     });
   };

@@ -8,6 +8,7 @@ export interface GlobalState {
   loadingGlobalState: boolean;
   networkType: Network;
   randomColors: string[];
+  showSpendableList: boolean;
 }
 
 export const initialState: GlobalState = {
@@ -17,6 +18,7 @@ export const initialState: GlobalState = {
   loadingGlobalState: false,
   networkType: Network.MAINNET,
   randomColors: [],
+  showSpendableList: false,
 };
 
 const GlobalSlice = createSlice({
@@ -61,6 +63,14 @@ const GlobalSlice = createSlice({
       return {
         ...state,
         randomColors: listColor,
+      };
+    },
+
+    setShowSpendableList: (state: GlobalState, action) => {
+      const {showSpendableList} = action.payload;
+      return {
+        ...state,
+        showSpendableList,
       };
     },
   },

@@ -6,6 +6,7 @@ export interface InscriptionState {
   totalInscription: number;
   listTapToken: TokenBalance[];
   totalTap: number;
+  spendableInscriptionsMap: {[key: string]: Inscription}
 }
 
 export const initialState: InscriptionState = {
@@ -13,6 +14,7 @@ export const initialState: InscriptionState = {
   totalInscription: 0,
   listTapToken: [],
   totalTap: 0,
+  spendableInscriptionsMap:{}
 };
 
 const InscriptionSlice = createSlice({
@@ -45,6 +47,13 @@ const InscriptionSlice = createSlice({
       return {
        ...state,
        totalTap: payload,
+      };
+    },
+    setSpendableInscriptionsMap(state, action: {payload: {[key: string]: Inscription}}) {
+      const {payload} = action;
+      return {
+       ...state,
+       spendableInscriptionsMap: payload,
       };
     }
   },

@@ -1,4 +1,9 @@
-import {EVENTS, IDisplayAccount, Inscription} from '@/src/wallet-instance';
+import {
+  EVENTS,
+  IDisplayAccount,
+  Inscription,
+  UnspentOutput,
+} from '@/src/wallet-instance';
 import createPersistStore from '../../storage/persistStore';
 import eventBus from '../../../gateway/event-bus';
 import sessionService from '../session.service';
@@ -79,7 +84,7 @@ export class AccountConfigService {
 
     // Create a new copy of current inscription
     const updatedInscriptions = Object.fromEntries(
-      inscriptions.map((inscription) => [inscription.inscriptionId, inscription])
+      inscriptions.map(inscription => [inscription.inscriptionId, inscription]),
     );
 
     // Update store with new reference
@@ -106,6 +111,33 @@ export class AccountConfigService {
       ...this.store.spendableInscriptions[accountKey],
     };
     delete updatedInscriptions[inscriptionId];
+
+    this.store.spendableInscriptions = {
+      ...this.store.spendableInscriptions,
+      [accountKey]: updatedInscriptions,
+    };
+  }
+  deleteSpendableUtxos(accountKey: string, spendUtxos: UnspentOutput[]) {
+    if (!this.store.spendableInscriptions[accountKey]) {
+      return;
+    }
+    const txUtxoMaps = {};
+    for (const utxo of spendUtxos) {
+      txUtxoMaps[utxo.txid] = true;
+    }
+    const updatedInscriptions = {
+      ...this.store.spendableInscriptions[accountKey],
+    };
+    for (const ins of Object.values(
+      this.store.spendableInscriptions[accountKey],
+    )) {
+      if (
+        txUtxoMaps[ins.utxoInfo?.txid] &&
+        updatedInscriptions[ins.inscriptionId]
+      ) {
+        delete updatedInscriptions[ins.inscriptionId];
+      }
+    }
 
     this.store.spendableInscriptions = {
       ...this.store.spendableInscriptions,

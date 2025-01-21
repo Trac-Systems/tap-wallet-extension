@@ -70,11 +70,11 @@ export async function sendInscription({
   enableRBF?: boolean;
 }) {
   // check safe Balance
-  btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions)) {
-      throw new Error('Unsafe balance');
-    }
-  });
+  // btcUtxos.forEach(utxo => {
+  //   if (!isEmpty(utxo.inscriptions)) {
+  //     throw new Error('Unsafe balance');
+  //   }
+  // });
 
   if (assetUtxo.inscriptions.length !== 1) {
     throw new Error('Unsafe balance');

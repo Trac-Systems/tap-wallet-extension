@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
 import {PinInputRef} from '../../component/pin-input';
@@ -10,19 +10,26 @@ import {
   usePushBitcoinTxCallback,
   usePushOrdinalsTxCallback,
 } from '../send-receive/hook';
-import {InscribeOrder, TokenBalance, TxType} from '../../../wallet-instance';
+import {
+  InscribeOrder,
+  TokenBalance,
+  TxInput,
+  TxType,
+} from '../../../wallet-instance';
 interface LocationState {
   rawtx: 'string';
   type: TxType;
   tokenBalance?: TokenBalance;
   order: InscribeOrder;
+  spendInputs: TxInput[];
 }
 
 const TxSecurity = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
-  const {rawtx, type, tokenBalance, order}: LocationState = location.state;
+  const {rawtx, type, tokenBalance, order, spendInputs}: LocationState =
+    location.state;
   const wallet = useWalletProvider();
   const pushBitcoinTx = usePushBitcoinTxCallback();
   const pushOrdinalsTx = usePushOrdinalsTxCallback();
@@ -40,6 +47,10 @@ const TxSecurity = () => {
     setValueInput(pwd);
   };
 
+  const spendUtxos = useMemo(() => {
+    return spendInputs.map(input => input.utxo);
+  }, [spendInputs]);
+
   const handleSubmit = async () => {
     setLoading(true);
     await wallet
@@ -47,7 +58,7 @@ const TxSecurity = () => {
       .then(() => {
         switch (type) {
           case TxType.SEND_ORDINALS_INSCRIPTION:
-            pushOrdinalsTx(rawtx).then(({success, txid, error}) => {
+            pushOrdinalsTx(rawtx, spendUtxos).then(({success, txid, error}) => {
               if (success) {
                 navigate('/home/send-success', {state: {txid}});
               } else {
@@ -57,7 +68,7 @@ const TxSecurity = () => {
             break;
           case TxType.INSCRIBE_TAP:
             try {
-              pushBitcoinTx(rawtx).then(({success, error}) => {
+              pushBitcoinTx(rawtx, spendUtxos).then(({success, error}) => {
                 if (success) {
                   navigate('/home/inscribe-result', {
                     state: {
@@ -81,7 +92,7 @@ const TxSecurity = () => {
             }
             break;
           default:
-            pushBitcoinTx(rawtx).then(({success, txid, error}) => {
+            pushBitcoinTx(rawtx, spendUtxos).then(({success, txid, error}) => {
               if (success) {
                 navigate('/home/send-success', {state: {txid}});
               } else {

@@ -135,11 +135,11 @@ class InternalProvider {
       } = req;
     },
   ])
-  sendBitcoin = async ({approvalRes: {psbtHex}}) => {
+  sendBitcoin = async ({approvalRes: {psbtHex, spendUtxos}}) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
-    return await walletProvider.pushTx(rawtx);
+    return await walletProvider.pushTx(rawtx, spendUtxos);
   };
 
   @Reflect.metadata('APPROVAL', [
@@ -152,11 +152,11 @@ class InternalProvider {
       } = req;
     },
   ])
-  sendInscription = async ({approvalRes: {psbtHex}}) => {
+  sendInscription = async ({approvalRes: {psbtHex, spendUtxos}}) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
-    return await walletProvider.pushTx(rawtx);
+    return await walletProvider.pushTx(rawtx, spendUtxos);
   };
 
   @Reflect.metadata('APPROVAL', [
@@ -238,13 +238,17 @@ class InternalProvider {
   };
 
   @Reflect.metadata('SAFE', true)
-  pushPsbt = async ({ data: { params: { psbtHex } } }) => {
+  pushPsbt = async ({
+    data: {
+      params: {psbtHex},
+    },
+  }) => {
     const hexData = formatPsbtHex(psbtHex);
     const psbt = bitcoin.Psbt.fromHex(hexData);
     const tx = psbt.extractTransaction(true);
-    const rawtx = tx.toHex()
-    return await walletProvider.pushTx(rawtx)
-  }
+    const rawtx = tx.toHex();
+    return await walletProvider.pushTx(rawtx);
+  };
 
   @Reflect.metadata('SAFE', true)
   getBitcoinUtxos = async () => {
@@ -270,7 +274,7 @@ class InternalProvider {
   };
 
   @Reflect.metadata('SAFE', true)
-  disconnect = async ({ session: { origin } }) => {
+  disconnect = async ({session: {origin}}) => {
     return walletProvider.removeConnectedSite(origin);
   };
 }

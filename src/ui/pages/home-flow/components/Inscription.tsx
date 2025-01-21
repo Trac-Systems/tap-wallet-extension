@@ -1,57 +1,63 @@
+import React from 'react';
 import {UX} from '@/src/ui/component';
 import {useNavigate} from 'react-router-dom';
-import {PAGE_SIZE, useAppSelector} from '@/src/ui/utils';
+import {PAGE_SIZE, useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useEffect, useState} from 'react';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {useInscriptionHook} from '../hook';
 import {isEmpty} from 'lodash';
 import {SVG} from '@/src/ui/svg';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {GlobalActions} from '@/src/ui/redux/reducer/global/slice';
 import {Inscription} from '@/src/wallet-instance';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
+  spendableInscriptionsMap: {[key: string]: Inscription};
+  setSpendableInscriptionMap: (data: {[key: string]: Inscription}) => void;
 }
 export function InscriptionList(props: IProps) {
-  const {setOpenDrawer} = props;
+  const {setOpenDrawer, setSpendableInscriptionMap, spendableInscriptionsMap} =
+    props;
   const navigate = useNavigate();
   const {getInscriptionList} = useInscriptionHook();
+  const dispatch = useAppDispatch();
   const walletProvider = useWalletProvider();
 
   //! State
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
+  // const spendableInscriptionsMap = useAppSelector(
+  //   InscriptionSelector.spendableInscriptionsMap,
+  // );
+
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: PAGE_SIZE,
   });
-  const [showSpendable, setShowSpendable] = useState(false);
-  const [spendableItems, setSpendableItems] = useState<{
-    [key: string]: Inscription;
-  }>({});
+  const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
 
-  useEffect(() => {
-    const fetchSpendableInscriptions = async () => {
-      const inscriptions =
-        await walletProvider.getAccountSpendableInscriptions(activeAccount);
-      const selectedInsMap = Object.fromEntries(
-        inscriptions.map(inscription => [
-          inscription.inscriptionId,
-          inscription,
-        ]),
-      );
-      setSpendableItems(selectedInsMap);
-    };
-
-    fetchSpendableInscriptions();
-  }, [activeAccount]);
+  const fetchSpendableInscriptions = async () => {
+    const inscriptions =
+      await walletProvider.getAccountSpendableInscriptions(activeAccount);
+    const selectedInsMap = Object.fromEntries(
+      inscriptions.map(inscription => [inscription.inscriptionId, inscription]),
+    );
+    setSpendableInscriptionMap(selectedInsMap);
+    // dispatch(InscriptionActions.setSpendableInscriptionsMap(selectedInsMap));
+  };
 
   //! Function
   useEffect(() => {
     getInscriptionList(0);
-  }, [activeAccount.address]);
+  }, [activeAccount.key]);
+
+  useEffect(() => {
+    fetchSpendableInscriptions();
+  }, [activeAccount.key, showSpendableList]);
 
   //! Render
   if (isEmpty(inscriptions)) {
@@ -63,8 +69,14 @@ export function InscriptionList(props: IProps) {
       <UX.Box layout="row_between" style={{alignItems: 'center'}}>
         <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
           <UX.CheckBox
-            checked={showSpendable}
-            onChange={() => setShowSpendable(!showSpendable)}
+            checked={showSpendableList}
+            onChange={() => {
+              dispatch(
+                GlobalActions.setShowSpendableList({
+                  showSpendableList: !showSpendableList,
+                }),
+              );
+            }}
           />
           <UX.Text
             title="Show spendable inscriptions only"
@@ -75,12 +87,25 @@ export function InscriptionList(props: IProps) {
           <SVG.FilterIcon />
         </UX.Box>
       </UX.Box>
-      {showSpendable ? (
-        <UX.Box layout="column_center" style={{minHeight: '100px'}}>
-          <UX.Text
-            title="There is no spendable inscription."
-            styleType="body_16_normal"
-          />
+      {showSpendableList ? (
+        <UX.Box layout="grid_column_2" spacing="sm" style={{flexWrap: 'wrap'}}>
+          {Object.values(spendableInscriptionsMap).map(data => (
+            <UX.InscriptionPreview
+              key={data.inscriptionId}
+              data={data}
+              preset="medium"
+              isSpendable={
+                spendableInscriptionsMap[data.inscriptionId] ? true : false
+              }
+              onClick={() =>
+                navigate('/home/inscription-detail', {
+                  state: {
+                    inscriptionId: data?.inscriptionId,
+                  },
+                })
+              }
+            />
+          ))}
         </UX.Box>
       ) : (
         <>
@@ -93,7 +118,9 @@ export function InscriptionList(props: IProps) {
                 key={data.inscriptionId}
                 data={data}
                 preset="medium"
-                isSpendable={spendableItems[data.inscriptionId] ? true : false}
+                isSpendable={
+                  spendableInscriptionsMap[data.inscriptionId] ? true : false
+                }
                 onClick={() =>
                   navigate('/home/inscription-detail', {
                     state: {

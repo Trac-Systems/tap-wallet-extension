@@ -406,7 +406,7 @@ const SignConfirm = ({
             title="Sign & Pay"
             onClick={() =>
               navigate('/home/tx-security', {
-                state: {rawtx: rawTxInfo.rawtx, type, tokenBalance, order},
+                state: {rawtx: rawTxInfo.rawtx, type, tokenBalance, order, spendInputs: rawTxInfo.inputs},
               })
             }
           />

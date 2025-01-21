@@ -171,13 +171,13 @@ const SendInscription = () => {
               autoFocus={true}
             />
           </UX.Box>
-          <UX.Box spacing="xss">
-            <UX.Text
-              styleType="heading_16"
-              customStyles={{color: 'white'}}
-              title="Fee rate"
-            />
-            {toInfo.address && (
+           {toInfo.address && (
+            <UX.Box spacing="xss">
+              <UX.Text
+                styleType="heading_16"
+                customStyles={{color: 'white'}}
+                title="OutputValue"
+              />
               <OutputValueBar
                 defaultValue={defaultOutputValue}
                 minValue={minOutputValue}
@@ -185,7 +185,14 @@ const SendInscription = () => {
                   setOutputValue(val);
                 }}
               />
-            )}
+            </UX.Box>
+          )}
+          <UX.Box spacing="xss">
+            <UX.Text
+              styleType="heading_16"
+              customStyles={{color: 'white'}}
+              title="Fee rate"
+            />
             <FeeRateBar
               onChange={val => {
                 setFeeRate(val);

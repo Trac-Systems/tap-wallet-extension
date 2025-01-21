@@ -107,7 +107,7 @@ const SignPsbt = ({
   };
 
   const spendUtxos = useMemo(() => {
-    return rawTxInfo.inputs.map(input => input.utxo);
+    return rawTxInfo?.inputs?.map(input => input.utxo);
   }, [rawTxInfo]);
 
   const handleConfirm = () => {

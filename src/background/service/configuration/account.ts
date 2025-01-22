@@ -7,6 +7,7 @@ import {
 import createPersistStore from '../../storage/persistStore';
 import eventBus from '../../../gateway/event-bus';
 import sessionService from '../session.service';
+import {isEmpty} from 'lodash';
 
 interface InscriptionMap {
   [key: string]: Inscription;
@@ -95,6 +96,10 @@ export class AccountConfigService {
   }
 
   getAccountSpendableInscriptions(accountKey: string): Inscription[] {
+    if (isEmpty(this.store.spendableInscriptions)) {
+      return [];
+    }
+
     const accountInscriptions = this.store.spendableInscriptions[accountKey];
     if (!accountInscriptions) {
       return [];

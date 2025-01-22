@@ -109,15 +109,6 @@ const Home = () => {
   useEffect(() => {
     fetchSpendableInscriptions();
   }, [activeAccount.key, showSpendableList, openDrawerInscription]);
-
-  // useEffect(() => {
-  //   console.log('openDrawerInscription', openDrawerInscription);
-  //   console.log('spendableMaps', spendableMaps);
-  //   setCheckedItems(spendableMaps);
-  // }, [spendableMaps, showSpendableList, openDrawerInscription]);
-
-  useEffect(() => {}, [openDrawerInscription]);
-
   const renderInscriptions = useMemo(() => {
     return showSpendableList ? Object.values(checkedItems) : inscriptions;
   }, [checkedItems, inscriptions, showSpendableList]);

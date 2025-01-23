@@ -87,7 +87,7 @@ export function InscriptionList(props: IProps) {
         </UX.Box>
       </UX.Box>
       {showSpendableList ? (
-        <UX.Box layout="grid_column_2" spacing="sm" style={{flexWrap: 'wrap'}}>
+        <>
           {Object.values(spendableInscriptionsMap).length === 0 ? (
             <UX.Box layout="column_center" style={{minHeight: '100px'}}>
               <UX.Text
@@ -95,26 +95,30 @@ export function InscriptionList(props: IProps) {
                 styleType="body_16_normal"
               />
             </UX.Box>
-          ) : null}
-
-          {Object.values(spendableInscriptionsMap).map(data => (
-            <UX.InscriptionPreview
-              key={data.inscriptionId}
-              data={data}
-              preset="medium"
-              isSpendable={
-                spendableInscriptionsMap[data.inscriptionId] ? true : false
-              }
-              onClick={() =>
-                navigate('/home/inscription-detail', {
-                  state: {
-                    inscriptionId: data?.inscriptionId,
-                  },
-                })
-              }
-            />
-          ))}
-        </UX.Box>
+          ) :
+          <UX.Box
+            layout="grid_column_2"
+            spacing="sm"
+            style={{flexWrap: 'wrap'}}>
+            {Object.values(spendableInscriptionsMap).map(data => (
+              <UX.InscriptionPreview
+                key={data.inscriptionId}
+                data={data}
+                preset="medium"
+                isSpendable={
+                  spendableInscriptionsMap[data.inscriptionId] ? true : false
+                }
+                onClick={() =>
+                  navigate('/home/inscription-detail', {
+                    state: {
+                      inscriptionId: data?.inscriptionId,
+                    },
+                  })
+                }
+              />
+            ))}
+          </UX.Box>}
+        </>
       ) : (
         <>
           <UX.Box

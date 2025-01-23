@@ -1,17 +1,16 @@
-import React from 'react';
 import {UX} from '@/src/ui/component';
-import {useNavigate} from 'react-router-dom';
-import {PAGE_SIZE, useAppDispatch, useAppSelector} from '@/src/ui/utils';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {useEffect, useState} from 'react';
-import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
-import {useInscriptionHook} from '../hook';
-import {isEmpty} from 'lodash';
-import {SVG} from '@/src/ui/svg';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {GlobalActions} from '@/src/ui/redux/reducer/global/slice';
+import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import {SVG} from '@/src/ui/svg';
+import {PAGE_SIZE, useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {Inscription} from '@/src/wallet-instance';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {isEmpty} from 'lodash';
+import {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useInscriptionHook} from '../hook';
 
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
@@ -89,6 +88,15 @@ export function InscriptionList(props: IProps) {
       </UX.Box>
       {showSpendableList ? (
         <UX.Box layout="grid_column_2" spacing="sm" style={{flexWrap: 'wrap'}}>
+          {Object.values(spendableInscriptionsMap).length === 0 ? (
+            <UX.Box layout="column_center" style={{minHeight: '100px'}}>
+              <UX.Text
+                title="There is no spendable inscription."
+                styleType="body_16_normal"
+              />
+            </UX.Box>
+          ) : null}
+
           {Object.values(spendableInscriptionsMap).map(data => (
             <UX.InscriptionPreview
               key={data.inscriptionId}

@@ -41,7 +41,7 @@ const DappPage = () => {
 
   return (
     <LayoutScreenSettings
-      header={<UX.TextHeader text="DAPP" disableIconBack />}
+      header={<UX.TextHeader text="Dapps" disableIconBack />}
       body={
         <UX.Box
           layout="column_center"

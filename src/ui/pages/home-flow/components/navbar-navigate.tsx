@@ -33,7 +33,7 @@ const Navbar = (props: INavbar) => {
         style={{cursor: 'pointer'}}>
         <SVG.DappIcon fillColor={isActive === 'dapp' ? '#D16B7C' : 'white'} />
         <UX.Text
-          title="Dapp"
+          title="Dapps"
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'dapp' ? colors.main_500 : colors.white,

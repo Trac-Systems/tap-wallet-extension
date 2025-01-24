@@ -16,7 +16,7 @@ import {
 } from '../../shared/utils/tap-response-adapter';
 import {calculateAmount} from '../../shared/utils/btc-helper';
 
-const TAP_API_TESTNET = 'https://turbo.tracnetwork.io:55008';
+const TAP_API_TESTNET = 'http://31.204.118.7:55005';
 const TAP_API_MAINNET = 'https://tap-reader-tw.tap-hosting.xyz';
 
 export class TapApi {

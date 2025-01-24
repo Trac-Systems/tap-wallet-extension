@@ -108,6 +108,14 @@ export class AccountConfigService {
   }
 
   deleteAccountSpendableInscription(accountKey: string, inscriptionId: string) {
+    if (!this.store.spendableInscriptions) {
+      return;
+    }
+
+    if (!this.store.spendableInscriptions[accountKey]) {
+      return;
+    }
+
     if (!this.store.spendableInscriptions[accountKey]?.[inscriptionId]) {
       return;
     }
@@ -122,7 +130,11 @@ export class AccountConfigService {
       [accountKey]: updatedInscriptions,
     };
   }
+
   deleteSpendableUtxos(accountKey: string, spendUtxos: UnspentOutput[]) {
+    if (!this.store.spendableInscriptions) {
+      return;
+    }
     if (!this.store.spendableInscriptions[accountKey]) {
       return;
     }

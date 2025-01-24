@@ -10,9 +10,9 @@ import {
   Network,
   UnspentOutput,
 } from '@/src/wallet-instance';
-import { isEmpty } from 'lodash';
-import { networkConfig } from '../service/singleton';
-import { AxiosRequest } from './axios';
+import {isEmpty} from 'lodash';
+import {networkConfig} from '../service/singleton';
+import {AxiosRequest} from './axios';
 export const PAID_API_TESTNET = 'https://open-api-testnet.unisat.io';
 export const PAID_API_KEY_TESTNET =
   '9390cb53fbd387be6fe5e3d997e5759805de93fbfcae9298a314bf500df2a527';
@@ -79,15 +79,42 @@ export class PaidApi {
     let cursor = 0;
     const size = 100;
 
+    // Fetch Rune UTXOs
+    const runeUtxos = await this.getAllRuneUtxos(address);
+    const runeUtxoSet =
+      runeUtxos.length > 0
+        ? new Set(runeUtxos.map(utxo => utxo.txid)) // Create a Set if Rune UTXOs exist
+        : null;
+
+    // Fetch BTC UTXOs
     let response = await this.getBtcUtxo(address, cursor, size);
     const total = response?.total || 0;
 
-    utxos.push(...response?.utxo);
+    if (runeUtxoSet) {
+      // Filter out Rune UTXOs if Rune UTXOs exist
+      utxos.push(
+        ...response?.utxo.filter(
+          (utxo: UnspentOutput) => !runeUtxoSet.has(utxo.txid),
+        ),
+      );
+    } else {
+      // Push all BTC UTXOs if there are no Rune UTXOs
+      utxos.push(...response?.utxo);
+    }
 
     while (cursor + size < total) {
       cursor += size;
       response = await this.getBtcUtxo(address, cursor, size);
-      utxos.push(...response?.utxo);
+
+      if (runeUtxoSet) {
+        utxos.push(
+          ...response?.utxo.filter(
+            (utxo: UnspentOutput) => !runeUtxoSet.has(utxo.txid),
+          ),
+        );
+      } else {
+        utxos.push(...response?.utxo);
+      }
     }
 
     return utxos;
@@ -207,5 +234,76 @@ export class PaidApi {
     } catch (error) {
       throw new Error((error as any).message);
     }
+  }
+
+  async getRunes(
+    address: string,
+    pageNumber = 0,
+    pageSize = 100,
+  ): Promise<any> {
+    const response = await this.api.get(
+      `/v1/indexer/address/${address}/runes/balance-list`,
+      {cursor: pageNumber, size: pageSize},
+    );
+    return response.data?.data;
+  }
+
+  async getRuneUtxos(
+    address: string,
+    runeid: string,
+    pageNumber = 0,
+    pageSize = 100,
+  ): Promise<any> {
+    const response = await this.api.get(
+      `/v1/indexer/address/${address}/runes/${runeid}/utxo`,
+      {cursor: pageNumber, size: pageSize},
+    );
+    return response.data?.data;
+  }
+
+  async getAllRunes(address: string): Promise<any[]> {
+    const allRunes: any[] = [];
+    let cursor = 0;
+    const size = 100;
+
+    // Paginate through the runes list
+    let response = await this.getRunes(address, cursor, size);
+    // let response = await this.getBtcUtxo(address, cursor, size);
+    const total = response?.total || 0;
+
+    allRunes.push(...response?.detail);
+
+    while (cursor + size < total) {
+      cursor += size;
+      response = await this.getRunes(address, cursor, size);
+      allRunes.push(...response?.detail);
+    }
+
+    return allRunes;
+  }
+
+  async getAllRuneUtxos(address: string): Promise<any[]> {
+    const allUtxos: any[] = [];
+
+    // Fetch all runes for the address
+    const runes = await this.getAllRunes(address);
+    for (const rune of runes) {
+      const runeid = rune.runeid; // Adjust this if API response structure differs
+      let cursor = 0;
+      const size = 100;
+
+      let response = await this.getRuneUtxos(address, runeid, cursor, size);
+      const total = response?.total || 0;
+
+      allUtxos.push(...response?.utxo);
+
+      while (cursor + size < total) {
+        cursor += size;
+        response = await this.getRuneUtxos(address, runeid, cursor, size);
+        allUtxos.push(...response?.detail);
+      }
+    }
+
+    return allUtxos;
   }
 }

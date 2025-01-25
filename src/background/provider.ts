@@ -465,7 +465,9 @@ export class Provider {
   pushTx = async (rawTx: string, spendUtoxs?: UnspentOutput[]) => {
     if (spendUtoxs) {
       const activeAccount = this.getActiveAccount();
-      accountConfig.deleteSpendableUtxos(activeAccount.key, spendUtoxs);
+      const accountSpendableKey = `${activeAccount.key}_${activeAccount.address}`;
+
+      accountConfig.deleteSpendableUtxos(accountSpendableKey, spendUtoxs);
     }
     return await this.mempoolApi.pushTx(rawTx);
   };
@@ -484,7 +486,6 @@ export class Provider {
     const spendableUtxoInscriptions = spendableInscriptions.map(
       v => v.utxoInfo,
     );
-
     return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
   };
 
@@ -1092,18 +1093,29 @@ export class Provider {
     account: IDisplayAccount,
     inscriptions: Inscription[],
   ) => {
-    accountConfig.setAccountSpendableInscriptions(account.key, inscriptions);
+    const accountSpendableKey = `${account.key}_${account.address}`;
+    accountConfig.setAccountSpendableInscriptions(
+      accountSpendableKey,
+      inscriptions,
+    );
   };
 
   getAccountSpendableInscriptions = async (account: IDisplayAccount) => {
-    return accountConfig.getAccountSpendableInscriptions(account.key);
+    const accountSpendableKey = `${account.key}_${account.address}`;
+
+    return accountConfig.getAccountSpendableInscriptions(accountSpendableKey);
   };
 
   deleteAccountSpendableInscription = async (
     account: IDisplayAccount,
     inscriptionId: string,
   ) => {
-    accountConfig.deleteAccountSpendableInscription(account.key, inscriptionId);
+    const accountSpendableKey = `${account.key}_${account.address}`;
+
+    accountConfig.deleteAccountSpendableInscription(
+      accountSpendableKey,
+      inscriptionId,
+    );
   };
 }
 

@@ -37,16 +37,16 @@ export class AccountConfigService {
     });
   }
 
-  setAccountName(accountKey: string, name: string) {
+  setAccountName(accountSpendableKey: string, name: string) {
     this.store.contactMap = Object.assign({}, this.store.contactMap, {
-      [accountKey]: name,
+      [accountSpendableKey]: name,
     });
   }
 
-  getAccountName(accountKey: string, defaultName?: string) {
-    const name = this.store.contactMap[accountKey];
+  getAccountName(accountSpendableKey: string, defaultName?: string) {
+    const name = this.store.contactMap[accountSpendableKey];
     if (!name && defaultName) {
-      this.setAccountName(accountKey, defaultName);
+      this.setAccountName(accountSpendableKey, defaultName);
     }
     return name || defaultName;
   }
@@ -71,16 +71,16 @@ export class AccountConfigService {
   }
 
   setAccountSpendableInscriptions(
-    accountKey: string,
+    accountSpendableKey: string,
     inscriptions: Inscription[],
   ) {
     if (!this.store?.spendableInscriptions) {
       this.store.spendableInscriptions = {};
     }
 
-    // Create a new object if accountKey doesn't exist
-    if (!this.store?.spendableInscriptions[accountKey]) {
-      this.store.spendableInscriptions[accountKey] = {};
+    // Create a new object if accountSpendableKey doesn't exist
+    if (!this.store?.spendableInscriptions[accountSpendableKey]) {
+      this.store.spendableInscriptions[accountSpendableKey] = {};
     }
 
     // Create a new copy of current inscription
@@ -91,51 +91,51 @@ export class AccountConfigService {
     // Update store with new reference
     this.store.spendableInscriptions = {
       ...this.store.spendableInscriptions,
-      [accountKey]: updatedInscriptions,
+      [accountSpendableKey]: updatedInscriptions,
     };
   }
 
-  getAccountSpendableInscriptions(accountKey: string): Inscription[] {
+  getAccountSpendableInscriptions(accountSpendableKey: string): Inscription[] {
     if (isEmpty(this.store.spendableInscriptions)) {
       return [];
     }
 
-    const accountInscriptions = this.store.spendableInscriptions[accountKey];
+    const accountInscriptions = this.store.spendableInscriptions[accountSpendableKey];
     if (!accountInscriptions) {
       return [];
     }
     return Object.values(accountInscriptions);
   }
 
-  deleteAccountSpendableInscription(accountKey: string, inscriptionId: string) {
+  deleteAccountSpendableInscription(accountSpendableKey: string, inscriptionId: string) {
     if (!this.store.spendableInscriptions) {
       return;
     }
 
-    if (!this.store.spendableInscriptions[accountKey]) {
+    if (!this.store.spendableInscriptions[accountSpendableKey]) {
       return;
     }
 
-    if (!this.store.spendableInscriptions[accountKey]?.[inscriptionId]) {
+    if (!this.store.spendableInscriptions[accountSpendableKey]?.[inscriptionId]) {
       return;
     }
 
     const updatedInscriptions = {
-      ...this.store.spendableInscriptions[accountKey],
+      ...this.store.spendableInscriptions[accountSpendableKey],
     };
     delete updatedInscriptions[inscriptionId];
 
     this.store.spendableInscriptions = {
       ...this.store.spendableInscriptions,
-      [accountKey]: updatedInscriptions,
+      [accountSpendableKey]: updatedInscriptions,
     };
   }
 
-  deleteSpendableUtxos(accountKey: string, spendUtxos: UnspentOutput[]) {
+  deleteSpendableUtxos(accountSpendableKey: string, spendUtxos: UnspentOutput[]) {
     if (!this.store.spendableInscriptions) {
       return;
     }
-    if (!this.store.spendableInscriptions[accountKey]) {
+    if (!this.store.spendableInscriptions[accountSpendableKey]) {
       return;
     }
     const txUtxoMaps = {};
@@ -143,10 +143,10 @@ export class AccountConfigService {
       txUtxoMaps[utxo.txid] = true;
     }
     const updatedInscriptions = {
-      ...this.store.spendableInscriptions[accountKey],
+      ...this.store.spendableInscriptions[accountSpendableKey],
     };
     for (const ins of Object.values(
-      this.store.spendableInscriptions[accountKey],
+      this.store.spendableInscriptions[accountSpendableKey],
     )) {
       if (
         txUtxoMaps[ins.utxoInfo?.txid] &&
@@ -158,7 +158,7 @@ export class AccountConfigService {
 
     this.store.spendableInscriptions = {
       ...this.store.spendableInscriptions,
-      [accountKey]: updatedInscriptions,
+      [accountSpendableKey]: updatedInscriptions,
     };
   }
 }

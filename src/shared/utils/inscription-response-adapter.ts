@@ -14,26 +14,40 @@ export const convertInscriptionTransferList = (
       : 'https://static.unisat.io/content/';
   const result: Inscription[] = [];
   data.forEach(v => {
-    const transfer: Inscription = {
-      inscriptionId: v.inscriptions[0]?.inscriptionId,
-      inscriptionNumber: v.inscriptions[0]?.inscriptionNumber,
-      address: v.address,
-      outputValue: v.satoshi,
-      preview: `${urlPreview}${v.inscriptions[0]?.inscriptionId}`,
-      content: `${urlContent}${v.inscriptions[0]?.inscriptionId}`,
-      contentType: '',
-      contentLength: 0,
-      timestamp: 1722918147,
-      genesisTransaction: v.txid,
-      location: '',
-      output: '',
-      offset: v.inscriptions[0]?.offset,
-      contentBody: '',
-      utxoHeight: v.height,
-      utxoConfirmation: 0,
-      utxoInfo: v,
-    };
-    result.push(transfer);
+    const hasMoreInscriptions = v.inscriptions.map(ins => ins?.inscriptionId);
+
+    for (let i = 0; i < v.inscriptions.length; i++) {
+      const inscription = v.inscriptions[i];
+      const satoshi = i === 0 ? v.satoshi : 0;
+      const utxoInfo = {...v, satoshi};
+
+      const transfer: Inscription = {
+        inscriptionId: inscription?.inscriptionId,
+        inscriptionNumber: inscription?.inscriptionNumber,
+        address: v.address,
+        outputValue: v.satoshi,
+        preview: `${urlPreview}${inscription?.inscriptionId}`,
+        content: `${urlContent}${inscription?.inscriptionId}`,
+        contentType: '',
+        contentLength: 0,
+        timestamp: 1722918147,
+        genesisTransaction: v.txid,
+        location: '',
+        output: '',
+        offset: inscription?.offset,
+        contentBody: '',
+        utxoHeight: v.height,
+        utxoConfirmation: 0,
+        utxoInfo: utxoInfo,
+        hasMoreInscriptions,
+      };
+
+      if (i > 0) {
+        transfer.utxoInfo.satoshi = 0;
+      }
+
+      result.push(transfer);
+    }
   });
   return result;
 };
@@ -55,8 +69,8 @@ export const transferResponseToInscription = (
     inscriptionNumber: response?.inscriptionNumber,
     address: response?.utxo?.address,
     outputValue: response?.utxo?.satoshi,
-    preview: `${urlPreview}${response.inscriptionId}`,
-    content: `${urlContent}${response.inscriptionId}`,
+    preview: `${urlPreview}${response?.inscriptionId}`,
+    content: `${urlContent}${response?.inscriptionId}`,
     contentType: response?.contentType,
     contentLength: response?.contentLength,
     timestamp: response?.timestamp,

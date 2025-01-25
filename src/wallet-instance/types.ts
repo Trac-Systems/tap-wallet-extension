@@ -115,6 +115,8 @@ export interface Inscription {
   utxoConfirmation: number;
   // utxo info
   utxoInfo?: UnspentOutput;
+  // for many inscriptions in one utxo
+  hasMoreInscriptions?: string[];
 }
 
 export interface InscriptionMintedItem {

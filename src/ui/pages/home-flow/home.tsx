@@ -14,6 +14,7 @@ import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {Inscription} from '@/src/wallet-instance';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/spendable-attention-modal';
 
 const Home = () => {
   //! Hooks
@@ -41,6 +42,36 @@ const Home = () => {
     currentPage: 1,
     pageSize: PAGE_SIZE,
   });
+  const [isSelectForSpendable, setIsSelectForSpendable] = useState(false);
+  const [assetsPendingToHandle, setAssetsPendingToHandle] = useState<string[]>(
+    [],
+  );
+
+  const handleCancelAssetModal = () => {
+    setAssetsPendingToHandle([]);
+  };
+
+  const handleAcceptAssetModal = () => {
+    const newState = {...checkedItems};
+
+    assetsPendingToHandle.forEach(asset => {
+      if (!isSelectForSpendable) {
+        delete newState[asset]; // Remove from checkedItems if unchecked
+      } else {
+        let state = inscriptions.find(ins => ins.inscriptionId === asset);
+        if (!state) {
+          state = Object.values(spendableMaps).find(
+            ins => ins.inscriptionId === asset,
+          );
+        }
+        newState[asset] = state;
+      }
+    });
+
+    setCheckedItems(newState);
+
+    setAssetsPendingToHandle([]);
+  };
 
   const handleOpenDrawerIns = async (bool: boolean) => {
     setOpenDrawerInscription(bool);
@@ -74,9 +105,16 @@ const Home = () => {
     navigate('/note-step');
   };
 
-  const handleCheckboxChange = (id: string) => {
+  const handleCheckboxChange = (inscription: Inscription) => {
+    const id = inscription.inscriptionId;
     const newState = {...checkedItems};
+
     const isCurrentlyChecked = checkedItems[id] ? true : false;
+    if (inscription?.hasMoreInscriptions?.length > 1) {
+      setAssetsPendingToHandle([...inscription.hasMoreInscriptions]);
+      setIsSelectForSpendable(!isCurrentlyChecked);
+      return;
+    }
     if (isCurrentlyChecked) {
       delete newState[id]; // Remove from checkedItems if unchecked
     } else {
@@ -109,8 +147,9 @@ const Home = () => {
   useEffect(() => {
     fetchSpendableInscriptions();
   }, [activeAccount.key, showSpendableList, openDrawerInscription]);
+
   const renderInscriptions = useMemo(() => {
-    return showSpendableList ? Object.values(checkedItems) : inscriptions;
+    return showSpendableList ? Object.values(spendableMaps) : inscriptions;
   }, [checkedItems, inscriptions, showSpendableList]);
 
   const renderCheckedList = () => {
@@ -134,15 +173,13 @@ const Home = () => {
               </UX.Box>
               <UX.CheckBox
                 checked={isChecked}
-                onChange={() =>
-                  handleCheckboxChange(String(item.inscriptionId))
-                }
+                onChange={() => handleCheckboxChange(item)}
               />
             </UX.Box>
           );
         })}
 
-        {showSpendableList && (
+        {!showSpendableList && (
           <UX.Pagination
             pagination={pagination}
             total={totalInscription}
@@ -213,6 +250,13 @@ const Home = () => {
                   onClick={handleConfirm}
                 />
               </UX.Box>
+              <SpendableAssetAttentionModal
+                visible={assetsPendingToHandle.length > 1}
+                extraInscriptionsCount={assetsPendingToHandle.length - 1}
+                isSpendable={isSelectForSpendable}
+                onNext={handleAcceptAssetModal}
+                onCancel={handleCancelAssetModal}
+              />
             </UX.Box>
           </UX.DrawerCustom>
         </>

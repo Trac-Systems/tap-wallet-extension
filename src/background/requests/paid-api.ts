@@ -184,7 +184,7 @@ export class PaidApi {
     const utxos = await this.getAllInscriptionUtxo(address);
     return utxos.filter(utxo => {
       if (utxo.inscriptions?.length === 1) {
-        const ins = utxo.inscriptions[0].inscriptionId;
+        const ins = utxo.inscriptions[0]?.inscriptionId;
         if (inscriptionsMap[ins]) {
           return true;
         }

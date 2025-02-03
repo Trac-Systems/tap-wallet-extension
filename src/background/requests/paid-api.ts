@@ -183,9 +183,8 @@ export class PaidApi {
     inscriptions.forEach(ins => (inscriptionsMap[ins] = true));
     const utxos = await this.getAllInscriptionUtxo(address);
     return utxos.filter(utxo => {
-      if (utxo.inscriptions?.length === 1) {
-        const ins = utxo.inscriptions[0]?.inscriptionId;
-        if (inscriptionsMap[ins]) {
+      for (const ins of utxo.inscriptions) {
+        if (inscriptionsMap[ins.inscriptionId]) {
           return true;
         }
       }

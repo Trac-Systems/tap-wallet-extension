@@ -24,4 +24,5 @@ export const colors = {
   redC54359: '#C54359',
 
   orange: '#FF7B21',
+  yellowRgba60: 'rgba(244, 194, 66, 0.60)'
 };

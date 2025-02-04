@@ -67,6 +67,31 @@ const InscriptionDetail = () => {
             marginLeft: '16px',
           }}
         />
+        {inscriptionInfo?.hasMoreInscriptions &&
+        inscriptionInfo?.hasMoreInscriptions.length > 1 ? (
+          <UX.Box
+            layout="row"
+            style={{
+              marginTop: 20,
+              marginBottom: '16px',
+              marginLeft: '16px',
+              maxWidth: '90%',
+            }}>
+            <UX.Box style={{minWidth: 25}}>
+              <SVG.WaringIcon />
+            </UX.Box>
+            <UX.Text
+              styleType="body_14_bold"
+              title="This inscription shares the same utxo with some other inscriptions. If you send this inscription, other inscriptions with same utxo will be sent along with it"
+              customStyles={{
+                color: colors.yellowRgba60,
+                marginTop: 0,
+                marginLeft: 5,
+                textAlign: 'justify',
+              }}
+            />
+          </UX.Box>
+        ) : null}
         <UX.Box layout="box" spacing="xl" style={{margin: '16px'}}>
           <UX.Section title="ID" value={inscriptionInfo?.inscriptionId} />
           <UX.Section title="Address" value={inscriptionInfo?.address} />

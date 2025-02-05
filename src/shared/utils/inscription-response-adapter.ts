@@ -64,6 +64,7 @@ export const transferResponseToInscription = (
     network === Network.TESTNET
       ? 'https://static-testnet.unisat.io/content/'
       : 'https://static.unisat.io/content/';
+
   return {
     inscriptionId: response?.inscriptionId,
     inscriptionNumber: response?.inscriptionNumber,
@@ -81,5 +82,6 @@ export const transferResponseToInscription = (
     contentBody: response?.contentBody,
     utxoHeight: 0,
     utxoConfirmation: 0,
+    hasMoreInscriptions: response.utxo.inscriptions,
   };
 };

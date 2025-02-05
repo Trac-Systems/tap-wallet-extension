@@ -103,8 +103,14 @@ const flowContext = flow
       },
       mapMethod,
     } = ctx;
-    const [approvalType, condition, options = {}] =
-      Reflect.getMetadata('APPROVAL', providerController, mapMethod) || [];
+    const metadata = Reflect.getMetadata(
+      'APPROVAL',
+      providerController,
+      mapMethod,
+    );
+    const [approvalType, condition] = Array.isArray(metadata)
+      ? metadata
+      : [];
 
     if (approvalType && (!condition || !condition(ctx.request))) {
       ctx.request.requestedApproval = true;
@@ -129,6 +135,7 @@ const flowContext = flow
 
     return next();
   })
+
   .use(async ctx => {
     const {approvalRes, mapMethod, request} = ctx;
     const [approvalType] =

@@ -2,7 +2,7 @@ import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {getAddressType} from '@/src/ui/utils';
 import {Inscription, RawTxInfo} from '@/src/wallet-instance';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useCustomToast} from '../../component/toast-custom';
 import {FeeRateBar} from './component/fee-rate-bar';
@@ -22,8 +22,8 @@ const SendInscription = () => {
   //! State
   const navigate = useNavigate();
   const {state} = useLocation();
-  const {inscription} = state as {
-    inscription: Inscription;
+  const {inscriptions} = state as {
+    inscriptions: Inscription[];
   };
   const setTxStateInfo = useUpdateTxStateInfo();
   const fetchUtxos = useFetchUtxosCallback();
@@ -33,10 +33,9 @@ const SendInscription = () => {
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
   const [error, setError] = useState<string>('');
   const [feeRate, setFeeRate] = useState(5);
-  const defaultOutputValue = inscription ? inscription.outputValue : 10000;
+  const defaultOutputValue = inscriptions ? inscriptions[0].outputValue : 10000;
 
   const [outputValue, setOutputValue] = useState(defaultOutputValue);
-  const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
 
   // to prevent rerender effect to show message error
 
@@ -48,17 +47,11 @@ const SendInscription = () => {
   };
 
   useEffect(() => {
-    fetchUtxos().finally(() => {});
-  }, []);
+    const ignoreAssets = inscriptions.map(ins => ins.inscriptionId);
+    fetchUtxos(ignoreAssets).finally(() => {});
+  }, [inscriptions]);
 
   //   const walletProvider = useWalletProvider();
-
-  useEffect(() => {
-    setInscriptions([inscription]);
-    // walletProvider.getInscriptionUtxoDetail(inscription.inscriptionId).then((v) => {
-    //   setInscriptions(v.inscriptions);
-    // });
-  }, []);
 
   const minOutputValue = useMemo(() => {
     if (toInfo.address) {
@@ -70,10 +63,6 @@ const SendInscription = () => {
   }, [toInfo.address]);
 
   const prepareSendInscription = usePrepareSendOrdinalsInscriptionCallback();
-
-  const clearErrorMessage = () => {
-    setError('');
-  };
 
   useEffect(() => {
     setDisabled(true);
@@ -106,7 +95,7 @@ const SendInscription = () => {
 
     prepareSendInscription({
       toAddressInfo: toInfo,
-      inscriptionId: inscription.inscriptionId,
+      inscriptionId: inscriptions[0].inscriptionId,
       feeRate,
       outputValue,
       enableRBF,
@@ -171,7 +160,7 @@ const SendInscription = () => {
               autoFocus={true}
             />
           </UX.Box>
-           {toInfo.address && (
+          {toInfo.address && (
             <UX.Box spacing="xss">
               <UX.Text
                 styleType="heading_16"

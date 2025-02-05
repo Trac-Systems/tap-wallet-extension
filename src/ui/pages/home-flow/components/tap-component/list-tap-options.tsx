@@ -81,9 +81,10 @@ const ListTapOptions = () => {
         if (tokenSummaryData.tokenInfo.holder === activeAccount.address) {
           wallet
             .getInscriptionInfo(tokenSummaryData.tokenInfo?.inscriptionId)
-            .then((inscription: Inscription) => {
-              const data = inscription;
-              setDeployInscription(data);
+            .then((inscriptions: Inscription[]) => {
+              setDeployInscription(
+                inscriptions?.length ? inscriptions[0] : undefined,
+              );
             })
             .finally(() => {
               setTokenSummary(tokenSummaryData);
@@ -142,7 +143,8 @@ const ListTapOptions = () => {
   ].filter(Boolean) as TokenTransfer[];
 
   const tapPreviewItemOnPress = async (item: TokenTransfer) => {
-    const inscription = await wallet.getInscriptionInfo(item?.inscriptionId);
+    const inscriptions = await wallet.getInscriptionInfo(item?.inscriptionId);
+    const inscription = inscriptions?.length ? inscriptions[0] : undefined;
     navigate('/home/inscription-detail', {
       state: {
         inscriptionId: inscription?.inscriptionId,

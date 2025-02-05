@@ -174,7 +174,9 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
       }
 
       let btcUtxos = utxos;
-      btcUtxos = await fetchUtxos();
+      if (!utxos) {
+        btcUtxos = await fetchUtxos();
+      }
 
       const {psbtHex, inputs, outputs, inputForSigns} =
         await wallet.sendOrdinalsInscription({
@@ -332,12 +334,18 @@ export function useFetchUtxosCallback() {
   const dispatch = useAppDispatch();
   const wallet = useWalletProvider();
   // const activeAccount = useAppSelector(AccountSelector.activeAccount);
-  return useCallback(async () => {
-    const activeAccount = await wallet.getActiveAccount();
-    const data = await wallet.getBTCUtxos(activeAccount.address);
-    dispatch(TransactionsActions.setBtcUtxos(data));
-    return data;
-  }, [wallet]);
+  return useCallback(
+    async (ignoreAssets?: string[]) => {
+      const activeAccount = await wallet.getActiveAccount();
+      const data = await wallet.getBTCUtxos(
+        activeAccount.address,
+        ignoreAssets,
+      );
+      dispatch(TransactionsActions.setBtcUtxos(data));
+      return data;
+    },
+    [wallet],
+  );
 }
 
 export function useUpdateTxStateInfo() {

@@ -3,7 +3,7 @@ import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {useLocation, useNavigate} from 'react-router-dom';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Inscription} from '@/src/wallet-instance';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {useCustomToast} from '@/src/ui/component/toast-custom';
@@ -16,14 +16,25 @@ const InscriptionDetail = () => {
   const location = useLocation();
   const {state} = location;
   const [isLoading, setLoading] = useState<boolean>(false);
-  const [inscriptionInfo, setInscriptionInfo] = useState<Inscription>();
+  const [inscriptions, setInscription] = useState<Inscription[]>();
+
+  const inscriptionInfo = useMemo(() => {
+    if (!inscriptions?.length) {
+      return;
+    }
+    return inscriptions.filter(
+      ins => ins.inscriptionId === state?.inscriptionId,
+    )[0];
+  }, [inscriptions]);
 
   const isUnconfirmed = inscriptionInfo?.timestamp === 0;
   const getInscriptionInfo = async () => {
     try {
       setLoading(true);
-      const inscription = await wallet.getInscriptionInfo(state?.inscriptionId);
-      setInscriptionInfo(inscription);
+      const inscriptions = await wallet.getInscriptionInfo(
+        state?.inscriptionId,
+      );
+      setInscription(inscriptions);
     } catch (err) {
       showToast({
         title: `${(err as Error).message}`,
@@ -139,7 +150,7 @@ const InscriptionDetail = () => {
             // isDisable={disabled}
             onClick={() =>
               navigate('/home/send-inscription', {
-                state: {inscription: inscriptionInfo},
+                state: {inscriptions: inscriptions},
               })
             }
           />

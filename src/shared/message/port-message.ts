@@ -1,4 +1,5 @@
 import browser from 'webextension-polyfill';
+
 export class PortMessage {
   private port: browser.Runtime.Port;
 
@@ -10,12 +11,22 @@ export class PortMessage {
   listen(callback: (data: any) => any): void {
     this.port.onMessage.addListener(async (message: any) => {
       try {
-        const result = await callback(message);
-        if (result !== undefined) {
-          this.send('response', {id: message.id, result});
+        const result = await Promise.resolve(callback(message));
+        if (message?.id !== undefined) {
+          try {
+            this.send('response', {id: message.id, result});
+          } catch (sendError) {
+            console.error('Error sending response:', sendError);
+          }
         }
       } catch (error) {
-        this.send('error', {id: message.id, error: error.message});
+        if (message?.id !== undefined) {
+          try {
+            this.send('error', {id: message.id, error: error.message});
+          } catch (sendError) {
+            console.error('Error sending error message:', sendError);
+          }
+        }
       }
     });
   }

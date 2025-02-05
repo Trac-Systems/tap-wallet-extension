@@ -168,7 +168,7 @@ export class PaidApi {
     };
   }
 
-  async getInscriptionInfo(inscriptionId: string): Promise<Inscription> {
+  async getInscriptionInfo(inscriptionId: string): Promise<Inscription[]> {
     const result = await this.api.get(
       `/v1/indexer/inscription/info/${inscriptionId}`,
       {},

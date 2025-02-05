@@ -70,12 +70,30 @@ class NotificationService extends Events {
   };
 
   // currently it only support one approval at the same time
+  // requestApproval = async (data, winProps?): Promise<any> => {
+  //   return new Promise((resolve, reject) => {
+  //     this.approval = {
+  //       data,
+  //       resolve,
+  //       reject,
+  //     };
+
+  //     this.openNotification(winProps);
+  //   });
+  // };
+
   requestApproval = async (data, winProps?): Promise<any> => {
     return new Promise((resolve, reject) => {
       this.approval = {
         data,
-        resolve,
-        reject,
+        resolve: result => {
+          this.approval = null; // Clear after resolution
+          resolve(result);
+        },
+        reject: error => {
+          this.approval = null; // Clear after rejection
+          reject(error);
+        },
       };
 
       this.openNotification(winProps);

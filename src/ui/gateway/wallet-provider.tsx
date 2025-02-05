@@ -79,7 +79,7 @@ export interface IWalletProvider {
   changeAddressType(addressType: AddressType): Promise<void>;
   getRecommendFee(): Promise<any>;
   pushTx(rawTx: string, spendUtxos?: UnspentOutput[]): Promise<any>;
-  getBTCUtxos(address: string): Promise<UnspentOutput[]>;
+  getBTCUtxos(address: string, ignoreAssetUtxos?:string[]): Promise<UnspentOutput[]>;
 
   getMnemonics(pin: string, wallet: WalletDisplay): Promise<any>;
   getPrivateKey(
@@ -103,7 +103,7 @@ export interface IWalletProvider {
     total: number;
     list: Inscription[];
   }>;
-  getInscriptionInfo(inscriptionId: string): Promise<Inscription>;
+  getInscriptionInfo(inscriptionId: string): Promise<Inscription[]>;
   sendBTC({
     to,
     amount,

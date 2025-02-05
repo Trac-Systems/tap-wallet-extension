@@ -14,7 +14,6 @@ import * as bip39 from 'bip39';
 import {
   ACCOUNT_TYPE_TEXT,
   ADDRESS_TYPES,
-  UTXO_DUST,
   WALLET_TYPE,
 } from '../wallet-instance/constant';
 import {
@@ -476,16 +475,23 @@ export class Provider {
     return this.mempoolApi.getRecommendFee();
   };
 
-  getBTCUtxos = async (address: string) => {
+  getBTCUtxos = async (address: string, ignoreAsset?: string[]) => {
     const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
-    utxosWithoutInscription.filter(v => v.satoshi > UTXO_DUST);
     const account = this.getActiveAccount();
     const spendableInscriptions =
       await this.getAccountSpendableInscriptions(account);
 
-    const spendableUtxoInscriptions = spendableInscriptions.map(
-      v => v.utxoInfo,
-    );
+    const ignoreAssetMap: {[key: string]: boolean} = {};
+    ignoreAsset?.forEach(inscriptionId => {
+      ignoreAssetMap[inscriptionId] = true;
+    });
+
+    const spendableUtxoInscriptions = spendableInscriptions.reduce((acc, v) => {
+      if (!ignoreAssetMap[v.inscriptionId] && v.utxoInfo.satoshi > 0) {
+        acc.push(v.utxoInfo);
+      }
+      return acc;
+    }, []);
     return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
   };
 
@@ -566,7 +572,7 @@ export class Provider {
     }
 
     if (!btcUtxos) {
-      btcUtxos = await this.getBTCUtxos(account.address);
+      btcUtxos = await this.getBTCUtxos(account.address, [inscriptionId]);
     }
 
     if (btcUtxos.length === 0) {
@@ -628,7 +634,7 @@ export class Provider {
     }
 
     if (!btcUtxos) {
-      btcUtxos = await this.getBTCUtxos(account.address);
+      btcUtxos = await this.getBTCUtxos(account.address, inscriptionIds);
     }
 
     if (btcUtxos.length === 0) {
@@ -951,10 +957,12 @@ export class Provider {
     const tokenSummary = await this.tapApi.getTapTokenSummary(address, ticker);
 
     if (tokenSummary?.tokenInfo?.inscriptionId) {
-      const inscription = await this.getInscriptionInfo(
+      const inscriptions = await this.getInscriptionInfo(
         tokenSummary.tokenInfo?.inscriptionId,
       );
-      tokenSummary.tokenInfo.holder = inscription.address;
+      if (inscriptions.length) {
+        tokenSummary.tokenInfo.holder = inscriptions[0].address;
+      }
     }
     return tokenSummary;
   };

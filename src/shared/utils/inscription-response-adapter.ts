@@ -55,7 +55,7 @@ export const convertInscriptionTransferList = (
 export const transferResponseToInscription = (
   network: Network,
   response: any,
-): Inscription => {
+): Inscription[] => {
   const urlPreview =
     network === Network.TESTNET
       ? 'https://static-testnet.unisat.io/preview/'
@@ -64,24 +64,27 @@ export const transferResponseToInscription = (
     network === Network.TESTNET
       ? 'https://static-testnet.unisat.io/content/'
       : 'https://static.unisat.io/content/';
+  const hasMoreInscriptions = response?.utxo?.inscriptions?.map(ins => ins?.utxo);
 
-  return {
-    inscriptionId: response?.inscriptionId,
-    inscriptionNumber: response?.inscriptionNumber,
-    address: response?.utxo?.address,
-    outputValue: response?.utxo?.satoshi,
-    preview: `${urlPreview}${response?.inscriptionId}`,
-    content: `${urlContent}${response?.inscriptionId}`,
-    contentType: response?.contentType,
-    contentLength: response?.contentLength,
-    timestamp: response?.timestamp,
-    genesisTransaction: response?.utxo?.txid,
-    location: '',
-    output: '',
-    offset: response?.offset,
-    contentBody: response?.contentBody,
-    utxoHeight: 0,
-    utxoConfirmation: 0,
-    hasMoreInscriptions: response.utxo.inscriptions,
-  };
+  return response?.utxo?.inscriptions?.map(ins => {
+    return {
+      inscriptionId: ins?.inscriptionId,
+      inscriptionNumber: ins?.inscriptionNumber,
+      address: response?.utxo?.address,
+      outputValue: response?.utxo?.satoshi,
+      preview: `${urlPreview}${ins?.inscriptionId}`,
+      content: `${urlContent}${ins?.inscriptionId}`,
+      contentType: response?.contentType,
+      contentLength: response?.contentLength,
+      timestamp: response?.timestamp,
+      genesisTransaction: response?.utxo?.txid,
+      location: '',
+      output: '',
+      offset: response?.offset,
+      contentBody: response?.contentBody,
+      utxoHeight: 0,
+      utxoConfirmation: 0,
+      hasMoreInscriptions: hasMoreInscriptions,
+    };
+  });
 };

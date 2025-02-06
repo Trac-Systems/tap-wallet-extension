@@ -141,7 +141,6 @@ const SignPsbt = ({
 
   const init = useCallback(async () => {
     if (type === TxType.SIGN_TX) {
-      console.log('🚀 ~ init ~ psbtHex:', psbtHex);
       if (!psbtHex) {
         rejectApproval('psbtHex is required');
       }
@@ -161,15 +160,22 @@ const SignPsbt = ({
     if (!toAddress || !validateBtcAddress(toAddress, network)) {
       rejectApproval('Invalid receiver address');
     }
-    if (!feeRate || Number(feeRate) < 0) {
-      rejectApproval('Fee rate must be greater than 0');
+    let customFeeRate = feeRate;
+    if (!feeRate || Number(feeRate) <= 0) {
+      try {
+        const res = await walletProvider.getRecommendFee();
+        customFeeRate = res?.halfHourFee || 5;
+      } catch (error) {
+        console.log(' init ~ error:', error);
+      }
+      // rejectApproval('Fee rate must be greater than 0');
     }
     const toAddressInfo = {address: toAddress};
     if (type === TxType.SEND_BITCOIN) {
       prepareSendBTC({
         toAddressInfo,
         toAmount: satoshis,
-        feeRate,
+        feeRate: customFeeRate,
         enableRBF: false,
       })
         .then(data => {
@@ -189,7 +195,7 @@ const SignPsbt = ({
         prepareSendInscription({
           toAddressInfo,
           inscriptionId,
-          feeRate: feeRate,
+          feeRate: customFeeRate,
           // outputValue: dustThreshold,
           enableRBF: false,
         })
@@ -215,7 +221,7 @@ const SignPsbt = ({
         prepareSendOrdinalsInscriptions({
           toAddressInfo: {address: toAddress},
           inscriptionIds,
-          feeRate: feeRate,
+          feeRate: customFeeRate,
           enableRBF: false,
           assetAmount: transferAmount,
           ticker: ticker,

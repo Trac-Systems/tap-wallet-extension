@@ -228,6 +228,46 @@ class InternalProvider {
     return psbt.toHex();
   };
 
+  @Reflect.metadata('APPROVAL', [
+    'MultiSignPsbt',
+    req => {
+      const {
+        data: {
+          params: {psbtHexs, options},
+        },
+      } = req;
+      req.data.params.psbtHexs = psbtHexs.map(psbtHex =>
+        formatPsbtHex(psbtHex),
+      );
+    },
+  ])
+  multiSignPsbt = async ({
+    data: {
+      params: {psbtHexs, options},
+    },
+  }) => {
+    console.log('🚀 ~ InternalProvider ~ multiSignPsbt= ~ psbtHexs:', psbtHexs);
+    const account = walletProvider.getActiveAccount();
+    if (!account) throw null;
+    const networkType = walletProvider.getActiveNetwork();
+    const psbtNetwork = getBitcoinNetwork(networkType);
+    const result: string[] = [];
+    const optionsLength = options ? options.length : 0;
+
+    for (let i = 0; i < psbtHexs.length; i++) {
+      const psbt = bitcoin.Psbt.fromHex(psbtHexs[i], {network: psbtNetwork});
+      const option = optionsLength > i ? options[i] : {}; // Use empty object if index is out of bounds
+      const autoFinalized = option.autoFinalized !== false; // Default to true
+      const toSignInputs = await walletProvider.formatOptionsInputForSignings(
+        psbtHexs[i],
+        option,
+      );
+      await walletProvider.signPsbt(psbt, toSignInputs, autoFinalized);
+      result.push(psbt.toHex());
+    }
+    return result;
+  };
+
   @Reflect.metadata('SAFE', true)
   pushTx = async ({
     data: {

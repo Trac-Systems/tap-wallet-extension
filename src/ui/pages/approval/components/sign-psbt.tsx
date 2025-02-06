@@ -44,9 +44,9 @@ interface Props {
       feeRate?: number;
       inscriptionId?: string;
       inscriptionIds?: string[];
-      transferAmount: string;
-      ticker: string;
-      rawTxInfo: RawTxInfo;
+      transferAmount?: string;
+      ticker?: string;
+      rawTxInfo?: RawTxInfo;
     };
     session?: {
       origin: string;
@@ -54,6 +54,8 @@ interface Props {
       name: string;
     };
     onBackClick?: () => void;
+    customHandleCancel?: () => void;
+    customHandleConfirm?: () => void;
   };
 }
 
@@ -73,6 +75,8 @@ const SignPsbt = ({
     },
     session,
     onBackClick,
+    customHandleCancel,
+    customHandleConfirm,
   },
 }: Props) => {
   //! State
@@ -102,21 +106,29 @@ const SignPsbt = ({
 
   const [, resolveApproval, rejectApproval] = useApproval();
 
-  const handleCancel = () => {
+  let handleCancel = () => {
     rejectApproval();
   };
 
-  const spendUtxos = useMemo(() => {
-    return rawTxInfo?.inputs?.map(input => input.utxo);
-  }, [rawTxInfo]);
-
-  const handleConfirm = () => {
+  let handleConfirm = () => {
     resolveApproval({
       psbtHex: rawTxInfo?.psbtHex,
       spendUtxos,
       signed: type !== TxType.SIGN_TX,
     });
   };
+
+  if (customHandleCancel) {
+    handleCancel = customHandleCancel;
+  }
+
+  if (customHandleConfirm) {
+    handleConfirm = customHandleConfirm;
+  }
+
+  const spendUtxos = useMemo(() => {
+    return rawTxInfo?.inputs?.map(input => input.utxo);
+  }, [rawTxInfo]);
 
   const handleCopied = text => {
     copyToClipboard(text).then(() => {
@@ -129,6 +141,7 @@ const SignPsbt = ({
 
   const init = useCallback(async () => {
     if (type === TxType.SIGN_TX) {
+      console.log('🚀 ~ init ~ psbtHex:', psbtHex);
       if (!psbtHex) {
         rejectApproval('psbtHex is required');
       }

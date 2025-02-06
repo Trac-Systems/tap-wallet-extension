@@ -87,10 +87,22 @@ class NotificationService extends Events {
       this.approval = {
         data,
         resolve: result => {
+          console.log(
+            '🚀 ~ NotificationService ~ returnnewPromise ~ this.approval:',
+            this.approval,
+          );
           this.approval = null; // Clear after resolution
           resolve(result);
         },
         reject: error => {
+          console.log(
+            '🚀 ~ NotificationService ~ returnnewPromise ~ error:',
+            error,
+          );
+          console.log(
+            '🚀 ~ NotificationService ~ returnnewPromise ~ this.approval:',
+            this.approval,
+          );
           this.approval = null; // Clear after rejection
           reject(error);
         },

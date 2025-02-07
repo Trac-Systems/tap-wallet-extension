@@ -246,7 +246,6 @@ class InternalProvider {
       params: {psbtHexs, options},
     },
   }) => {
-    console.log('🚀 ~ InternalProvider ~ multiSignPsbt= ~ psbtHexs:', psbtHexs);
     const account = walletProvider.getActiveAccount();
     if (!account) throw null;
     const networkType = walletProvider.getActiveNetwork();

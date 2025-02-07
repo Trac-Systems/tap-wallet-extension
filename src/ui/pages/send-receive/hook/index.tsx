@@ -48,11 +48,7 @@ export function usePrepareSendBTCCallback() {
       feeRate?: number;
       enableRBF: boolean;
     }) => {
-      let _utxos: UnspentOutput[] = (
-        spendUnavailableUtxos.map(v => {
-          return Object.assign({}, v, {inscriptions: [], atomicals: []});
-        }) as any
-      ).concat(utxos);
+      let _utxos: UnspentOutput[] = []
       _utxos = await fetchUtxos();
       const safeBalance = _utxos.reduce((pre, cur) => pre + cur.satoshi, 0);
       if (safeBalance < toAmount) {

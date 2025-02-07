@@ -479,20 +479,21 @@ export class Provider {
     const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
     const account = this.getActiveAccount();
     const spendableInscriptions =
-      await this.getAccountSpendableInscriptions(account);
-
+      (await this.getAccountSpendableInscriptions(account) || []);
     const ignoreAssetMap: {[key: string]: boolean} = {};
     ignoreAsset?.forEach(inscriptionId => {
       ignoreAssetMap[inscriptionId] = true;
     });
-
-    const spendableUtxoInscriptions = spendableInscriptions.reduce((acc, v) => {
+    const spendableUtxoInscriptions = spendableInscriptions?.reduce((acc, v) => {
       if (!ignoreAssetMap[v.inscriptionId] && v.utxoInfo.satoshi > 0) {
         acc.push(v.utxoInfo);
       }
       return acc;
     }, []);
-    return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
+    if( spendableUtxoInscriptions.length > 0 ){
+      return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
+    }
+    return utxosWithoutInscription;
   };
 
   sendBTC = async ({

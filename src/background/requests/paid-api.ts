@@ -78,45 +78,36 @@ export class PaidApi {
     const utxos: UnspentOutput[] = [];
     let cursor = 0;
     const size = 100;
-
     // Fetch Rune UTXOs
     const runeUtxos = await this.getAllRuneUtxos(address);
     const runeUtxoSet =
-      runeUtxos.length > 0
-        ? new Set(runeUtxos.map(utxo => utxo.txid)) // Create a Set if Rune UTXOs exist
-        : null;
-
+      runeUtxos.length > 0 ? new Set(runeUtxos.map(utxo => utxo.txid)) : null;
     // Fetch BTC UTXOs
     let response = await this.getBtcUtxo(address, cursor, size);
     const total = response?.total || 0;
-
     if (runeUtxoSet) {
-      // Filter out Rune UTXOs if Rune UTXOs exist
       utxos.push(
-        ...response?.utxo.filter(
+        ...(response?.utxo || []).filter(
           (utxo: UnspentOutput) => !runeUtxoSet.has(utxo.txid),
         ),
       );
     } else {
-      // Push all BTC UTXOs if there are no Rune UTXOs
-      utxos.push(...response?.utxo);
+      utxos.push(...(response?.utxo || []));
     }
-
     while (cursor + size < total) {
       cursor += size;
       response = await this.getBtcUtxo(address, cursor, size);
 
       if (runeUtxoSet) {
         utxos.push(
-          ...response?.utxo.filter(
+          ...(response?.utxo || []).filter(
             (utxo: UnspentOutput) => !runeUtxoSet.has(utxo.txid),
           ),
         );
       } else {
-        utxos.push(...response?.utxo);
+        utxos.push(...(response?.utxo || []));
       }
     }
-
     return utxos;
   }
 
@@ -285,7 +276,9 @@ export class PaidApi {
     const allUtxos: any[] = [];
 
     // Fetch all runes for the address
+    console.log('bug1');
     const runes = await this.getAllRunes(address);
+    console.log('bug2');
     for (const rune of runes) {
       const runeid = rune.runeid; // Adjust this if API response structure differs
       let cursor = 0;
@@ -294,12 +287,14 @@ export class PaidApi {
       let response = await this.getRuneUtxos(address, runeid, cursor, size);
       const total = response?.total || 0;
 
-      allUtxos.push(...response?.utxo);
+      // Use default empty array if response.utxo is undefined
+      allUtxos.push(...(response?.utxo || []));
 
       while (cursor + size < total) {
         cursor += size;
         response = await this.getRuneUtxos(address, runeid, cursor, size);
-        allUtxos.push(...response?.detail);
+        // Use default empty array if response.detail is undefined
+        allUtxos.push(...(response?.detail || []));
       }
     }
 

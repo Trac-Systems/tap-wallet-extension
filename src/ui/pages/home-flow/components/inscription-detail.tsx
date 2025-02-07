@@ -134,10 +134,11 @@ const InscriptionDetail = () => {
         </UX.Box>
       </UX.Box>
 
-      <footer className="footer_sr">
+      {/* <footer className="footer_sr"> */}
         <UX.Box
           layout="column"
           spacing="xl"
+          className='footer_sr'
           style={{
             padding: '10px 0',
           }}>
@@ -155,7 +156,7 @@ const InscriptionDetail = () => {
             }
           />
         </UX.Box>
-      </footer>
+      {/* </footer> */}
     </UX.Box>
   );
 };

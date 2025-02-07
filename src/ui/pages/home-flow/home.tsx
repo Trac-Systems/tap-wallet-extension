@@ -26,12 +26,7 @@ const Home = () => {
   // const checkedItems = useAppSelector(
   //   InscriptionSelector.spendableInscriptionsMap,
   // );
-  const [checkedItems, setCheckedItems] = useState<{
-    [key: string]: Inscription;
-  }>({});
-  const [spendableMaps, setSpendableMaps] = useState<{
-    [key: string]: Inscription;
-  }>({});
+
   const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
   const walletProvider = useWalletProvider();
 
@@ -47,6 +42,13 @@ const Home = () => {
   const [assetsPendingToHandle, setAssetsPendingToHandle] = useState<string[]>(
     [],
   );
+  const [isSelectAllChecked, setIsSelectAllChecked] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<{
+    [key: string]: Inscription;
+  }>({});
+  const [spendableMaps, setSpendableMaps] = useState<{
+    [key: string]: Inscription;
+  }>({});
 
   const handleCancelAssetModal = () => {
     setAssetsPendingToHandle([]);
@@ -106,6 +108,23 @@ const Home = () => {
     navigate('/note-step');
   };
 
+  const handleSelectAll = () => {
+    if (isSelectAllChecked) {
+      setCheckedItems({});
+    } else {
+      const allChecked = inscriptions.reduce(
+        (acc, item) => {
+          acc[item.inscriptionId] = item;
+          return acc;
+        },
+        {} as {[key: string]: Inscription},
+      );
+
+      setCheckedItems(allChecked);
+    }
+    setIsSelectAllChecked(!isSelectAllChecked);
+  };
+
   const handleCheckboxChange = (inscription: Inscription) => {
     const id = inscription.inscriptionId;
     const newState = {...checkedItems};
@@ -123,6 +142,7 @@ const Home = () => {
     }
 
     setCheckedItems(newState);
+    setIsSelectAllChecked(Object.keys(newState).length === inscriptions.length);
   };
 
   const fetchSpendableInscriptions = async () => {
@@ -249,6 +269,16 @@ const Home = () => {
                 title="Mark inscriptions as spendable"
                 styleType="body_20_extra_bold"
               />
+
+              <UX.Box
+                layout="row_between"
+                style={{paddingRight: '16px', margin: '8px 0'}}>
+                <UX.Text styleType="body_16_bold" title="Select ALl" />
+                <UX.CheckBox
+                  checked={isSelectAllChecked}
+                  onChange={handleSelectAll}
+                />
+              </UX.Box>
 
               <UX.Box style={{justifyContent: 'space-between', flex: 1}}>
                 {renderCheckedList()}

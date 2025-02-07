@@ -15,6 +15,7 @@ import {Inscription} from '@/src/wallet-instance';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/spendable-attention-modal';
+import {colors} from '../../themes/color';
 
 const Home = () => {
   //! Hooks
@@ -170,6 +171,11 @@ const Home = () => {
                   title={`#${item.inscriptionNumber}`}
                   styleType="body_16_normal"
                 />
+                <UX.Text
+                  title={`${item.outputValue} SATs`}
+                  styleType="body_16_normal"
+                  customStyles={{color: colors.main_500}}
+                />
               </UX.Box>
               <UX.CheckBox
                 checked={isChecked}
@@ -180,16 +186,18 @@ const Home = () => {
         })}
 
         {!showSpendableList && (
-          <UX.Pagination
-            pagination={pagination}
-            total={totalInscription}
-            onChange={pagination => {
-              getInscriptionList(
-                (pagination.currentPage - 1) * pagination.pageSize,
-              );
-              setPagination(pagination);
-            }}
-          />
+          <UX.Box layout="row_center">
+            <UX.Pagination
+              pagination={pagination}
+              total={totalInscription}
+              onChange={pagination => {
+                getInscriptionList(
+                  (pagination.currentPage - 1) * pagination.pageSize,
+                );
+                setPagination(pagination);
+              }}
+            />
+          </UX.Box>
         )}
       </UX.Box>
     );
@@ -241,6 +249,7 @@ const Home = () => {
                 title="Mark inscriptions as spendable"
                 styleType="body_20_extra_bold"
               />
+
               <UX.Box style={{justifyContent: 'space-between', flex: 1}}>
                 {renderCheckedList()}
 

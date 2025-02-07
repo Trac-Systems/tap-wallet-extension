@@ -108,11 +108,11 @@ const ListTapOptions = () => {
 
   const balance = useMemo(() => {
     if (!tokenSummary) {
-      return 0;
+      return '0';
     }
-    return (
-      Number(tokenSummary?.tokenBalance.availableBalance) + transferableBalance
-    );
+    const balanceNumber =
+      Number(tokenSummary?.tokenBalance.availableBalance) + transferableBalance;
+    return formatNumberValue(balanceNumber.toString());
   }, [tokenSummary, transferableBalance]);
 
   const enableTransfer = useMemo(() => {
@@ -167,7 +167,7 @@ const ListTapOptions = () => {
         <UX.Box>
           <UX.Box layout="row_center" style={{margin: '20px 0'}}>
             <UX.Text
-              title={`${formatNumberValue(String(balance ?? '0'))} `}
+              title={balance}
               styleType="body_16_bold"
               customStyles={{color: colors.white, marginRight: '8px'}}
             />

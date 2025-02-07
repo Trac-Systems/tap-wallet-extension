@@ -73,10 +73,7 @@ export const formatNumberValue = (num: string) => {
   if (num === '') {
     return '';
   }
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 100,
-  }).format(Number(num));
+  const formatted = new Intl.NumberFormat('en-US').format(Number(num));
   return formatted;
 };
 export const formatAmountNumber = (num: string) => {

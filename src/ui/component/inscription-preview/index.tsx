@@ -131,6 +131,11 @@ export default function InscriptionPreview({
           styleType="body_16_bold"
           customStyles={{color: 'white'}}
         />
+        <Text
+          title={`${data.outputValue} SATs`}
+          styleType="body_16_bold"
+          customStyles={{color: colors.main_500}}
+        />
       </Box>
     </Box>
   );

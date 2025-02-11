@@ -288,7 +288,7 @@ const Home = () => {
                 }}>
                 {renderCheckedList()}
               </UX.Box>
-              <UX.Box style={{marginBottom: 20}}>
+              <UX.Box>
                 <UX.Button
                   title="Confirm"
                   styleType="primary"

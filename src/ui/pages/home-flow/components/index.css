@@ -266,12 +266,12 @@
 
 .card-spendable {
   width: 100%;
-  height: 43vh;
+  height: 46vh;
   padding: 10px 0;
   overflow-y: scroll;
 }
 @media only screen and (min-width: 600px) {
   .card-spendable {
-    height: 50vh;
+    height: 55vh;
   }
 }

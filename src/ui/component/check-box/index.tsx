@@ -47,6 +47,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         height,
         borderRadius: '4px',
         cursor: 'pointer',
+        background: `${isChecked ? checkedColor : 'black'}`,
         border: `1px solid ${isChecked ? checkedColor : '#fff'}`,
         transition: 'background-color 0.3s, border-color 0.3s',
       }}>

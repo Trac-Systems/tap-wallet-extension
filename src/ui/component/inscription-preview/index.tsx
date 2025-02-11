@@ -57,8 +57,7 @@ const $iframePresets: Record<Presets, CSSProperties> = {
   asLogo: {
     width: 50,
     height: 60,
-    borderTopLeftRadius: '10px',
-    borderTopRightRadius: '10px',
+    borderRadius: '10px',
   },
 };
 

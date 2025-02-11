@@ -180,22 +180,24 @@ const Home = () => {
           const isChecked = checkedItems[item.inscriptionId] ? true : false;
           return (
             <UX.Box layout="box_border" key={index}>
-              <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
+              <UX.Box layout="row_center" spacing="xs">
                 <UX.InscriptionPreview
                   key={item.inscriptionId}
                   data={item}
                   asLogo
                   preset="asLogo"
                 />
-                <UX.Text
-                  title={`#${item.inscriptionNumber}`}
-                  styleType="body_16_normal"
-                />
-                <UX.Text
-                  title={`${item.outputValue} SATs`}
-                  styleType="body_16_normal"
-                  customStyles={{color: colors.main_500}}
-                />
+                <UX.Box layout="column">
+                  <UX.Text
+                    title={`#${item.inscriptionNumber}`}
+                    styleType="body_16_normal"
+                  />
+                  <UX.Text
+                    title={`${item.outputValue} SATs`}
+                    styleType="body_16_normal"
+                    customStyles={{color: colors.main_500}}
+                  />
+                </UX.Box>
               </UX.Box>
               <UX.CheckBox
                 checked={isChecked}
@@ -263,26 +265,30 @@ const Home = () => {
             <UX.Box
               style={{
                 padding: '16px',
-                height: '65vh',
+                height: '75vh',
               }}>
               <UX.Text
                 title="Mark inscriptions as spendable"
                 styleType="body_20_extra_bold"
               />
 
-              <UX.Box
-                layout="row_between"
-                style={{paddingRight: '16px', margin: '8px 0'}}>
-                <UX.Text styleType="body_16_bold" title="Select ALl" />
+              <UX.Box layout="row_between" style={{paddingRight: '16px', margin: '8px 0'}}>
+                <UX.Text styleType="body_16_bold" title="Select All" />
                 <UX.CheckBox
                   checked={isSelectAllChecked}
                   onChange={handleSelectAll}
                 />
               </UX.Box>
 
-              <UX.Box style={{justifyContent: 'space-between', flex: 1}}>
+              <UX.Box
+                style={{
+                  justifyContent: 'space-between',
+                  flex: 1,
+                  maxHeight: '65vh'
+                }}>
                 {renderCheckedList()}
-
+              </UX.Box>
+              <UX.Box style={{marginBottom: 20}}>
                 <UX.Button
                   title="Confirm"
                   styleType="primary"

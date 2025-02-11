@@ -254,7 +254,7 @@
   border-top-right-radius: 20px;
   overflow: hidden;
   background-color: #191919 !important;
-  height: 70vh !important;
+  height: 80vh !important;
 }
 @media only screen and (min-width: 600px) {
   .filter-inscription-spendable {

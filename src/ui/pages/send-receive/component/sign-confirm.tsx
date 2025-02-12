@@ -91,21 +91,15 @@ const SignConfirm = ({
       return 0;
     }
 
-    const inValue = rawTxInfo.inputs?.reduce(
-      (pre, cur) => cur.utxo.satoshi + pre,
-      0,
-    );
-
     const outValue = rawTxInfo.outputs
-      ?.filter(v => v.address === activeAccountAddress)
+      ?.filter(v => v.address !== activeAccountAddress)
       .reduce((pre, cur) => cur.value + pre, 0);
 
-    if (isNaN(inValue) || isNaN(outValue)) {
+    if (isNaN(outValue)) {
       return 0;
     }
 
-    const spend = inValue - outValue;
-    return spend;
+    return outValue;
   }, []);
 
   const netAmount = satoshisToAmount(netSatoshis);

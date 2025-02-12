@@ -90,11 +90,25 @@ const SignConfirm = ({
     if (isEmpty(rawTxInfo?.inputs) || isEmpty(rawTxInfo?.outputs)) {
       return 0;
     }
-    return rawTxInfo?.outputs
-      ?.filter(v => v.address !== activeAccountAddress)
+
+    const inValue = rawTxInfo.inputs?.reduce(
+      (pre, cur) => cur.utxo.satoshi + pre,
+      0,
+    );
+
+    const outValue = rawTxInfo.outputs
+      ?.filter(v => v.address === activeAccountAddress)
       .reduce((pre, cur) => cur.value + pre, 0);
+
+    if (isNaN(inValue) || isNaN(outValue)) {
+      return 0;
+    }
+
+    const spend = inValue - outValue;
+    return spend;
   }, []);
-  const netAmount = useMemo(() => satoshisToAmount(netSatoshis), [netSatoshis]);
+
+  const netAmount = satoshisToAmount(netSatoshis);
 
   const spendSatoshis = useMemo(() => {
     if (isEmpty(rawTxInfo?.inputs) || isEmpty(rawTxInfo?.outputs)) {
@@ -109,7 +123,7 @@ const SignConfirm = ({
       ?.filter(v => v.address === activeAccountAddress)
       .reduce((pre, cur) => cur.value + pre, 0);
 
-    if (!inValue || !outValue) {
+    if (isNaN(inValue) || isNaN(outValue)) {
       return 0;
     }
 
@@ -121,18 +135,18 @@ const SignConfirm = ({
     return rawTxInfo?.toAddressInfo?.address || '';
   }, [rawTxInfo]);
 
-  const spendAmount = useMemo(
-    () => satoshisToAmount(spendSatoshis),
-    [spendSatoshis],
-  );
+  const spendAmount = satoshisToAmount(spendSatoshis);
+
   const networkFee = useMemo(
     () => satoshisToAmount(rawTxInfo?.fee),
     [rawTxInfo?.fee],
   );
 
   const fetchDataUSD = async () => {
-    if (Number(spendAmount) || Number(netAmount)) {
-      const responseSpendAmount = await wallet.getUSDPrice(Number(spendAmount));
+    if (Number(spendSatoshis) || Number(netAmount)) {
+      const responseSpendAmount = await wallet.getUSDPrice(
+        Number(spendSatoshis),
+      );
       const responseAmount = await wallet.getUSDPrice(Number(netAmount));
       setUsdPriceSpendAmount(responseSpendAmount);
       setUsdPriceAmount(responseAmount);
@@ -144,7 +158,7 @@ const SignConfirm = ({
 
   useEffect(() => {
     fetchDataUSD();
-  }, [spendAmount, netAmount]);
+  }, [spendSatoshis, netSatoshis]);
 
   useEffect(() => {
     let timer: any;
@@ -406,7 +420,13 @@ const SignConfirm = ({
             title="Sign & Pay"
             onClick={() =>
               navigate('/home/tx-security', {
-                state: {rawtx: rawTxInfo.rawtx, type, tokenBalance, order, spendInputs: rawTxInfo.inputs},
+                state: {
+                  rawtx: rawTxInfo.rawtx,
+                  type,
+                  tokenBalance,
+                  order,
+                  spendInputs: rawTxInfo.inputs,
+                },
               })
             }
           />

@@ -2,7 +2,7 @@ import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {getAddressType} from '@/src/ui/utils';
 import {Inscription, RawTxInfo} from '@/src/wallet-instance';
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useCustomToast} from '../../component/toast-custom';
 import {FeeRateBar} from './component/fee-rate-bar';
@@ -17,6 +17,7 @@ import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import {OutputValueBar} from '@/src/ui/pages/send-receive/component/output-value';
 import {getUtxoDustThreshold} from '@/src/background/utils';
 import {colors} from '@/src/ui/themes/color';
+import {debounce} from 'lodash';
 
 const SendInscription = () => {
   //! State
@@ -51,8 +52,6 @@ const SendInscription = () => {
     fetchUtxos(ignoreAssets).finally(() => {});
   }, [inscriptions]);
 
-  //   const walletProvider = useWalletProvider();
-
   const minOutputValue = useMemo(() => {
     if (toInfo.address) {
       const receiverAddressType = getAddressType(toInfo.address);
@@ -72,13 +71,6 @@ const SendInscription = () => {
       setError('Invalid fee rate');
       return;
     }
-    // try {
-    //   if (toInfo.address) {
-    //     dustUtxo = getAddressUtxoDust(toInfo.address);
-    //   }
-    // } catch (e) {
-    //   // console.log(e);
-    // }
 
     if (outputValue < minOutputValue) {
       setError(`OutputValue must be at least ${minOutputValue}`);
@@ -116,6 +108,13 @@ const SendInscription = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
+
+  const debouncedSetOutputValue = useCallback(
+    debounce((val: number) => {
+      setOutputValue(val);
+    }, 400),
+    [],
+  );
 
   const handleNavigate = () => {
     navigate('/home/send-inscription-confirm', {
@@ -171,7 +170,7 @@ const SendInscription = () => {
                 defaultValue={defaultOutputValue}
                 minValue={minOutputValue}
                 onChange={val => {
-                  setOutputValue(val);
+                  debouncedSetOutputValue(val);
                 }}
               />
             </UX.Box>

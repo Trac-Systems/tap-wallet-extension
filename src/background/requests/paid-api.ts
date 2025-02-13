@@ -276,9 +276,7 @@ export class PaidApi {
     const allUtxos: any[] = [];
 
     // Fetch all runes for the address
-    console.log('bug1');
     const runes = await this.getAllRunes(address);
-    console.log('bug2');
     for (const rune of runes) {
       const runeid = rune.runeid; // Adjust this if API response structure differs
       let cursor = 0;

@@ -116,6 +116,13 @@ const SendInscription = () => {
     [],
   );
 
+  //! Effect Function
+  useEffect(() => {
+    return () => {
+      debouncedSetOutputValue.cancel();
+    };
+  }, []);
+
   const handleNavigate = () => {
     navigate('/home/send-inscription-confirm', {
       state: {rawTxInfo},

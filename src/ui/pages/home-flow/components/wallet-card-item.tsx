@@ -73,6 +73,12 @@ const WalletCard = (props: IWalletCardProps) => {
   }, [balanceValue, debouncedFetchDataUSD]);
 
   useEffect(() => {
+    return () => {
+      debouncedFetchDataUSD.cancel();
+    };
+  }, []);
+
+  useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (
         ref.current &&

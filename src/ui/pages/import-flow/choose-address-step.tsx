@@ -252,6 +252,12 @@ const ChooseAddress = () => {
   ]);
 
   useEffect(() => {
+    return () => {
+      onDebounceCustomDerivationPath.cancel();
+    };
+  }, []);
+
+  useEffect(() => {
     fetchAddressesBalance();
   }, [previewAddresses]);
 
@@ -349,7 +355,7 @@ const ChooseAddress = () => {
                   onDebounceCustomDerivationPath(e.target.value);
                 }}
                 style={{
-                  backgroundColor: colors.greyRgba42
+                  backgroundColor: colors.greyRgba42,
                 }}
               />
               {inputDerivationPathError ? (
@@ -375,7 +381,7 @@ const ChooseAddress = () => {
                   });
                 }}
                 style={{
-                  backgroundColor: colors.greyRgba42
+                  backgroundColor: colors.greyRgba42,
                 }}
               />
             </UX.Box>

@@ -165,13 +165,28 @@ const Home = () => {
     fetchSpendableInscriptions();
   };
 
+  const renderInscriptions = useMemo(() => {
+    return showSpendableList ? Object.values(spendableMaps) : inscriptions;
+  }, [checkedItems, inscriptions, showSpendableList]);
+
+  //! Effect function
   useEffect(() => {
     fetchSpendableInscriptions();
   }, [activeAccount.key, showSpendableList, openDrawerInscription]);
 
-  const renderInscriptions = useMemo(() => {
-    return showSpendableList ? Object.values(spendableMaps) : inscriptions;
-  }, [checkedItems, inscriptions, showSpendableList]);
+  useEffect(() => {
+    if (isSelectAllChecked) {
+      const allChecked = inscriptions.reduce(
+        (acc, item) => {
+          acc[item.inscriptionId] = item;
+          return acc;
+        },
+        {} as {[key: string]: Inscription},
+      );
+
+      setCheckedItems(allChecked);
+    }
+  }, [inscriptions, isSelectAllChecked]);
 
   const renderCheckedList = () => {
     return (
@@ -272,7 +287,9 @@ const Home = () => {
                 styleType="body_20_extra_bold"
               />
 
-              <UX.Box layout="row_between" style={{paddingRight: '16px', margin: '8px 0'}}>
+              <UX.Box
+                layout="row_between"
+                style={{paddingRight: '16px', margin: '8px 0'}}>
                 <UX.Text styleType="body_16_bold" title="Select All" />
                 <UX.CheckBox
                   checked={isSelectAllChecked}
@@ -284,7 +301,7 @@ const Home = () => {
                 style={{
                   justifyContent: 'space-between',
                   flex: 1,
-                  maxHeight: '65vh'
+                  maxHeight: '65vh',
                 }}>
                 {renderCheckedList()}
               </UX.Box>

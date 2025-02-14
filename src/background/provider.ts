@@ -1126,6 +1126,10 @@ export class Provider {
       inscriptionId,
     );
   };
+
+  getAllRuneUtxos = async (address: string) =>{
+    return await this.paidApi.getAllRuneUtxos(address)
+  }
 }
 
 export default new Provider();

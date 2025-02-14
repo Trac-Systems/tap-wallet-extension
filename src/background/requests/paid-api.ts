@@ -81,33 +81,34 @@ export class PaidApi {
     // Fetch Rune UTXOs
     const runeUtxos = await this.getAllRuneUtxos(address);
     const runeUtxoSet =
-      runeUtxos.length > 0 ? new Set(runeUtxos.map(utxo => utxo.txid)) : null;
+      runeUtxos.length > 0
+        ? new Set(runeUtxos.map(utxo => `${utxo.txid}:${utxo.vout}`))
+        : null;
     // Fetch BTC UTXOs
     let response = await this.getBtcUtxo(address, cursor, size);
     const total = response?.total || 0;
-    if (runeUtxoSet) {
-      utxos.push(
-        ...(response?.utxo || []).filter(
-          (utxo: UnspentOutput) => !runeUtxoSet.has(utxo.txid),
-        ),
-      );
-    } else {
-      utxos.push(...(response?.utxo || []));
-    }
+
+    const filterUtxos = utxoList => {
+      if (!runeUtxoSet) return utxoList;
+      return utxoList.filter(utxo => {
+        const key = `${utxo.txid}:${utxo.vout}`;
+        if (runeUtxoSet.has(key)) {
+          runeUtxoSet.delete(key); // Remove matched UTXO from the set
+          return false; // Exclude it
+        }
+        console.log('🚀 ~ PaidApi ~ getAllBTCUtxo ~ runeUtxoSet:', runeUtxoSet);
+        return true; // Keep the UTXO
+      });
+    };
+
+    utxos.push(...filterUtxos(response?.utxo || []));
+
     while (cursor + size < total) {
       cursor += size;
       response = await this.getBtcUtxo(address, cursor, size);
-
-      if (runeUtxoSet) {
-        utxos.push(
-          ...(response?.utxo || []).filter(
-            (utxo: UnspentOutput) => !runeUtxoSet.has(utxo.txid),
-          ),
-        );
-      } else {
-        utxos.push(...(response?.utxo || []));
-      }
+      utxos.push(...filterUtxos(response?.utxo || []));
     }
+
     return utxos;
   }
 

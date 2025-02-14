@@ -4,6 +4,7 @@ import {
   Inscription,
   InscriptionSummary,
   TxHistoryItem,
+  UnspentOutput,
 } from '@/src/wallet-instance';
 import {createSlice} from '@reduxjs/toolkit';
 
@@ -35,6 +36,7 @@ export interface AccountsState {
   inscriptionSummary: InscriptionSummary;
   addressSummary: AddressSummary;
   isReloadAccount: boolean;
+  runeUtxos?: UnspentOutput[];
 }
 
 const initialAccount = {
@@ -69,6 +71,7 @@ export const initialState: AccountsState = {
     address: '',
   },
   isReloadAccount: false,
+  runeUtxos: [],
 };
 
 const AccountSlice = createSlice({
@@ -207,6 +210,13 @@ const AccountSlice = createSlice({
       return {
         ...state,
         isReloadAccount: isReload,
+      };
+    },
+    setRuneUtxos(state: AccountsState, action: {payload: UnspentOutput[]}) {
+      const {payload} = action;
+      return {
+        ...state,
+        runeUtxos: payload,
       };
     },
   },

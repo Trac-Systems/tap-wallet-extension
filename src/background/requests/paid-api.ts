@@ -182,6 +182,13 @@ export class PaidApi {
     });
   }
 
+  async getAllInscriptions(address: string) {
+    const utxos = await this.getAllInscriptionUtxo(address)
+    const network = networkConfig.getActiveNetwork();
+
+   return convertInscriptionTransferList(network, utxos)
+  }
+
   async createOrderRequest(
     address: string,
     tick: string,

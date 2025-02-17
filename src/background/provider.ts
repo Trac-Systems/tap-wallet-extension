@@ -479,18 +479,21 @@ export class Provider {
     const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
     const account = this.getActiveAccount();
     const spendableInscriptions =
-      (await this.getAccountSpendableInscriptions(account) || []);
+      (await this.getAccountSpendableInscriptions(account)) || [];
     const ignoreAssetMap: {[key: string]: boolean} = {};
     ignoreAsset?.forEach(inscriptionId => {
       ignoreAssetMap[inscriptionId] = true;
     });
-    const spendableUtxoInscriptions = spendableInscriptions?.reduce((acc, v) => {
-      if (!ignoreAssetMap[v.inscriptionId] && v.utxoInfo.satoshi > 0) {
-        acc.push(v.utxoInfo);
-      }
-      return acc;
-    }, []);
-    if( spendableUtxoInscriptions.length > 0 ){
+    const spendableUtxoInscriptions = spendableInscriptions?.reduce(
+      (acc, v) => {
+        if (!ignoreAssetMap[v.inscriptionId] && v.utxoInfo.satoshi > 0) {
+          acc.push(v.utxoInfo);
+        }
+        return acc;
+      },
+      [],
+    );
+    if (spendableUtxoInscriptions.length > 0) {
       return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
     }
     return utxosWithoutInscription;
@@ -932,6 +935,10 @@ export class Provider {
 
   getInscriptionInfo = async (inscriptionId: string) => {
     return this.paidApi.getInscriptionInfo(inscriptionId);
+  };
+
+  getAllInscriptions = async (address: string) => {
+    return this.paidApi.getAllInscriptions(address);
   };
 
   getTapList = async (

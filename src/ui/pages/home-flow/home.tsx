@@ -23,9 +23,6 @@ const Home = () => {
   const {getTapList, getInscriptionList} = useInscriptionHook();
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
-  // const checkedItems = useAppSelector(
-  //   InscriptionSelector.spendableInscriptionsMap,
-  // );
 
   const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
   const walletProvider = useWalletProvider();
@@ -49,6 +46,8 @@ const Home = () => {
   const [spendableMaps, setSpendableMaps] = useState<{
     [key: string]: Inscription;
   }>({});
+  const [allInscriptions, setAllInscriptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCancelAssetModal = () => {
     setAssetsPendingToHandle([]);
@@ -93,6 +92,24 @@ const Home = () => {
       ),
     },
   ];
+  useEffect(() => {
+    const fetchAllInscriptions = async () => {
+      setIsLoading(true);
+      if (!activeAccount?.address) return;
+      try {
+        const inscriptions = await walletProvider.getAllInscriptions(
+          activeAccount.address,
+        );
+        setAllInscriptions(inscriptions);
+      } catch (error) {
+        console.error('Failed to fetch all inscriptions:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAllInscriptions();
+  }, [activeAccount.key]);
 
   useEffect(() => {
     getTapList(1);
@@ -112,14 +129,13 @@ const Home = () => {
     if (isSelectAllChecked) {
       setCheckedItems({});
     } else {
-      const allChecked = inscriptions.reduce(
+      const allChecked = allInscriptions.reduce(
         (acc, item) => {
           acc[item.inscriptionId] = item;
           return acc;
         },
         {} as {[key: string]: Inscription},
       );
-
       setCheckedItems(allChecked);
     }
     setIsSelectAllChecked(!isSelectAllChecked);
@@ -174,19 +190,6 @@ const Home = () => {
     fetchSpendableInscriptions();
   }, [activeAccount.key, showSpendableList, openDrawerInscription]);
 
-  useEffect(() => {
-    if (isSelectAllChecked) {
-      const allChecked = inscriptions.reduce(
-        (acc, item) => {
-          acc[item.inscriptionId] = item;
-          return acc;
-        },
-        {} as {[key: string]: Inscription},
-      );
-
-      setCheckedItems(allChecked);
-    }
-  }, [inscriptions, isSelectAllChecked]);
 
   const renderCheckedList = () => {
     return (
@@ -239,6 +242,10 @@ const Home = () => {
       </UX.Box>
     );
   };
+
+  if (isLoading) {
+    return <UX.Loading />;
+  }
 
   //! Render
   return (

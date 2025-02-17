@@ -1,8 +1,8 @@
-import {Inscription, InscriptionUTXO, Network} from '@/src/wallet-instance';
+import {Inscription, UnspentOutput, Network} from '@/src/wallet-instance';
 
 export const convertInscriptionTransferList = (
   network: Network,
-  data: InscriptionUTXO[],
+  data: UnspentOutput[],
 ): Inscription[] => {
   const urlPreview =
     network === Network.TESTNET

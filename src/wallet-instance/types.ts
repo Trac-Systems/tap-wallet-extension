@@ -299,18 +299,3 @@ export interface IListInscription {
   isVindicate: boolean;
   isBRC20: boolean;
 }
-
-export interface InscriptionUTXO {
-  txid: string;
-  vout: number;
-  satoshi: number;
-  scriptType: string;
-  scriptPk: string;
-  codeType: number;
-  address: string;
-  height: number;
-  idx: number;
-  isOpInRBF: boolean;
-  isSpent: boolean;
-  inscriptions: IListInscription[];
-}

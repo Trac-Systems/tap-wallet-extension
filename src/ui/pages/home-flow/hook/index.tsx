@@ -69,6 +69,9 @@ export function useReloadAccounts() {
 
     dispatch(AccountActions.expireBalance());
     dispatch(AccountActions.expireInscriptions());
+
+    const runeUtxos = await wallet.getAllRuneUtxos(activeAccount.address);
+    dispatch(AccountActions.setRuneUtxos(runeUtxos));
   }, [dispatch, wallet]);
 }
 

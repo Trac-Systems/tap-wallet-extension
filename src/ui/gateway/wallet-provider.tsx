@@ -204,6 +204,8 @@ export interface IWalletProvider {
   getAccountSpendableInscriptions(
     account: IDisplayAccount,
   ): Promise<Inscription[]>;
+
+  getAllRuneUtxos(address: string): Promise<UnspentOutput[]>;
 }
 
 const WalletContext = createContext<{

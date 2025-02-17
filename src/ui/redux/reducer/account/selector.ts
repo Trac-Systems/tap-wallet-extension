@@ -8,4 +8,5 @@ export const AccountSelector = {
   inscriptionSummary: (state: AppState) =>
     state.accountReducer.inscriptionSummary,
   isReloadAccount: (state: AppState) => state.accountReducer.isReloadAccount,
+  runeUtxos: (state: AppState) => state.accountReducer.runeUtxos,
 };

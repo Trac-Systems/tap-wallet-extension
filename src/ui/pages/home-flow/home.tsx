@@ -16,6 +16,7 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/spendable-attention-modal';
 import {colors} from '../../themes/color';
+import SpendableContainRuneAttentionModal from '@/src/ui/pages/home-flow/components/spendable-cotain-rune-attention-modal';
 
 const Home = () => {
   //! Hooks
@@ -28,6 +29,7 @@ const Home = () => {
   // );
 
   const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
+  const runeUtxos = useAppSelector(AccountSelector.runeUtxos);
   const walletProvider = useWalletProvider();
 
   //! State
@@ -49,6 +51,14 @@ const Home = () => {
   const [spendableMaps, setSpendableMaps] = useState<{
     [key: string]: Inscription;
   }>({});
+
+  const [inscriptionContainRune, setInscriptionContainRune] = useState('');
+
+  const runeUtxosSet = useMemo(() => {
+    return runeUtxos.length > 0
+      ? new Set(runeUtxos.map(utxo => `${utxo.txid}:${utxo.vout}`))
+      : null;
+  }, [runeUtxos]);
 
   const handleCancelAssetModal = () => {
     setAssetsPendingToHandle([]);
@@ -157,7 +167,14 @@ const Home = () => {
   };
 
   const handleConfirm = async () => {
+    for (const ins of Object.values(checkedItems)) {
+      if (runeUtxosSet.has(`${ins.utxoInfo?.txid}:${ins.utxoInfo?.vout}`)) {
+        setInscriptionContainRune(`#${ins.inscriptionNumber}`);
+        return;
+      }
+    }
     setOpenDrawerInscription(false);
+
     await walletProvider.setAccountSpendableInscriptions(
       activeAccount,
       Object.values(checkedItems),
@@ -318,6 +335,11 @@ const Home = () => {
                 isSpendable={isSelectForSpendable}
                 onNext={handleAcceptAssetModal}
                 onCancel={handleCancelAssetModal}
+              />
+              <SpendableContainRuneAttentionModal
+                visible={Boolean(inscriptionContainRune)}
+                inscriptionNum={inscriptionContainRune}
+                onCancel={() => setInscriptionContainRune('')}
               />
             </UX.Box>
           </UX.DrawerCustom>

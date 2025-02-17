@@ -96,7 +96,6 @@ export class PaidApi {
           runeUtxoSet.delete(key); // Remove matched UTXO from the set
           return false; // Exclude it
         }
-        console.log('🚀 ~ PaidApi ~ getAllBTCUtxo ~ runeUtxoSet:', runeUtxoSet);
         return true; // Keep the UTXO
       });
     };

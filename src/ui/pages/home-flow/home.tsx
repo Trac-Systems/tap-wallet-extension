@@ -54,7 +54,7 @@ const Home = () => {
   const [inscriptionContainRune, setInscriptionContainRune] = useState('');
 
   const runeUtxosSet = useMemo(() => {
-    return runeUtxos.length > 0
+    return runeUtxos?.length > 0
       ? new Set(runeUtxos.map(utxo => `${utxo.txid}:${utxo.vout}`))
       : null;
   }, [runeUtxos]);
@@ -119,12 +119,18 @@ const Home = () => {
     };
 
     fetchAllInscriptions();
-  }, [activeAccount.key]);
+  }, [activeAccount.address, activeAccount.key]);
+
+  useEffect(() => {
+    setIsSelectAllChecked(
+      Object.keys(checkedItems).length === allInscriptions.length,
+    );
+  }, [allInscriptions, checkedItems]);
 
   useEffect(() => {
     getTapList(1);
     getInscriptionList(0);
-  }, [activeAccount.key]);
+  }, [activeAccount.key, activeAccount.address]);
 
   //! Function
   const handleCreateWallet = (check: string) => {
@@ -168,7 +174,9 @@ const Home = () => {
     }
 
     setCheckedItems(newState);
-    setIsSelectAllChecked(Object.keys(newState).length === inscriptions.length);
+    setIsSelectAllChecked(
+      Object.keys(newState).length === allInscriptions.length,
+    );
   };
 
   const fetchSpendableInscriptions = async () => {
@@ -184,7 +192,7 @@ const Home = () => {
 
   const handleConfirm = async () => {
     for (const ins of Object.values(checkedItems)) {
-      if (runeUtxosSet.has(`${ins.utxoInfo?.txid}:${ins.utxoInfo?.vout}`)) {
+      if (runeUtxosSet?.has(`${ins.utxoInfo?.txid}:${ins.utxoInfo?.vout}`)) {
         setInscriptionContainRune(`#${ins.inscriptionNumber}`);
         return;
       }
@@ -206,7 +214,6 @@ const Home = () => {
   useEffect(() => {
     fetchSpendableInscriptions();
   }, [activeAccount.key, showSpendableList, openDrawerInscription]);
-
 
   const renderCheckedList = () => {
     return (

@@ -81,7 +81,7 @@ export class PaidApi {
     // Fetch Rune UTXOs
     const runeUtxos = await this.getAllRuneUtxos(address);
     const runeUtxoSet =
-      runeUtxos.length > 0
+      runeUtxos?.length > 0
         ? new Set(runeUtxos.map(utxo => `${utxo.txid}:${utxo.vout}`))
         : null;
     // Fetch BTC UTXOs
@@ -92,7 +92,7 @@ export class PaidApi {
       if (!runeUtxoSet) return utxoList;
       return utxoList.filter(utxo => {
         const key = `${utxo.txid}:${utxo.vout}`;
-        if (runeUtxoSet.has(key)) {
+        if (runeUtxoSet?.has(key)) {
           runeUtxoSet.delete(key); // Remove matched UTXO from the set
           return false; // Exclude it
         }

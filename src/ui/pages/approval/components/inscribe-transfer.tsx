@@ -390,7 +390,7 @@ export const Step3 = ({
   const {rawTxInfo, order} = contextData;
   const wallet = useWalletProvider();
   const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
-  const [usdPriceAmount, setUsdPriceAmount] = useState(0);
+  // const [usdPriceAmount, setUsdPriceAmount] = useState(0);
 
   //! Function
   const handleCopied = text => {
@@ -408,30 +408,30 @@ export const Step3 = ({
     () => satoshisToAmount(order.minerFee + rawTxInfo.fee),
     [order.minerFee],
   );
-  const serviceFee = useMemo(
-    () => satoshisToAmount(order.serviceFee),
-    [order.serviceFee],
-  );
+  // const serviceFee = useMemo(
+  //   () => satoshisToAmount(order.serviceFee),
+  //   [order.serviceFee],
+  // );
   const totalFee = useMemo(
     () => satoshisToAmount(order.totalFee + rawTxInfo.fee),
     [order.totalFee],
   );
 
   const fetchDataUSD = async () => {
-    if (Number(totalFee) || Number(serviceFee)) {
+    if (Number(totalFee)) {
       const responseSpendAmount = await wallet.getUSDPrice(Number(totalFee));
-      const responseAmount = await wallet.getUSDPrice(Number(serviceFee));
+      // const responseAmount = await wallet.getUSDPrice(Number(serviceFee));
       setUsdPriceSpendAmount(responseSpendAmount);
-      setUsdPriceAmount(responseAmount);
+      // setUsdPriceAmount(responseAmount);
     } else {
       setUsdPriceSpendAmount(0);
-      setUsdPriceAmount(0);
+      // setUsdPriceAmount(0);
     }
   };
 
   useEffect(() => {
     fetchDataUSD();
-  }, [totalFee, serviceFee]);
+  }, [totalFee]);
 
   //! Render
   return (
@@ -447,15 +447,15 @@ export const Step3 = ({
           <SVG.ArrowUpRight />
         </UX.Box>
         <UX.Text
-          title="You are sending"
+          title="Spend Amount"
           styleType="body_16_normal"
           customStyles={{marginTop: '24px', marginBottom: '8px'}}
         />
-        <UX.Text title={`${serviceFee} BTC`} styleType="heading_24" />
+        <UX.Text title={`${totalFee} BTC`} styleType="heading_24" />
         <UX.Box layout="row_center" spacing="xss_s">
           <UX.Text title="≈" styleType="body_14_normal" />
           <UX.Text
-            title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+            title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
             styleType="body_14_normal"
           />
         </UX.Box>
@@ -479,7 +479,7 @@ export const Step3 = ({
         </UX.Box>
       </UX.Box>
       <UX.Box>
-        <UX.Box layout="box" spacing="xl">
+        {/* <UX.Box layout="box" spacing="xl">
           <UX.Box layout="row_between">
             <UX.Text title="Spend amount" styleType="body_14_normal" />
             <UX.Text
@@ -495,7 +495,7 @@ export const Step3 = ({
               styleType="body_14_normal"
             />
           </UX.Box>
-        </UX.Box>
+        </UX.Box> */}
         <UX.Box layout="row_between">
           <UX.Text title="Network fee" styleType="body_14_normal" />
           <UX.Text

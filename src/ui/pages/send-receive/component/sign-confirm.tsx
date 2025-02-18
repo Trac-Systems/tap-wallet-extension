@@ -58,7 +58,7 @@ const SignConfirm = ({
   const {showToast} = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
   const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
-  const [usdPriceAmount, setUsdPriceAmount] = useState(0);
+  // const [usdPriceAmount, setUsdPriceAmount] = useState(0);
 
   const wallet = useWalletProvider();
 
@@ -102,7 +102,7 @@ const SignConfirm = ({
     return outValue;
   }, []);
 
-  const netAmount = satoshisToAmount(netSatoshis);
+  // const netAmount = satoshisToAmount(netSatoshis);
 
   const spendSatoshis = useMemo(() => {
     if (isEmpty(rawTxInfo?.inputs) || isEmpty(rawTxInfo?.outputs)) {
@@ -137,16 +137,16 @@ const SignConfirm = ({
   );
 
   const fetchDataUSD = async () => {
-    if (Number(spendAmount) || Number(netAmount)) {
+    if (Number(spendAmount)) {
       const responseSpendAmount = await wallet.getUSDPrice(
         Number(spendAmount),
       );
-      const responseAmount = await wallet.getUSDPrice(Number(netAmount));
+      // const responseAmount = await wallet.getUSDPrice(Number(netAmount));
       setUsdPriceSpendAmount(responseSpendAmount);
-      setUsdPriceAmount(responseAmount);
+      // setUsdPriceAmount(responseAmount);
     } else {
       setUsdPriceSpendAmount(0);
-      setUsdPriceAmount(0);
+      // setUsdPriceAmount(0);
     }
   };
 
@@ -194,7 +194,7 @@ const SignConfirm = ({
                 <SVG.ArrowUpRight />
               </UX.Box>
               <UX.Text
-                title="You are sending"
+                title="Spend Amount"
                 styleType="body_16_normal"
                 customStyles={{marginTop: '24px', marginBottom: '8px'}}
               />
@@ -207,14 +207,14 @@ const SignConfirm = ({
               ) : (
                 <>
                   <UX.Text
-                    title={`${netAmount} BTC`}
+                    title={`${spendAmount} BTC`}
                     styleType="heading_24"
                     customStyles={{textAlign: 'center'}}
                   />
                   <UX.Box layout="row_center" spacing="xss_s">
                     <UX.Text title="≈" styleType="body_14_normal" />
                     <UX.Text
-                      title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+                      title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
                       styleType="body_14_normal"
                     />
                   </UX.Box>
@@ -240,7 +240,7 @@ const SignConfirm = ({
               </UX.Box>
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
-              <UX.Box>
+              {/* <UX.Box>
                 <UX.Box layout="row_between">
                   <UX.Text title="Spend amount" styleType="body_14_normal" />
                   <UX.Text
@@ -256,7 +256,7 @@ const SignConfirm = ({
                     styleType="body_14_normal"
                   />
                 </UX.Box>
-              </UX.Box>
+              </UX.Box> */}
               <UX.Box layout="row_between">
                 <UX.Text title="Network fee" styleType="body_14_normal" />
                 <UX.Text

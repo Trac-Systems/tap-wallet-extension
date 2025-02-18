@@ -137,9 +137,9 @@ const SignConfirm = ({
   );
 
   const fetchDataUSD = async () => {
-    if (Number(spendSatoshis) || Number(netAmount)) {
+    if (Number(spendAmount) || Number(netAmount)) {
       const responseSpendAmount = await wallet.getUSDPrice(
-        Number(spendSatoshis),
+        Number(spendAmount),
       );
       const responseAmount = await wallet.getUSDPrice(Number(netAmount));
       setUsdPriceSpendAmount(responseSpendAmount);

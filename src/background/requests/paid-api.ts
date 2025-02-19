@@ -1,11 +1,12 @@
+import { Message } from './../../gateway/message';
 /* eslint-disable no-unsafe-optional-chaining */
 import {
   convertInscriptionTransferList,
   transferResponseToInscription,
 } from '@/src/shared/utils/inscription-response-adapter';
 import {
-  InscribeOrder,
-  InscribeOrderTransfer,
+  // InscribeOrder,
+  // InscribeOrderTransfer,
   Inscription,
   Network,
   UnspentOutput,
@@ -19,7 +20,7 @@ export const PAID_API_KEY_TESTNET =
 export const PAID_API_MAINNET = 'https://open-api.unisat.io';
 export const PAID_API_KEY_MAINNET =
   'e3133d5812314a4e912e3e3aaaef2e5980e476663543811c92aee34cf7887875';
-
+export const TAP_API='http://192.168.0.105:8080/v1/inscribe/order/texts';
 export interface IResponseAddressBalance {
   address: string;
   satoshi: number;
@@ -182,49 +183,50 @@ export class PaidApi {
     });
   }
 
-  async createOrderRequest(
-    address: string,
-    tick: string,
-    amt: string,
-    feeRate: number,
-    outputValue: number,
-  ): Promise<InscribeOrder> {
-    const dataInscribeObject = {
-      p: 'tap',
-      op: 'token-transfer',
-      tick,
-      amt,
-    };
-    const dataInscribe = JSON.stringify(dataInscribeObject);
-    const res = await this.api.post('/v2/inscribe/order/create', {
-      receiveAddress: address,
-      feeRate: feeRate,
-      outputValue: outputValue,
-      files: [
-        {
-          filename: dataInscribe,
-          dataURL: `data:text/plain;charset=utf-8;base64,${Buffer.from(
-            dataInscribe,
-          ).toString('base64')}`,
-        },
-      ],
-      devAddress: address,
-      devFee: 0,
-    });
-    if (!res.data?.data) {
-      throw new Error('Unisat API request failed');
-    }
-    return {...res?.data?.data, totalFee: res?.data?.data?.amount};
-  }
+  // async createOrderRequest(
+  //   address: string,
+  //   tick: string,
+  //   amt: string,
+  //   feeRate: number,
+  //   outputValue: number,
+  // ): Promise<InscribeOrder> {
+  //   const dataInscribeObject = {
+  //     p: 'tap',
+  //     op: 'token-transfer',
+  //     tick,
+  //     amt,
+  //   };
+  //   const dataInscribe = JSON.stringify(dataInscribeObject);
+  //   const res = await this.api.post('/v2/inscribe/order/create', {
+  //     receiveAddress: address,
+  //     feeRate: feeRate,
+  //     outputValue: outputValue,
+  //     files: [
+  //       {
+  //         filename: dataInscribe,
+  //         dataURL: `data:text/plain;charset=utf-8;base64,${Buffer.from(
+  //           dataInscribe,
+  //         ).toString('base64')}`,
+  //       },
+  //     ],
+  //     devAddress: address,
+  //     devFee: 0,
+  //   });
+  //   if (!res.data?.data) {
+  //     throw new Error('Unisat API request failed');
+  //   }
+  //   return {...res?.data?.data, totalFee: res?.data?.data?.amount};
+  // }
 
-  async getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer> {
-    try {
-      const response = await this.api.get(`/v2/inscribe/order/${orderId}`, {});
-      return {...response?.data?.data};
-    } catch (error) {
-      throw new Error((error as any).message);
-    }
-  }
+  // async getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer> {
+  //   try {
+  //     const response = await this.api.get(`/v2/inscribe/order/${orderId}`, {});
+  //     return {...response?.data?.data};
+  //   } catch (error) {
+  //     throw new Error((error as any).message);
+  //   }
+  // }
+
 
   async getRunes(
     address: string,

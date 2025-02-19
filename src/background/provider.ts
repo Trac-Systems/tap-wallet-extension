@@ -28,6 +28,7 @@ import {
 } from './utils';
 import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
 import {mempoolApi, paidApi, tapApi, usdApi} from './requests';
+import { tapInscribeApi } from './requests';
 import {
   AddressType,
   IDisplayAccount,
@@ -47,6 +48,7 @@ import {TapApi} from './requests/tap-api';
 import {ConnectedSite} from './service/permission.service';
 import {isEmpty} from 'lodash';
 import {Psbt} from 'bitcoinjs-lib';
+import { TapInscribeApi } from './requests/tap-inscribe-api';
 export interface IDerivationPathOption {
   label: string;
   derivationPath: string;
@@ -57,7 +59,7 @@ export class Provider {
   paidApi: PaidApi = paidApi;
   mempoolApi: MempoolApi = mempoolApi;
   tapApi: TapApi = tapApi;
-
+  tapInscribeApi: TapInscribeApi = tapInscribeApi;
   unlockApp = async (pin: string) => {
     await walletService.unlockWallet(pin);
   };
@@ -997,7 +999,7 @@ export class Provider {
     feeRate: number,
     outputValue: number,
   ) => {
-    return this.paidApi.createOrderRequest(
+    return this.tapInscribeApi.createOrderRequest(
       address,
       tick,
       amount,
@@ -1007,7 +1009,7 @@ export class Provider {
   };
 
   getInscribeTapResult = (orderId: string) => {
-    return this.paidApi.getInscribeTapResult(orderId);
+    return this.tapInscribeApi.getInscribeTapResult(orderId);
   };
 
   getApproval = notificationService.getApproval;

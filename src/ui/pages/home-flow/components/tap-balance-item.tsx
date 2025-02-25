@@ -14,10 +14,34 @@ interface TapBalanceItemProps {
   handleNavigate?: () => void;
   tagColor?: string;
 }
-const TapBalanceItem = (props: TapBalanceItemProps) => {
-  const {ticker, overallBalance, handleNavigate, tagColor} = props;
-  // Call and update nonce value
-  const html = `<!DOCTYPE html>
+export const dataFake = [
+  {
+    id: 1,
+    nonce: '1',
+    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+  },
+  {
+    id: 2,
+    nonce: '2',
+    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+  },
+  {
+    id: 3,
+    nonce: '3',
+    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+  },
+  {
+    id: 4,
+    nonce: '4',
+    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+  },
+  {
+    id: 5,
+    nonce: '5',
+    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+  },
+];
+export const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -68,6 +92,10 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
     </script>
   </body>
 </html>`;
+const TapBalanceItem = (props: TapBalanceItemProps) => {
+  const {ticker, overallBalance, handleNavigate, tagColor} = props;
+  // Call and update nonce value
+
   //! hooks
   const wallet = useWalletProvider();
 
@@ -77,38 +105,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
-  const dataFake = [
-    {
-      id: 1,
-      nonce: '1',
-      minId:
-        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-    },
-    {
-      id: 2,
-      nonce: '2',
-      minId:
-        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-    },
-    {
-      id: 3,
-      nonce: '3',
-      minId:
-        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-    },
-    {
-      id: 4,
-      nonce: '4',
-      minId:
-        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-    },
-    {
-      id: 5,
-      nonce: '5',
-      minId:
-        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-    },
-  ];
+
   useEffect(() => {
     try {
       setLoading(true);

@@ -4,7 +4,6 @@ import LayoutScreenHome from '../../layouts/home';
 import {SVG} from '../../svg';
 import ListWallets from './components/list-wallet';
 import Navbar from './components/navbar-navigate';
-import {InscriptionList} from './components/Inscription';
 import {useNavigate} from 'react-router-dom';
 import TapList from './components/tap-list';
 import {PAGE_SIZE, useAppSelector} from '../../utils';
@@ -17,6 +16,7 @@ import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/spendable-attention-modal';
 import {colors} from '../../themes/color';
 import SpendableContainRuneAttentionModal from '@/src/ui/pages/home-flow/components/spendable-cotain-rune-attention-modal';
+import InscriptionList from './components/Inscription';
 
 const Home = () => {
   //! Hooks

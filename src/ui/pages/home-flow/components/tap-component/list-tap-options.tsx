@@ -16,6 +16,7 @@ import {
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
+import {dataFake, html} from '../tap-balance-item';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -191,6 +192,7 @@ const ListTapOptions = () => {
             />
           </UX.Box>
           <UX.Divider color="#fff" />
+          {/* Transferable */}
           <UX.Box layout="row_between">
             <UX.Text
               title="Transferable"
@@ -241,6 +243,46 @@ const ListTapOptions = () => {
                 );
               })
             )}
+          </UX.Box>
+
+          {/* Collectibles */}
+          <UX.Box layout="row_between">
+            <UX.Text
+              title="Collectibles"
+              styleType="body_14_normal"
+              customStyles={{color: colors.white}}
+            />
+            <UX.Box layout="row" spacing="xs">
+              <UX.Text
+                title={`${transferableBalance}`}
+                styleType="body_12_bold"
+                customStyles={{color: colors.white}}
+              />
+              <UX.Text
+                title={formatTicker(brcTokenBalance?.ticker)}
+                styleType="body_12_bold"
+                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+              />
+            </UX.Box>
+          </UX.Box>
+          <UX.Box
+            layout="row"
+            spacing="xss_s"
+            style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
+            {dataFake.map(item => {
+              return (
+                <div key={item.id}>
+                  <iframe
+                    key={item.id}
+                    width="80px"
+                    height="80px"
+                    onClick={handleNavigate}
+                    sandbox="allow-scripts"
+                    srcDoc={html}
+                    src={`about:blank?mint=${item.minId}&nonce=${item.nonce}`}></iframe>
+                </div>
+              );
+            })}
           </UX.Box>
           {!isEmpty(dataForList) ? (
             <UX.Text

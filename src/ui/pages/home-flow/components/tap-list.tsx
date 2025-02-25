@@ -6,7 +6,7 @@ const TapList = () => {
   const tabItems = [
     {label: 'All', content: <TapListChild />},
     {
-      label: 'DMT collections',
+      label: 'DMT collectibles',
       content: <DmtCollection />,
     },
   ];

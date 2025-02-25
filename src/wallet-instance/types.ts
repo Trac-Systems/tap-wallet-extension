@@ -1,3 +1,4 @@
+import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 import {PublicWallet} from '../background/service/wallet.service';
 
 export enum AddressType {
@@ -37,6 +38,7 @@ export interface TokenBalance {
   transferableBalance: string;
   availableBalanceSafe: string;
   availableBalanceUnSafe: string;
+  tokenInfo?: TapTokenInfo;
 }
 
 export interface TokenTransfer {

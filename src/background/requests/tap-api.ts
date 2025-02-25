@@ -45,10 +45,14 @@ export class TapApi {
   }
 
   async getDeployment(ticker: string): Promise<TapTokenInfo> {
-    const response = await this.api.get(`/getDeployment/${encodeURIComponent(ticker)}`, {});
+    const response = await this.api.get(
+      `/getDeployment/${encodeURIComponent(ticker)}`,
+      {},
+    );
     return response?.data?.result;
   }
 
+  // get list tap tokens by address
   async getAddressTapTokens(
     address: string,
     offset: number,
@@ -58,32 +62,64 @@ export class TapApi {
       offset,
       max,
     });
-    if (response?.data?.data?.list?.length > 0) {
-      const list = [];
-      // eslint-disable-next-line no-unsafe-optional-chaining
-      for (const tokenBalance of response.data?.data?.list) {
-        const tokenInfo = await this.getDeployment(tokenBalance.ticker);
-        list.push({
-          ...tokenBalance,
-          overallBalance: calculateAmount(
-            tokenBalance.overallBalance,
-            tokenInfo?.dec,
-          ),
-          transferableBalance: calculateAmount(
-            tokenBalance.transferableBalance,
-            tokenInfo?.dec,
-          ),
-        });
-      }
-      return {
-        list,
-        total: response.data?.data?.total ?? 0,
-      };
+    const list: TokenBalance[] = [];
+    // Ensure response data is valid before accessing
+    if (
+      !response?.data ||
+      !response.data?.data ||
+      !Array.isArray(response.data.data?.list)
+    ) {
+      return {list: [], total: 0}; // Safe fallback return
+    }
+
+    // eslint-disable-next-line no-unsafe-optional-chaining
+    for (const tokenBalance of response.data?.data?.list) {
+      const tokenInfo = await this.getDeployment(tokenBalance.ticker);
+      list.push({
+        ...tokenBalance,
+        overallBalance: calculateAmount(
+          tokenBalance.overallBalance,
+          tokenInfo?.dec,
+        ),
+        transferableBalance: calculateAmount(
+          tokenBalance.transferableBalance,
+          tokenInfo?.dec,
+        ),
+        tokenInfo: tokenInfo,
+      });
     }
     return {
-      list: [],
-      total: 0,
+      list,
+      total: response.data?.data?.total ?? 0,
     };
+  }
+
+  async getAllAddressTapTokens(address: string) {
+    const allTapTokens: TokenBalance[] = [];
+    let offset = 0;
+    const max = 100;
+
+    // Paginate through the runes list
+    let response = await this.getAddressTapTokens(address, offset, max);
+    // let response = await this.getBtcUtxo(address, offset, max);
+    const total = response?.total || 0;
+
+    if (response.list) {
+      allTapTokens.push(...response?.list);
+    }
+
+    while (offset + max < total) {
+      offset += max;
+      response = await this.getAddressTapTokens(address, offset, max);
+      allTapTokens.push(...response?.list);
+    }
+
+    return allTapTokens;
+  }
+
+  async getDmtAddressTapTokens(address: string) {
+    const allTokens = await this.getAllAddressTapTokens(address);
+    return allTokens.filter(token => token.tokenInfo?.dmt);
   }
 
   getUtxoMap(utxoData: any) {
@@ -108,7 +144,9 @@ export class TapApi {
     );
 
     if (isEmpty(response.data)) {
-      throw new Error(`Token ${encodeURIComponent(ticker)} don't have in your account`);
+      throw new Error(
+        `Token ${encodeURIComponent(ticker)} don't have in your account`,
+      );
     }
     const getUtxoResult = await mempoolApi.getUtxoData(address);
     const utxoMap = this.getUtxoMap(getUtxoResult);
@@ -175,5 +213,53 @@ export class TapApi {
       total,
       list: convertTapTokenTransferList(list, tokenInfo.dec),
     };
+  }
+
+  async getMintsListByTicker(address: string, ticker: string) {
+    const response = await this.api.get(
+      `/getAccountMintList/${address}/${encodeURIComponent(ticker)}`,
+      {},
+    );
+    return response?.data?.result;
+  }
+
+  async getTotalAddressDmtMintList(address: string) {
+    const response = await this.api.get(
+      `/getDmtMintWalletHistoricListLength/${address}`,
+      {},
+    );
+    return response.data?.result || 0;
+  }
+
+  async getAddressDmtMintList(address: string, offset: number, max: number) {
+    const response = await this.api.get(
+      `/getDmtMintWalletHistoricList/${address}`,
+      {
+        max,
+        offset,
+      },
+    );
+    return response?.data?.result;
+  }
+
+  async getAllAddressDmtMintList(address: string) {
+    const total = await this.getTotalAddressDmtMintList(address);
+    const maxPerPage = 50; // Adjust as needed
+    let offset = 0;
+    const allResults: any[] = [];
+
+    while (offset < total) {
+      const results = await this.getAddressDmtMintList(
+        address,
+        offset,
+        maxPerPage,
+      );
+      if (!results || results.length === 0) break;
+
+      allResults.push(...results);
+      offset += maxPerPage;
+    }
+
+    return allResults;
   }
 }

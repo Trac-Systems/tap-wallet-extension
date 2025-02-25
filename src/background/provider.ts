@@ -997,6 +997,34 @@ export class Provider {
     };
   };
 
+  getAllTapDmt = async (address: string) => {
+    return await this.tapApi.getDmtAddressTapTokens(address);
+  };
+
+  getMintsListByTicker = async (address: string, ticker: string) => {
+    return await this.tapApi.getMintsListByTicker(address, ticker);
+  };
+
+  getDmtContent = async (depInscriptionId: string) => {
+    const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
+    let contentIns = depInscriptionId;
+    for (const ins of depIns) {
+      if (ins.inscriptionId && ins.inscriptionId !== depInscriptionId) {
+        contentIns = ins.inscriptionId;
+      }
+    }
+    let content = await this.paidApi.getInscriptionContent(contentIns);
+    try {
+      if (content?.id) {
+        content = this.paidApi.getInscriptionContent(content?.id);
+      }
+      return content;
+    } catch (error) {
+      console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
+      return content;
+    }
+  };
+
   createOrderTransfer = (
     address: string,
     tick: string,
@@ -1134,9 +1162,9 @@ export class Provider {
     );
   };
 
-  getAllRuneUtxos = async (address: string) =>{
-    return await this.paidApi.getAllRuneUtxos(address)
-  }
+  getAllRuneUtxos = async (address: string) => {
+    return await this.paidApi.getAllRuneUtxos(address);
+  };
 }
 
 export default new Provider();

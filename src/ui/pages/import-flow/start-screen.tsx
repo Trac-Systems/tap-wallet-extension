@@ -11,7 +11,7 @@ import {useApproval} from '../approval/hook';
 const StartScreen = () => {
   //! State
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const wallet = useWalletProvider();
   const isTabOpen = useIsTabOpen();
   const openInTab = useOpenInTab();
@@ -57,11 +57,11 @@ const StartScreen = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
+    // setLoading(true);
     const timer = setTimeout(() => {
       setLoading(false);
       initLoadView();
-    }, 300);
+    }, 100);
     return () => clearTimeout(timer);
   }, []);
 

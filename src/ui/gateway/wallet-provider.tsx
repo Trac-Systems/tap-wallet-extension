@@ -17,6 +17,7 @@ import {
   InputForSigning,
   ExtractPsbt,
   TransactionSigningOptions,
+  TokenBalance,
 } from '../../wallet-instance';
 import {Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
@@ -143,6 +144,8 @@ export interface IWalletProvider {
     currentPage: number,
     pageSize: number,
   ): Promise<{total: number; list: TokenTransfer[]}>;
+  getAllTapDmt(address: string): Promise<TokenBalance[]>;
+  getDmtContent(depInscriptionId: string): Promise<string>
   createOrderTransfer(
     address: string,
     tick: string,

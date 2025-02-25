@@ -183,10 +183,9 @@ export class PaidApi {
   }
 
   async getAllInscriptions(address: string) {
-    const utxos = await this.getAllInscriptionUtxo(address)
+    const utxos = await this.getAllInscriptionUtxo(address);
     const network = networkConfig.getActiveNetwork();
-
-   return convertInscriptionTransferList(network, utxos)
+    return convertInscriptionTransferList(network, utxos);
   }
 
   async createOrderRequest(
@@ -304,5 +303,18 @@ export class PaidApi {
     }
 
     return allUtxos;
+  }
+
+  async getInscriptionContent(inscriptionId: string) {
+    console.log(
+      '🚀 ~ PaidApi ~ getInscriptionContent ~ inscriptionId:',
+      inscriptionId,
+    );
+    const result = await this.api.get(
+      `/v1/indexer/inscription/content/${inscriptionId}`,
+      {},
+    );
+    console.log('🚀 ~ PaidApi ~ getInscriptionContent ~ result:', result);
+    return result?.data;
   }
 }

@@ -90,7 +90,7 @@ const Home = () => {
   };
 
   const tabItems = [
-    {label: 'Tokens', content: <TapList />},
+    {label: 'Tokens', content: <TapList />, parentIndex: 0},
     {
       label: 'Inscriptions',
       content: (
@@ -100,6 +100,7 @@ const Home = () => {
           spendableInscriptionsMap={spendableMaps}
         />
       ),
+      parentIndex: 1,
     },
   ];
   useEffect(() => {

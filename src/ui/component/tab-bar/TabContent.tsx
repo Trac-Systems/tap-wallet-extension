@@ -2,32 +2,49 @@ import React from 'react';
 import './index.css';
 import Text from '../text-custom';
 import {UX} from '..';
+import {colors} from '../../themes/color';
 
 interface TabContentProps {
   children: React.ReactNode;
+  className?: string;
 }
 
 interface TabProps {
   label: string;
   isActive: boolean;
   onClick: () => void;
+  isChildren?: boolean;
 }
 
-export const Tab: React.FC<TabProps> = ({label, isActive, onClick}) => {
+export const Tab: React.FC<TabProps> = ({
+  label,
+  isActive,
+  onClick,
+  isChildren,
+}) => {
   return (
-    <UX.Box className={`${isActive ? 'tab-box-active' : 'tab-box'}`} onClick={onClick}>
+    <UX.Box
+      className={`${isActive ? (isChildren ? 'sub-tab-active' : 'tab-box-active') : isChildren ? 'sub-tab' : 'tab-box'}`}
+      onClick={onClick}>
       <Text
-        styleType="body_16_bold"
+        styleType={isChildren ? 'body_14_normal' : 'body_16_bold'}
         customStyles={{
-          color: isActive ? '#F79E6D' : '#FFFFFFB0',
+          color: isActive
+            ? isChildren
+              ? colors.main_500
+              : '#F79E6D'
+            : '#FFFFFFB0',
         }}
         title={label}
-        className={`tab-label ${isActive ? 'active' : ''}`}
+        className={`tab-label ${isActive ? (isChildren ? 'sub-active' : 'active') : isChildren ? 'sub' : ''}`}
       />
     </UX.Box>
   );
 };
 
-export const TabContent: React.FC<TabContentProps> = ({children}) => {
-  return <div className="tab-content">{children}</div>;
+export const TabContent: React.FC<TabContentProps> = ({
+  children,
+  className,
+}) => {
+  return <div className={className}>{children}</div>;
 };

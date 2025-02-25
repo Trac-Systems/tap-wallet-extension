@@ -6,6 +6,7 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
+import {colors} from '@/src/ui/themes/color';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -15,7 +16,58 @@ interface TapBalanceItemProps {
 }
 const TapBalanceItem = (props: TapBalanceItemProps) => {
   const {ticker, overallBalance, handleNavigate, tagColor} = props;
+  // Call and update nonce value
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Triangle Color Changer</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #222;
+      }
+      .triangle {
+        width: 0;
+        height: 0;
+        border-left: 50px solid transparent;
+        border-right: 50px solid transparent;
+        border-bottom: 100px solid red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="triangle" id="triangle"></div>
+    <input id="input" type="number" style="display: none" />
+    <script id="preview" mint="MINT_INSCRIPTION_ID" nonce="NONCE_NUMBER">
+      window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mint = urlParams.get('mint') || "MINT_INSCRIPTION_ID";
+        const nonce = urlParams.get('nonce') || "NONCE_NUMBER";
 
+        const colors = [
+          "#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF",
+          "#33FFF5", "#F5FF33", "#FF8C33", "#8C33FF", "#33FF8C"
+        ];
+
+        function getChar(nonce, index) {
+          return nonce.charCodeAt(index) % colors.length;
+        }
+
+        function changeColor(nonce) {
+          const index = getChar(nonce, 0);
+          document.getElementById("triangle").style.borderBottomColor = colors[index];
+        }
+
+        changeColor(nonce);
+      };
+    </script>
+  </body>
+</html>`;
   //! hooks
   const wallet = useWalletProvider();
 
@@ -25,7 +77,38 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
-
+  const dataFake = [
+    {
+      id: 1,
+      nonce: '1',
+      minId:
+        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+    },
+    {
+      id: 2,
+      nonce: '2',
+      minId:
+        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+    },
+    {
+      id: 3,
+      nonce: '3',
+      minId:
+        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+    },
+    {
+      id: 4,
+      nonce: '4',
+      minId:
+        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+    },
+    {
+      id: 5,
+      nonce: '5',
+      minId:
+        '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
+    },
+  ];
   useEffect(() => {
     try {
       setLoading(true);
@@ -193,6 +276,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
       {isExpandView ? (
         <>
           <UX.Divider />
+          {/* TransferAble of Items */}
           <UX.Box layout="row_between" style={{width: '100%', marginBottom: 8}}>
             <UX.Text
               title={'Transferable'}
@@ -264,6 +348,69 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                 </UX.Box>
               );
             })}
+          </UX.Box>
+          {/* Collections of items */}
+          <UX.Box
+            layout="row_between"
+            style={{width: '100%', marginTop: 10, marginBottom: 8}}>
+            <UX.Text
+              title={'Collectibles'}
+              styleType="body_14_normal"
+              customStyles={{
+                color: '#FFFFFFB0',
+                width: 'fit-content',
+              }}
+            />
+            <UX.Text
+              title={`${_transferAble}`}
+              styleType="body_14_normal"
+              customStyles={{
+                color: '#FFFFFFB0',
+                width: 'fit-content',
+              }}
+            />
+          </UX.Box>
+          <UX.Box layout="row" spacing="xss_s">
+            {dataFake.map((item, index) => {
+              if (index > 1) {
+                return;
+              }
+              return (
+                <div key={item.id}>
+                  <iframe
+                    key={item.id}
+                    width="80px"
+                    height="80px"
+                    onClick={handleNavigate}
+                    sandbox="allow-scripts"
+                    srcDoc={html}
+                    src={`about:blank?mint=${item.minId}&nonce=${item.nonce}`}></iframe>
+                </div>
+              );
+            })}
+            {dataFake.length > 1 ? (
+              <UX.Box
+                layout="row_center"
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  border: '1px solid #fff',
+                }}>
+                <UX.Text
+                  title={dataFake.length - 2 + '+'}
+                  styleType="body_14_bold"
+                  customStyles={{
+                    color: 'white',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    background: colors.main_500,
+                  }}
+                />
+              </UX.Box>
+            ) : null}
           </UX.Box>
         </>
       ) : null}

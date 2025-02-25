@@ -10,27 +10,37 @@ interface TabItem {
 
 interface TabsProps {
   tabs: TabItem[];
+  isChildren?: boolean;
+  parentIndex?: number;
 }
 
-const Tabs: React.FC<TabsProps> = ({tabs}) => {
+const Tabs: React.FC<TabsProps> = ({tabs, isChildren, parentIndex}) => {
   const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
+
   const navigate = useNavigate();
   const location = useLocation();
-  const tabFromUrl = new URLSearchParams(location.search).get('tab');
 
   const handleTabClick = (index: number) => {
-    navigate(`?tab=${index}`);
     setActiveTabIndex(index);
+    if (isChildren) {
+      navigate(`?tab=${parentIndex}&childTab=${index}`);
+    } else {
+      navigate(`?tab=${index}`);
+    }
   };
 
   useEffect(() => {
-    if (tabFromUrl) {
-      setActiveTabIndex(Number(tabFromUrl));
+    const tabIndex = isChildren
+      ? new URLSearchParams(location.search).get('childTab')
+      : new URLSearchParams(location.search).get('tab');
+
+    if (tabIndex !== null) {
+      setActiveTabIndex(Number(tabIndex));
     }
-  }, [tabFromUrl]);
+  }, [location.search, parentIndex]);
 
   return (
-    <div className="tabs-container">
+    <div className={isChildren ? 'sub-tabs-container' : 'tabs-container'}>
       <div className="tabs">
         {tabs.map((tab, index) => (
           <Tab
@@ -38,6 +48,7 @@ const Tabs: React.FC<TabsProps> = ({tabs}) => {
             label={tab.label}
             isActive={index === activeTabIndex}
             onClick={() => handleTabClick(index)}
+            isChildren={isChildren}
           />
         ))}
       </div>

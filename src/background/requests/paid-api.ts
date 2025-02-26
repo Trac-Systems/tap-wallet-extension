@@ -306,15 +306,10 @@ export class PaidApi {
   }
 
   async getInscriptionContent(inscriptionId: string) {
-    console.log(
-      '🚀 ~ PaidApi ~ getInscriptionContent ~ inscriptionId:',
-      inscriptionId,
-    );
     const result = await this.api.get(
       `/v1/indexer/inscription/content/${inscriptionId}`,
       {},
     );
-    console.log('🚀 ~ PaidApi ~ getInscriptionContent ~ result:', result);
     return result?.data;
   }
 }

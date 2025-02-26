@@ -1001,8 +1001,8 @@ export class Provider {
     return await this.tapApi.getDmtAddressTapTokens(address);
   };
 
-  getMintsListByTicker = async (address: string, ticker: string) => {
-    return await this.tapApi.getMintsListByTicker(address, ticker);
+  getAccountAllMintsListByTicker = async (address: string, ticker: string) => {
+    return await this.tapApi.getAccountAllMintsListByTicker(address, ticker);
   };
 
   getDmtContent = async (depInscriptionId: string) => {
@@ -1020,7 +1020,6 @@ export class Provider {
       }
       return content;
     } catch (error) {
-      console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
       return content;
     }
   };

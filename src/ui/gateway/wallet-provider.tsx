@@ -144,8 +144,9 @@ export interface IWalletProvider {
     currentPage: number,
     pageSize: number,
   ): Promise<{total: number; list: TokenTransfer[]}>;
+  getAccountAllMintsListByTicker(address: string, ticker: string): Promise<any>;
   getAllTapDmt(address: string): Promise<TokenBalance[]>;
-  getDmtContent(depInscriptionId: string): Promise<string>
+  getDmtContent(depInscriptionId: string): Promise<string>;
   createOrderTransfer(
     address: string,
     tick: string,

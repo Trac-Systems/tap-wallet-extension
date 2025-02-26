@@ -3,16 +3,20 @@ import {SVG} from '@/src/ui/svg';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useAppSelector} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {
+  useWalletProvider,
+} from '@/src/ui/gateway/wallet-provider';
 import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {colors} from '@/src/ui/themes/color';
+import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 
 interface TapBalanceItemProps {
   ticker: string;
   overallBalance: string;
   handleNavigate?: () => void;
   tagColor?: string;
+  tokenInfo?: TapTokenInfo;
 }
 export const dataFake = [
   {
@@ -92,12 +96,21 @@ export const html = `<!DOCTYPE html>
     </script>
   </body>
 </html>`;
-const TapBalanceItem = (props: TapBalanceItemProps) => {
-  const {ticker, overallBalance, handleNavigate, tagColor} = props;
-  // Call and update nonce value
 
-  //! hooks
+const TapBalanceItem = (props: TapBalanceItemProps) => {
   const wallet = useWalletProvider();
+  const {ticker, overallBalance, handleNavigate, tagColor, tokenInfo} = props;
+  const [content, setContent] = useState<string>('');
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (tokenInfo?.dmt) {
+        const _content = await wallet.getDmtContent(tokenInfo.ins);
+        setContent(_content);
+      }
+    };
+    fetchContent();
+  }, [tokenInfo.ins]);
 
   //! Ref
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -105,6 +118,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
+  const [mintList, setMintList] = useState([]);
 
   useEffect(() => {
     try {
@@ -120,6 +134,19 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
       }, 1000);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchMintList = async () => {
+      if (tokenInfo?.dmt) {
+        const list = await wallet.getAccountAllMintsListByTicker(
+          activeAccount.address,
+          ticker,
+        );
+        setMintList(list);
+      }
+    };
+    fetchMintList();
+  }, [activeAccount.address]);
 
   const transferableBalanceSafe = useMemo(() => {
     return (
@@ -346,69 +373,90 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               );
             })}
           </UX.Box>
-          {/* Collections of items */}
-          <UX.Box
-            layout="row_between"
-            style={{width: '100%', marginTop: 10, marginBottom: 8}}>
-            <UX.Text
-              title={'Collectibles'}
-              styleType="body_14_normal"
-              customStyles={{
-                color: '#FFFFFFB0',
-                width: 'fit-content',
-              }}
-            />
-            <UX.Text
-              title={`${_transferAble}`}
-              styleType="body_14_normal"
-              customStyles={{
-                color: '#FFFFFFB0',
-                width: 'fit-content',
-              }}
-            />
-          </UX.Box>
-          <UX.Box layout="row" spacing="xss_s">
-            {dataFake.map((item, index) => {
-              if (index > 1) {
-                return;
-              }
-              return (
-                <div key={item.id}>
-                  <iframe
-                    key={item.id}
-                    width="80px"
-                    height="80px"
-                    onClick={handleNavigate}
-                    sandbox="allow-scripts"
-                    srcDoc={html}
-                    src={`about:blank?mint=${item.minId}&nonce=${item.nonce}`}></iframe>
-                </div>
-              );
-            })}
-            {dataFake.length > 1 ? (
+
+          {tokenInfo?.dmt ? (
+            <>
+              {/* Collections of items */}
               <UX.Box
-                layout="row_center"
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  border: '1px solid #fff',
-                }}>
+                layout="row_between"
+                style={{width: '100%', marginTop: 10, marginBottom: 8}}>
                 <UX.Text
-                  title={dataFake.length - 2 + '+'}
-                  styleType="body_14_bold"
+                  title={'Collectibles'}
+                  styleType="body_14_normal"
                   customStyles={{
-                    color: 'white',
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    background: colors.main_500,
+                    color: '#FFFFFFB0',
+                    width: 'fit-content',
+                  }}
+                />
+                <UX.Text
+                  title={`${_transferAble}`}
+                  styleType="body_14_normal"
+                  customStyles={{
+                    color: '#FFFFFFB0',
+                    width: 'fit-content',
                   }}
                 />
               </UX.Box>
-            ) : null}
-          </UX.Box>
+              <UX.Box layout="row" spacing="xss_s">
+                {mintList.map((item, index) => {
+                  if (index > 1) {
+                    return;
+                  }
+                  // let mintContent = content?.replace(
+                  //   'MINT_INSCRIPTION_ID',
+                  //   item.minId,
+                  // );
+                  // mintContent = mintContent?.replace(
+                  //   'NONCE_NUMBER',
+                  //   item.nonce,
+                  // );
+                  const blob = new Blob([content], {type: 'application/javascript'});
+                  const blobUrl = URL.createObjectURL(blob);
+
+                  return (
+                    <div key={item.id}>
+                      <iframe
+                        key={item.id}
+                        width="80px"
+                        height="80px"
+                        onClick={handleNavigate}
+                        sandbox="allow-scripts allow-same-origin"
+                        // src={(() => {
+                        //   const blob = new Blob([mintContwent], {
+                        //     type: 'text/html',
+                        //   });
+                        //   return URL.createObjectURL(blob);
+                        // })()}
+                        src={blobUrl}></iframe>
+                    </div>
+                  );
+                })}
+                {mintList.length > 1 ? (
+                  <UX.Box
+                    layout="row_center"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      border: '1px solid #fff',
+                    }}>
+                    <UX.Text
+                      title={mintList.length - 2 + '+'}
+                      styleType="body_14_bold"
+                      customStyles={{
+                        color: 'white',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        background: colors.main_500,
+                      }}
+                    />
+                  </UX.Box>
+                ) : null}
+              </UX.Box>
+            </>
+          ) : null}
         </>
       ) : null}
     </UX.Box>

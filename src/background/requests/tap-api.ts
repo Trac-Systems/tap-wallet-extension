@@ -215,12 +215,47 @@ export class TapApi {
     };
   }
 
-  async getMintsListByTicker(address: string, ticker: string) {
+  async getAccountMintsListByTicker(
+    address: string,
+    ticker: string,
+    offset: number,
+    max: number,
+  ) {
     const response = await this.api.get(
       `/getAccountMintList/${address}/${encodeURIComponent(ticker)}`,
-      {},
+      {max, offset},
     );
     return response?.data?.result;
+  }
+
+  async getTotalAccountMintsListByTicker(address: string, ticker: string) {
+    const response = await this.api.get(
+      `/getAccountMintListLength/${address}/${encodeURIComponent(ticker)}`,
+      {},
+    );
+    return response.data?.result || 0;
+  }
+
+  async getAccountAllMintsListByTicker(address: string, ticker: string) {
+    const total = await this.getTotalAccountMintsListByTicker(address, ticker);
+    const maxPerPage = 50; // Adjust as needed
+    let offset = 0;
+    const allResults: any[] = [];
+
+    while (offset < total) {
+      const results = await this.getAccountMintsListByTicker(
+        address,
+        ticker,
+        offset,
+        maxPerPage,
+      );
+      if (!results || results.length === 0) break;
+
+      allResults.push(...results);
+      offset += maxPerPage;
+    }
+
+    return allResults;
   }
 
   async getTotalAddressDmtMintList(address: string) {

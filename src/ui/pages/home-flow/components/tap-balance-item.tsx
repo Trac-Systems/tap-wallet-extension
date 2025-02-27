@@ -27,12 +27,12 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   useEffect(() => {
     const fetchContent = async () => {
       if (tokenInfo?.dmt) {
-        const _content = await wallet.getDmtContentId(tokenInfo.ins);
+        const _content = await wallet.getDmtContentId(tokenInfo?.ins);
         setContentInscription(_content);
       }
     };
     fetchContent();
-  }, [tokenInfo.ins]);
+  }, [tokenInfo]);
 
   const renderDmtLink = useMemo(() => {
     let link = 'http://157.230.45.91:8080/v1/render-dmt';
@@ -333,13 +333,16 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                     return;
                   }
                   return (
-                    <div key={item.ins} onClick={handleNavigate} style={{cursor: 'pointer'}}>
+                    <div
+                      key={item?.ins}
+                      onClick={handleNavigate}
+                      style={{cursor: 'pointer'}}>
                       <iframe
-                        key={item.ins}
+                        key={item?.ins}
                         width="80px"
                         height="80px"
                         sandbox="allow-scripts allow-same-origin"
-                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}`}></iframe>
+                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item?.ins}`}></iframe>
                     </div>
                   );
                 })}

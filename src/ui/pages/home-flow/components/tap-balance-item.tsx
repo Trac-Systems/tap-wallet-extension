@@ -332,20 +332,18 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                   if (index > 1) {
                     return;
                   }
-
                   return (
-                    <div key={item.ins}>
+                    <div key={item.ins} onClick={handleNavigate} style={{cursor: 'pointer'}}>
                       <iframe
                         key={item.ins}
                         width="80px"
                         height="80px"
-                        onClick={handleNavigate}
                         sandbox="allow-scripts allow-same-origin"
                         src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}`}></iframe>
                     </div>
                   );
                 })}
-                {mintList.length > 2 ? (
+                {mintList.length > 3 ? (
                   <UX.Box
                     layout="row_center"
                     style={{

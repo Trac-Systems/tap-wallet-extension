@@ -31,7 +31,6 @@ const TapListChild = () => {
   const [tokenValue, setTokenValue] = useState('');
   const [tapItem, setTapItem] = useState<TokenBalance[]>([]);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,

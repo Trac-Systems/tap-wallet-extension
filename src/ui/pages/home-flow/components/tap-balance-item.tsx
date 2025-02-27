@@ -2,14 +2,13 @@ import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useAppSelector} from '@/src/ui/utils';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {
-  useWalletProvider,
-} from '@/src/ui/gateway/wallet-provider';
-import {AddressTokenSummary} from '@/src/wallet-instance';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {AddressTokenSummary, Network} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {colors} from '@/src/ui/themes/color';
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -18,99 +17,30 @@ interface TapBalanceItemProps {
   tagColor?: string;
   tokenInfo?: TapTokenInfo;
 }
-export const dataFake = [
-  {
-    id: 1,
-    nonce: '1',
-    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-  },
-  {
-    id: 2,
-    nonce: '2',
-    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-  },
-  {
-    id: 3,
-    nonce: '3',
-    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-  },
-  {
-    id: 4,
-    nonce: '4',
-    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-  },
-  {
-    id: 5,
-    nonce: '5',
-    minId: '5bffbe4ded9ca1467d00325b8ee3d5908ee75a685bc754e3a593e45b975063ebi0',
-  },
-];
-export const html = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Triangle Color Changer</title>
-    <style>
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: #222;
-      }
-      .triangle {
-        width: 0;
-        height: 0;
-        border-left: 50px solid transparent;
-        border-right: 50px solid transparent;
-        border-bottom: 100px solid red;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="triangle" id="triangle"></div>
-    <input id="input" type="number" style="display: none" />
-    <script id="preview" mint="MINT_INSCRIPTION_ID" nonce="NONCE_NUMBER">
-      window.onload = function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const mint = urlParams.get('mint') || "MINT_INSCRIPTION_ID";
-        const nonce = urlParams.get('nonce') || "NONCE_NUMBER";
-
-        const colors = [
-          "#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF",
-          "#33FFF5", "#F5FF33", "#FF8C33", "#8C33FF", "#33FF8C"
-        ];
-
-        function getChar(nonce, index) {
-          return nonce.charCodeAt(index) % colors.length;
-        }
-
-        function changeColor(nonce) {
-          const index = getChar(nonce, 0);
-          document.getElementById("triangle").style.borderBottomColor = colors[index];
-        }
-
-        changeColor(nonce);
-      };
-    </script>
-  </body>
-</html>`;
 
 const TapBalanceItem = (props: TapBalanceItemProps) => {
   const wallet = useWalletProvider();
+  const network = useAppSelector(GlobalSelector.networkType);
   const {ticker, overallBalance, handleNavigate, tagColor, tokenInfo} = props;
-  const [content, setContent] = useState<string>('');
+  const [contentInscription, setContentInscription] = useState<string>('');
 
   useEffect(() => {
     const fetchContent = async () => {
       if (tokenInfo?.dmt) {
-        const _content = await wallet.getDmtContent(tokenInfo.ins);
-        setContent(_content);
+        const _content = await wallet.getDmtContentId(tokenInfo.ins);
+        setContentInscription(_content);
       }
     };
     fetchContent();
   }, [tokenInfo.ins]);
+
+  const renderDmtLink = useMemo(() => {
+    let link = 'http://157.230.45.91:8080/v1/render-dmt';
+    if (network === Network.MAINNET) {
+      link = '';
+    }
+    return link;
+  }, [network]);
 
   //! Ref
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -389,7 +319,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                   }}
                 />
                 <UX.Text
-                  title={`${_transferAble}`}
+                  title={`${mintList.length}`}
                   styleType="body_14_normal"
                   customStyles={{
                     color: '#FFFFFFB0',
@@ -402,36 +332,20 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                   if (index > 1) {
                     return;
                   }
-                  // let mintContent = content?.replace(
-                  //   'MINT_INSCRIPTION_ID',
-                  //   item.minId,
-                  // );
-                  // mintContent = mintContent?.replace(
-                  //   'NONCE_NUMBER',
-                  //   item.nonce,
-                  // );
-                  const blob = new Blob([content], {type: 'application/javascript'});
-                  const blobUrl = URL.createObjectURL(blob);
 
                   return (
-                    <div key={item.id}>
+                    <div key={item.ins}>
                       <iframe
-                        key={item.id}
+                        key={item.ins}
                         width="80px"
                         height="80px"
                         onClick={handleNavigate}
                         sandbox="allow-scripts allow-same-origin"
-                        // src={(() => {
-                        //   const blob = new Blob([mintContwent], {
-                        //     type: 'text/html',
-                        //   });
-                        //   return URL.createObjectURL(blob);
-                        // })()}
-                        src={blobUrl}></iframe>
+                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}`}></iframe>
                     </div>
                   );
                 })}
-                {mintList.length > 1 ? (
+                {mintList.length > 2 ? (
                   <UX.Box
                     layout="row_center"
                     style={{

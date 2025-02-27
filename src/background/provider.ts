@@ -1001,6 +1001,10 @@ export class Provider {
     return await this.tapApi.getDmtAddressTapTokens(address);
   };
 
+  getAllAddressDmtMintList = async (address: string) => {
+    return await this.tapApi.getAllAddressDmtMintList(address);
+  };
+
   getAccountAllMintsListByTicker = async (address: string, ticker: string) => {
     return await this.tapApi.getAccountAllMintsListByTicker(address, ticker);
   };
@@ -1020,7 +1024,27 @@ export class Provider {
       }
       return content;
     } catch (error) {
+      console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
       return content;
+    }
+  };
+
+  getDmtContentId = async (depInscriptionId: string) => {
+    const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
+    let contentIns = depInscriptionId;
+    for (const ins of depIns) {
+      if (ins.inscriptionId && ins.inscriptionId !== depInscriptionId) {
+        contentIns = ins.inscriptionId;
+      }
+    }
+    try {
+      const content = await this.paidApi.getInscriptionContent(contentIns);
+      if (content?.id) {
+        return content?.id;
+      }
+    } catch (error) {
+      console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
+      return contentIns;
     }
   };
 

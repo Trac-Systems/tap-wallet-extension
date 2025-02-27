@@ -29,6 +29,7 @@ export interface TokenInfo {
   decimal: number;
   holder: string;
   inscriptionId: string;
+  dmt: boolean;
 }
 
 export interface TokenBalance {

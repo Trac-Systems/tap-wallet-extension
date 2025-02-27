@@ -78,6 +78,7 @@ const TapTransfer = () => {
       decimal: 18,
       holder: '',
       inscriptionId: '',
+      dmt: false
     },
   });
 

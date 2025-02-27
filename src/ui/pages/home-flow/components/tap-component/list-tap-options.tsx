@@ -11,12 +11,13 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {
   AddressTokenSummary,
   Inscription,
+  Network,
   TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
-import {dataFake, html} from '../tap-balance-item';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -30,6 +31,7 @@ const ListTapOptions = () => {
   //! State
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const network = useAppSelector(GlobalSelector.networkType);
   const [deployInscriptionState, setDeployInscription] =
     useState<Inscription>();
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>({
@@ -47,10 +49,14 @@ const ListTapOptions = () => {
       decimal: 18,
       holder: '',
       inscriptionId: '',
+      dmt: false,
     },
     historyList: [],
     transferableList: [],
   });
+
+  const [mintList, setMintList] = useState([]);
+  const [contentInscription, setContentInscription] = useState<string>('');
 
   //! Function
   const handleNavigate = () => {
@@ -69,6 +75,44 @@ const ListTapOptions = () => {
       },
     });
   };
+
+  useEffect(() => {
+    const fetchMintList = async () => {
+      if (tokenSummary.tokenInfo?.dmt) {
+        const list = await wallet.getAccountAllMintsListByTicker(
+          activeAccount.address,
+          tokenSummary.tokenBalance.ticker,
+        );
+        console.log('🚀 ~ fetchMintList ~ list:', list);
+        setMintList(list);
+      }
+    };
+    fetchMintList();
+  }, [
+    activeAccount.address,
+    tokenSummary.tokenBalance.ticker,
+    tokenSummary.tokenInfo?.dmt,
+  ]);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (tokenSummary.tokenInfo?.dmt) {
+        const _content = await wallet.getDmtContentId(
+          tokenSummary.tokenInfo.inscriptionId,
+        );
+        setContentInscription(_content);
+      }
+    };
+    fetchContent();
+  }, [tokenSummary.tokenInfo.inscriptionId, tokenSummary.tokenInfo?.dmt]);
+
+  const renderDmtLink = useMemo(() => {
+    let link = 'http://157.230.45.91:8080/v1/render-dmt';
+    if (network === Network.MAINNET) {
+      link = 'https://inscriber.trac.network/v1/render-dmt';
+    }
+    return link;
+  }, [network]);
 
   useEffect(() => {
     fetchData();
@@ -246,44 +290,47 @@ const ListTapOptions = () => {
           </UX.Box>
 
           {/* Collectibles */}
-          <UX.Box layout="row_between">
-            <UX.Text
-              title="Collectibles"
-              styleType="body_14_normal"
-              customStyles={{color: colors.white}}
-            />
-            <UX.Box layout="row" spacing="xs">
-              <UX.Text
-                title={`${transferableBalance}`}
-                styleType="body_12_bold"
-                customStyles={{color: colors.white}}
-              />
-              <UX.Text
-                title={formatTicker(brcTokenBalance?.ticker)}
-                styleType="body_12_bold"
-                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
-              />
-            </UX.Box>
-          </UX.Box>
-          <UX.Box
-            layout="row"
-            spacing="xss_s"
-            style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
-            {dataFake.map(item => {
-              return (
-                <div key={item.id}>
-                  <iframe
-                    key={item.id}
-                    width="80px"
-                    height="80px"
-                    onClick={handleNavigate}
-                    sandbox="allow-scripts"
-                    srcDoc={html}
-                    src={`about:blank?mint=${item.minId}&nonce=${item.nonce}`}></iframe>
-                </div>
-              );
-            })}
-          </UX.Box>
+          {tokenSummary.tokenInfo?.dmt && (
+            <>
+              <UX.Box layout="row_between">
+                <UX.Text
+                  title="Collectibles"
+                  styleType="body_14_normal"
+                  customStyles={{color: colors.white}}
+                />
+                <UX.Box layout="row" spacing="xs">
+                  <UX.Text
+                    title={`${mintList?.length}`}
+                    styleType="body_12_bold"
+                    customStyles={{color: colors.white}}
+                  />
+                  <UX.Text
+                    title={formatTicker(brcTokenBalance?.ticker)}
+                    styleType="body_12_bold"
+                    customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                  />
+                </UX.Box>
+              </UX.Box>
+              <UX.Box
+                layout="row"
+                spacing="xss_s"
+                style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
+                {mintList.map(item => {
+                  return (
+                    <div key={item.ins}>
+                      <iframe
+                        key={item.ins}
+                        width="80px"
+                        height="80px"
+                        onClick={handleNavigate}
+                        sandbox="allow-scripts allow-same-origin"
+                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}`}></iframe>
+                    </div>
+                  );
+                })}
+              </UX.Box>
+            </>
+          )}
           {!isEmpty(dataForList) ? (
             <UX.Text
               title="Click on the inscription for details. To transfer, click on the Transfer button above."

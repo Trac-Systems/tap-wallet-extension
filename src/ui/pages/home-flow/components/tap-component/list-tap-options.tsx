@@ -83,7 +83,6 @@ const ListTapOptions = () => {
           activeAccount.address,
           tokenSummary.tokenBalance.ticker,
         );
-        console.log('🚀 ~ fetchMintList ~ list:', list);
         setMintList(list);
       }
     };
@@ -317,15 +316,37 @@ const ListTapOptions = () => {
                 style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
                 {mintList.map(item => {
                   return (
-                    <div key={item.ins}>
+                    <UX.Box
+                      key={item.ins}
+                      onClick={() =>
+                        tapPreviewItemOnPress({
+                          amount: item.amt,
+                          inscriptionId: item.ins,
+                          inscriptionNumber: item.num,
+                          ticker: '',
+                          timestamp: item.ts,
+                        })
+                      }
+                      layout="column">
                       <iframe
                         key={item.ins}
                         width="80px"
                         height="80px"
-                        onClick={handleNavigate}
-                        sandbox="allow-scripts allow-same-origin"
+                        style={{pointerEvents: 'none'}}
+                        sandbox="allow-scripts allow-same-origin allow-top-navigation"
                         src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}`}></iframe>
-                    </div>
+                      <UX.Text
+                        title={`#${item.num}`}
+                        styleType="body_14_normal"
+                        customStyles={{
+                          color: 'white',
+                          width: '100%',
+                          background: '#545454',
+                          padding: '4px 0',
+                          textAlign: 'center',
+                        }}
+                      />
+                    </UX.Box>
                   );
                 })}
               </UX.Box>

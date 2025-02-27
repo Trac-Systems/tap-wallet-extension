@@ -430,6 +430,7 @@ const SendTapTransfer = ({
       decimal: 18,
       holder: '',
       inscriptionId: '',
+      dmt: false
     },
   });
 

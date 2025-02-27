@@ -51,6 +51,7 @@ export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo): TokenInfo => {
       decimal: 0,
       holder: '',
       inscriptionId: '',
+      dmt: false,
     };
   }
   return {
@@ -59,6 +60,7 @@ export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo): TokenInfo => {
     decimal: tapTokenInfo?.dec,
     holder: '',
     inscriptionId: tapTokenInfo.ins,
+    dmt: tapTokenInfo.dmt,
   };
 };
 

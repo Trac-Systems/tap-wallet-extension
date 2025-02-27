@@ -806,6 +806,7 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
       decimal: 18,
       holder: '',
       inscriptionId: '',
+      dmt: false
     },
     disableBtn: true,
   });

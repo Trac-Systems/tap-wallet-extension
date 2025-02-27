@@ -1,7 +1,7 @@
 import {UX} from '@/src/ui/component';
 import {Inscription} from '@/src/wallet-instance';
-import DmtCollection from './dmt-collection';
 import {InscriptionListChildren} from './Inscription-children';
+import {DmtInscriptionListChildren} from '@/src/ui/pages/home-flow/components/dmt-inscriptions';
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
@@ -13,7 +13,7 @@ const InscriptionList = (props: IProps) => {
     {label: 'All', content: <InscriptionListChildren {...props} />},
     {
       label: 'DMT collectibles',
-      content: <DmtCollection />,
+      content: <DmtInscriptionListChildren />,
     },
   ];
 

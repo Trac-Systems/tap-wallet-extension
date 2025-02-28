@@ -192,6 +192,7 @@ const ListTapOptions = () => {
     navigate('/home/inscription-detail', {
       state: {
         inscriptionId: inscription?.inscriptionId,
+        isCollectibles: mintList.length > 0 ? true : false,
       },
     });
   };

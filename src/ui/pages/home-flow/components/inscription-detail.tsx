@@ -16,6 +16,7 @@ const InscriptionDetail = () => {
   const location = useLocation();
   const {state} = location;
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [changeInscription, setChangeInscription] = useState<boolean>(false);
   const [inscriptions, setInscription] = useState<Inscription[]>();
 
   const inscriptionInfo = useMemo(() => {
@@ -49,7 +50,7 @@ const InscriptionDetail = () => {
     getInscriptionInfo();
   }, []);
 
-  if (isLoading) {
+  if (isLoading || !inscriptionInfo) {
     return <UX.Loading />;
   }
 
@@ -59,8 +60,16 @@ const InscriptionDetail = () => {
         <UX.Box onClick={() => navigate(-1)} className="circle">
           <SVG.ArrowBackIcon width={24} height={24} />
         </UX.Box>
-
-        <InscriptionPreview data={inscriptionInfo} preset="large" asLogo />
+        <InscriptionPreview
+          data={inscriptionInfo}
+          preset="large"
+          asLogo
+          changeInscription={changeInscription}
+          handleChangeInscription={() =>
+            setChangeInscription(!changeInscription)
+          }
+          isCollectibles={state.isCollectibles ?? false}
+        />
       </UX.Box>
       <UX.Box className="image-box-section" style={{marginTop: '16px'}}>
         <UX.Text
@@ -135,27 +144,27 @@ const InscriptionDetail = () => {
       </UX.Box>
 
       {/* <footer className="footer_sr"> */}
-        <UX.Box
-          layout="column"
-          spacing="xl"
-          className='footer_sr'
-          style={{
-            padding: '10px 0',
-          }}>
-          <UX.Button
-            styleType="primary"
-            customStyles={{
-              margin: '0 24px',
-            }}
-            title={'Send'}
-            // isDisable={disabled}
-            onClick={() =>
-              navigate('/home/send-inscription', {
-                state: {inscriptions: inscriptions},
-              })
-            }
-          />
-        </UX.Box>
+      <UX.Box
+        layout="column"
+        spacing="xl"
+        className="footer_sr"
+        style={{
+          padding: '10px 0',
+        }}>
+        <UX.Button
+          styleType="primary"
+          customStyles={{
+            margin: '0 24px',
+          }}
+          title={'Send'}
+          // isDisable={disabled}
+          onClick={() =>
+            navigate('/home/send-inscription', {
+              state: {inscriptions: inscriptions},
+            })
+          }
+        />
+      </UX.Box>
       {/* </footer> */}
     </UX.Box>
   );

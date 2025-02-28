@@ -10,9 +10,9 @@ import {useNavigate} from 'react-router-dom';
 export function DmtInscriptionListChildren() {
   const navigate = useNavigate();
   const walletProvider = useWalletProvider();
-
+  const [loading, setLoading] = useState(false);
   const [allInscriptions, setAllInscriptions] = useState<Inscription[]>([]);
-  const [dmtInscription, setDmtInscripitons] = useState<Inscription[]>([]);
+  const [dmtInscription, setDmtInscriptions] = useState<Inscription[]>([]);
 
   //! State
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -30,22 +30,33 @@ export function DmtInscriptionListChildren() {
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await walletProvider.getAllAddressDmtMintList(
-        activeAccount.address,
-      );
-      const dmtMintsMap = data.reduce((acc, item) => {
-        acc[item] = true;
-        return acc;
-      }, {});
-      setDmtInscripitons(
-        allInscriptions.filter(ins => dmtMintsMap[ins.inscriptionId]),
-      );
+      try {
+        setLoading(true);
+        const data = await walletProvider.getAllAddressDmtMintList(
+          activeAccount.address,
+        );
+        const dmtMintsMap = data.reduce((acc, item) => {
+          acc[item] = true;
+          return acc;
+        }, {});
+        setDmtInscriptions(
+          allInscriptions.filter(ins => dmtMintsMap[ins.inscriptionId]),
+        );
+      } catch (error) {
+        console.log({error});
+      } finally {
+        setLoading(false);
+      }
       //   setAllInscriptions(data);
     };
     fetch();
   }, [allInscriptions, activeAccount.address]);
 
   //! Render
+  if (loading) {
+    return <UX.Loading />;
+  }
+
   if (isEmpty(allInscriptions)) {
     return <UX.Empty />;
   }
@@ -53,8 +64,9 @@ export function DmtInscriptionListChildren() {
   return (
     <UX.Box spacing="xl" style={{marginTop: 16}}>
       <UX.Box layout="grid_column_2" spacing="sm" style={{flexWrap: 'wrap'}}>
-        {dmtInscription.map(data => (
+        {dmtInscription.map((data: Inscription) => (
           <UX.InscriptionPreview
+            isCollectibles
             key={data.inscriptionId}
             data={data}
             preset="medium"
@@ -62,6 +74,7 @@ export function DmtInscriptionListChildren() {
               navigate('/home/inscription-detail', {
                 state: {
                   inscriptionId: data?.inscriptionId,
+                  isCollectibles: true,
                 },
               })
             }

@@ -1,10 +1,12 @@
-import {UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
-import {CSSProperties} from 'react';
+import Button from '@/src/ui/component/button-custom';
+import {Network, UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
+import {CSSProperties, useMemo} from 'react';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {colors} from '../../themes/color';
+import {useAppSelector} from '../../utils';
 import Box from '../box-custom';
 import Iframe from '../iframe-custom';
 import Text from '../text-custom';
-import Button from '@/src/ui/component/button-custom';
 
 const $viewPresets = {
   large: {},
@@ -71,6 +73,9 @@ export interface InscriptionProps {
   asLogo?: boolean;
   styleAslogo?: CSSProperties;
   isSpendable?: boolean;
+  isCollectibles?: boolean;
+  changeInscription?: boolean;
+  handleChangeInscription?: () => void;
 }
 
 export default function InscriptionPreview({
@@ -80,15 +85,94 @@ export default function InscriptionPreview({
   asLogo,
   styleAslogo,
   isSpendable,
+  isCollectibles,
+  changeInscription,
+  handleChangeInscription,
 }: InscriptionProps) {
+  //! State
+  // const wallet = useWalletProvider();
+  const network = useAppSelector(GlobalSelector.networkType);
+  // const [contentInscription, setContentInscription] = useState<string>('');
   const url = '';
+  const contentInscription =
+    '8ef9ec0dd726f9b4db89370fd9f1d9b17fc490ad39c39c74cb61d549efe90382i0';
   let preview = data?.preview;
   const isUnconfirmed = data?.utxoHeight === UNCONFIRMED_HEIGHT;
   const numberStr = isUnconfirmed
     ? 'unconfirmed'
     : `# ${data?.inscriptionNumber}`;
+
   if (!preview) {
     preview = url + '/preview/' + data?.inscriptionId;
+  }
+  const renderDmtLink = useMemo(() => {
+    let link = 'http://157.230.45.91:8080/v1/render-dmt';
+    if (network === Network.MAINNET) {
+      link = 'https://inscriber.trac.network/v1/render-dmt';
+    }
+    return link;
+  }, [network]);
+
+  //! Effect function
+  if (isCollectibles) {
+    if (asLogo) {
+      if (changeInscription) {
+        return (
+          <Box onClick={handleChangeInscription}>
+            <Iframe
+              preview={preview}
+              style={{...$iframePresets[preset], ...styleAslogo}}
+            />
+          </Box>
+        );
+      }
+      return (
+        <Box onClick={handleChangeInscription}>
+          <iframe
+            key={data?.inscriptionId}
+            style={{
+              ...$iframePresets[preset],
+              ...styleAslogo,
+              pointerEvents: 'none',
+            }}
+            sandbox="allow-scripts allow-same-origin allow-top-navigation"
+            src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}`}
+          />
+        </Box>
+      );
+    }
+    return (
+      <Box
+        onClick={onClick}
+        style={{
+          ...$containerPresets[preset],
+          borderRadius: 10,
+          overflow: 'hidden',
+          position: 'relative',
+        }}>
+        <iframe
+          key={data?.inscriptionId}
+          style={{
+            ...$iframePresets[preset],
+            ...styleAslogo,
+            pointerEvents: 'none',
+          }}
+          sandbox="allow-scripts allow-same-origin allow-top-navigation"
+          src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}`}></iframe>
+        <Box style={{padding: '12px 10px', background: '#272727'}}>
+          <Text
+            title={`${numberStr}`}
+            styleType="body_16_bold"
+            customStyles={{color: 'white'}}
+          />
+          <Text
+            title={`${data.outputValue} SATs`}
+            styleType="body_16_bold"
+            customStyles={{color: colors.main_500}}
+          />
+        </Box>
+      </Box>
+    );
   }
   if (asLogo) {
     return (

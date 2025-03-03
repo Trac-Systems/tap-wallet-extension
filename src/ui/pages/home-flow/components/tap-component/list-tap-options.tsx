@@ -6,7 +6,7 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import CoinCount from '../coin-count';
 import {useEffect, useMemo, useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {useAppSelector} from '@/src/ui/utils';
+import {getRenderDmtLink, useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {
   AddressTokenSummary,
@@ -18,6 +18,7 @@ import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -30,6 +31,7 @@ const ListTapOptions = () => {
 
   //! State
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const network = useAppSelector(GlobalSelector.networkType);
   const [deployInscriptionState, setDeployInscription] =
@@ -96,21 +98,28 @@ const ListTapOptions = () => {
   useEffect(() => {
     const fetchContent = async () => {
       if (tokenSummary.tokenInfo?.dmt) {
-        const _content = await wallet.getDmtContentId(
+        const contentInsId = await wallet.getDmtContentId(
           tokenSummary.tokenInfo.inscriptionId,
         );
-        setContentInscription(_content);
+
+        setContentInscription(contentInsId);
       }
     };
     fetchContent();
   }, [tokenSummary.tokenInfo.inscriptionId, tokenSummary.tokenInfo?.dmt]);
 
-  const renderDmtLink = useMemo(() => {
-    let link = 'http://157.230.45.91:8080/v1/render-dmt';
-    if (network === Network.MAINNET) {
-      link = 'https://inscriber.trac.network/v1/render-dmt';
+  useEffect(() => {
+    if (contentInscription) {
+      const dmtColMapsByTicker = mintList.reduce((acc, item) => {
+        acc[item?.ins] = {contentInscriptionId: contentInscription};
+        return acc;
+      }, {});
+      dispatch(AccountActions.setManyDmtCollectiblesMap(dmtColMapsByTicker));
     }
-    return link;
+  }, [mintList, contentInscription]);
+
+  const renderDmtLink = useMemo(() => {
+    return getRenderDmtLink(network);
   }, [network]);
 
   useEffect(() => {

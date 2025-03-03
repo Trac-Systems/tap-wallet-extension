@@ -1,7 +1,7 @@
 import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {useAppSelector} from '@/src/ui/utils';
+import {getRenderDmtLink, useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AddressTokenSummary, Network} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
@@ -9,6 +9,10 @@ import {colors} from '@/src/ui/themes/color';
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {
+  AccountActions,
+  DmtCollectible,
+} from '@/src/ui/redux/reducer/account/slice';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -21,25 +25,22 @@ interface TapBalanceItemProps {
 const TapBalanceItem = (props: TapBalanceItemProps) => {
   const wallet = useWalletProvider();
   const network = useAppSelector(GlobalSelector.networkType);
+  const dispatch = useAppDispatch();
   const {ticker, overallBalance, handleNavigate, tagColor, tokenInfo} = props;
   const [contentInscription, setContentInscription] = useState<string>('');
 
   useEffect(() => {
     const fetchContent = async () => {
       if (tokenInfo?.dmt) {
-        const _content = await wallet.getDmtContentId(tokenInfo?.ins);
-        setContentInscription(_content);
+        const contentInsId = await wallet.getDmtContentId(tokenInfo?.ins);
+        setContentInscription(contentInsId);
       }
     };
     fetchContent();
   }, [tokenInfo]);
 
   const renderDmtLink = useMemo(() => {
-    let link = 'http://157.230.45.91:8080/v1/render-dmt';
-    if (network === Network.MAINNET) {
-      link = '';
-    }
-    return link;
+    return getRenderDmtLink(network);
   }, [network]);
 
   //! Ref
@@ -77,6 +78,19 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
     };
     fetchMintList();
   }, [activeAccount.address]);
+
+  useEffect(() => {
+    if (contentInscription) {
+      const dmtColMapsByTicker = mintList.reduce(
+        (acc: {[key: string]: DmtCollectible}, item) => {
+          acc[item?.ins] = {contentInscriptionId: contentInscription};
+          return acc;
+        },
+        {},
+      );
+      dispatch(AccountActions.setManyDmtCollectiblesMap(dmtColMapsByTicker));
+    }
+  }, [mintList, contentInscription]);
 
   const transferableBalanceSafe = useMemo(() => {
     return (

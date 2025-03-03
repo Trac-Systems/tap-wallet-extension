@@ -8,6 +8,11 @@ import {
 } from '@/src/wallet-instance';
 import {createSlice} from '@reduxjs/toolkit';
 
+export interface DmtCollectible {
+  contentInscriptionId?: string;
+  block?: number;
+}
+
 export interface AccountsState {
   accounts: IDisplayAccount[];
   activeAccount: IDisplayAccount;
@@ -37,6 +42,9 @@ export interface AccountsState {
   addressSummary: AddressSummary;
   isReloadAccount: boolean;
   runeUtxos?: UnspentOutput[];
+  dmtCollectibleMap?: {
+    [key: string]: DmtCollectible;
+  };
 }
 
 const initialAccount = {
@@ -72,6 +80,7 @@ export const initialState: AccountsState = {
   },
   isReloadAccount: false,
   runeUtxos: [],
+  dmtCollectibleMap: {},
 };
 
 const AccountSlice = createSlice({
@@ -218,6 +227,20 @@ const AccountSlice = createSlice({
         ...state,
         runeUtxos: payload,
       };
+    },
+    setDmtCollectibleMap(
+      state: AccountsState,
+      action: {payload: {inscriptionId: string; data: DmtCollectible}},
+    ) {
+      const {payload} = action;
+      state.dmtCollectibleMap[payload.inscriptionId] = payload.data;
+    },
+    setManyDmtCollectiblesMap(
+      state: AccountsState,
+      action: {payload: {[key: string]: DmtCollectible}},
+    ) {
+      const {payload} = action;
+      state.dmtCollectibleMap = {...state.dmtCollectibleMap, ...payload};
     },
   },
 });

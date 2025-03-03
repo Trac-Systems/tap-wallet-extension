@@ -1,12 +1,13 @@
 import Button from '@/src/ui/component/button-custom';
-import {Network, UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
-import {CSSProperties, useMemo} from 'react';
+import {UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
+import {CSSProperties, useEffect, useMemo, useState} from 'react';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {colors} from '../../themes/color';
-import {useAppSelector} from '../../utils';
+import {getRenderDmtLink, useAppSelector} from '../../utils';
 import Box from '../box-custom';
 import Iframe from '../iframe-custom';
 import Text from '../text-custom';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 
 const $viewPresets = {
   large: {},
@@ -92,10 +93,10 @@ export default function InscriptionPreview({
   //! State
   // const wallet = useWalletProvider();
   const network = useAppSelector(GlobalSelector.networkType);
-  // const [contentInscription, setContentInscription] = useState<string>('');
+  const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
+  const [contentInscription, setContentInscription] = useState<string>('');
   const url = '';
-  const contentInscription =
-    '8ef9ec0dd726f9b4db89370fd9f1d9b17fc490ad39c39c74cb61d549efe90382i0';
+
   let preview = data?.preview;
   const isUnconfirmed = data?.utxoHeight === UNCONFIRMED_HEIGHT;
   const numberStr = isUnconfirmed
@@ -106,15 +107,26 @@ export default function InscriptionPreview({
     preview = url + '/preview/' + data?.inscriptionId;
   }
   const renderDmtLink = useMemo(() => {
-    let link = 'http://157.230.45.91:8080/v1/render-dmt';
-    if (network === Network.MAINNET) {
-      link = 'https://inscriber.trac.network/v1/render-dmt';
-    }
-    return link;
+    return getRenderDmtLink(network);
   }, [network]);
 
+  useEffect(() => {
+    const fetchContent = async () => {
+      console.log(
+        '🚀 ~ fetchContent ~ data?.inscriptionId:',
+        data?.inscriptionId,
+      );
+      console.log('🚀 ~ fetchContent ~ dmtCollectibleMap:', dmtCollectibleMap);
+      const contentInsId = dmtCollectibleMap[data?.inscriptionId];
+      if (contentInsId) {
+        setContentInscription(contentInsId?.contentInscriptionId);
+      }
+    };
+    fetchContent();
+  }, [dmtCollectibleMap, data?.inscriptionId]);
+
   //! Effect function
-  if (isCollectibles) {
+  if (contentInscription) {
     if (asLogo) {
       if (changeInscription) {
         return (

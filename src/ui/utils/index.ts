@@ -6,7 +6,7 @@ import {networkConfig} from '@/src/background/service/singleton';
 import {bitcoin} from '../../background/utils';
 
 export const PAGE_SIZE = 100;
-export const TOKEN_PAGE_SIZE = 20
+export const TOKEN_PAGE_SIZE = 20;
 
 export enum AmountInput {
   FEE_RATE,
@@ -211,4 +211,12 @@ export const getIsExtensionInTab = async () => {
   const browser = getBrowser();
   const data = await browser.tabs.getCurrent();
   return Boolean(data);
+};
+
+export const getRenderDmtLink = (network: Network) => {
+  let link = 'http://157.230.45.91:8081/render-dmt';
+  if (network === Network.MAINNET) {
+    link = 'https://inscriber.trac.network/v1/render-dmt';
+  }
+  return link;
 };

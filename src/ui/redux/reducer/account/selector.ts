@@ -9,4 +9,5 @@ export const AccountSelector = {
     state.accountReducer.inscriptionSummary,
   isReloadAccount: (state: AppState) => state.accountReducer.isReloadAccount,
   runeUtxos: (state: AppState) => state.accountReducer.runeUtxos,
+  dmtCollectibleMap: (state: AppState) => state.accountReducer.dmtCollectibleMap,
 };

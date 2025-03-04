@@ -937,6 +937,10 @@ export class Provider {
     return this.paidApi.getInscriptionInfo(inscriptionId);
   };
 
+  getInscriptionContent = async (inscriptionId: string) => {
+    return this.paidApi.getInscriptionContent(inscriptionId);
+  };
+
   getAllInscriptions = async (address: string) => {
     return this.paidApi.getAllInscriptions(address);
   };

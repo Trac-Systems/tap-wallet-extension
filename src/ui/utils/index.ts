@@ -216,7 +216,7 @@ export const getIsExtensionInTab = async () => {
 export const getRenderDmtLink = (network: Network) => {
   let link = 'http://157.230.45.91:8081/render-dmt';
   if (network === Network.MAINNET) {
-    link = 'https://inscriber.trac.network/v1/render-dmt';
+    link = 'http://inscriber.trac.network:8081/render-dmt';
   }
   return link;
 };

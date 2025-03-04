@@ -33,6 +33,7 @@ const ListTapOptions = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
   const network = useAppSelector(GlobalSelector.networkType);
   const [deployInscriptionState, setDeployInscription] =
     useState<Inscription>();
@@ -111,6 +112,9 @@ const ListTapOptions = () => {
   useEffect(() => {
     if (contentInscription) {
       const dmtColMapsByTicker = mintList.reduce((acc, item) => {
+        if (dmtCollectibleMap[item?.ins]) {
+          return;
+        }
         acc[item?.ins] = {contentInscriptionId: contentInscription};
         return acc;
       }, {});
@@ -344,7 +348,7 @@ const ListTapOptions = () => {
                         height="80px"
                         style={{pointerEvents: 'none'}}
                         sandbox="allow-scripts allow-same-origin allow-top-navigation"
-                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}`}></iframe>
+                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}&block=${dmtCollectibleMap[item?.ins].block}`}></iframe>
                       <UX.Text
                         title={`#${item.num}`}
                         styleType="body_14_normal"

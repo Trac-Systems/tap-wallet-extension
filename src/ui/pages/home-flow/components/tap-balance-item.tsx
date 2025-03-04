@@ -3,7 +3,7 @@ import {SVG} from '@/src/ui/svg';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {getRenderDmtLink, useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {AddressTokenSummary, Network} from '@/src/wallet-instance';
+import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {colors} from '@/src/ui/themes/color';
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
@@ -25,6 +25,8 @@ interface TapBalanceItemProps {
 const TapBalanceItem = (props: TapBalanceItemProps) => {
   const wallet = useWalletProvider();
   const network = useAppSelector(GlobalSelector.networkType);
+  const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
+
   const dispatch = useAppDispatch();
   const {ticker, overallBalance, handleNavigate, tagColor, tokenInfo} = props;
   const [contentInscription, setContentInscription] = useState<string>('');
@@ -83,6 +85,9 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
     if (contentInscription) {
       const dmtColMapsByTicker = mintList.reduce(
         (acc: {[key: string]: DmtCollectible}, item) => {
+          if (dmtCollectibleMap[item?.ins]) {
+            return;
+          }
           acc[item?.ins] = {contentInscriptionId: contentInscription};
           return acc;
         },
@@ -356,7 +361,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                         width="80px"
                         height="80px"
                         sandbox="allow-scripts allow-same-origin"
-                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item?.ins}`}></iframe>
+                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item?.ins}&block=${dmtCollectibleMap[item?.ins].block}`}></iframe>
                     </div>
                   );
                 })}

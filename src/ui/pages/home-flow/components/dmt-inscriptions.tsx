@@ -13,6 +13,7 @@ export function DmtInscriptionListChildren() {
   const [loading, setLoading] = useState(false);
   const [allInscriptions, setAllInscriptions] = useState<Inscription[]>([]);
   const [dmtInscription, setDmtInscriptions] = useState<Inscription[]>([]);
+  const [dmtMintMap, setDmtMintMap] = useState<{[key:string]:boolean}>({});
 
   //! State
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -35,19 +36,19 @@ export function DmtInscriptionListChildren() {
         const data = await walletProvider.getAllAddressDmtMintList(
           activeAccount.address,
         );
-        const dmtMintsMap = data.reduce((acc, item) => {
+        const _dmtMintsMap = data.reduce((acc, item) => {
           acc[item] = true;
           return acc;
         }, {});
         setDmtInscriptions(
-          allInscriptions.filter(ins => dmtMintsMap[ins.inscriptionId]),
+          allInscriptions.filter(ins => _dmtMintsMap[ins.inscriptionId]),
         );
+        setDmtMintMap(_dmtMintsMap)
       } catch (error) {
         console.log({error});
       } finally {
         setLoading(false);
       }
-      //   setAllInscriptions(data);
     };
     fetch();
   }, [allInscriptions, activeAccount.address]);
@@ -74,7 +75,7 @@ export function DmtInscriptionListChildren() {
               navigate('/home/inscription-detail', {
                 state: {
                   inscriptionId: data?.inscriptionId,
-                  isCollectibles: true,
+                  isCollectibles: Boolean(dmtMintMap[data?.inscriptionId]),
                 },
               })
             }

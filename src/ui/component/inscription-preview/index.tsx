@@ -86,7 +86,6 @@ export default function InscriptionPreview({
   asLogo,
   styleAslogo,
   isSpendable,
-  isCollectibles,
   changeInscription,
   handleChangeInscription,
 }: InscriptionProps) {
@@ -112,11 +111,6 @@ export default function InscriptionPreview({
 
   useEffect(() => {
     const fetchContent = async () => {
-      console.log(
-        '🚀 ~ fetchContent ~ data?.inscriptionId:',
-        data?.inscriptionId,
-      );
-      console.log('🚀 ~ fetchContent ~ dmtCollectibleMap:', dmtCollectibleMap);
       const contentInsId = dmtCollectibleMap[data?.inscriptionId];
       if (contentInsId) {
         setContentInscription(contentInsId?.contentInscriptionId);
@@ -148,7 +142,7 @@ export default function InscriptionPreview({
               pointerEvents: 'none',
             }}
             sandbox="allow-scripts allow-same-origin allow-top-navigation"
-            src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}`}
+            src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}&block=${dmtCollectibleMap[data?.inscriptionId].block}`}
           />
         </Box>
       );
@@ -170,7 +164,7 @@ export default function InscriptionPreview({
             pointerEvents: 'none',
           }}
           sandbox="allow-scripts allow-same-origin allow-top-navigation"
-          src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}`}></iframe>
+          src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}&block=${dmtCollectibleMap[data?.inscriptionId].block}`}></iframe>
         <Box style={{padding: '12px 10px', background: '#272727'}}>
           <Text
             title={`${numberStr}`}

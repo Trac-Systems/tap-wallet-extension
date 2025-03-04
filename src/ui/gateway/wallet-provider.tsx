@@ -108,6 +108,7 @@ export interface IWalletProvider {
     list: Inscription[];
   }>;
   getInscriptionInfo(inscriptionId: string): Promise<Inscription[]>;
+  getInscriptionContent(inscriptionId: string): Promise<any>;
   getAllInscriptions(address: string): Promise<Inscription[]>;
   sendBTC({
     to,

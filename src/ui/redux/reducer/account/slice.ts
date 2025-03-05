@@ -242,6 +242,9 @@ const AccountSlice = createSlice({
       const {payload} = action;
       state.dmtCollectibleMap = {...state.dmtCollectibleMap, ...payload};
     },
+    resetDmtCollectibleMap(state: AccountsState,){
+      state.dmtCollectibleMap ={}
+    }
   },
 });
 

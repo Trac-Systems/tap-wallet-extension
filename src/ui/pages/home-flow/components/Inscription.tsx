@@ -39,12 +39,11 @@ const InscriptionList = (props: IProps) => {
         const _dmtDeployMap = {};
 
         // group dmt mint same deployment
-        data.forEach(async (insId: string) => {
+        for (const insId of data) {
           if (!dmtCollectibleMap[insId]) {
             // get inscription content
             const insContent =
               await walletProvider.getInscriptionContent(insId);
-
             if (insContent?.dep) {
               const dmtMintRenderData = {
                 mintInsId: insId,
@@ -55,9 +54,8 @@ const InscriptionList = (props: IProps) => {
                 : [dmtMintRenderData];
             }
           }
-        });
+        }
         setDmtDeployMap(_dmtDeployMap);
-        // setDmtMintMap(_dmtMintsMap);
       } catch (error) {
         console.log({error});
       } finally {

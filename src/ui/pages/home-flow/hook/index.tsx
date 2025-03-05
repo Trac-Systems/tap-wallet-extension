@@ -74,6 +74,7 @@ export function useReloadAccounts() {
     dispatch(AccountActions.setRuneUtxos(runeUtxos));
 
     dispatch(AccountActions.resetDmtCollectibleMap());
+    dispatch(AccountActions.resetDmtGroupMap());
   }, [dispatch, wallet]);
 }
 

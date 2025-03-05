@@ -42,8 +42,19 @@ export interface AccountsState {
   addressSummary: AddressSummary;
   isReloadAccount: boolean;
   runeUtxos?: UnspentOutput[];
+
+  // map of dmt
+  // key: dmt inscription id
+  // val: information of specific dmt
   dmtCollectibleMap?: {
     [key: string]: DmtCollectible;
+  };
+
+  // map of group dmt collectible
+  // key: deployment inscription id
+  // val: array of dmt inscriptions same collectible
+  dmtGroupMap?: {
+    [key: string]: string[];
   };
 }
 
@@ -81,6 +92,7 @@ export const initialState: AccountsState = {
   isReloadAccount: false,
   runeUtxos: [],
   dmtCollectibleMap: {},
+  dmtGroupMap: {},
 };
 
 const AccountSlice = createSlice({
@@ -242,9 +254,20 @@ const AccountSlice = createSlice({
       const {payload} = action;
       state.dmtCollectibleMap = {...state.dmtCollectibleMap, ...payload};
     },
-    resetDmtCollectibleMap(state: AccountsState,){
-      state.dmtCollectibleMap ={}
-    }
+    resetDmtCollectibleMap(state: AccountsState) {
+      state.dmtCollectibleMap = {};
+    },
+
+    setDmtGroupMap(
+      state: AccountsState,
+      action: {payload: {[key: string]: string[]}},
+    ) {
+      const {payload} = action;
+      state.dmtGroupMap = {...state.dmtGroupMap, ...payload};
+    },
+    resetDmtGroupMap(state: AccountsState) {
+      state.dmtGroupMap = {};
+    },
   },
 });
 

@@ -10,4 +10,5 @@ export const AccountSelector = {
   isReloadAccount: (state: AppState) => state.accountReducer.isReloadAccount,
   runeUtxos: (state: AppState) => state.accountReducer.runeUtxos,
   dmtCollectibleMap: (state: AppState) => state.accountReducer.dmtCollectibleMap,
+  dmtGroupMap: (state: AppState) => state.accountReducer.dmtGroupMap,
 };

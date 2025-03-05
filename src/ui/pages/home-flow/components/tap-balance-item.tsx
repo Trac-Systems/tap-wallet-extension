@@ -1,7 +1,7 @@
 import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {getRenderDmtLink, useAppDispatch, useAppSelector} from '@/src/ui/utils';
+import {getRenderDmtLink, useAppSelector} from '@/src/ui/utils';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
@@ -9,10 +9,6 @@ import {colors} from '@/src/ui/themes/color';
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {
-  AccountActions,
-  DmtCollectible,
-} from '@/src/ui/redux/reducer/account/slice';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -27,19 +23,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
 
-  const dispatch = useAppDispatch();
   const {ticker, overallBalance, handleNavigate, tagColor, tokenInfo} = props;
-  const [contentInscription, setContentInscription] = useState<string>('');
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      if (tokenInfo?.dmt) {
-        const contentInsId = await wallet.getDmtContentId(tokenInfo?.ins);
-        setContentInscription(contentInsId);
-      }
-    };
-    fetchContent();
-  }, [tokenInfo]);
 
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
@@ -49,9 +33,14 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [isExpandView, setExpandView] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
   const [mintList, setMintList] = useState([]);
+
+  useEffect(() => {
+    setMintList(dmtGroupMap[tokenInfo?.ins]);
+  }, [tokenInfo, dmtGroupMap]);
 
   useEffect(() => {
     try {
@@ -67,35 +56,6 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
       }, 1000);
     }
   }, []);
-
-  useEffect(() => {
-    const fetchMintList = async () => {
-      if (tokenInfo?.dmt) {
-        const list = await wallet.getAccountAllMintsListByTicker(
-          activeAccount.address,
-          ticker,
-        );
-        setMintList(list);
-      }
-    };
-    fetchMintList();
-  }, [activeAccount.address]);
-
-  useEffect(() => {
-    if (contentInscription) {
-      const dmtColMapsByTicker = mintList.reduce(
-        (acc: {[key: string]: DmtCollectible}, item) => {
-          if (dmtCollectibleMap[item?.ins]) {
-            return;
-          }
-          acc[item?.ins] = {contentInscriptionId: contentInscription};
-          return acc;
-        },
-        {},
-      );
-      dispatch(AccountActions.setManyDmtCollectiblesMap(dmtColMapsByTicker));
-    }
-  }, [mintList, contentInscription]);
 
   const transferableBalanceSafe = useMemo(() => {
     return (
@@ -361,7 +321,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                         width="80px"
                         height="80px"
                         sandbox="allow-scripts allow-same-origin"
-                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item?.ins}&block=${dmtCollectibleMap[item?.ins].block}`}></iframe>
+                        src={`${renderDmtLink}?contentInscriptionId=${dmtCollectibleMap[item].contentInscriptionId}&dmtInscriptionId=${item}&block=${dmtCollectibleMap[item].block}`}></iframe>
                     </div>
                   );
                 })}

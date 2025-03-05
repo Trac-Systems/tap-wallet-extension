@@ -11,7 +11,6 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {
   AddressTokenSummary,
   Inscription,
-  Network,
   TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
@@ -100,7 +99,7 @@ const ListTapOptions = () => {
     const fetchContent = async () => {
       if (tokenSummary.tokenInfo?.dmt) {
         const contentInsId = await wallet.getDmtContentId(
-          tokenSummary.tokenInfo.inscriptionId,
+          tokenSummary?.tokenInfo?.inscriptionId,
         );
 
         setContentInscription(contentInsId);

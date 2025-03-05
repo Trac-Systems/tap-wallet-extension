@@ -99,7 +99,7 @@ export const convertTapTokenTransferList = (
   decimal: number,
 ): TokenTransfer[] => {
   const result: TokenTransfer[] = [];
-  data.forEach(v => {
+  data?.forEach(v => {
     const transfer: TokenTransfer = {
       ticker: '',
       amount: calculateAmount(v.amt, decimal),

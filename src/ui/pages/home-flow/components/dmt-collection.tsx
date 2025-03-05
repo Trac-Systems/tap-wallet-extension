@@ -15,8 +15,8 @@ import {
   generateUniqueColors,
 } from '@/src/ui/utils';
 import {TokenBalance} from '@/src/wallet-instance';
-import {isEmpty, debounce} from 'lodash';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {isEmpty} from 'lodash';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 
 const DmtCollection = () => {
@@ -27,13 +27,15 @@ const DmtCollection = () => {
   //! State
   const accountBalance = useAccountBalance();
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
+  const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const [loading, setLoading] = useState(false);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const [tapItem, setTapItem] = useState<TokenBalance[]>([]);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
+  // const prevTapItemRef = useRef(tapItemTemp);
+
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,
@@ -87,7 +89,59 @@ const DmtCollection = () => {
   }, [pagination.currentPage, activeAccount.address]);
 
   useEffect(() => {
-    setTapItem(tapList.filter(v => v.tokenInfo?.dmt));
+    // setTapItem(tapList.filter(v => v.tokenInfo?.dmt));
+    const dmtTokenList = tapList.filter(v => v.tokenInfo?.dmt);
+    const addMissingDmtToken = async () => {
+      const dmtTokenMissingMap = Object.fromEntries(
+        Object.keys(dmtGroupMap).map(key => [key, true]),
+      );
+
+      for (const token of dmtTokenList) {
+        if (dmtTokenMissingMap[token.tokenInfo?.ins]) {
+          delete dmtTokenMissingMap[token.tokenInfo?.ins];
+        }
+      }
+
+      const _allTokenInfo = [...dmtTokenList];
+
+      // Add missing token DMT
+      for (const depInsId in dmtTokenMissingMap) {
+        const data = await wallet.getInscriptionContent(depInsId);
+        const tokenBalance: TokenBalance = {
+          availableBalance: '',
+          overallBalance: '',
+          ticker: `dmt-${data?.tick}`,
+          transferableBalance: '',
+          availableBalanceSafe: '',
+          availableBalanceUnSafe: '',
+          tokenInfo: {
+            tick: `dmt-${data?.tick}`,
+            max: '',
+            lim: '',
+            dec: 0,
+            blck: 0,
+            tx: '',
+            vo: 0,
+            ins: depInsId,
+            num: 0,
+            ts: 0,
+            addr: '',
+            crsd: false,
+            dmt: true,
+            elem: undefined,
+            prj: undefined,
+            dim: undefined,
+            dt: undefined,
+            prv: '',
+          },
+        };
+        _allTokenInfo.push(tokenBalance);
+      }
+      setTapItem(_allTokenInfo);
+      // prevTapItemRef.current = tapItemTemp; // Update reference
+    };
+
+    addMissingDmtToken();
   }, [tapList.length]);
 
   //! Render
@@ -100,29 +154,6 @@ const DmtCollection = () => {
   }
   return (
     <UX.Box spacing="xl" style={{marginTop: '16px'}}>
-      <UX.Box layout="box">
-        <UX.Box layout="row_between" style={{width: '100%'}}>
-          <UX.Box
-            layout="row"
-            style={{
-              justifyItems: 'center',
-              alignItems: 'center',
-            }}>
-            <SVG.BitcoinIcon width={32} height={32} />
-            <UX.Text
-              title={'BTC'}
-              styleType="body_16_normal"
-              customStyles={{color: 'white', marginLeft: '8px'}}
-            />
-          </UX.Box>
-
-          <UX.Text
-            title={`${balanceValue}`}
-            styleType="body_16_normal"
-            customStyles={{color: 'white'}}
-          />
-        </UX.Box>
-      </UX.Box>
       {tapItem.map((tokenBalance: TokenBalance, index: number) => {
         const indexCheck = index < 20 ? index : index % 20;
         const tagColor = listRandomColor[indexCheck];

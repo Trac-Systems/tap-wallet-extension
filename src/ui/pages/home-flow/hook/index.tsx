@@ -72,6 +72,8 @@ export function useReloadAccounts() {
 
     const runeUtxos = await wallet.getAllRuneUtxos(activeAccount.address);
     dispatch(AccountActions.setRuneUtxos(runeUtxos));
+
+    dispatch(AccountActions.resetDmtCollectibleMap());
   }, [dispatch, wallet]);
 }
 

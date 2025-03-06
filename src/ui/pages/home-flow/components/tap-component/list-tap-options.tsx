@@ -17,6 +17,7 @@ import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {TickerDMT} from '@/src/ui/component/ticker-dmt';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -318,22 +319,7 @@ const ListTapOptions = () => {
                         })
                       }
                       layout="column">
-                      <UX.Text
-                        styleType="body_12_normal"
-                        title="DMT"
-                        customStyles={{
-                          background: colors.green_500,
-                          color: colors.white,
-                          borderRadius: '24px',
-                          width: 'fit-content',
-                          height: 'auto',
-                          lineHeight: 'normal',
-                          padding: '2px 8px',
-                          position: 'absolute',
-                          top: 5,
-                          left: 5,
-                        }}
-                      />
+                      <TickerDMT top={5} left={5} />
                       <iframe
                         key={item.ins}
                         width="80px"

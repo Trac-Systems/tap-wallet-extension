@@ -310,9 +310,9 @@ const ListTapOptions = () => {
                       style={{position: 'relative'}}
                       onClick={() =>
                         tapPreviewItemOnPress({
-                          amount: item.amt,
+                          amount: item,
                           inscriptionId: item,
-                          inscriptionNumber: item.num,
+                          inscriptionNumber: item?.num,
                           ticker: '',
                           timestamp: item.ts,
                         })

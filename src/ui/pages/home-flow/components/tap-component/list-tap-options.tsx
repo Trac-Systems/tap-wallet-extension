@@ -331,6 +331,7 @@ const ListTapOptions = () => {
                   return (
                     <UX.Box
                       key={item.ins}
+                      style={{position: 'relative'}}
                       onClick={() =>
                         tapPreviewItemOnPress({
                           amount: item.amt,
@@ -341,6 +342,22 @@ const ListTapOptions = () => {
                         })
                       }
                       layout="column">
+                      <UX.Text
+                        styleType="body_12_normal"
+                        title="DMT"
+                        customStyles={{
+                          background: colors.green_500,
+                          color: colors.white,
+                          borderRadius: '24px',
+                          width: 'fit-content',
+                          height: 'auto',
+                          lineHeight: 'normal',
+                          padding: '2px 8px',
+                          position: 'absolute',
+                          top: 5,
+                          left: 5,
+                        }}
+                      />
                       <iframe
                         key={item.ins}
                         width="80px"

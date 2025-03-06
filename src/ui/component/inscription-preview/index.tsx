@@ -1,4 +1,4 @@
-import Button from '@/src/ui/component/button-custom';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {UNCONFIRMED_HEIGHT} from '@/src/wallet-instance';
 import {CSSProperties, useEffect, useMemo, useState} from 'react';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
@@ -7,7 +7,7 @@ import {getRenderDmtLink, useAppSelector} from '../../utils';
 import Box from '../box-custom';
 import Iframe from '../iframe-custom';
 import Text from '../text-custom';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {TickerDMT, TickerSpendable} from '../ticker-dmt';
 
 const $viewPresets = {
   large: {},
@@ -90,7 +90,6 @@ export default function InscriptionPreview({
   handleChangeInscription,
 }: InscriptionProps) {
   //! State
-  // const wallet = useWalletProvider();
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
   const [contentInscription, setContentInscription] = useState<string>('');
@@ -124,7 +123,7 @@ export default function InscriptionPreview({
     if (asLogo) {
       if (changeInscription) {
         return (
-          <Box onClick={handleChangeInscription}>
+          <Box onClick={handleChangeInscription} style={{position: 'relative'}}>
             <Iframe
               preview={preview}
               style={{...$iframePresets[preset], ...styleAslogo}}
@@ -133,7 +132,8 @@ export default function InscriptionPreview({
         );
       }
       return (
-        <Box onClick={handleChangeInscription}>
+        <Box onClick={handleChangeInscription} style={{position: 'relative'}}>
+          <TickerDMT top={25} left={75} />
           <iframe
             key={data?.inscriptionId}
             style={{
@@ -156,40 +156,8 @@ export default function InscriptionPreview({
           overflow: 'hidden',
           position: 'relative',
         }}>
-        {isSpendable && (
-          <Button
-            title="Spendable"
-            styleType="primary"
-            customStyles={{
-              width: 'fit-content',
-              height: 'auto',
-              lineHeight: 'normal',
-              padding: '5px 10px',
-              fontSize: '14px',
-              position: 'absolute',
-              top: 11,
-              left: 11,
-            }}
-          />
-        )}
-        {contentInscription && (
-          <Text
-            styleType="body_12_normal"
-            title="DMT"
-            customStyles={{
-              background: colors.green_500,
-              color: colors.white,
-              borderRadius: '24px',
-              width: 'fit-content',
-              height: 'auto',
-              lineHeight: 'normal',
-              padding: '2px 8px',
-              position: 'absolute',
-              top: isSpendable ? 55 : 11,
-              left: 11,
-            }}
-          />
-        )}
+        {isSpendable && <TickerSpendable />}
+        {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
         <iframe
           key={data?.inscriptionId}
           style={{
@@ -231,40 +199,8 @@ export default function InscriptionPreview({
         overflow: 'hidden',
         position: 'relative',
       }}>
-      {isSpendable && (
-        <Button
-          title="Spendable"
-          styleType="primary"
-          customStyles={{
-            width: 'fit-content',
-            height: 'auto',
-            lineHeight: 'normal',
-            padding: '5px 10px',
-            fontSize: '14px',
-            position: 'absolute',
-            top: 11,
-            left: 11,
-          }}
-        />
-      )}
-      {contentInscription && (
-        <Text
-          styleType="body_12_normal"
-          title="DMT"
-          customStyles={{
-            background: colors.green_500,
-            color: colors.white,
-            borderRadius: '24px',
-            width: 'fit-content',
-            height: 'auto',
-            lineHeight: 'normal',
-            padding: '2px 8px',
-            position: 'absolute',
-            top: isSpendable ? 55 : 11,
-            left: 11,
-          }}
-        />
-      )}
+      {isSpendable && <TickerSpendable />}
+      {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
       <Iframe preview={preview} style={$iframePresets[preset]} />
       <Box style={{padding: '12px 10px', background: '#272727'}}>
         <Text

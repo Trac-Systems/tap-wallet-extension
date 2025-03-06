@@ -6,7 +6,7 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import CoinCount from '../coin-count';
 import {useEffect, useMemo, useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {getRenderDmtLink, useAppDispatch, useAppSelector} from '@/src/ui/utils';
+import {getRenderDmtLink, useAppSelector} from '@/src/ui/utils';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {
   AddressTokenSummary,
@@ -17,7 +17,6 @@ import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
-import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -27,12 +26,12 @@ const ListTapOptions = () => {
   // TODO: brcTokenBalance is param passing, need check brcTokenBalance when back from other screen
   const {state} = location;
   const brcTokenBalance = state?.brcTokenBalance;
-
   //! State
   const [loading, setLoading] = useState(false);
-  const dispatch = useAppDispatch();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
+  const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
+
   const network = useAppSelector(GlobalSelector.networkType);
   const [deployInscriptionState, setDeployInscription] =
     useState<Inscription>();
@@ -58,7 +57,6 @@ const ListTapOptions = () => {
   });
 
   const [mintList, setMintList] = useState([]);
-  const [contentInscription, setContentInscription] = useState<string>('');
 
   //! Function
   const handleNavigate = () => {
@@ -78,48 +76,26 @@ const ListTapOptions = () => {
     });
   };
 
-  useEffect(() => {
-    const fetchMintList = async () => {
-      if (tokenSummary.tokenInfo?.dmt) {
-        const list = await wallet.getAccountAllMintsListByTicker(
-          activeAccount.address,
-          tokenSummary.tokenBalance.ticker,
-        );
-        setMintList(list);
-      }
-    };
-    fetchMintList();
-  }, [
-    activeAccount.address,
-    tokenSummary.tokenBalance.ticker,
-    tokenSummary.tokenInfo?.dmt,
-  ]);
+  // useEffect(() => {
+  //   const fetchMintList = async () => {
+  //     if (tokenSummary.tokenInfo?.dmt || brcTokenBalance?.tokenInfo?.dmt) {
+  //       const list = await wallet.getAccountAllMintsListByTicker(
+  //         activeAccount.address,
+  //         tokenSummary.tokenBalance.ticker,
+  //       );
+  //       setMintList(list);
+  //     }
+  //   };
+  //   fetchMintList();
+  // }, [
+  //   activeAccount.address,
+  //   tokenSummary.tokenBalance.ticker,
+  //   tokenSummary.tokenInfo?.dmt,
+  // ]);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      if (tokenSummary.tokenInfo?.dmt) {
-        const contentInsId = await wallet.getDmtContentId(
-          tokenSummary?.tokenInfo?.inscriptionId,
-        );
-
-        setContentInscription(contentInsId);
-      }
-    };
-    fetchContent();
-  }, [tokenSummary.tokenInfo.inscriptionId, tokenSummary.tokenInfo?.dmt]);
-
-  useEffect(() => {
-    if (contentInscription) {
-      const dmtColMapsByTicker = mintList.reduce((acc, item) => {
-        if (dmtCollectibleMap[item?.ins]) {
-          return;
-        }
-        acc[item?.ins] = {contentInscriptionId: contentInscription};
-        return acc;
-      }, {});
-      dispatch(AccountActions.setManyDmtCollectiblesMap(dmtColMapsByTicker));
-    }
-  }, [mintList, contentInscription]);
+    setMintList(dmtGroupMap[brcTokenBalance?.tokenInfo?.ins]);
+  }, [brcTokenBalance?.tokenInfo, dmtGroupMap]);
 
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
@@ -335,7 +311,7 @@ const ListTapOptions = () => {
                       onClick={() =>
                         tapPreviewItemOnPress({
                           amount: item.amt,
-                          inscriptionId: item.ins,
+                          inscriptionId: item,
                           inscriptionNumber: item.num,
                           ticker: '',
                           timestamp: item.ts,
@@ -364,8 +340,8 @@ const ListTapOptions = () => {
                         height="80px"
                         style={{pointerEvents: 'none'}}
                         sandbox="allow-scripts allow-same-origin allow-top-navigation"
-                        src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${item.ins}&block=${dmtCollectibleMap[item?.ins].block}`}></iframe>
-                      <UX.Text
+                        src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item].block}`}></iframe>
+                      {/* <UX.Text
                         title={`#${item.num}`}
                         styleType="body_14_normal"
                         customStyles={{
@@ -375,7 +351,7 @@ const ListTapOptions = () => {
                           padding: '4px 0',
                           textAlign: 'center',
                         }}
-                      />
+                      /> */}
                     </UX.Box>
                   );
                 })}

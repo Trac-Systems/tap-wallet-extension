@@ -156,6 +156,40 @@ export default function InscriptionPreview({
           overflow: 'hidden',
           position: 'relative',
         }}>
+        {isSpendable && (
+          <Button
+            title="Spendable"
+            styleType="primary"
+            customStyles={{
+              width: 'fit-content',
+              height: 'auto',
+              lineHeight: 'normal',
+              padding: '5px 10px',
+              fontSize: '14px',
+              position: 'absolute',
+              top: 11,
+              left: 11,
+            }}
+          />
+        )}
+        {contentInscription && (
+          <Text
+            styleType="body_12_normal"
+            title="DMT"
+            customStyles={{
+              background: colors.green_500,
+              color: colors.white,
+              borderRadius: '24px',
+              width: 'fit-content',
+              height: 'auto',
+              lineHeight: 'normal',
+              padding: '2px 8px',
+              position: 'absolute',
+              top: isSpendable ? 55 : 11,
+              left: 11,
+            }}
+          />
+        )}
         <iframe
           key={data?.inscriptionId}
           style={{
@@ -209,6 +243,24 @@ export default function InscriptionPreview({
             fontSize: '14px',
             position: 'absolute',
             top: 11,
+            left: 11,
+          }}
+        />
+      )}
+      {contentInscription && (
+        <Text
+          styleType="body_12_normal"
+          title="DMT"
+          customStyles={{
+            background: colors.green_500,
+            color: colors.white,
+            borderRadius: '24px',
+            width: 'fit-content',
+            height: 'auto',
+            lineHeight: 'normal',
+            padding: '2px 8px',
+            position: 'absolute',
+            top: isSpendable ? 55 : 11,
             left: 11,
           }}
         />

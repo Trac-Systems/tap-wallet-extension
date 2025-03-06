@@ -142,7 +142,7 @@ export default function InscriptionPreview({
               pointerEvents: 'none',
             }}
             sandbox="allow-scripts allow-same-origin allow-top-navigation"
-            src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}&block=${dmtCollectibleMap[data?.inscriptionId].block}`}
+            src={`${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId].block}`}
           />
         </Box>
       );
@@ -198,7 +198,7 @@ export default function InscriptionPreview({
             pointerEvents: 'none',
           }}
           sandbox="allow-scripts allow-same-origin allow-top-navigation"
-          src={`${renderDmtLink}?contentInscriptionId=${contentInscription}&dmtInscriptionId=${data?.inscriptionId}&block=${dmtCollectibleMap[data?.inscriptionId].block}`}></iframe>
+          src={`${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId].block}`}></iframe>
         <Box style={{padding: '12px 10px', background: '#272727'}}>
           <Text
             title={`${numberStr}`}

@@ -88,7 +88,6 @@ const TapList = () => {
             };
           }
         } catch (error) {
-          console.log('🚀 ~ fetchDmtRenderContent ~ k:', k);
           console.log('🚀 ~ fetchDmtRenderContent ~ error:', error);
         }
       }

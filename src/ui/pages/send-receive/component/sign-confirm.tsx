@@ -138,9 +138,7 @@ const SignConfirm = ({
 
   const fetchDataUSD = async () => {
     if (Number(spendAmount)) {
-      const responseSpendAmount = await wallet.getUSDPrice(
-        Number(spendAmount),
-      );
+      const responseSpendAmount = await wallet.getUSDPrice(Number(spendAmount));
       // const responseAmount = await wallet.getUSDPrice(Number(netAmount));
       setUsdPriceSpendAmount(responseSpendAmount);
       // setUsdPriceAmount(responseAmount);
@@ -198,28 +196,28 @@ const SignConfirm = ({
                 styleType="body_16_normal"
                 customStyles={{marginTop: '24px', marginBottom: '8px'}}
               />
-              {rawTxInfo.ticker ? (
+              {/* {rawTxInfo.ticker ? (
                 <UX.Text
                   title={`${rawTxInfo.assetAmount} ${formatTicker(rawTxInfo.ticker)}`}
                   styleType="heading_24"
                   customStyles={{textAlign: 'center'}}
                 />
               ) : (
-                <>
-                  <UX.Text
-                    title={`${spendAmount} BTC`}
-                    styleType="heading_24"
-                    customStyles={{textAlign: 'center'}}
-                  />
-                  <UX.Box layout="row_center" spacing="xss_s">
-                    <UX.Text title="≈" styleType="body_14_normal" />
-                    <UX.Text
-                      title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
-                      styleType="body_14_normal"
-                    />
-                  </UX.Box>
-                </>
-              )}
+                <> */}
+              <UX.Text
+                title={`${spendAmount} BTC`}
+                styleType="heading_24"
+                customStyles={{textAlign: 'center'}}
+              />
+              <UX.Box layout="row_center" spacing="xss_s">
+                <UX.Text title="≈" styleType="body_14_normal" />
+                <UX.Text
+                  title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
+                  styleType="body_14_normal"
+                />
+              </UX.Box>
+              {/* </>
+              )} */}
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">

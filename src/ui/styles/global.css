@@ -14,6 +14,9 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+iframe{
+  border: none;
+}
 
 .Toastify__toast-theme--light {
   background-color: transparent !important;

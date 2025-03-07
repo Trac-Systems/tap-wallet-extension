@@ -73,7 +73,7 @@ const InscriptionList = (props: IProps) => {
         for (const mintData of v) {
           dmtColMapsByTicker[mintData.mintInsId] = {
             contentInscriptionId: dmtRenderInsId,
-            block: mintData.block,
+            block: mintData?.block,
           };
         }
       }

@@ -320,7 +320,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                         width="80px"
                         height="80px"
                         sandbox="allow-scripts allow-same-origin"
-                        src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item].block}`}></iframe>
+                        src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}></iframe>
                     </div>
                   );
                 })}

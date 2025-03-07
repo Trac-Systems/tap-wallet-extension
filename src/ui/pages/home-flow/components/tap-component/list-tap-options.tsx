@@ -326,7 +326,7 @@ const ListTapOptions = () => {
                         height="80px"
                         style={{pointerEvents: 'none'}}
                         sandbox="allow-scripts allow-same-origin allow-top-navigation"
-                        src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item].block}`}></iframe>
+                        src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}></iframe>
                       {/* <UX.Text
                         title={`#${item.num}`}
                         styleType="body_14_normal"

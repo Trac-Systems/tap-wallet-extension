@@ -89,7 +89,7 @@ const InscriptionList = (props: IProps) => {
   const tabItems = [
     {label: 'All', content: <InscriptionListChildren {...props} />},
     {
-      label: 'DMT collectibles',
+      label: 'DMT',
       content: <DmtInscriptionListChildren />,
     },
   ];

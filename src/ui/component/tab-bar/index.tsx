@@ -4,7 +4,7 @@ import './index.css';
 import {Tab, TabContent} from './TabContent';
 
 interface TabItem {
-  label: string;
+  label?: string;
   content: React.ReactNode;
 }
 

@@ -20,6 +20,9 @@ export const PAID_API_MAINNET = 'https://open-api.unisat.io';
 export const PAID_API_KEY_MAINNET =
   'e3133d5812314a4e912e3e3aaaef2e5980e476663543811c92aee34cf7887875';
 
+export const ORD_SCAN_API_KEY_TESTNET = 'http://trac.kicks-ass.org:55002';
+export const ORD_SCAN_API_KEY_MAINNET = 'https://ordiscan.com';
+
 export interface IResponseAddressBalance {
   address: string;
   satoshi: number;
@@ -34,8 +37,9 @@ export interface IResponseAddressBalance {
 }
 export class PaidApi {
   api!: AxiosRequest;
+  ordinalScanApi!: AxiosRequest;
   constructor() {
-    if (!this.api) {
+    if (!this.api || !this.ordinalScanApi) {
       this.init();
     }
   }
@@ -51,10 +55,18 @@ export class PaidApi {
       baseUrl: PAID_API_MAINNET,
       apiKey: PAID_API_KEY_MAINNET,
     });
+    this.ordinalScanApi = new AxiosRequest({
+      baseUrl: ORD_SCAN_API_KEY_MAINNET,
+    });
+
     if (network === Network.TESTNET) {
       this.api = new AxiosRequest({
         baseUrl: PAID_API_TESTNET,
         apiKey: PAID_API_KEY_TESTNET,
+      });
+
+      this.ordinalScanApi = new AxiosRequest({
+        baseUrl: ORD_SCAN_API_KEY_TESTNET,
       });
     }
   }
@@ -306,10 +318,11 @@ export class PaidApi {
   }
 
   async getInscriptionContent(inscriptionId: string) {
-    const result = await this.api.get(
-      `/v1/indexer/inscription/content/${inscriptionId}`,
+    const result = await this.ordinalScanApi.get(
+      `/content/${inscriptionId}`,
       {},
     );
+    console.log('🚀 ~ PaidApi ~ getInscriptionContent ~ result:', result);
     return result?.data;
   }
 }

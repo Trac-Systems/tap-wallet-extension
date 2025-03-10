@@ -32,14 +32,8 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [isExpandView, setExpandView] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
-  const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
-  const [mintList, setMintList] = useState([]);
-
-  useEffect(() => {
-    setMintList(dmtGroupMap[tokenInfo?.ins]);
-  }, [tokenInfo, dmtGroupMap]);
 
   useEffect(() => {
     try {
@@ -281,75 +275,6 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
               );
             })}
           </UX.Box>
-
-          {tokenInfo?.dmt ? (
-            <>
-              {/* Collections of items */}
-              <UX.Box
-                layout="row_between"
-                style={{width: '100%', marginTop: 10, marginBottom: 8}}>
-                <UX.Text
-                  title={'Collectibles'}
-                  styleType="body_14_normal"
-                  customStyles={{
-                    color: '#FFFFFFB0',
-                    width: 'fit-content',
-                  }}
-                />
-                <UX.Text
-                  title={`${mintList.length}`}
-                  styleType="body_14_normal"
-                  customStyles={{
-                    color: '#FFFFFFB0',
-                    width: 'fit-content',
-                  }}
-                />
-              </UX.Box>
-              <UX.Box layout="row" spacing="xss_s">
-                {mintList.map((item, index) => {
-                  if (index > 1) {
-                    return;
-                  }
-                  return (
-                    <div
-                      key={item?.ins}
-                      onClick={handleNavigate}
-                      style={{cursor: 'pointer'}}>
-                      <iframe
-                        key={item?.ins}
-                        width="80px"
-                        height="80px"
-                        sandbox="allow-scripts allow-same-origin"
-                        src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}></iframe>
-                    </div>
-                  );
-                })}
-                {mintList.length > 3 ? (
-                  <UX.Box
-                    layout="row_center"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      border: '1px solid #fff',
-                    }}>
-                    <UX.Text
-                      title={mintList.length - 2 + '+'}
-                      styleType="body_14_bold"
-                      customStyles={{
-                        color: 'white',
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        background: colors.main_500,
-                      }}
-                    />
-                  </UX.Box>
-                ) : null}
-              </UX.Box>
-            </>
-          ) : null}
         </>
       ) : null}
     </UX.Box>

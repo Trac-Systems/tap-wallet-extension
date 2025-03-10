@@ -22,6 +22,9 @@ export const Tab: React.FC<TabProps> = ({
   onClick,
   isChildren,
 }) => {
+  if (!label) {
+    return <></>;
+  }
   return (
     <UX.Box
       className={`${isActive ? (isChildren ? 'sub-tab-active' : 'tab-box-active') : isChildren ? 'sub-tab' : 'tab-box'}`}

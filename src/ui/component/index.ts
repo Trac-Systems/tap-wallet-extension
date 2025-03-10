@@ -29,6 +29,7 @@ import SwitchCustom from './switch-button';
 import Tabs from './tab-bar';
 import Text from './text-custom';
 import Tooltip from './tooltip';
+import TapDmtGroupItem from '@/src/ui/pages/home-flow/components/tap-dmt-group-items';
 
 export const UX = {
   Text: Text,
@@ -57,6 +58,7 @@ export const UX = {
   Section,
   SwitchCustom,
   TapBalanceItem,
+  TapDmtGroupItem,
   RefreshButton,
   Pagination,
   Empty,

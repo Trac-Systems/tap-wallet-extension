@@ -77,27 +77,6 @@ const ListTapOptions = () => {
     });
   };
 
-  // useEffect(() => {
-  //   const fetchMintList = async () => {
-  //     if (tokenSummary.tokenInfo?.dmt || brcTokenBalance?.tokenInfo?.dmt) {
-  //       const list = await wallet.getAccountAllMintsListByTicker(
-  //         activeAccount.address,
-  //         tokenSummary.tokenBalance.ticker,
-  //       );
-  //       setMintList(list);
-  //     }
-  //   };
-  //   fetchMintList();
-  // }, [
-  //   activeAccount.address,
-  //   tokenSummary.tokenBalance.ticker,
-  //   tokenSummary.tokenInfo?.dmt,
-  // ]);
-
-  useEffect(() => {
-    setMintList(dmtGroupMap[brcTokenBalance?.tokenInfo?.ins]);
-  }, [brcTokenBalance?.tokenInfo, dmtGroupMap]);
-
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
   }, [network]);
@@ -327,8 +306,8 @@ const ListTapOptions = () => {
                         style={{pointerEvents: 'none'}}
                         sandbox="allow-scripts allow-same-origin allow-top-navigation"
                         src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}></iframe>
-                      {/* <UX.Text
-                        title={`#${item.num}`}
+                      <UX.Text
+                        title={`#${dmtCollectibleMap[item]?.inscriptionNumber}`}
                         styleType="body_14_normal"
                         customStyles={{
                           color: 'white',
@@ -337,7 +316,7 @@ const ListTapOptions = () => {
                           padding: '4px 0',
                           textAlign: 'center',
                         }}
-                      /> */}
+                      />
                     </UX.Box>
                   );
                 })}

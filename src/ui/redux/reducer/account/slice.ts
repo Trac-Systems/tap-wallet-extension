@@ -11,6 +11,12 @@ import {createSlice} from '@reduxjs/toolkit';
 export interface DmtCollectible {
   contentInscriptionId?: string;
   block?: number;
+  ticker?: string;
+  inscriptionNumber?: number;
+}
+export interface DmtDeployInfo {
+  ticker?: string;
+  dmtInscriptionIds: string[];
 }
 
 export interface AccountsState {
@@ -54,7 +60,7 @@ export interface AccountsState {
   // key: deployment inscription id
   // val: array of dmt inscriptions same collectible
   dmtGroupMap?: {
-    [key: string]: string[];
+    [key: string]: DmtDeployInfo;
   };
 }
 
@@ -260,7 +266,7 @@ const AccountSlice = createSlice({
 
     setDmtGroupMap(
       state: AccountsState,
-      action: {payload: {[key: string]: string[]}},
+      action: {payload: {[key: string]: DmtDeployInfo}},
     ) {
       const {payload} = action;
       state.dmtGroupMap = {...state.dmtGroupMap, ...payload};

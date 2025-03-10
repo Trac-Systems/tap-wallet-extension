@@ -1033,7 +1033,9 @@ export class Provider {
     }
   };
 
-  getDmtContentId = async (depInscriptionId: string) => {
+  getDmtContentId = async (
+    depInscriptionId: string,
+  ): Promise<{contentInsId: string; ticker: string}> => {
     const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
     let contentIns = depInscriptionId;
     for (const ins of depIns) {
@@ -1044,11 +1046,12 @@ export class Provider {
     try {
       const content = await this.paidApi.getInscriptionContent(contentIns);
       if (content?.id) {
-        return content?.id;
+        contentIns = content?.id;
       }
+      return {contentInsId: contentIns, ticker: content?.tick};
     } catch (error) {
       console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
-      return contentIns;
+      throw error; // return {contentIns};
     }
   };
 

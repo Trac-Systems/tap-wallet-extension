@@ -79,15 +79,6 @@ export async function sendInscription({
   // if (assetUtxo.inscriptions.length !== 1) {
   //   throw new Error('Unsafe balance');
   // }
-
-  const maxOffset = assetUtxo.inscriptions.reduce((pre, cur) => {
-    return Math.max(pre, cur.offset);
-  }, 0);
-
-  if (outputValue - 1 < maxOffset) {
-    throw new Error('Asset can lost');
-  }
-
   const tx = new Transaction({
     networkType: networkType,
     fromAddress: fromAddress,

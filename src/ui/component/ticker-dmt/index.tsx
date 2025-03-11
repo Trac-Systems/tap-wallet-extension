@@ -35,6 +35,7 @@ export const TickerSpendable = (props: IProps) => {
       title="Spendable"
       styleType="primary"
       customStyles={{
+        borderRadius: '24px',
         width: 'fit-content',
         height: 'auto',
         lineHeight: 'normal',

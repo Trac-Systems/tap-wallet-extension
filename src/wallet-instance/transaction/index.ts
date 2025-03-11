@@ -260,8 +260,8 @@ export class Transaction {
 
   // Select UTXOs while preserving the ordinal inscription
   selectUtxos() {
-    let totalValue =  this.getTotalInput() || 0;
-    let numInputs = this.inputs.length || 0;
+    let totalValue = 0;
+    let numInputs = 0;
     let estimatedFee: number;
     let requiredAmount: number;
 

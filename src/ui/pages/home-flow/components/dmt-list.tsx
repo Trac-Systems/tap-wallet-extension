@@ -9,7 +9,7 @@ import {
   getRenderDmtLink,
   useAppSelector,
 } from '@/src/ui/utils';
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 
 const DmtList = () => {
@@ -29,6 +29,11 @@ const DmtList = () => {
   const contentLink = useMemo(() => {
     return getInscriptionContentLink(network);
   }, [network]);
+
+  useEffect(() => {
+    console.log(dmtGroupMap[contentInscriptionId]);
+    console.log(contentInscriptionId);
+  }, [contentInscriptionId, dmtGroupMap]);
 
   //! Function
   const handleGoBack = () => {

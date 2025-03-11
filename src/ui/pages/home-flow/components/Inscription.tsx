@@ -11,6 +11,7 @@ import {
   DmtDeployInfo,
 } from '@/src/ui/redux/reducer/account/slice';
 import DmtCollection from '@/src/ui/pages/home-flow/components/dmt-collection';
+import {isArray} from 'lodash';
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
@@ -97,8 +98,10 @@ const InscriptionList = (props: IProps) => {
                 outputValue: allInscriptionMap[insId].outputValue,
               };
               // push all dmt same ticker to a group
-              _dmtDeployMap[insContent.dep] = _dmtDeployMap[insContent.dep]
-                ? _dmtDeployMap[insContent.dep].push(dmtMintRenderData)
+              _dmtDeployMap[insContent.dep] = isArray(
+                _dmtDeployMap[insContent.dep],
+              )
+                ? [..._dmtDeployMap[insContent.dep], dmtMintRenderData]
                 : [dmtMintRenderData];
             }
           }

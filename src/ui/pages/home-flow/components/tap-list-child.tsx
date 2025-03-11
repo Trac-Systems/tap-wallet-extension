@@ -188,7 +188,7 @@ const TapListChild = () => {
     );
   }
   return (
-    <UX.Box spacing="xl" style={{marginTop: '16px'}}>
+    <UX.Box spacing="xl">
       <UX.Box layout="row" spacing="xs" className="search-box-token">
         <SVG.SearchIcon />
         <input

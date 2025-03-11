@@ -3,7 +3,11 @@ import {TickerDMT} from '@/src/ui/component/ticker-dmt';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
-import {getRenderDmtLink, useAppSelector} from '@/src/ui/utils';
+import {
+  getInscriptionContentLink,
+  getRenderDmtLink,
+  useAppSelector,
+} from '@/src/ui/utils';
 import {useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 
@@ -19,6 +23,10 @@ const DmtList = () => {
     return getRenderDmtLink(network);
   }, [network]);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
+
+  const contentLink = useMemo(() => {
+    return getInscriptionContentLink(network);
+  }, [network]);
 
   //! Function
   const handleGoBack = () => {
@@ -60,7 +68,11 @@ const DmtList = () => {
                 width="100%"
                 height="100%"
                 sandbox="allow-scripts allow-same-origin"
-                src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}
+                src={
+                  dmtCollectibleMap[item]?.unat
+                    ? `${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`
+                    : `${contentLink}/${item}`
+                }
               />
             </UX.Box>
           ))}

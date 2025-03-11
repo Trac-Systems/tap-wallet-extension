@@ -11,7 +11,6 @@ import {
   DmtDeployInfo,
 } from '@/src/ui/redux/reducer/account/slice';
 import DmtCollection from '@/src/ui/pages/home-flow/components/dmt-collection';
-import {number} from 'bitcoinjs-lib/src/script';
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
@@ -111,7 +110,8 @@ const InscriptionList = (props: IProps) => {
       const dmtColMapsByTicker: {[key: string]: DmtCollectible} = {};
       const dmtGroupMaps: {[key: string]: DmtDeployInfo} = {};
       for (const [k, v] of Object.entries(dmtDeployMap)) {
-        const {contentInsId, ticker} = await walletProvider.getDmtContentId(k);
+        const {contentInsId, ticker, unat} =
+          await walletProvider.getDmtContentId(k);
         dmtGroupMaps[contentInsId] = {ticker, dmtInscriptionIds: []};
         for (const mintData of v) {
           dmtColMapsByTicker[mintData.mintInsId] = {
@@ -119,6 +119,7 @@ const InscriptionList = (props: IProps) => {
             block: mintData?.block,
             ticker,
             inscriptionNumber: mintData?.inscriptionNumber,
+            unat,
           };
 
           dmtGroupMaps[contentInsId].dmtInscriptionIds.push(mintData.mintInsId);

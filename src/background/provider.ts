@@ -1035,8 +1035,9 @@ export class Provider {
 
   getDmtContentId = async (
     depInscriptionId: string,
-  ): Promise<{contentInsId: string; ticker: string}> => {
+  ): Promise<{contentInsId: string; ticker: string; unat: boolean}> => {
     const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
+    let unat = false;
     let contentIns = depInscriptionId;
     for (const ins of depIns) {
       if (ins.inscriptionId && ins.inscriptionId !== depInscriptionId) {
@@ -1047,8 +1048,9 @@ export class Provider {
       const content = await this.paidApi.getInscriptionContent(contentIns);
       if (content?.id) {
         contentIns = content?.id;
+        unat = true;
       }
-      return {contentInsId: contentIns, ticker: content?.tick};
+      return {contentInsId: contentIns, ticker: content?.tick, unat};
     } catch (error) {
       console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
       throw error; // return {contentIns};

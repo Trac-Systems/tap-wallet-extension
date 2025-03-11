@@ -147,7 +147,11 @@ export default function InscriptionPreview({
               pointerEvents: 'none',
             }}
             sandbox="allow-scripts allow-same-origin allow-top-navigation"
-            src={`${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`}
+            src={
+              dmtCollectibleMap[data?.inscriptionId]?.unat
+                ? `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`
+                : preview
+            }
           />
         </Box>
       );
@@ -172,7 +176,11 @@ export default function InscriptionPreview({
             pointerEvents: 'none',
           }}
           sandbox="allow-scripts allow-same-origin allow-top-navigation"
-          src={`${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`}></iframe>
+          src={
+            dmtCollectibleMap[data?.inscriptionId]?.unat
+              ? `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`
+              : preview
+          }></iframe>
         <Box style={{padding: '12px 10px', background: '#272727'}}>
           <Text
             title={`${numberStr}`}
@@ -190,10 +198,10 @@ export default function InscriptionPreview({
   }
   if (asLogo) {
     return (
-        <Iframe
-          preview={preview}
-          style={{...$iframePresets[preset], ...styleAslogo}}
-        />
+      <Iframe
+        preview={preview}
+        style={{...$iframePresets[preset], ...styleAslogo}}
+      />
     );
   }
   return (

@@ -220,3 +220,11 @@ export const getRenderDmtLink = (network: Network) => {
   }
   return link;
 };
+
+export const getInscriptionContentLink = (network: Network) => {
+  let link = 'http://trac.kicks-ass.org:55002/content';
+  if (network === Network.MAINNET) {
+    link = 'https://ordiscan.com/content';
+  }
+  return link;
+};

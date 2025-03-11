@@ -1,7 +1,11 @@
 import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {getRenderDmtLink, useAppSelector} from '@/src/ui/utils';
+import {
+  getInscriptionContentLink,
+  getRenderDmtLink,
+  useAppSelector,
+} from '@/src/ui/utils';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatTicker} from '@/src/shared/utils/btc-helper';
@@ -24,15 +28,20 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
   const {contentInscriptionId, ticker, tagColor} = props;
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
-  const renderDmtLink = useMemo(() => {
-    return getRenderDmtLink(network);
-  }, [network]);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [isExpandView, setExpandView] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
+
+  const renderDmtLink = useMemo(() => {
+    return getRenderDmtLink(network);
+  }, [network]);
+
+  const contentLink = useMemo(() => {
+    return getInscriptionContentLink(network);
+  }, [network]);
 
   //! Function
   const handleShowDetailList = (
@@ -168,7 +177,11 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                       width="56px"
                       height="56px"
                       sandbox="allow-scripts allow-same-origin"
-                      src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}
+                      src={
+                        dmtCollectibleMap[item]?.unat
+                          ? `${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`
+                          : `${contentLink}/${item}`
+                      }
                     />
                   </UX.Box>
                 );

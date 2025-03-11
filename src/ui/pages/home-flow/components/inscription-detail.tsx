@@ -1,13 +1,17 @@
-import {UX} from '@/src/ui/component';
+import { UX } from '@/src/ui/component';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
-import {useLocation, useNavigate} from 'react-router-dom';
-import {useEffect, useMemo, useState} from 'react';
-import {Inscription} from '@/src/wallet-instance';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {useCustomToast} from '@/src/ui/component/toast-custom';
-import {convertTimestampToDeviceTime, getTxIdUrl} from '@/src/ui/utils';
+import { useCustomToast } from '@/src/ui/component/toast-custom';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
+import {
+  convertTimestampToDeviceTime,
+  getInsUrl,
+  getTxIdUrl,
+} from '@/src/ui/utils';
+import { Inscription } from '@/src/wallet-instance';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const InscriptionDetail = () => {
   const navigate = useNavigate();
@@ -140,6 +144,11 @@ const InscriptionDetail = () => {
             value={getTxIdUrl(inscriptionInfo?.genesisTransaction)}
             link={getTxIdUrl(inscriptionInfo?.genesisTransaction)}
           />
+          <UX.Section
+            title="Preview"
+            value={getInsUrl(inscriptionInfo?.inscriptionId)}
+            link={getInsUrl(inscriptionInfo?.inscriptionId)}
+          />
         </UX.Box>
       </UX.Box>
 
@@ -157,7 +166,6 @@ const InscriptionDetail = () => {
               margin: '0 24px',
             }}
             title={'Send'}
-            // isDisable={disabled}
             onClick={() =>
               navigate('/home/send-inscription', {
                 state: {inscriptions: inscriptions},

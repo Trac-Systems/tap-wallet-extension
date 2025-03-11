@@ -74,7 +74,7 @@ const DmtCollection = () => {
       <UX.Box layout="row" spacing="xs" className="search-box-token">
         <SVG.SearchIcon />
         <input
-          placeholder="Search for inscription "
+          placeholder="Search for DMT collection"
           className="search-box-token-input"
           onChange={handleChange}
           value={insValue}

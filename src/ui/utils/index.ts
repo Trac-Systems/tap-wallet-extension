@@ -58,6 +58,15 @@ export function getTxIdUrl(txid: string) {
   }
 }
 
+export function getInsUrl(insId: string) {
+  const network = networkConfig.getActiveNetwork();
+  if (network === Network.MAINNET) {
+    return `https://ordinals.com/inscription/${insId}`;
+  } else {
+    return `http://trac.kicks-ass.org:55002/inscription/${insId}`;
+  }
+}
+
 export const satoshisToBTC = (amount: number) => {
   return amount / 100000000;
 };

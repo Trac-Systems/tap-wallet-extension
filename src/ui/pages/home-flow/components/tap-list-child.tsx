@@ -123,7 +123,7 @@ const TapListChild = () => {
     if (
       JSON.stringify(prevTapItemRef.current) === JSON.stringify(tapItemTemp)
     ) {
-      return; // Exit early if there is no meaningful change
+      return;
     }
 
     const addMissingDmtToken = async () => {

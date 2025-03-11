@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {IDisplayAccount} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useReloadAccounts} from '../hook';
-import { SVG } from '@/src/ui/svg';
+import {SVG} from '@/src/ui/svg';
 
 interface IModalListAccountWalletProps {
   handleClose?: () => void;
@@ -47,11 +47,10 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
       }}
       spacing="xl">
       <UX.Box layout="row_between" style={{marginTop: '16px'}}>
-        <UX.Text
-          title="Select account"
-          styleType="body_20_extra_bold"
-        />
-        <UX.Box onClick={() => navigate('/home/create-account')}>
+        <UX.Text title="Select account" styleType="body_20_extra_bold" />
+        <UX.Box
+          onClick={() => navigate('/home/create-account')}
+          style={{cursor: 'pointer'}}>
           <SVG.AddIcon />
         </UX.Box>
       </UX.Box>

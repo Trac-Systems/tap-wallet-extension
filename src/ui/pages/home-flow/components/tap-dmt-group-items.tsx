@@ -8,46 +8,31 @@ import {formatTicker} from '@/src/shared/utils/btc-helper';
 import {colors} from '@/src/ui/themes/color';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {useNavigate} from 'react-router-dom';
 
 interface TapDmtGroupItemProps {
   contentInscriptionId: string;
   ticker: string;
-  handleNavigate?: () => void;
   tagColor?: string;
 }
 
 const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
   const wallet = useWalletProvider();
+  const navigate = useNavigate();
+
+  //! State
+  const {contentInscriptionId, ticker, tagColor} = props;
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
-  const {contentInscriptionId, ticker, handleNavigate, tagColor} = props;
-
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
   }, [network]);
-
-  //! Ref
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [isExpandView, setExpandView] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    try {
-      setLoading(true);
-      wallet
-        .getTapSummary(activeAccount.address, ticker)
-        .then(data => setTokenSummary(data));
-    } catch (error) {
-      console.log('Failed to get tap summary: ', error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 1000);
-    }
-  }, []);
 
   //! Function
   const handleShowDetailList = (
@@ -66,6 +51,31 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
       }
     }
   };
+
+  const handleNavigate = () => {
+    navigate('/home/dmt-list', {
+      state: {
+        contentInscriptionId: contentInscriptionId,
+      },
+    });
+  };
+
+  //! Effect Function
+  useEffect(() => {
+    try {
+      setLoading(true);
+      wallet
+        .getTapSummary(activeAccount.address, ticker)
+        .then(data => setTokenSummary(data));
+    } catch (error) {
+      console.log('Failed to get tap summary: ', error);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+    }
+  }, []);
+
   if (loading) {
     return (
       <UX.Box layout="row_center">
@@ -76,15 +86,12 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
 
   return (
     <UX.Box
-      onClick={handleNavigate}
       ref={el => (cardRefs.current[ticker] = el)}
       layout="box"
       key={ticker}
       style={{
         flexDirection: 'column',
         alignItems: 'flex-start',
-        cursor: 'pointer',
-        borderRadius: '10px',
       }}>
       <UX.Box layout="row_between" style={{width: '100%'}}>
         <UX.Box
@@ -107,6 +114,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
           />
           <UX.Tooltip text={formatTicker(ticker)} isText>
             <UX.Text
+              onClick={handleNavigate}
               title={formatTicker(ticker)}
               styleType="body_16_normal"
               customStyles={{
@@ -116,6 +124,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 whiteSpace: 'pre',
+                cursor: 'pointer',
               }}
             />
           </UX.Tooltip>
@@ -134,18 +143,6 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
         <>
           <UX.Divider />
           {/* Collections of items */}
-          <UX.Box
-            layout="row_between"
-            style={{width: '100%', marginTop: 10, marginBottom: 8}}>
-            <UX.Text
-              title={'Collectibles'}
-              styleType="body_14_normal"
-              customStyles={{
-                color: '#FFFFFFB0',
-                width: 'fit-content',
-              }}
-            />
-          </UX.Box>
           <UX.Box layout="row" spacing="xss_s">
             {dmtGroupMap[contentInscriptionId]?.dmtInscriptionIds?.map(
               (item, index) => {
@@ -153,35 +150,27 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                   return;
                 }
                 return (
-                  <div
+                  <UX.Box
                     key={item}
-                    onClick={handleNavigate}
+                    layout="column_center"
+                    onClick={() =>
+                      navigate('/home/inscription-detail', {
+                        state: {
+                          inscriptionId: item,
+                        },
+                      })
+                    }
                     style={{
                       cursor: 'pointer',
-                      display: 'flex', // Makes it a flex container
-                      flexDirection: 'column', // Ensures children stack vertically
-                      alignItems: 'center', // Centers items horizontally (optional)
                     }}>
                     <iframe
                       key={item}
-                      width="80px"
-                      height="80px"
+                      width="56px"
+                      height="56px"
                       sandbox="allow-scripts allow-same-origin"
                       src={`${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`}
                     />
-
-                    <UX.Text
-                      title={`#${dmtCollectibleMap[item]?.inscriptionNumber}`}
-                      styleType="body_14_normal"
-                      customStyles={{
-                        color: 'white',
-                        width: '100%',
-                        background: '#545454',
-                        padding: '4px 0',
-                        textAlign: 'center',
-                      }}
-                    />
-                  </div>
+                  </UX.Box>
                 );
               },
             )}
@@ -190,11 +179,13 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
               <UX.Box
                 layout="row_center"
                 style={{
-                  width: '80px',
-                  height: '80px',
-                  border: '1px solid #fff',
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '10px',
+                  border: '1px solid #D16B7C',
                 }}>
                 <UX.Text
+                  onClick={handleNavigate}
                   title={
                     dmtGroupMap[contentInscriptionId]?.dmtInscriptionIds
                       ?.length -
@@ -203,13 +194,14 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                   }
                   styleType="body_14_bold"
                   customStyles={{
-                    color: 'white',
+                    color: colors.main_500,
                     width: '100%',
                     height: '100%',
                     display: 'flex',
                     justifyContent: 'center',
+                    cursor: 'pointer',
                     alignItems: 'center',
-                    background: colors.main_500,
+                    background: 'transparent',
                   }}
                 />
               </UX.Box>

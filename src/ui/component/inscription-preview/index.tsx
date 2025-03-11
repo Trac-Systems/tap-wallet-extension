@@ -123,7 +123,10 @@ export default function InscriptionPreview({
     if (asLogo) {
       if (changeInscription) {
         return (
-          <Box onClick={handleChangeInscription} style={{position: 'relative'}}>
+          <Box
+            onClick={handleChangeInscription}
+            style={{position: 'relative', cursor: 'pointer'}}>
+            <TickerDMT top={25} left={75} />
             <Iframe
               preview={preview}
               style={{...$iframePresets[preset], ...styleAslogo}}
@@ -132,7 +135,9 @@ export default function InscriptionPreview({
         );
       }
       return (
-        <Box onClick={handleChangeInscription} style={{position: 'relative'}}>
+        <Box
+          onClick={handleChangeInscription}
+          style={{position: 'relative', cursor: 'pointer'}}>
           <TickerDMT top={25} left={75} />
           <iframe
             key={data?.inscriptionId}
@@ -155,6 +160,7 @@ export default function InscriptionPreview({
           borderRadius: 10,
           overflow: 'hidden',
           position: 'relative',
+          cursor: 'pointer',
         }}>
         {isSpendable && <TickerSpendable />}
         {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
@@ -184,10 +190,10 @@ export default function InscriptionPreview({
   }
   if (asLogo) {
     return (
-      <Iframe
-        preview={preview}
-        style={{...$iframePresets[preset], ...styleAslogo}}
-      />
+        <Iframe
+          preview={preview}
+          style={{...$iframePresets[preset], ...styleAslogo}}
+        />
     );
   }
   return (
@@ -196,6 +202,7 @@ export default function InscriptionPreview({
       style={{
         ...$containerPresets[preset],
         borderRadius: 10,
+        cursor: 'pointer',
         overflow: 'hidden',
         position: 'relative',
       }}>

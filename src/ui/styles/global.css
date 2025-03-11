@@ -14,8 +14,9 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
-iframe{
+iframe {
   border: none;
+  pointer-events: none;
 }
 
 .Toastify__toast-theme--light {

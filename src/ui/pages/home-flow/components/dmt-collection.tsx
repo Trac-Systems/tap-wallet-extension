@@ -1,24 +1,25 @@
 import {UX} from '@/src/ui/component';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {SVG} from '@/src/ui/svg';
 import {
   useAppSelector,
   TOKEN_PAGE_SIZE,
   generateUniqueColors,
 } from '@/src/ui/utils';
-import {isEmpty} from 'lodash';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {debounce, isEmpty} from 'lodash';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 const DmtCollection = () => {
-
   //! State
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  // const prevTapItemRef = useRef(tapItemTemp);
-
-
+  const [insValue, setInsValue] = useState('');
+  const [dmtGroupMapList, setDmtGroupMapList] = useState(
+    Object.entries(dmtGroupMap),
+  );
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;
@@ -38,11 +39,20 @@ const DmtCollection = () => {
     }
   };
 
-  // const handleNavigate = (tokenBalance: TokenBalance) => {
-  //   navigate('/home/list-tap-options', {
-  //     state: {brcTokenBalance: tokenBalance},
-  //   });
-  // };
+  const debouncedFetch = useCallback(
+    debounce((value: string) => {
+      const filteredData = Object.entries(dmtGroupMap).filter(([_, data]) =>
+        data.ticker.toLowerCase().includes(value.toLowerCase()),
+      );
+      setDmtGroupMapList(filteredData);
+    }, 400),
+    [],
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInsValue(e.target.value);
+    debouncedFetch(e.target.value);
+  };
 
   //! Effect function
   useEffect(() => {
@@ -52,11 +62,25 @@ const DmtCollection = () => {
     };
   }, [showDetailItemId]);
 
+  useEffect(() => {
+    return () => {
+      debouncedFetch.cancel();
+    };
+  }, []);
 
   //! Render
   return (
     <UX.Box spacing="xl" style={{marginTop: '16px'}}>
-      {Object.entries(dmtGroupMap).map(([k, v], index) => {
+      <UX.Box layout="row" spacing="xs" className="search-box-token">
+        <SVG.SearchIcon />
+        <input
+          placeholder="Search for inscription "
+          className="search-box-token-input"
+          onChange={handleChange}
+          value={insValue}
+        />
+      </UX.Box>
+      {dmtGroupMapList.map(([k, v], index) => {
         const indexCheck = index < 20 ? index : index % 20;
         const tagColor = listRandomColor[indexCheck];
         return (
@@ -64,7 +88,6 @@ const DmtCollection = () => {
             ticker={v.ticker}
             contentInscriptionId={k}
             key={index}
-            // handleNavigate={() => handleNavigate(v)}
             tagColor={tagColor}
           />
         );

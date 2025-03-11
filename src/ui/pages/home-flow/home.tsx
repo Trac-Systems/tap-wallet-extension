@@ -279,7 +279,9 @@ const Home = () => {
         <>
           <UX.Box layout="row_between" style={{padding: '18px 24px'}}>
             <UX.Text title="Your Wallets" styleType="heading_20" />
-            <UX.Box onClick={() => setOpenDrawer(true)}>
+            <UX.Box
+              onClick={() => setOpenDrawer(true)}
+              style={{cursor: 'pointer'}}>
               <SVG.AddIcon />
             </UX.Box>
           </UX.Box>

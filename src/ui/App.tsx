@@ -48,6 +48,7 @@ import {GlobalActions} from './redux/reducer/global/slice';
 import {generateUniqueColors, useAppDispatch} from './utils';
 import SendInscription from '@/src/ui/pages/send-receive/send-inscription';
 import SendInscriptionConfirm from '@/src/ui/pages/send-receive/send-inscription-confirm';
+import DmtList from './pages/home-flow/components/dmt-list';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -152,6 +153,7 @@ function App() {
           path="/home/inscription-detail"
           element={<InscriptionDetail />}
         />
+        <Route path="/home/dmt-list" element={<DmtList />} />
         {/* Tap */}
         <Route path="/home/list-tap-options" element={<ListTapOptions />} />
         <Route path="/home/tap-transfer" element={<TapTransfer />} />
@@ -188,7 +190,10 @@ function App() {
 
         {/* Send inscriptions */}
         <Route path="/home/send-inscription" element={<SendInscription />} />
-        <Route path="/home/send-inscription-confirm" element={<SendInscriptionConfirm />} />
+        <Route
+          path="/home/send-inscription-confirm"
+          element={<SendInscriptionConfirm />}
+        />
 
         {/* Security */}
         <Route path="/home/security" element={<Security />} />

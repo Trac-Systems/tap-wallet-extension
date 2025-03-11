@@ -23,6 +23,7 @@ const Card = (props: ICardProps) => {
         border: '1px solid #545454',
         borderRadius: '10px',
         padding: spaces.xl,
+        cursor: 'pointer',
       }}>
       <Box layout="row_between" style={style}>
         <Text title={text} styleType="body_16_normal" className="widthText" />

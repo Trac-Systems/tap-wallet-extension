@@ -15,10 +15,10 @@
   /* justify-content: center; */
 }
 .footer_sr {
-  /* position: sticky;
-  bottom: 0; */
+  position: sticky;
+  bottom: 0;
   width: 100%;
-  /* background-color: black; */
+  background-color: black;
 }
 
 @media only screen and (min-width: 600px) {

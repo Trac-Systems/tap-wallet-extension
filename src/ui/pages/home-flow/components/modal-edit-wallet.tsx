@@ -56,7 +56,7 @@ const ModalEditWallet = (props: IModalEditWalletProps) => {
           padding: '8px 0',
         }}>
         <UX.Text title="Edit Wallet" styleType="body_20_extra_bold" />
-        <UX.Box onClick={openModalWallet}>
+        <UX.Box onClick={openModalWallet} style={{cursor: 'pointer'}}>
           <SVG.DeleteWalletIcon />
         </UX.Box>
       </UX.Box>

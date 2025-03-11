@@ -134,7 +134,11 @@ const WalletCard = (props: IWalletCardProps) => {
           </div>
         </div>
         {checkIsSingleWallet ? null : (
-          <UX.Box layout="row" spacing="xl" onClick={handleOpenDrawerAccount}>
+          <UX.Box
+            layout="row"
+            spacing="xl"
+            onClick={handleOpenDrawerAccount}
+            style={{cursor: 'pointer'}}>
             <UX.Text
               styleType="heading_16"
               customStyles={{

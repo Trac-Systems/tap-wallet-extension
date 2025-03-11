@@ -77,6 +77,7 @@ export interface InscriptionProps {
   isCollectibles?: boolean;
   changeInscription?: boolean;
   handleChangeInscription?: () => void;
+  isModalSpendable?: boolean;
 }
 
 export default function InscriptionPreview({
@@ -88,6 +89,7 @@ export default function InscriptionPreview({
   isSpendable,
   changeInscription,
   handleChangeInscription,
+  isModalSpendable,
 }: InscriptionProps) {
   //! State
   const network = useAppSelector(GlobalSelector.networkType);
@@ -138,7 +140,10 @@ export default function InscriptionPreview({
         <Box
           onClick={handleChangeInscription}
           style={{position: 'relative', cursor: 'pointer'}}>
-          <TickerDMT top={25} left={75} />
+          <TickerDMT
+            top={isModalSpendable ? 10 : 25}
+            left={isModalSpendable ? 155 : 75}
+          />
           <iframe
             key={data?.inscriptionId}
             style={{

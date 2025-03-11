@@ -228,6 +228,7 @@ const Home = () => {
                   key={item.inscriptionId}
                   data={item}
                   asLogo
+                  isModalSpendable
                   preset="asLogo"
                 />
                 <UX.Box layout="column">

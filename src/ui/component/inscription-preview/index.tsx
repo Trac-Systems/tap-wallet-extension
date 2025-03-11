@@ -52,7 +52,7 @@ const $iframePresets: Record<Presets, CSSProperties> = {
     borderWidth: '0px',
   },
   small: {
-    width: 100,
+    width: 120,
     height: 120,
     borderTopLeftRadius: '10px',
     borderTopRightRadius: '10px',

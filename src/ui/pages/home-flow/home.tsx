@@ -98,6 +98,7 @@ const Home = () => {
           setOpenDrawer={handleOpenDrawerIns}
           setSpendableInscriptionMap={setSpendableMaps}
           spendableInscriptionsMap={spendableMaps}
+          allInscriptions={allInscriptions}
         />
       ),
       parentIndex: 1,

@@ -20,6 +20,11 @@ const DmtCollection = () => {
   const [dmtGroupMapList, setDmtGroupMapList] = useState(
     Object.entries(dmtGroupMap),
   );
+
+  useEffect(() => {
+    setDmtGroupMapList(Object.entries(dmtGroupMap));
+  }, [dmtGroupMap]);
+
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;
@@ -41,12 +46,12 @@ const DmtCollection = () => {
 
   const debouncedFetch = useCallback(
     debounce((value: string) => {
-      const filteredData = Object.entries(dmtGroupMap).filter(([_, data]) =>
+      const filteredData = Object.entries(dmtGroupMap).filter(([, data]) =>
         data.ticker.toLowerCase().includes(value.toLowerCase()),
       );
       setDmtGroupMapList(filteredData);
     }, 400),
-    [],
+    [dmtGroupMap],
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

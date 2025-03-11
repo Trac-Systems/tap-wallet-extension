@@ -322,7 +322,6 @@ export class PaidApi {
       `/content/${inscriptionId}`,
       {},
     );
-    console.log('🚀 ~ PaidApi ~ getInscriptionContent ~ result:', result);
     return result?.data;
   }
 }

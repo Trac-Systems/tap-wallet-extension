@@ -1028,7 +1028,7 @@ export class Provider {
       }
       return content;
     } catch (error) {
-      console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
+      console.log('~ Provider ~ getDmtContent= ~ error:', error);
       return content;
     }
   };
@@ -1050,9 +1050,9 @@ export class Provider {
         contentIns = content?.id;
         unat = true;
       }
-      return {contentInsId: contentIns, ticker: content?.tick, unat};
+      return {contentInsId: contentIns, ticker: `dmt-${content?.tick}`, unat};
     } catch (error) {
-      console.log('🚀 ~ Provider ~ getDmtContent= ~ error:', error);
+      console.log('Provider ~ getDmtContent= ~ error:', error);
       throw error; // return {contentIns};
     }
   };

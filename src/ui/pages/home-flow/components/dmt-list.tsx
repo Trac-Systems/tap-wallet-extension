@@ -67,8 +67,8 @@ const DmtList = () => {
               <TickerDMT top={11} />
               <iframe
                 key={item}
-                width="100%"
-                height="100%"
+                width="162px"
+                height="162px"
                 sandbox="allow-scripts allow-same-origin"
                 src={
                   dmtCollectibleMap[item]?.unat
@@ -81,6 +81,7 @@ const DmtList = () => {
                   padding: '12px 10px',
                   background: '#272727',
                   width: '100%',
+                  marginLeft: '16px',
                 }}>
                 <UX.Text
                   title={`#${dmtCollectibleMap?.[item]?.inscriptionNumber}`}
@@ -88,7 +89,7 @@ const DmtList = () => {
                   customStyles={{color: 'white'}}
                 />
                 <UX.Text
-                  title={'546 SATs'}
+                  title={`${dmtCollectibleMap[item]?.outputValue} SATs`}
                   styleType="body_16_bold"
                   customStyles={{color: colors.main_500}}
                 />

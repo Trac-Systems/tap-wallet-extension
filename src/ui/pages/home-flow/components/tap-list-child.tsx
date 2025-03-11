@@ -25,15 +25,12 @@ const TapListChild = () => {
   const accountBalance = useAccountBalance();
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
-  const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const [loading, setLoading] = useState(false);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const [tokenValue, setTokenValue] = useState('');
-  const [tapItemTemp, setTapItemTemp] = useState<TokenBalance[]>([]);
   const [tapItem, setTapItem] = useState<TokenBalance[]>([]);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const prevTapItemRef = useRef(tapItemTemp);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,
@@ -74,13 +71,13 @@ const TapListChild = () => {
       await wallet
         .getTapSummary(activeAccount.address, value)
         .then(tapSummary => {
-          setTapItemTemp([tapSummary.tokenBalance]);
+          setTapItem([tapSummary.tokenBalance]);
         })
         .catch(() => {
           if (!value) {
-            setTapItemTemp(tapList);
+            setTapItem(tapList);
           } else {
-            setTapItemTemp([]);
+            setTapItem([]);
           }
         });
     }, 200),
@@ -116,68 +113,8 @@ const TapListChild = () => {
   }, []);
 
   useEffect(() => {
-    setTapItemTemp(tapList);
+    setTapItem(tapList);
   }, [tapList.length]);
-
-  useEffect(() => {
-    if (
-      JSON.stringify(prevTapItemRef.current) === JSON.stringify(tapItemTemp)
-    ) {
-      return;
-    }
-
-    const addMissingDmtToken = async () => {
-      const dmtTokenMissingMap = Object.fromEntries(
-        Object.keys(dmtGroupMap).map(key => [key, true]),
-      );
-
-      for (const token of tapItemTemp) {
-        if (dmtTokenMissingMap[token.tokenInfo?.ins]) {
-          delete dmtTokenMissingMap[token.tokenInfo?.ins];
-        }
-      }
-
-      const _allTokenInfo = [...tapItemTemp];
-
-      // Add missing token DMT
-      for (const depInsId in dmtTokenMissingMap) {
-        const data = await wallet.getInscriptionContent(depInsId);
-        const tokenBalance: TokenBalance = {
-          availableBalance: '',
-          overallBalance: '',
-          ticker: `dmt-${data?.tick}`,
-          transferableBalance: '',
-          availableBalanceSafe: '',
-          availableBalanceUnSafe: '',
-          tokenInfo: {
-            tick: `dmt-${data?.tick}`,
-            max: '',
-            lim: '',
-            dec: 0,
-            blck: 0,
-            tx: '',
-            vo: 0,
-            ins: depInsId,
-            num: 0,
-            ts: 0,
-            addr: '',
-            crsd: false,
-            dmt: true,
-            elem: undefined,
-            prj: undefined,
-            dim: undefined,
-            dt: undefined,
-            prv: '',
-          },
-        };
-        _allTokenInfo.push(tokenBalance);
-      }
-      setTapItem(_allTokenInfo);
-      prevTapItemRef.current = tapItemTemp; // Update reference
-    };
-
-    addMissingDmtToken();
-  }, [tapItemTemp]);
 
   //! Render
   if (loading) {

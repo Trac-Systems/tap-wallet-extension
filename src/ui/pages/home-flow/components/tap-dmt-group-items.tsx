@@ -1,13 +1,11 @@
 import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   getInscriptionContentLink,
   getRenderDmtLink,
   useAppSelector,
 } from '@/src/ui/utils';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatTicker} from '@/src/shared/utils/btc-helper';
 import {colors} from '@/src/ui/themes/color';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
@@ -21,7 +19,6 @@ interface TapDmtGroupItemProps {
 }
 
 const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
-  const wallet = useWalletProvider();
   const navigate = useNavigate();
 
   //! State
@@ -30,10 +27,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [isExpandView, setExpandView] = useState(false);
-  const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
-  const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
-  const [loading, setLoading] = useState(false);
 
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
@@ -50,15 +44,6 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
   ) => {
     e.stopPropagation();
     setExpandView(!isExpandView);
-    if (!tokenSummary) {
-      try {
-        wallet
-          .getTapSummary(activeAccount.address, ticker)
-          .then(data => setTokenSummary(data));
-      } catch (error) {
-        console.log('Failed to get tap summary: ', error);
-      }
-    }
   };
 
   const handleNavigate = () => {
@@ -68,30 +53,6 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
       },
     });
   };
-
-  //! Effect Function
-  useEffect(() => {
-    try {
-      setLoading(true);
-      wallet
-        .getTapSummary(activeAccount.address, ticker)
-        .then(data => setTokenSummary(data));
-    } catch (error) {
-      console.log('Failed to get tap summary: ', error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 1000);
-    }
-  }, []);
-
-  if (loading) {
-    return (
-      <UX.Box layout="row_center">
-        <SVG.LoadingIcon />
-      </UX.Box>
-    );
-  }
 
   return (
     <UX.Box

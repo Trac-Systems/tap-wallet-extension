@@ -33,7 +33,7 @@ const $containerPresets: Record<Presets, CSSProperties> = {
   },
   asLogo: {
     backgroundColor: colors.black,
-    width: 50,
+    width: 60,
   },
 };
 
@@ -46,7 +46,7 @@ const $iframePresets: Record<Presets, CSSProperties> = {
   },
   medium: {
     width: '100%',
-    height: 144,
+    height: 165,
     borderTopLeftRadius: '10px',
     borderTopRightRadius: '10px',
     borderWidth: '0px',
@@ -58,7 +58,7 @@ const $iframePresets: Record<Presets, CSSProperties> = {
     borderTopRightRadius: '10px',
   },
   asLogo: {
-    width: 50,
+    width: 60,
     height: 60,
     borderRadius: '10px',
   },

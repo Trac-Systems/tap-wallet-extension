@@ -13,6 +13,7 @@ export interface DmtCollectible {
   block?: number;
   ticker?: string;
   inscriptionNumber?: number;
+  outputValue?: number;
   unat?: boolean;
 }
 export interface DmtDeployInfo {

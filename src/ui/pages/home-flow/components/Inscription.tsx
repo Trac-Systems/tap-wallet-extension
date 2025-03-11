@@ -15,6 +15,7 @@ interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
   setSpendableInscriptionMap: (data: {[key: string]: Inscription}) => void;
+  allInscriptions?: Inscription[];
 }
 
 const InscriptionList = (props: IProps) => {
@@ -30,15 +31,21 @@ const InscriptionList = (props: IProps) => {
       mintInsId: string;
       block: number;
       inscriptionNumber: number;
+      outputValue: number;
     }[];
   }>({});
   const [loading, setLoading] = useState(false);
-  const [allInscriptions, setAllInscriptions] = useState<Inscription[]>([]);
+  const [allInscriptions, setAllInscriptions] = useState<Inscription[]>(
+    props.allInscriptions || [],
+  );
 
   useEffect(() => {
     const fetchAllInscriptions = async () => {
       setLoading(true);
-      if (!activeAccount?.address) return;
+      // skip if not recognize address or allInscriptions exist for prevent call api many times
+      if (!activeAccount?.address || allInscriptions) {
+        return;
+      }
       try {
         const inscriptions = await walletProvider.getAllInscriptions(
           activeAccount.address,
@@ -87,6 +94,7 @@ const InscriptionList = (props: IProps) => {
                 mintInsId: insId,
                 block: insContent.blk,
                 inscriptionNumber: allInscriptionMap[insId].inscriptionNumber,
+                outputValue: allInscriptionMap[insId].outputValue,
               };
               // push all dmt same ticker to a group
               _dmtDeployMap[insContent.dep] = _dmtDeployMap[insContent.dep]
@@ -118,8 +126,9 @@ const InscriptionList = (props: IProps) => {
             contentInscriptionId: contentInsId,
             block: mintData?.block,
             ticker,
-            inscriptionNumber: mintData?.inscriptionNumber,
             unat,
+            inscriptionNumber: mintData?.inscriptionNumber,
+            outputValue: mintData?.outputValue,
           };
 
           dmtGroupMaps[contentInsId].dmtInscriptionIds.push(mintData.mintInsId);

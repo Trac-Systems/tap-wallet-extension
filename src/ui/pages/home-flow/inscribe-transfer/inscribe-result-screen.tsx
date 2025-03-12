@@ -79,7 +79,7 @@ const InscribeResultScreen = () => {
             <UX.Box layout="column_center" spacing="xl">
               <SVG.SendFailIcon />
               <UX.Text
-                title="Payment Sent"
+                title="Payment Failed"
                 styleType="heading_24"
                 customStyles={{
                   marginTop: '16px',

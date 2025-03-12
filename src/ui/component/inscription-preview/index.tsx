@@ -142,7 +142,7 @@ export default function InscriptionPreview({
           style={{position: 'relative', cursor: 'pointer'}}>
           <TickerDMT
             top={isModalSpendable ? 10 : 25}
-            left={isModalSpendable ? 155 : 75}
+            left={isModalSpendable ? 160 : 75}
           />
           <iframe
             key={data?.inscriptionId}

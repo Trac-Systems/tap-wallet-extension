@@ -86,7 +86,6 @@ const DmtList = () => {
                   padding: '12px 10px',
                   background: '#272727',
                   width: '100%',
-                  marginLeft: '16px',
                 }}>
                 <UX.Text
                   title={`#${dmtCollectibleMap?.[item]?.inscriptionNumber}`}

@@ -116,7 +116,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
           <UX.Box layout="row" spacing="xss_s">
             {dmtGroupMap[contentInscriptionId]?.dmtInscriptionIds?.map(
               (item, index) => {
-                if (index > 1) {
+                if (index > 3) {
                   return;
                 }
                 return (
@@ -149,7 +149,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
               },
             )}
             {dmtGroupMap[contentInscriptionId]?.dmtInscriptionIds?.length >
-            3 ? (
+            5 ? (
               <UX.Box
                 layout="row_center"
                 style={{
@@ -163,7 +163,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                   title={
                     dmtGroupMap[contentInscriptionId]?.dmtInscriptionIds
                       ?.length -
-                    2 +
+                    4 +
                     '+'
                   }
                   styleType="body_14_bold"

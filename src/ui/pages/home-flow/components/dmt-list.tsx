@@ -72,8 +72,12 @@ const DmtList = () => {
               <TickerDMT top={11} />
               <iframe
                 key={item}
-                width="162px"
-                height="162px"
+                width="100%"
+                style={{
+                  height: '28vh',
+                  width: '100%',
+                }}
+                height="28vh"
                 sandbox="allow-scripts allow-same-origin"
                 src={
                   dmtCollectibleMap[item]?.unat

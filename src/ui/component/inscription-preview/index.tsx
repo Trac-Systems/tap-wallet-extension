@@ -46,7 +46,7 @@ const $iframePresets: Record<Presets, CSSProperties> = {
   },
   medium: {
     width: '100%',
-    height: 165,
+    height: '25.6vh',
     borderTopLeftRadius: '10px',
     borderTopRightRadius: '10px',
     borderWidth: '0px',

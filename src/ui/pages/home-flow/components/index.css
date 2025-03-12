@@ -243,6 +243,7 @@
 @media only screen and (min-width: 600px) {
   .image-box {
     width: 500px;
+    height: 500px;
   }
   .image-box-section {
     width: 500px;
@@ -270,7 +271,33 @@
   padding: 10px 0;
   overflow-y: scroll;
 }
+.iframe-img-large {
+  width: 100%;
+  height: 65vh;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.iframe-img-medium {
+  width: 100%;
+  height: 27.4vh;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-width: 0px;
+}
 @media only screen and (min-width: 600px) {
+  .iframe-img-large {
+    width: 100%;
+    height: 58.3vh;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+  .iframe-img-medium {
+    width: 100%;
+    height: 25.6vh;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-width: 0px;
+  }
   .card-spendable {
     height: 55vh;
   }

@@ -1,17 +1,19 @@
-import { UX } from '@/src/ui/component';
+import {UX} from '@/src/ui/component';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
-import { useCustomToast } from '@/src/ui/component/toast-custom';
-import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
-import { SVG } from '@/src/ui/svg';
-import { colors } from '@/src/ui/themes/color';
+import {useCustomToast} from '@/src/ui/component/toast-custom';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {SVG} from '@/src/ui/svg';
+import {colors} from '@/src/ui/themes/color';
 import {
   convertTimestampToDeviceTime,
   getInsUrl,
   getTxIdUrl,
+  useAppSelector,
 } from '@/src/ui/utils';
-import { Inscription } from '@/src/wallet-instance';
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {Inscription} from '@/src/wallet-instance';
+import {useEffect, useMemo, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
 
 const InscriptionDetail = () => {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ const InscriptionDetail = () => {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [changeInscription, setChangeInscription] = useState<boolean>(false);
   const [inscriptions, setInscription] = useState<Inscription[]>();
+  const network = useAppSelector(GlobalSelector.networkType);
 
   const inscriptionInfo = useMemo(() => {
     if (!inscriptions?.length) {
@@ -141,13 +144,13 @@ const InscriptionDetail = () => {
           />
           <UX.Section
             title="Genesis transaction"
-            value={getTxIdUrl(inscriptionInfo?.genesisTransaction)}
-            link={getTxIdUrl(inscriptionInfo?.genesisTransaction)}
+            value={getTxIdUrl(inscriptionInfo?.genesisTransaction, network)}
+            link={getTxIdUrl(inscriptionInfo?.genesisTransaction, network)}
           />
           <UX.Section
             title="Preview"
-            value={getInsUrl(inscriptionInfo?.inscriptionId)}
-            link={getInsUrl(inscriptionInfo?.inscriptionId)}
+            value={getInsUrl(inscriptionInfo?.inscriptionId, network)}
+            link={getInsUrl(inscriptionInfo?.inscriptionId, network)}
           />
         </UX.Box>
       </UX.Box>

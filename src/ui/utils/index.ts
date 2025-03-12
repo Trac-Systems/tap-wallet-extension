@@ -49,8 +49,7 @@ export function convertTimestampToDeviceTime(timestamp: number) {
   return date;
 }
 
-export function getTxIdUrl(txid: string) {
-  const network = networkConfig.getActiveNetwork();
+export function getTxIdUrl(txid: string,network: Network) {
   if (network === Network.MAINNET) {
     return `https://mempool.space/tx/${txid}`;
   } else {
@@ -58,10 +57,9 @@ export function getTxIdUrl(txid: string) {
   }
 }
 
-export function getInsUrl(insId: string) {
-  const network = networkConfig.getActiveNetwork();
+export function getInsUrl(insId: string,network: Network) {
   if (network === Network.MAINNET) {
-    return `https://ordinals.com/inscription/${insId}`;
+    return `https://ordiscan.com/inscription/${insId}`;
   } else {
     return `http://trac.kicks-ass.org:55002/inscription/${insId}`;
   }

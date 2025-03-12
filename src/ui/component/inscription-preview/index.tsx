@@ -38,19 +38,8 @@ const $containerPresets: Record<Presets, CSSProperties> = {
 };
 
 const $iframePresets: Record<Presets, CSSProperties> = {
-  large: {
-    width: '100%',
-    height: 390,
-    borderTopLeftRadius: '10px',
-    borderTopRightRadius: '10px',
-  },
-  medium: {
-    width: '100%',
-    height: '25.6vh',
-    borderTopLeftRadius: '10px',
-    borderTopRightRadius: '10px',
-    borderWidth: '0px',
-  },
+  large: {},
+  medium: {},
   small: {
     width: 120,
     height: 120,
@@ -130,6 +119,7 @@ export default function InscriptionPreview({
             style={{position: 'relative', cursor: 'pointer'}}>
             <TickerDMT top={25} left={75} />
             <Iframe
+              className={`iframe-img-${preset}`}
               preview={preview}
               style={{...$iframePresets[preset], ...styleAslogo}}
             />
@@ -144,19 +134,14 @@ export default function InscriptionPreview({
             top={isModalSpendable ? 10 : 25}
             left={isModalSpendable ? 160 : 75}
           />
-          <iframe
-            key={data?.inscriptionId}
-            style={{
-              ...$iframePresets[preset],
-              ...styleAslogo,
-              pointerEvents: 'none',
-            }}
-            sandbox="allow-scripts allow-same-origin allow-top-navigation"
-            src={
+          <Iframe
+            className={`iframe-img-${preset}`}
+            preview={
               dmtCollectibleMap[data?.inscriptionId]?.unat
                 ? `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`
                 : preview
             }
+            style={{...$iframePresets[preset], ...styleAslogo}}
           />
         </Box>
       );
@@ -173,19 +158,15 @@ export default function InscriptionPreview({
         }}>
         {isSpendable && <TickerSpendable />}
         {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
-        <iframe
-          key={data?.inscriptionId}
-          style={{
-            ...$iframePresets[preset],
-            ...styleAslogo,
-            pointerEvents: 'none',
-          }}
-          sandbox="allow-scripts allow-same-origin allow-top-navigation"
-          src={
+        <Iframe
+          className={`iframe-img-${preset}`}
+          preview={
             dmtCollectibleMap[data?.inscriptionId]?.unat
               ? `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`
               : preview
-          }></iframe>
+          }
+          style={{...$iframePresets[preset], ...styleAslogo}}
+        />
         <Box style={{padding: '12px 10px', background: '#272727'}}>
           <Text
             title={`${numberStr}`}
@@ -204,6 +185,7 @@ export default function InscriptionPreview({
   if (asLogo) {
     return (
       <Iframe
+        className={`iframe-img-${preset}`}
         preview={preview}
         style={{...$iframePresets[preset], ...styleAslogo}}
       />
@@ -221,7 +203,11 @@ export default function InscriptionPreview({
       }}>
       {isSpendable && <TickerSpendable />}
       {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
-      <Iframe preview={preview} style={$iframePresets[preset]} />
+      <Iframe
+        preview={preview}
+        className={`iframe-img-${preset}`}
+        style={$iframePresets[preset]}
+      />
       <Box style={{padding: '12px 10px', background: '#272727'}}>
         <Text
           title={`${numberStr}`}

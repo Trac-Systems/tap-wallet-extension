@@ -64,7 +64,7 @@ const ListWallets = () => {
     return (
       <UX.Box
         layout="column_center"
-        style={{height: '30vh'}}>
+        style={{height: '30vh', position: 'relative'}}>
         <Loading />
       </UX.Box>
     );

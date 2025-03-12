@@ -116,7 +116,6 @@ const Box: React.FC<BoxProps> = ({
         ...layoutStyles,
         gap: spacing ? spaces[spacing] : undefined,
         ...style,
-        position: 'relative'
       }}>
       {children}
     </div>

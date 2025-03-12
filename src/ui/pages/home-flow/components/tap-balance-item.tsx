@@ -238,6 +238,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                     borderRadius: '7px',
                     overflow: 'hidden',
                     background: '#D16B7C',
+                    position: 'relative',
                   }}>
                   {index === 2 ? (
                     <UX.Text

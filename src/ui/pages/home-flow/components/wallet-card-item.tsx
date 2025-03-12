@@ -109,7 +109,7 @@ const WalletCard = (props: IWalletCardProps) => {
           <UX.Box ref={ref}>
             <UX.Box
               onClick={() => setMenuOpen(true)}
-              style={{cursor: 'pointer'}}>
+              style={{cursor: 'pointer', position: 'relative'}}>
               <SVG.DotIcon />
             </UX.Box>
             {menuOpen && (

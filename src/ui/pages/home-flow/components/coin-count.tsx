@@ -22,6 +22,7 @@ const CoinCount = (props: ICoinCountProps) => {
       onClick={() => onClick()}
       style={{
         width: '80px',
+        position: 'relative',
         borderRadius: '7px',
         overflow: 'hidden',
         border: selected ? '1px solid white' : '1px solid black',
@@ -64,6 +65,7 @@ const CoinCount = (props: ICoinCountProps) => {
           background: '#545454',
           padding: '4px 0',
           textAlign: 'center',
+          position: 'relative',
         }}
       />
     </UX.Box>

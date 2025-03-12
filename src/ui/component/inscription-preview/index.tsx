@@ -116,7 +116,7 @@ export default function InscriptionPreview({
         return (
           <Box
             onClick={handleChangeInscription}
-            style={{position: 'relative', cursor: 'pointer'}}>
+            style={{cursor: 'pointer'}}>
             <TickerDMT top={25} left={75} />
             <Iframe
               className={`iframe-img-${preset}`}
@@ -129,7 +129,7 @@ export default function InscriptionPreview({
       return (
         <Box
           onClick={handleChangeInscription}
-          style={{position: 'relative', cursor: 'pointer'}}>
+          style={{cursor: 'pointer'}}>
           <TickerDMT
             top={isModalSpendable ? 10 : 25}
             left={isModalSpendable ? 160 : 75}
@@ -153,7 +153,6 @@ export default function InscriptionPreview({
           ...$containerPresets[preset],
           borderRadius: 10,
           overflow: 'hidden',
-          position: 'relative',
           cursor: 'pointer',
         }}>
         {isSpendable && <TickerSpendable />}
@@ -199,7 +198,6 @@ export default function InscriptionPreview({
         borderRadius: 10,
         cursor: 'pointer',
         overflow: 'hidden',
-        position: 'relative',
       }}>
       {isSpendable && <TickerSpendable />}
       {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}

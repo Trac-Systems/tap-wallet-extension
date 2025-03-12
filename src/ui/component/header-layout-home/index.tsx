@@ -22,7 +22,7 @@ const TextHeader: React.FC<TextHeaderProps> = ({
   return (
     <Box
       layout="column_center"
-      style={{position: 'relative', padding: '20px 0', ...style}}>
+      style={{padding: '20px 0', ...style}}>
       {disableIconBack ? null : (
         <div
           onClick={onBackClick}

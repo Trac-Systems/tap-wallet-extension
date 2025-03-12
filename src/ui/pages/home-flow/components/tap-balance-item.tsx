@@ -233,7 +233,6 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
                   layout="column_center"
                   key={index}
                   style={{
-                    position: 'relative',
                     width: '80px',
                     height: '80px',
                     borderRadius: '7px',

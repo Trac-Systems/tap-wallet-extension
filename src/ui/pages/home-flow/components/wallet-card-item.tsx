@@ -106,7 +106,7 @@ const WalletCard = (props: IWalletCardProps) => {
             title={keyring?.name ?? 'Error'}
             className="nameHdWallet"
           />
-          <div style={{position: 'relative'}} ref={ref}>
+          <UX.Box ref={ref}>
             <UX.Box
               onClick={() => setMenuOpen(true)}
               style={{cursor: 'pointer'}}>
@@ -131,7 +131,7 @@ const WalletCard = (props: IWalletCardProps) => {
                 />
               </div>
             )}
-          </div>
+          </UX.Box>
         </div>
         {checkIsSingleWallet ? null : (
           <UX.Box

@@ -64,7 +64,6 @@ const DmtList = () => {
               }
               style={{
                 cursor: 'pointer',
-                position: 'relative',
                 width: '100%',
                 borderRadius: '10px',
                 overflow: 'hidden',

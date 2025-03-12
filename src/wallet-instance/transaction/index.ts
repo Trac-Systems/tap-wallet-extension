@@ -260,10 +260,23 @@ export class Transaction {
 
   // Select UTXOs while preserving the ordinal inscription
   selectUtxos() {
-    let totalValue = 0;
-    let numInputs = 0;
+    let totalValue = this.getTotalInput() || 0;
+    let numInputs = this.inputs.length || 0;
     let estimatedFee: number;
     let requiredAmount: number;
+
+    // if there are already inputs, calculate the fee and required amount
+    if (this.inputs.length > 0) {
+      estimatedFee = this.calculateTransactionFee(
+        numInputs,
+        this.outputs.length + 1,
+      );
+      requiredAmount = this.getTotalOutput() + estimatedFee;
+      if (totalValue >= requiredAmount) {
+        // selects enough utxos to cover amount and fee and skip the rest
+        return;
+      }
+    }
 
     for (const utxo of this.allBtcUtxos) {
       this.addBtcInput(utxo);

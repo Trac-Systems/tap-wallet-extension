@@ -125,6 +125,11 @@ const InscriptionList = (props: IProps) => {
           await walletProvider.getDmtContentId(k);
         dmtGroupMaps[contentInsId] = {ticker, dmtInscriptionIds: []};
         for (const mintData of v) {
+          // Skip this mintData if it's already in the map, but don't exit the function
+          if (dmtColMapsByTicker[mintData.mintInsId]) {
+            continue;
+          }
+
           dmtColMapsByTicker[mintData.mintInsId] = {
             contentInscriptionId: contentInsId,
             block: mintData?.block,

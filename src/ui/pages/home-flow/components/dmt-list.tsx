@@ -19,7 +19,6 @@ const DmtList = () => {
   const {state} = location;
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
-
   const contentInscriptionId = state.contentInscriptionId;
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
@@ -34,6 +33,7 @@ const DmtList = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
+  // console.log({pathname: location.pathname});
 
   //! Render
   return (
@@ -54,6 +54,7 @@ const DmtList = () => {
                 navigate('/home/inscription-detail', {
                   state: {
                     inscriptionId: item,
+                    // pathName: location.pathname,
                   },
                 })
               }
@@ -62,13 +63,14 @@ const DmtList = () => {
                 width: '100%',
                 borderRadius: '10px',
                 overflow: 'hidden',
+                position: 'relative',
               }}>
               <TickerDMT top={11} />
               <iframe
                 key={item}
                 width="100%"
                 style={{
-                  height: '28vh',
+                  height: '245px',
                   width: '100%',
                 }}
                 height="28vh"

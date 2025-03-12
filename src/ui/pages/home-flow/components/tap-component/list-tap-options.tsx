@@ -1,24 +1,21 @@
-import {UX} from '@/src/ui/component';
+import { formatNumberValue, formatTicker } from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
-import {useLocation, useNavigate} from 'react-router-dom';
-import CoinCount from '../coin-count';
-import {useEffect, useMemo, useState} from 'react';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {
-  useAppSelector,
-} from '@/src/ui/utils';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
+import { useAppSelector } from '@/src/ui/utils';
 import {
   AddressTokenSummary,
   Inscription,
   TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
-import {isEmpty} from 'lodash';
-import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import { isEmpty } from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import CoinCount from '../coin-count';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -31,8 +28,6 @@ const ListTapOptions = () => {
   //! State
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
-
-  const network = useAppSelector(GlobalSelector.networkType);
   const [deployInscriptionState, setDeployInscription] =
     useState<Inscription>();
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>({

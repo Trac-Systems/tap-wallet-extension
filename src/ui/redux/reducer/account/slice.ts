@@ -262,6 +262,23 @@ const AccountSlice = createSlice({
       const {payload} = action;
       state.dmtCollectibleMap = {...state.dmtCollectibleMap, ...payload};
     },
+    // delete inscription from dmt collectible map
+    // and delete inscription from dmt group map
+    removeDmtInscriptionFromCollectibleAndGroup(
+      state: AccountsState,
+      action: {payload: string},
+    ) {
+      const {payload} = action;
+      delete state.dmtCollectibleMap[payload];
+
+      const _dmtGroupMap = state.dmtGroupMap;
+      Object.keys(_dmtGroupMap).forEach(key => {
+        if (_dmtGroupMap[key].dmtInscriptionIds.includes(payload)) {
+          _dmtGroupMap[key].dmtInscriptionIds = _dmtGroupMap[key].dmtInscriptionIds.filter(id => id !== payload);
+        }
+      });
+      state.dmtGroupMap = _dmtGroupMap;
+    },
     resetDmtCollectibleMap(state: AccountsState) {
       state.dmtCollectibleMap = {};
     },

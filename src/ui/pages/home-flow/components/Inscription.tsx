@@ -44,7 +44,7 @@ const InscriptionList = (props: IProps) => {
     const fetchAllInscriptions = async () => {
       setLoading(true);
       // skip if not recognize address or allInscriptions exist for prevent call api many times
-      if (!activeAccount?.address || allInscriptions) {
+      if (!activeAccount?.address) {
         return;
       }
       try {
@@ -104,6 +104,13 @@ const InscriptionList = (props: IProps) => {
                 ? [..._dmtDeployMap[insContent.dep], dmtMintRenderData]
                 : [dmtMintRenderData];
             }
+          }
+          // remove dmt inscription from dmt collectible map
+          // and dmt group map if this inscription had been spend before
+          if (dmtCollectibleMap[insId] && !allInscriptionMap[insId]) {
+            dispatch(
+              AccountActions.removeDmtInscriptionFromCollectibleAndGroup(insId),
+            );
           }
         }
         setDmtDeployMap(_dmtDeployMap);

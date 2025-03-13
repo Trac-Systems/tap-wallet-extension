@@ -72,6 +72,13 @@ const TapListChild = () => {
         .getTapSummary(activeAccount.address, value)
         .then(tapSummary => {
           setTapItem([tapSummary.tokenBalance]);
+          if (tapSummary.tokenBalance.ticker === '' && value === '') {
+            setTapItem(tapList);
+          } else if (tapSummary.tokenBalance.ticker === '') {
+            setTapItem([]);
+          } else {
+            setTapItem([tapSummary.tokenBalance]);
+          }
         })
         .catch(() => {
           if (!value) {

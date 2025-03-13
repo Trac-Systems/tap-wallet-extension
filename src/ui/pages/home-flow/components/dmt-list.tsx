@@ -1,25 +1,25 @@
-import {UX} from '@/src/ui/component';
-import {TickerDMT} from '@/src/ui/component/ticker-dmt';
+import { UX } from '@/src/ui/component';
+import { TickerDMT } from '@/src/ui/component/ticker-dmt';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
-import {colors} from '@/src/ui/themes/color';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import { colors } from '@/src/ui/themes/color';
 import {
   getInscriptionContentLink,
   getRenderDmtLink,
   useAppSelector,
 } from '@/src/ui/utils';
-import {useMemo} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import { useMemo } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const DmtList = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
-  const {state} = location;
+  const {id} = useParams();
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
-  const contentInscriptionId = state.contentInscriptionId;
+  const contentInscriptionId = id;
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
   }, [network]);
@@ -31,9 +31,8 @@ const DmtList = () => {
 
   //! Function
   const handleGoBack = () => {
-    navigate(-1);
+    navigate('/home?tab=1&childTab=1');
   };
-  // console.log({pathname: location.pathname});
 
   //! Render
   return (
@@ -54,7 +53,7 @@ const DmtList = () => {
                 navigate('/home/inscription-detail', {
                   state: {
                     inscriptionId: item,
-                    // pathName: location.pathname,
+                    hash: location.pathname,
                   },
                 })
               }
@@ -69,11 +68,7 @@ const DmtList = () => {
               <iframe
                 key={item}
                 width="100%"
-                style={{
-                  height: '245px',
-                  width: '100%',
-                }}
-                height="28vh"
+                className="iframe-dmt-list"
                 sandbox="allow-scripts allow-same-origin"
                 src={
                   dmtCollectibleMap[item]?.unat

@@ -64,7 +64,7 @@ const InscriptionDetail = () => {
   return (
     <UX.Box className="inscription-detail">
       <UX.Box className="image-box">
-        <UX.Box onClick={() => navigate(-1)} className="circle">
+        <UX.Box onClick={() => navigate(state?.hash)} className="circle">
           <SVG.ArrowBackIcon width={24} height={24} />
         </UX.Box>
         <InscriptionPreview

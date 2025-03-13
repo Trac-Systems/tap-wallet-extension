@@ -47,11 +47,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
   };
 
   const handleNavigate = () => {
-    navigate('/home/dmt-list', {
-      state: {
-        contentInscriptionId: contentInscriptionId,
-      },
-    });
+    navigate(`/home/dmt-list/${contentInscriptionId}`);
   };
 
   return (
@@ -127,6 +123,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                       navigate('/home/inscription-detail', {
                         state: {
                           inscriptionId: item,
+                          hash: location.hash.replace('#', ''),
                         },
                       })
                     }

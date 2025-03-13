@@ -109,6 +109,7 @@ export function InscriptionListChildren(props: IProps) {
                     navigate('/home/inscription-detail', {
                       state: {
                         inscriptionId: data?.inscriptionId,
+                        hash: location.hash.replace('#', ''),
                       },
                     })
                   }
@@ -135,6 +136,7 @@ export function InscriptionListChildren(props: IProps) {
                   navigate('/home/inscription-detail', {
                     state: {
                       inscriptionId: data?.inscriptionId,
+                      hash: location.hash.replace('#', ''),
                     },
                   })
                 }

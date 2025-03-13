@@ -153,7 +153,7 @@ function App() {
           path="/home/inscription-detail"
           element={<InscriptionDetail />}
         />
-        <Route path="/home/dmt-list" element={<DmtList />} />
+        <Route path="/home/dmt-list/:id" element={<DmtList />} />
         {/* Tap */}
         <Route path="/home/list-tap-options" element={<ListTapOptions />} />
         <Route path="/home/tap-transfer" element={<TapTransfer />} />

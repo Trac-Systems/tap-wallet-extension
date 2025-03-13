@@ -275,6 +275,9 @@ const AccountSlice = createSlice({
       Object.keys(_dmtGroupMap).forEach(key => {
         if (_dmtGroupMap[key].dmtInscriptionIds.includes(payload)) {
           _dmtGroupMap[key].dmtInscriptionIds = _dmtGroupMap[key].dmtInscriptionIds.filter(id => id !== payload);
+          if (_dmtGroupMap[key].dmtInscriptionIds.length === 0) {
+            delete _dmtGroupMap[key];
+          }
         }
       });
       state.dmtGroupMap = _dmtGroupMap;

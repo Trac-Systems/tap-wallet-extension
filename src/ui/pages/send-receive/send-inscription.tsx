@@ -55,11 +55,17 @@ const SendInscription = () => {
   const minOutputValue = useMemo(() => {
     if (toInfo.address) {
       const receiverAddressType = getAddressType(toInfo.address);
-      return getUtxoDustThreshold(receiverAddressType);
+      const offset = inscriptions.reduce((acc, ins) => {
+        if (ins.offset > acc) {
+          acc = ins.offset;
+        }
+        return acc;
+      }, 0);
+      return Math.max(getUtxoDustThreshold(receiverAddressType), offset +1);
     } else {
       return 0;
     }
-  }, [toInfo.address]);
+  }, [toInfo.address, inscriptions]);
 
   const prepareSendInscription = usePrepareSendOrdinalsInscriptionCallback();
 

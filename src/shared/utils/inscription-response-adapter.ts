@@ -80,7 +80,7 @@ export const transferResponseToInscription = (
       genesisTransaction: response?.utxo?.txid,
       location: '',
       output: '',
-      offset: response?.offset,
+      offset: ins?.offset || 0,
       contentBody: response?.contentBody,
       utxoHeight: 0,
       utxoConfirmation: 0,

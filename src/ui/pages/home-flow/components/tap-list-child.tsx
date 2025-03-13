@@ -14,12 +14,10 @@ import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance, useInscriptionHook} from '../hook';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 const TapListChild = () => {
   const navigate = useNavigate();
   const {getTapList} = useInscriptionHook();
-  const wallet = useWalletProvider();
 
   //! State
   const accountBalance = useAccountBalance();
@@ -67,27 +65,12 @@ const TapListChild = () => {
   };
 
   const debouncedFetch = useCallback(
-    debounce(async (value: string) => {
-      await wallet
-        .getTapSummary(activeAccount.address, value)
-        .then(tapSummary => {
-          setTapItem([tapSummary.tokenBalance]);
-          if (tapSummary.tokenBalance.ticker === '' && value === '') {
-            setTapItem(tapList);
-          } else if (tapSummary.tokenBalance.ticker === '') {
-            setTapItem([]);
-          } else {
-            setTapItem([tapSummary.tokenBalance]);
-          }
-        })
-        .catch(() => {
-          if (!value) {
-            setTapItem(tapList);
-          } else {
-            setTapItem([]);
-          }
-        });
-    }, 200),
+    debounce( (value: string) => {
+       const filteredData = tapList?.filter((data) =>
+        data.ticker.toLowerCase().includes(value.toLowerCase()),
+      );
+      setTapItem(filteredData);
+    }, 400),
     [tapList],
   );
 

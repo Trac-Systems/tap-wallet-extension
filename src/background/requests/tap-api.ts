@@ -53,6 +53,50 @@ export class TapApi {
   }
 
   // get list tap tokens by address
+  //! Optimize version
+  //   async getAddressTapTokens(
+  //   address: string,
+  //   offset: number,
+  //   max: number,
+  // ): Promise<{ list: TokenBalance[]; total: number }> {
+  //   try {
+  //     const response = await this.api.get(`/getAccountTokensBalance/${address}`, {
+  //       offset,
+  //       max,
+  //     });
+
+  //     // Validate response structure
+  //     const data = response?.data?.data;
+  //     if (!data || !Array.isArray(data.list)) {
+  //       return { list: [], total: 0 };
+  //     }
+
+  //     // Fetch all token info in parallel
+  //     const tokenInfos = await Promise.all(
+  //       data.list.map((tokenBalance) => this.getDeployment(tokenBalance.ticker))
+  //     );
+
+  //     // Process balances
+  //     const list = data.list.map((tokenBalance, index) => {
+  //       const tokenInfo = tokenInfos[index];
+  //       return {
+  //         ...tokenBalance,
+  //         overallBalance: calculateAmount(tokenBalance.overallBalance, tokenInfo?.dec),
+  //         transferableBalance: calculateAmount(tokenBalance.transferableBalance, tokenInfo?.dec),
+  //         tokenInfo,
+  //       };
+  //     });
+
+  //     return {
+  //       list,
+  //       total: data.total ?? 0,
+  //     };
+  //   } catch (error) {
+  //     console.error('Failed to fetch token balances:', error);
+  //     return { list: [], total: 0 };
+  //   }
+  // }
+  //! Slow version
   async getAddressTapTokens(
     address: string,
     offset: number,

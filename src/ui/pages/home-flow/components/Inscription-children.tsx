@@ -47,9 +47,9 @@ export function InscriptionListChildren(props: IProps) {
   };
 
   //! Function
-  useEffect(() => {
-    getInscriptionList(0);
-  }, [activeAccount.key]);
+  // useEffect(() => {
+  //   getInscriptionList(0);
+  // }, [activeAccount.key]);
 
   useEffect(() => {
     fetchSpendableInscriptions();

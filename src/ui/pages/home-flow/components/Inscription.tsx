@@ -1,7 +1,7 @@
 import {UX} from '@/src/ui/component';
 import {Inscription} from '@/src/wallet-instance';
 import {InscriptionListChildren} from './Inscription-children';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
@@ -12,6 +12,8 @@ import {
 } from '@/src/ui/redux/reducer/account/slice';
 import DmtCollection from '@/src/ui/pages/home-flow/components/dmt-collection';
 import {isArray} from 'lodash';
+import {useInscriptionHook} from '@/src/ui/pages/home-flow/hook';
+import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
@@ -22,9 +24,12 @@ interface IProps {
 const InscriptionList = (props: IProps) => {
   const walletProvider = useWalletProvider();
   const dispatch = useAppDispatch();
+  const {getInscriptionList} = useInscriptionHook();
 
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
+  const inscriptions = useAppSelector(InscriptionSelector.listInscription);
+  const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
 
   // group dmt mint by deployment
   const [dmtDeployMap, setDmtDeployMap] = useState<{
@@ -39,28 +44,48 @@ const InscriptionList = (props: IProps) => {
   const [allInscriptions, setAllInscriptions] = useState<Inscription[]>(
     props.allInscriptions || [],
   );
+  const prevInscriptionsRef = useRef<Inscription[]>([]);
+
+  // fetch inscription list at page 1
+  useEffect(() => {
+    getInscriptionList(0);
+  }, [activeAccount.key]);
+
+  // fetch all inscriptions
+  const fetchAllInscriptions = useCallback(async () => {
+    if (!activeAccount?.address) return; // Exit if no address
+
+    setLoading(true);
+
+    try {
+      const inscriptions = await walletProvider.getAllInscriptions(
+        activeAccount.address,
+      );
+
+      // Only update state if new data is different
+      setAllInscriptions(prev => {
+        return JSON.stringify(prev) !== JSON.stringify(inscriptions)
+          ? inscriptions
+          : prev;
+      });
+    } catch (error) {
+      console.error('Failed to fetch all inscriptions:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeAccount.address]); // Depend only on `activeAccount.address`
 
   useEffect(() => {
-    const fetchAllInscriptions = async () => {
-      setLoading(true);
-      // skip if not recognize address or allInscriptions exist for prevent call api many times
-      if (!activeAccount?.address) {
-        return;
-      }
-      try {
-        const inscriptions = await walletProvider.getAllInscriptions(
-          activeAccount.address,
-        );
-        setAllInscriptions(inscriptions);
-      } catch (error) {
-        console.error('Failed to fetch all inscriptions:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllInscriptions();
-  }, [activeAccount.address]);
+    if (inscriptions.length && inscriptions.length < totalInscription) {
+      fetchAllInscriptions();
+    } else if (inscriptions.length >= totalInscription) {
+      setAllInscriptions(prev => {
+        return JSON.stringify(prev) !== JSON.stringify(inscriptions)
+          ? inscriptions
+          : prev;
+      });
+    }
+  }, [inscriptions, totalInscription, fetchAllInscriptions]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -69,7 +94,13 @@ const InscriptionList = (props: IProps) => {
         if (!allInscriptions.length) {
           return; // do nothing
         }
-
+        if (
+          JSON.stringify(prevInscriptionsRef.current) ===
+          JSON.stringify(allInscriptions)
+        ) {
+          return; // Skip if data is the same
+        }
+        prevInscriptionsRef.current = allInscriptions; // Update ref
         // to check inscription had been spend or not
         const allInscriptionMap: {[key: string]: Inscription} =
           allInscriptions.reduce((acc, ins) => {

@@ -1037,13 +1037,20 @@ export class Provider {
     depInscriptionId: string,
   ): Promise<{contentInsId: string; ticker: string; unat: boolean}> => {
     const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
+
     let unat = false;
     let contentIns = depInscriptionId;
-    for (const ins of depIns) {
-      if (ins.inscriptionId && ins.inscriptionId !== depInscriptionId) {
-        contentIns = ins.inscriptionId;
-      }
+
+    if (!depIns) {
+      throw new Error('Fetch inscription info failed');
     }
+    const newestInscription = depIns.reduce(
+      (max, ins) => (ins.offset > max.offset ? ins : max),
+      depIns[0], // Initialize with the first item
+    );
+
+    contentIns = newestInscription.inscriptionId;
+
     try {
       const content = await this.paidApi.getInscriptionContent(contentIns);
       if (content?.id) {

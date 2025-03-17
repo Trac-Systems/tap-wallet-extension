@@ -33,7 +33,7 @@ const dappList = [
     link: 'https://bridge.taparooswap.com/',
   },
   {
-    logo: './images/tapalytics.ico',
+    logo: './images/tapalytics.png',
     title: 'Tapalytics',
     desc: 'Tapalytics',
     link: 'https://www.tapalytics.xyz/',
@@ -75,10 +75,6 @@ const DappPage = () => {
                         height={60}
                         style={{
                           borderRadius: '30px',
-                          background:
-                            item.title === 'Tapalytics'
-                              ? 'white'
-                              : 'transparent',
                         }}
                       />
                       <UX.Box style={{paddingLeft: '10px'}}>

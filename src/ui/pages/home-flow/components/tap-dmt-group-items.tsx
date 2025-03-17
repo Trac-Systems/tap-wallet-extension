@@ -11,6 +11,7 @@ import {colors} from '@/src/ui/themes/color';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useNavigate} from 'react-router-dom';
+import IframeCustom from '@/src/ui/component/iframe-custom';
 
 interface TapDmtGroupItemProps {
   contentInscriptionId: string;
@@ -130,16 +131,17 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
                     style={{
                       cursor: 'pointer',
                     }}>
-                    <iframe
-                      key={item}
-                      width="56px"
-                      height="56px"
-                      sandbox="allow-scripts allow-same-origin"
-                      src={
+                    <IframeCustom
+                      preview={
                         dmtCollectibleMap[item]?.unat
                           ? `${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`
                           : `${contentLink}/${item}`
                       }
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        overflow: 'hidden !important',
+                      }}
                     />
                   </UX.Box>
                 );

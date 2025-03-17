@@ -67,6 +67,7 @@ export interface InscriptionProps {
   changeInscription?: boolean;
   handleChangeInscription?: () => void;
   isModalSpendable?: boolean;
+  setDmtLink?: (data: string) => void;
 }
 
 export default function InscriptionPreview({
@@ -79,6 +80,7 @@ export default function InscriptionPreview({
   changeInscription,
   handleChangeInscription,
   isModalSpendable,
+  setDmtLink,
 }: InscriptionProps) {
   //! State
   const network = useAppSelector(GlobalSelector.networkType);
@@ -106,9 +108,12 @@ export default function InscriptionPreview({
       if (contentInsId) {
         setContentInscription(contentInsId?.contentInscriptionId);
       }
+      if (contentInscription) {
+        setDmtLink(dataPreview);
+      }
     };
     fetchContent();
-  }, [dmtCollectibleMap, data?.inscriptionId]);
+  }, [dmtCollectibleMap, data?.inscriptionId, contentInscription]);
 
   //! Effect function
   if (contentInscription) {

@@ -32,12 +32,19 @@ const dappList = [
     desc: 'TaparooBridge',
     link: 'https://bridge.taparooswap.com/',
   },
+  {
+    logo: './images/tapalytics.ico',
+    title: 'Tapalytics',
+    desc: 'Tapalytics',
+    link: 'https://www.tapalytics.xyz/',
+  },
 ];
 
 const DappPage = () => {
   const navigate = useNavigate();
   const networkType = useAppSelector(GlobalSelector.networkType);
-  const checkMainNetwork = networkType === NETWORK_TYPES.MAINNET.label ? true : false;
+  const checkMainNetwork =
+    networkType === NETWORK_TYPES.MAINNET.label ? true : false;
 
   return (
     <LayoutScreenSettings
@@ -48,34 +55,51 @@ const DappPage = () => {
           spacing="xl"
           style={{margin: '0 24px 16px 24px'}}>
           <UX.Box style={{width: '100%'}} spacing="xl">
-            {checkMainNetwork ? dappList.map(item => {
-              if (!item.title || !item.link) {
-                return;
-              }
+            {checkMainNetwork ? (
+              dappList.map(item => {
+                if (!item.title || !item.link) {
+                  return;
+                }
 
-              return (
-                <UX.Box
-                  key={item.title}
-                  layout="box_border"
-                  style={{cursor: 'pointer'}}
-                  onClick={() => window.open(item.link, '_blank')}>
-                  <UX.Box style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <img src={item.logo} width={60} height={60} style={{borderRadius: '30px'}} />
-                    <UX.Box style={{paddingLeft: '10px'}}>
-                      <UX.Text
-                        title={item.title}
-                        styleType="body_16_bold"
-                        customStyles={{color: 'white'}}
+                return (
+                  <UX.Box
+                    key={item.title}
+                    layout="box_border"
+                    style={{cursor: 'pointer'}}
+                    onClick={() => window.open(item.link, '_blank')}>
+                    <UX.Box
+                      style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <img
+                        src={item.logo}
+                        width={60}
+                        height={60}
+                        style={{
+                          borderRadius: '30px',
+                          background:
+                            item.title === 'Tapalytics'
+                              ? 'white'
+                              : 'transparent',
+                        }}
                       />
-                      {item.desc ? (
-                        <UX.Text title={item.desc} styleType="body_12_normal" />
-                      ) : null}
+                      <UX.Box style={{paddingLeft: '10px'}}>
+                        <UX.Text
+                          title={item.title}
+                          styleType="body_16_bold"
+                          customStyles={{color: 'white'}}
+                        />
+                        {item.desc ? (
+                          <UX.Text
+                            title={item.desc}
+                            styleType="body_12_normal"
+                          />
+                        ) : null}
+                      </UX.Box>
                     </UX.Box>
+                    <SVG.ArrowIconRight />
                   </UX.Box>
-                  <SVG.ArrowIconRight />
-                </UX.Box>
-              );
-            }) :
+                );
+              })
+            ) : (
               <UX.Box>
                 <UX.Text
                   title={'Please change network to LIVENET'}
@@ -85,10 +109,12 @@ const DappPage = () => {
                 <UX.Button
                   styleType="text"
                   title="Go to network setting"
-                  onClick={() => {navigate('/setting/network-type');}}
+                  onClick={() => {
+                    navigate('/setting/network-type');
+                  }}
                 />
               </UX.Box>
-            }
+            )}
           </UX.Box>
         </UX.Box>
       }

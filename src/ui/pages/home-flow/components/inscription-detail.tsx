@@ -24,6 +24,8 @@ const InscriptionDetail = () => {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [changeInscription, setChangeInscription] = useState<boolean>(false);
   const [inscriptions, setInscription] = useState<Inscription[]>();
+  const [dmtLink, setDmtLink] = useState<string>('');
+
   const network = useAppSelector(GlobalSelector.networkType);
 
   const inscriptionInfo = useMemo(() => {
@@ -75,6 +77,7 @@ const InscriptionDetail = () => {
           handleChangeInscription={() =>
             setChangeInscription(!changeInscription)
           }
+          setDmtLink={setDmtLink}
           isCollectibles={state.isCollectibles ?? false}
         />
       </UX.Box>
@@ -152,6 +155,9 @@ const InscriptionDetail = () => {
             value={getInsUrl(inscriptionInfo?.inscriptionId, network)}
             link={getInsUrl(inscriptionInfo?.inscriptionId, network)}
           />
+          {dmtLink ? (
+            <UX.Section title="Render content" value={dmtLink} link={dmtLink} />
+          ) : null}
         </UX.Box>
       </UX.Box>
 

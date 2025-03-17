@@ -148,7 +148,7 @@ const TapDmtGroupItem = (props: TapDmtGroupItemProps) => {
               },
             )}
             {dmtGroupMap[contentInscriptionId]?.dmtInscriptionIds?.length >
-            5 ? (
+            4 ? (
               <UX.Box
                 layout="row_center"
                 style={{

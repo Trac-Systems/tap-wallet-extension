@@ -1,16 +1,17 @@
-import { UX } from '@/src/ui/component';
-import { TickerDMT } from '@/src/ui/component/ticker-dmt';
+import {UX} from '@/src/ui/component';
+import IframeCustom from '@/src/ui/component/iframe-custom';
+import {TickerDMT} from '@/src/ui/component/ticker-dmt';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
-import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
-import { colors } from '@/src/ui/themes/color';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {colors} from '@/src/ui/themes/color';
 import {
   getInscriptionContentLink,
   getRenderDmtLink,
   useAppSelector,
 } from '@/src/ui/utils';
-import { useMemo } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import {useMemo} from 'react';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 
 const DmtList = () => {
   //! State
@@ -65,16 +66,14 @@ const DmtList = () => {
                 position: 'relative',
               }}>
               <TickerDMT top={11} />
-              <iframe
-                key={item}
-                width="100%"
+              <IframeCustom
                 className="iframe-dmt-list"
-                sandbox="allow-scripts allow-same-origin"
-                src={
+                preview={
                   dmtCollectibleMap[item]?.unat
                     ? `${renderDmtLink}/${dmtCollectibleMap[item].contentInscriptionId}/${item}?block=${dmtCollectibleMap[item]?.block}`
                     : `${contentLink}/${item}`
                 }
+                style={{width: '100%'}}
               />
               <UX.Box
                 style={{

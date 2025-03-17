@@ -4,7 +4,6 @@ import {
   PAUSE,
   PERSIST,
   persistReducer,
-  persistStore,
   PURGE,
   REGISTER,
   REHYDRATE,
@@ -18,7 +17,7 @@ const sagaMiddleware = createSagaMiddleware();
 const persistConfig = {
   key: 'TapWallet',
   storage,
-  whitelist: ['globalReducer', 'accountReducer'],
+  whitelist: ['globalReducer'],
   blackList: ['inscriptionReducer'],
 };
 
@@ -34,7 +33,6 @@ const store = configureStore({
 });
 
 export default store;
-export const persistor = persistStore(store);
 
 export type AppState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

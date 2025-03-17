@@ -4,19 +4,21 @@ import {
   PAUSE,
   PERSIST,
   persistReducer,
+  persistStore,
   PURGE,
   REGISTER,
   REHYDRATE,
 } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import rootReducers from '../reducer';
+import storage from 'redux-persist/lib/storage'; // Import đúng storage
 
 const sagaMiddleware = createSagaMiddleware();
 
 const persistConfig = {
   key: 'TapWallet',
-  storage: localStorage,
-  whitelist: ['globalReducer'],
+  storage,
+  whitelist: ['globalReducer', 'accountReducer'],
   blackList: ['inscriptionReducer'],
 };
 
@@ -32,6 +34,7 @@ const store = configureStore({
 });
 
 export default store;
+export const persistor = persistStore(store);
 
 export type AppState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

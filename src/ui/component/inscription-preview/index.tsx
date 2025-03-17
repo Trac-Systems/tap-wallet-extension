@@ -85,7 +85,6 @@ export default function InscriptionPreview({
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
   const [contentInscription, setContentInscription] = useState<string>('');
   const url = '';
-
   let preview = data?.preview;
   const isUnconfirmed = data?.utxoHeight === UNCONFIRMED_HEIGHT;
   const numberStr = isUnconfirmed
@@ -95,9 +94,11 @@ export default function InscriptionPreview({
   if (!preview) {
     preview = url + '/preview/' + data?.inscriptionId;
   }
+
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
   }, [network]);
+  const dataPreview = `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`;
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -138,7 +139,7 @@ export default function InscriptionPreview({
             className={`iframe-img-${preset}`}
             preview={
               dmtCollectibleMap[data?.inscriptionId]?.unat
-                ? `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`
+                ? dataPreview
                 : preview
             }
             style={{...$iframePresets[preset], ...styleAslogo}}
@@ -161,9 +162,7 @@ export default function InscriptionPreview({
         <Iframe
           className={`iframe-img-${preset}`}
           preview={
-            dmtCollectibleMap[data?.inscriptionId]?.unat
-              ? `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`
-              : preview
+            dmtCollectibleMap[data?.inscriptionId]?.unat ? dataPreview : preview
           }
           style={{...$iframePresets[preset], ...styleAslogo}}
         />

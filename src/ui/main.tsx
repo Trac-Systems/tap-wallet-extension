@@ -8,11 +8,12 @@ import {WalletProvider} from './gateway/wallet-provider';
 
 import PortMessage from '../gateway/message/port-message';
 import {Provider} from 'react-redux';
-import store from './redux/store';
+import store, {persistor} from './redux/store';
 import AccountUpdater from './hook/account-updater';
 import eventBus from '../gateway/event-bus';
 import {EVENTS} from '../wallet-instance';
 import {AppDimensions} from './component/responsive';
+import {PersistGate} from 'redux-persist/integration/react';
 
 const portMessageChannel = new PortMessage();
 
@@ -49,13 +50,15 @@ const wallet: Record<string, any> = new Proxy(
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <WalletProvider walletProvider={wallet as any}>
-        <AppDimensions>
-          <App />
-          <AccountUpdater />
-        </AppDimensions>
-        <ToastContainer autoClose={600} />
-      </WalletProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <WalletProvider walletProvider={wallet as any}>
+          <AppDimensions>
+            <App />
+            <AccountUpdater />
+          </AppDimensions>
+          <ToastContainer autoClose={600} />
+        </WalletProvider>
+      </PersistGate>
     </Provider>
   </StrictMode>,
 );

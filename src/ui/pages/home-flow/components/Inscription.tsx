@@ -118,22 +118,26 @@ const InscriptionList = (props: IProps) => {
         for (const insId of data) {
           // skip if dmt existed on dmtCollectibleMap or this one had been spend before
           if (!dmtCollectibleMap[insId] && allInscriptionMap[insId]) {
-            // get inscription content
-            const insContent =
-              await walletProvider.getInscriptionContent(insId);
-            if (insContent?.dep) {
-              const dmtMintRenderData = {
-                mintInsId: insId,
-                block: insContent.blk,
-                inscriptionNumber: allInscriptionMap[insId].inscriptionNumber,
-                outputValue: allInscriptionMap[insId].outputValue,
-              };
-              // push all dmt same ticker to a group
-              _dmtDeployMap[insContent.dep] = isArray(
-                _dmtDeployMap[insContent.dep],
-              )
-                ? [..._dmtDeployMap[insContent.dep], dmtMintRenderData]
-                : [dmtMintRenderData];
+            try {
+              // get inscription content
+              const insContent =
+                await walletProvider.getInscriptionContent(insId);
+              if (insContent?.dep) {
+                const dmtMintRenderData = {
+                  mintInsId: insId,
+                  block: insContent.blk,
+                  inscriptionNumber: allInscriptionMap[insId].inscriptionNumber,
+                  outputValue: allInscriptionMap[insId].outputValue,
+                };
+                // push all dmt same ticker to a group
+                _dmtDeployMap[insContent.dep] = isArray(
+                  _dmtDeployMap[insContent.dep],
+                )
+                  ? [..._dmtDeployMap[insContent.dep], dmtMintRenderData]
+                  : [dmtMintRenderData];
+              }
+            } catch (error) {
+              console.log({error});
             }
           }
           // remove dmt inscription from dmt collectible map

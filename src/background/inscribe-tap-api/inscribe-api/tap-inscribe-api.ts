@@ -5,7 +5,7 @@ import { InscribeOrderResponse } from '../inscribe-dto/inscribe-order-response';
 import { InscribeOrderTransferDto } from '../inscribe-dto/inscribe-order-transfer-dto';
 
 
-const TAP_API = 'http://192.168.0.105:8080/v1/inscribe/order';
+const TAP_API = 'http://157.230.45.91:8080/v1/inscribe/order';
 
 export class InscribeService {
   private api: AxiosRequest;

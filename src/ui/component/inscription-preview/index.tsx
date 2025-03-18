@@ -67,7 +67,7 @@ export interface InscriptionProps {
   changeInscription?: boolean;
   handleChangeInscription?: () => void;
   isModalSpendable?: boolean;
-  setDmtLink?: (data: string) => void;
+  setDmtLink?: (data: boolean) => void;
 }
 
 export default function InscriptionPreview({
@@ -109,7 +109,7 @@ export default function InscriptionPreview({
         setContentInscription(contentInsId?.contentInscriptionId);
       }
       if (contentInscription) {
-        setDmtLink(dataPreview);
+        setDmtLink(true);
       }
     };
     fetchContent();

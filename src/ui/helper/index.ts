@@ -41,3 +41,5 @@ export function satoshisToAmount(val: number = 0): string {
   const num = new BigNumber(val);
   return num.dividedBy(100000000).toFixed(8);
 }
+
+export const linkDetail = 'https://www.tapalytics.xyz/unat'

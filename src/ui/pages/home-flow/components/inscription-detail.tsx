@@ -2,6 +2,7 @@ import {UX} from '@/src/ui/component';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import {useCustomToast} from '@/src/ui/component/toast-custom';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import { linkDetail } from '@/src/ui/helper';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
@@ -24,7 +25,7 @@ const InscriptionDetail = () => {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [changeInscription, setChangeInscription] = useState<boolean>(false);
   const [inscriptions, setInscription] = useState<Inscription[]>();
-  const [dmtLink, setDmtLink] = useState<string>('');
+  const [dmtLink, setDmtLink] = useState<boolean>(false);
 
   const network = useAppSelector(GlobalSelector.networkType);
 
@@ -156,7 +157,7 @@ const InscriptionDetail = () => {
             link={getInsUrl(inscriptionInfo?.inscriptionId, network)}
           />
           {dmtLink ? (
-            <UX.Section title="Render content" value={dmtLink} link={dmtLink} />
+            <UX.Section title="Details" value={`${linkDetail}/${inscriptionInfo.inscriptionId}`} link={`${linkDetail}/${inscriptionInfo.inscriptionId}`} />
           ) : null}
         </UX.Box>
       </UX.Box>

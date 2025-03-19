@@ -163,9 +163,9 @@ const InscriptionList = (props: IProps) => {
       const dmtColMapsByTicker: {[key: string]: DmtCollectible} = {};
       const dmtGroupMaps: {[key: string]: DmtDeployInfo} = {};
       for (const [k, v] of Object.entries(dmtDeployMap)) {
-        const {contentInsId, ticker, unat} =
-          await walletProvider.getDmtContentId(k);
-        dmtGroupMaps[contentInsId] = {ticker, dmtInscriptionIds: []};
+        const {scriptInsId, ticker, unat} =
+          await walletProvider.getDmtScriptId(k);
+        dmtGroupMaps[k] = {ticker, dmtInscriptionIds: []};
         for (const mintData of v) {
           // Skip this mintData if it's already in the map, but don't exit the function
           if (dmtColMapsByTicker[mintData.mintInsId]) {
@@ -173,7 +173,7 @@ const InscriptionList = (props: IProps) => {
           }
 
           dmtColMapsByTicker[mintData.mintInsId] = {
-            contentInscriptionId: contentInsId,
+            contentInscriptionId: scriptInsId,
             block: mintData?.block,
             ticker,
             unat,
@@ -181,7 +181,7 @@ const InscriptionList = (props: IProps) => {
             outputValue: mintData?.outputValue,
           };
 
-          dmtGroupMaps[contentInsId].dmtInscriptionIds.push(mintData.mintInsId);
+          dmtGroupMaps[k].dmtInscriptionIds.push(mintData.mintInsId);
         }
       }
       dispatch(AccountActions.setManyDmtCollectiblesMap(dmtColMapsByTicker));

@@ -1013,51 +1013,28 @@ export class Provider {
     return await this.tapApi.getAccountAllMintsListByTicker(address, ticker);
   };
 
-  getDmtContent = async (depInscriptionId: string) => {
-    const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
-    let contentIns = depInscriptionId;
-    for (const ins of depIns) {
-      if (ins.inscriptionId && ins.inscriptionId !== depInscriptionId) {
-        contentIns = ins.inscriptionId;
-      }
-    }
-    let content = await this.paidApi.getInscriptionContent(contentIns);
-    try {
-      if (content?.id) {
-        content = this.paidApi.getInscriptionContent(content?.id);
-      }
-      return content;
-    } catch (error) {
-      console.log('~ Provider ~ getDmtContent= ~ error:', error);
-      return content;
-    }
-  };
-
-  getDmtContentId = async (
+  getDmtScriptId = async (
     depInscriptionId: string,
-  ): Promise<{contentInsId: string; ticker: string; unat: boolean}> => {
-    const depIns = await this.paidApi.getInscriptionInfo(depInscriptionId);
-
-    let unat = false;
-    let contentIns = depInscriptionId;
-
-    if (!depIns) {
-      throw new Error('Fetch inscription info failed');
-    }
-    const newestInscription = depIns.reduce(
-      (max, ins) => (ins.offset > max.offset ? ins : max),
-      depIns[0], // Initialize with the first item
-    );
-
-    contentIns = newestInscription.inscriptionId;
-
+  ): Promise<{scriptInsId: string; ticker: string; unat: boolean}> => {
     try {
-      const content = await this.paidApi.getInscriptionContent(contentIns);
-      if (content?.id) {
-        contentIns = content?.id;
-        unat = true;
+      const depInfo =
+        await this.paidApi.getInscriptionContent(depInscriptionId);
+
+      const ticker = `dmt-${depInfo?.tick}`;
+      let scriptInsId = '';
+      // fix for dmt-patterns 🔴🟢🔵 have no script id
+      if (
+        depInscriptionId ===
+        '56ae47222d02dbf5cb2181ff4a1c0c41a8b5f1f1c3b27461dbbeff2d2f2ce7d7i0'
+      ) {
+        scriptInsId =
+          'fd7f252b5f4eb07eced6232134509cd21b897d96168478f3b84b3d8dceef88d7i0';
+      } else {
+        scriptInsId = await this.tapApi.getInscriptionScriptByTicker(ticker);
       }
-      return {contentInsId: contentIns, ticker: `dmt-${content?.tick}`, unat};
+
+      const unat = Boolean(scriptInsId);
+      return {scriptInsId: scriptInsId, ticker, unat};
     } catch (error) {
       console.log('Provider ~ getDmtContent= ~ error:', error);
       throw error; // return {contentIns};

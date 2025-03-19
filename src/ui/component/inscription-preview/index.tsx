@@ -67,7 +67,6 @@ export interface InscriptionProps {
   changeInscription?: boolean;
   handleChangeInscription?: () => void;
   isModalSpendable?: boolean;
-  setDmtLink?: (data: boolean) => void;
 }
 
 export default function InscriptionPreview({
@@ -80,12 +79,10 @@ export default function InscriptionPreview({
   changeInscription,
   handleChangeInscription,
   isModalSpendable,
-  setDmtLink,
 }: InscriptionProps) {
   //! State
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
-  const [contentInscription, setContentInscription] = useState<string>('');
   const url = '';
   let preview = data?.preview;
   const isUnconfirmed = data?.utxoHeight === UNCONFIRMED_HEIGHT;
@@ -100,23 +97,10 @@ export default function InscriptionPreview({
   const renderDmtLink = useMemo(() => {
     return getRenderDmtLink(network);
   }, [network]);
-  const dataPreview = `${renderDmtLink}/${contentInscription}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`;
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      const contentInsId = dmtCollectibleMap[data?.inscriptionId];
-      if (contentInsId) {
-        setContentInscription(contentInsId?.contentInscriptionId);
-      }
-      if (contentInscription) {
-        setDmtLink(true);
-      }
-    };
-    fetchContent();
-  }, [dmtCollectibleMap, data?.inscriptionId, contentInscription]);
+  const dataPreview = `${renderDmtLink}/${dmtCollectibleMap[data?.inscriptionId]?.contentInscriptionId}/${data?.inscriptionId}?block=${dmtCollectibleMap[data?.inscriptionId]?.block}`;
 
   //! Effect function
-  if (contentInscription) {
+  if (dmtCollectibleMap[data?.inscriptionId]) {
     if (asLogo) {
       if (changeInscription) {
         return (
@@ -163,7 +147,9 @@ export default function InscriptionPreview({
           cursor: 'pointer',
         }}>
         {isSpendable && <TickerSpendable />}
-        {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
+        {dmtCollectibleMap[data?.inscriptionId] && (
+          <TickerDMT top={isSpendable ? 55 : 11} />
+        )}
         <Iframe
           className={`iframe-img-${preset}`}
           preview={
@@ -206,7 +192,9 @@ export default function InscriptionPreview({
         position: 'relative',
       }}>
       {isSpendable && <TickerSpendable />}
-      {contentInscription && <TickerDMT top={isSpendable ? 55 : 11} />}
+      {dmtCollectibleMap[data?.inscriptionId] && (
+        <TickerDMT top={isSpendable ? 55 : 11} />
+      )}
       <Iframe
         preview={preview}
         className={`iframe-img-${preset}`}

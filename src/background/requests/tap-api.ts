@@ -18,9 +18,11 @@ import {calculateAmount} from '../../shared/utils/btc-helper';
 
 const TAP_API_TESTNET = 'http://31.204.118.7:55005';
 const TAP_API_MAINNET = 'https://tap-reader-tw.tap-hosting.xyz';
+const TAPALYTIC_API_MAINNET = 'https://api.tapapi.xyz';
 
 export class TapApi {
   api!: AxiosRequest;
+  tapalyticApi!: AxiosRequest;
   constructor() {
     if (!this.api) {
       this.init();
@@ -37,10 +39,14 @@ export class TapApi {
     this.api = new AxiosRequest({
       baseUrl: TAP_API_MAINNET,
     });
+    this.tapalyticApi = new AxiosRequest({
+      baseUrl: TAPALYTIC_API_MAINNET,
+    });
     if (network === Network.TESTNET) {
       this.api = new AxiosRequest({
         baseUrl: TAP_API_TESTNET,
       });
+      this.tapalyticApi = undefined;
     }
   }
 
@@ -340,5 +346,17 @@ export class TapApi {
     }
 
     return allResults;
+  }
+
+  async getInscriptionScriptByTicker(ticker: string) {
+    if (!this.tapalyticApi) {
+      return;
+    }
+
+    const response = await this.tapalyticApi.get(
+      `/v1/unats/${encodeURIComponent(ticker)}`,
+      {},
+    );
+    return response?.data?.unats[0]?.script_inscription;
   }
 }

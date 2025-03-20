@@ -45,11 +45,15 @@ const InscriptionList = (props: IProps) => {
     props.allInscriptions || [],
   );
   const prevInscriptionsRef = useRef<Inscription[]>([]);
+  const prevAddressRef = useRef(activeAccount.address);
 
   // fetch inscription list at page 1
   useEffect(() => {
-    getInscriptionList(0);
-  }, [activeAccount.key]);
+    if (prevAddressRef.current !== activeAccount.address) {
+      getInscriptionList(0);
+      prevAddressRef.current = activeAccount.address;
+    }
+  }, [activeAccount.address]);
 
   // fetch all inscriptions
   const fetchAllInscriptions = useCallback(async () => {

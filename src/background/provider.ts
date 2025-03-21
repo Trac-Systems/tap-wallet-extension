@@ -1,3 +1,4 @@
+import { TapInscribeApi } from './requests/tap-inscribe-api';
 import {
   walletService,
   authService,
@@ -27,7 +28,7 @@ import {
   extractAddressFromScript,
 } from './utils';
 import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
-import {mempoolApi, paidApi, tapApi, usdApi} from './requests';
+import {mempoolApi, paidApi, tapApi, tapInscribeApi, usdApi} from './requests';
 import {
   AddressType,
   IDisplayAccount,
@@ -55,9 +56,9 @@ export interface IDerivationPathOption {
 
 export class Provider {
   paidApi: PaidApi = paidApi;
+  tapInscribeApi: TapInscribeApi = tapInscribeApi;
   mempoolApi: MempoolApi = mempoolApi;
   tapApi: TapApi = tapApi;
-
   unlockApp = async (pin: string) => {
     await walletService.unlockWallet(pin);
   };
@@ -145,6 +146,7 @@ export class Provider {
   setActiveNetwork = (network: Network) => {
     networkConfig.setActiveNetwork(network);
     paidApi.changeNetwork();
+    tapInscribeApi.changeNetwork();
     this.mempoolApi.changeNetwork(network);
     this.tapApi.changeNetwork(network);
     const activeAccount = this.getActiveAccount();
@@ -1048,7 +1050,7 @@ export class Provider {
     feeRate: number,
     outputValue: number,
   ) => {
-    return this.paidApi.createOrderRequest(
+    return this.tapInscribeApi.createOrderRequest(
       address,
       tick,
       amount,

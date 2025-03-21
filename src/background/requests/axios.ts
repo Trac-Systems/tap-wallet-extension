@@ -47,9 +47,11 @@ export class AxiosRequest {
   };
 
   post = async (endpoint: string, bodyData: any) => {
+    console.log(`this is endpoint: ${endpoint}`);
+    console.log(`this is bodyData: ${bodyData}`);
     try {
       const response = await this.api.post(endpoint, bodyData);
-      if (response && response.status === 200) {
+      if (response && [200,201,202,204].includes(response.status)) {
         return await Promise.resolve({
           success: true,
           message: response.statusText,

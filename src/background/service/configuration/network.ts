@@ -25,6 +25,7 @@ export class NetworkConfigService {
   }
 
   getActiveNetwork() {
+    console.log(`this is network: ${this.store?.network}`);
     return this.store?.network;
   }
 

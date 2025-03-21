@@ -1060,7 +1060,7 @@ export class Provider {
   };
 
   getInscribeTapResult = (orderId: string) => {
-    return this.paidApi.getInscribeTapResult(orderId);
+    return this.tapInscribeApi.getInscribeTapResult(orderId);
   };
 
   getApproval = notificationService.getApproval;

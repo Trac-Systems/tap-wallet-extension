@@ -84,7 +84,7 @@ const SignPsbt = ({
   const [isLoading, setIsLoading] = useState(false);
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
   const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
-  const [usdPriceAmount, setUsdPriceAmount] = useState(0);
+  // const [usdPriceAmount, setUsdPriceAmount] = useState(0);
   const [extractTx, setExtractTx] = useState<ExtractPsbt>({
     outputs: [],
     inputs: [],
@@ -306,14 +306,14 @@ const SignPsbt = ({
       const responseSpendAmount = await walletProvider.getUSDPrice(
         Number(spendAmount),
       );
-      const responseAmount = await walletProvider.getUSDPrice(
-        Number(netAmount),
-      );
-      setUsdPriceAmount(responseAmount);
+      // const responseAmount = await walletProvider.getUSDPrice(
+      //   Number(netAmount),
+      // );
+      // setUsdPriceAmount(responseAmount);
       setUsdPriceSpendAmount(responseSpendAmount);
     } else {
       setUsdPriceSpendAmount(0);
-      setUsdPriceAmount(0);
+      // setUsdPriceAmount(0);
     }
   };
 
@@ -360,7 +360,7 @@ const SignPsbt = ({
               <SVG.ArrowUpRight />
             </UX.Box>
             <UX.Text
-              title="You are sending"
+              title="Spend Amount"
               styleType="body_16_normal"
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
             />
@@ -368,7 +368,7 @@ const SignPsbt = ({
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text
-                title={`${formatNumberValue(String(usdPriceAmount))} USD`}
+                title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
                 styleType="body_14_normal"
               />
             </UX.Box>
@@ -394,23 +394,6 @@ const SignPsbt = ({
             </UX.Box>
           )}
           <UX.Box layout="box" spacing="xl">
-            <UX.Box>
-              <UX.Box layout="row_between">
-                <UX.Text title="Spend amount" styleType="body_14_normal" />
-                <UX.Text
-                  title={`${spendAmount} BTC`}
-                  styleType="body_14_normal"
-                  customStyles={{color: 'white'}}
-                />
-              </UX.Box>
-              <UX.Box layout="row_end" spacing="xss_s">
-                <UX.Text title="≈" styleType="body_14_normal" />
-                <UX.Text
-                  title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
-                  styleType="body_14_normal"
-                />
-              </UX.Box>
-            </UX.Box>
             {type !== TxType.SIGN_TX && (
               <>
                 <UX.Box layout="row_between">

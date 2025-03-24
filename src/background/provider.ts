@@ -519,7 +519,7 @@ export class Provider {
     const activeWallet = this.getActiveWallet();
 
     const networkType = this.getActiveNetwork();
-    if (!btcUtxos) {
+    if (!btcUtxos || btcUtxos?.length === 0) {
       btcUtxos = await this.getBTCUtxos(account.address);
     }
 
@@ -575,11 +575,11 @@ export class Provider {
       throw new Error('UTXO not found.');
     }
 
-    if (!btcUtxos) {
+    if (!btcUtxos || btcUtxos?.length === 0) {
       btcUtxos = await this.getBTCUtxos(account.address, [inscriptionId]);
     }
 
-    if (btcUtxos.length === 0) {
+    if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
 
@@ -637,11 +637,11 @@ export class Provider {
       );
     }
 
-    if (!btcUtxos) {
+    if (!btcUtxos || btcUtxos?.length === 0) {
       btcUtxos = await this.getBTCUtxos(account.address, inscriptionIds);
     }
 
-    if (btcUtxos.length === 0) {
+    if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
 

@@ -59,9 +59,7 @@ const TapListChild = () => {
   };
 
   const handleNavigate = (tokenBalance: TokenBalance) => {
-    navigate('/home/list-tap-options', {
-      state: {brcTokenBalance: tokenBalance},
-    });
+    navigate(`/home/list-tap-options/${tokenBalance.ticker}`);
   };
 
   const debouncedFetch = useCallback(

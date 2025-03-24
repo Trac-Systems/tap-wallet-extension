@@ -21,6 +21,7 @@ const CoinCount = (props: ICoinCountProps) => {
     <UX.Box
       onClick={() => onClick()}
       style={{
+        cursor: 'pointer',
         width: '80px',
         position: 'relative',
         borderRadius: '7px',

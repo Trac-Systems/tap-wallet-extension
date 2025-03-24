@@ -1,20 +1,20 @@
-import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
-import {UX} from '@/src/ui/component';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import { formatNumberValue, formatTicker } from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
-import {useAppSelector} from '@/src/ui/utils';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
+import { useAppSelector } from '@/src/ui/utils';
 import {
   AddressTokenSummary,
   Inscription,
   TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
-import {isEmpty} from 'lodash';
-import {useEffect, useMemo, useState} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import { isEmpty } from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import CoinCount from '../coin-count';
 
 const ListTapOptions = () => {
@@ -23,8 +23,8 @@ const ListTapOptions = () => {
   const wallet = useWalletProvider();
   const location = useLocation();
   // TODO: brcTokenBalance is param passing, need check brcTokenBalance when back from other screen
-  const {state} = location;
-  const brcTokenBalance = state?.brcTokenBalance;
+    const {id} = useParams();
+
   //! State
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -32,7 +32,7 @@ const ListTapOptions = () => {
     useState<Inscription>();
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>({
     tokenBalance: {
-      ticker: brcTokenBalance?.ticker,
+      ticker: id,
       overallBalance: '',
       availableBalance: '',
       transferableBalance: '',
@@ -64,7 +64,7 @@ const ListTapOptions = () => {
         tokenBalance: tokenSummary?.tokenBalance,
         selectedInscriptionIds: selectedInscriptionIds,
         selectedAmount: selectedAmount.toString(),
-        ticker: brcTokenBalance?.ticker,
+        ticker: id,
       },
     });
   };
@@ -76,7 +76,7 @@ const ListTapOptions = () => {
   const fetchData = () => {
     setLoading(true);
     wallet
-      .getTapSummary(activeAccount.address, brcTokenBalance?.ticker)
+      .getTapSummary(activeAccount.address, id)
       .then((tokenSummaryData: AddressTokenSummary) => {
         if (tokenSummaryData.tokenInfo.holder === activeAccount.address) {
           wallet
@@ -130,7 +130,7 @@ const ListTapOptions = () => {
     deployInscriptionState
       ? {
           ...deployInscriptionState,
-          ticker: brcTokenBalance?.ticker,
+          ticker: id,
           amount: '0',
           inscriptionNumber: deployInscriptionState?.inscriptionNumber,
           inscriptionId: deployInscriptionState?.inscriptionId,
@@ -148,7 +148,7 @@ const ListTapOptions = () => {
     navigate('/home/inscription-detail', {
       state: {
         inscriptionId: inscription?.inscriptionId,
-        hash: location.hash.replace('#', ''),
+        hash: location.pathname,
       },
     });
   };
@@ -173,7 +173,7 @@ const ListTapOptions = () => {
               customStyles={{color: colors.white, marginRight: '8px'}}
             />
             <UX.Text
-              title={formatTicker(brcTokenBalance?.ticker)}
+              title={formatTicker(id)}
               styleType="body_14_bold"
               customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
             />
@@ -206,7 +206,7 @@ const ListTapOptions = () => {
                 customStyles={{color: colors.white}}
               />
               <UX.Text
-                title={formatTicker(brcTokenBalance?.ticker)}
+                title={formatTicker(id)}
                 styleType="body_12_bold"
                 customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
               />
@@ -225,7 +225,7 @@ const ListTapOptions = () => {
                     {deployInscriptionState && index === 0 ? (
                       <CoinCount
                         type="DEPLOY"
-                        ticker={formatTicker(brcTokenBalance?.ticker)}
+                        ticker={formatTicker(id)}
                         balance={item?.amount}
                         inscriptionNumber={item?.inscriptionNumber}
                         onClick={() => tapPreviewItemOnPress(item)}
@@ -233,7 +233,7 @@ const ListTapOptions = () => {
                     ) : (
                       <CoinCount
                         type="TRANSFER"
-                        ticker={formatTicker(brcTokenBalance?.ticker)}
+                        ticker={formatTicker(id)}
                         balance={item?.amount}
                         inscriptionNumber={item?.inscriptionNumber}
                         onClick={() => tapPreviewItemOnPress(item)}

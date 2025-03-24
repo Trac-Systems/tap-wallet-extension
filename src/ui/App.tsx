@@ -155,7 +155,7 @@ function App() {
         />
         <Route path="/home/dmt-list/:id" element={<DmtList />} />
         {/* Tap */}
-        <Route path="/home/list-tap-options" element={<ListTapOptions />} />
+        <Route path="/home/list-tap-options/:id" element={<ListTapOptions />} />
         <Route path="/home/tap-transfer" element={<TapTransfer />} />
         <Route
           path="/home/inscribe-transfer-tap"

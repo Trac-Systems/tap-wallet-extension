@@ -264,7 +264,7 @@ const SignPsbt = ({
       ?.filter(v => v.address !== activeAccountAddress)
       .reduce((pre, cur) => cur.value + pre, 0);
   }, [extractTx?.inputs, extractTx?.outputs]);
-  const netAmount = useMemo(() => satoshisToAmount(netSatoshis), [netSatoshis]);
+  // const netAmount = useMemo(() => satoshisToAmount(netSatoshis), [netSatoshis]);
 
   const spendSatoshis = useMemo(() => {
     if (isEmpty(extractTx?.inputs) || isEmpty(extractTx?.outputs)) {
@@ -302,7 +302,7 @@ const SignPsbt = ({
   }, [inputsForSign]);
 
   const fetchDataUSD = async () => {
-    if (Number(spendAmount) || Number(netAmount)) {
+    if (Number(spendAmount)) {
       const responseSpendAmount = await walletProvider.getUSDPrice(
         Number(spendAmount),
       );
@@ -319,7 +319,7 @@ const SignPsbt = ({
 
   useEffect(() => {
     fetchDataUSD();
-  }, [spendAmount, netAmount]);
+  }, [spendAmount]);
 
   useEffect(() => {
     let timer: any;
@@ -364,7 +364,7 @@ const SignPsbt = ({
               styleType="body_16_normal"
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
             />
-            <UX.Text title={`${netAmount} BTC`} styleType="heading_24" />
+            <UX.Text title={`${spendAmount} BTC`} styleType="heading_24" />
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text

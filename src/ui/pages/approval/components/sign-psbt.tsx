@@ -95,6 +95,7 @@ const SignPsbt = ({
     },
   });
   const [inputsForSign, setInputsForSign] = useState<InputForSigning[]>([]);
+  const [isReceipt, setIsReceipt] = useState(false);
   const account = useAppSelector(AccountSelector.activeAccount);
   const network = useAppSelector(GlobalSelector.networkType);
   const activeAccountAddress = account.address;
@@ -260,11 +261,28 @@ const SignPsbt = ({
     if (isEmpty(extractTx?.inputs) || isEmpty(extractTx?.outputs)) {
       return 0;
     }
-    return extractTx?.outputs
+    const inValue = extractTx?.inputs.reduce((pre, cur) => cur.value + pre, 0);
+
+    const inAccount = extractTx?.inputs
+      ?.filter(v => v.address === activeAccountAddress)
+      .reduce((pre, cur) => cur.value + pre, 0);
+
+    const outAccount = extractTx?.outputs
+      ?.filter(v => v.address === activeAccountAddress)
+      .reduce((pre, cur) => cur.value + pre, 0);
+
+    const outOther = extractTx?.outputs
       ?.filter(v => v.address !== activeAccountAddress)
       .reduce((pre, cur) => cur.value + pre, 0);
+
+    if (inAccount < outAccount) {
+      setIsReceipt(true);
+    }
+
+    const net = inValue - outAccount - outOther;
+    return Math.abs(net);
   }, [extractTx?.inputs, extractTx?.outputs]);
-  // const netAmount = useMemo(() => satoshisToAmount(netSatoshis), [netSatoshis]);
+  const netAmount = useMemo(() => satoshisToAmount(netSatoshis), [netSatoshis]);
 
   const spendSatoshis = useMemo(() => {
     if (isEmpty(extractTx?.inputs) || isEmpty(extractTx?.outputs)) {
@@ -364,7 +382,7 @@ const SignPsbt = ({
               styleType="body_16_normal"
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
             />
-            <UX.Text title={`${spendAmount} BTC`} styleType="heading_24" />
+            <UX.Text title={`${isReceipt ? '+' : '-'}${netAmount} BTC`} styleType="heading_24" />
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text

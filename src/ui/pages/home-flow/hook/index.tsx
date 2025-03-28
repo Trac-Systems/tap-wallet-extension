@@ -106,8 +106,9 @@ export const useInscriptionHook = () => {
 
   const getTapList = async (page: number) => {
     try {
+      const account = await wallet.getActiveAccount();
       const {list, total} = await wallet.getTapList(
-        activeAccount.address,
+        account.address,
         page,
         TOKEN_PAGE_SIZE,
       );

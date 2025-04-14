@@ -257,54 +257,37 @@ const SignPsbt = ({
     setInputsForSign(rawTxInfo?.inputForSigns);
   }, [rawTxInfo?.inputForSigns && type !== TxType.SIGN_TX]);
 
-  const netSatoshis = useMemo(() => {
+  const receiveSatoshis = useMemo(() => {
     if (isEmpty(extractTx?.inputs) || isEmpty(extractTx?.outputs)) {
       return 0;
     }
-    const inValue = extractTx?.inputs.reduce((pre, cur) => cur.value + pre, 0);
-
-    const inAccount = extractTx?.inputs
-      ?.filter(v => v.address === activeAccountAddress)
-      .reduce((pre, cur) => cur.value + pre, 0);
-
-    const outAccount = extractTx?.outputs
-      ?.filter(v => v.address === activeAccountAddress)
-      .reduce((pre, cur) => cur.value + pre, 0);
-
-    const outOther = extractTx?.outputs
-      ?.filter(v => v.address !== activeAccountAddress)
-      .reduce((pre, cur) => cur.value + pre, 0);
-
-    if (inAccount < outAccount) {
-      setIsReceipt(true);
-    }
-
-    const net = inValue - outAccount - outOther;
-    return Math.abs(net);
-  }, [extractTx?.inputs, extractTx?.outputs]);
-  const netAmount = useMemo(() => satoshisToAmount(netSatoshis), [netSatoshis]);
-
-  const spendSatoshis = useMemo(() => {
-    if (isEmpty(extractTx?.inputs) || isEmpty(extractTx?.outputs)) {
-      return 0;
-    }
-    const inValue = extractTx?.inputs?.reduce((pre, cur) => cur.value + pre, 0);
-
     const outValue = extractTx?.outputs
       ?.filter(v => v.address === activeAccountAddress)
       .reduce((pre, cur) => cur.value + pre, 0);
 
-    if (!inValue || !outValue) {
-      return 0;
-    }
-
-    const spend = inValue - outValue;
-    return spend;
+    return outValue;
   }, [extractTx?.inputs, extractTx?.outputs]);
 
-  const spendAmount = useMemo(
-    () => satoshisToAmount(spendSatoshis),
-    [spendSatoshis],
+
+  const spendSatoshis = useMemo(() => {
+    const inValue = extractTx?.inputs
+      ?.filter(v => v.address === activeAccountAddress)
+      .reduce((pre, cur) => cur.value + pre, 0);
+
+    return inValue;
+  }, [extractTx?.inputs, extractTx?.outputs]);
+
+
+  const balanceChangedAmount = useMemo(
+    () => {
+      const net = receiveSatoshis - spendSatoshis;
+
+      if (net > 0) {
+        setIsReceipt(true);
+      }
+      return satoshisToAmount(Math.abs(net));
+    },
+    [receiveSatoshis, spendSatoshis]
   );
 
   const networkFee = useMemo(
@@ -320,15 +303,12 @@ const SignPsbt = ({
   }, [inputsForSign]);
 
   const fetchDataUSD = async () => {
-    if (Number(spendAmount)) {
-      const responseSpendAmount = await walletProvider.getUSDPrice(
-        Number(spendAmount),
+    if (Number(balanceChangedAmount)) {
+      const changeAmount = await walletProvider.getUSDPrice(
+        Number(balanceChangedAmount),
       );
-      // const responseAmount = await walletProvider.getUSDPrice(
-      //   Number(netAmount),
-      // );
-      // setUsdPriceAmount(responseAmount);
-      setUsdPriceSpendAmount(responseSpendAmount);
+      setUsdPriceSpendAmount(changeAmount);
+      // setUsdPriceSpendAmount(re);
     } else {
       setUsdPriceSpendAmount(0);
       // setUsdPriceAmount(0);
@@ -337,16 +317,16 @@ const SignPsbt = ({
 
   useEffect(() => {
     fetchDataUSD();
-  }, [spendAmount]);
+  }, [balanceChangedAmount]);
 
   useEffect(() => {
     let timer: any;
 
-    if (!netSatoshis || !spendSatoshis) {
+    if (!receiveSatoshis || !spendSatoshis) {
       setIsLoading(true);
 
       timer = setTimeout(() => {
-        if (!netSatoshis || !spendSatoshis) {
+        if (!receiveSatoshis || !spendSatoshis) {
           setIsLoading(false);
         }
       }, 2000);
@@ -355,7 +335,7 @@ const SignPsbt = ({
     }
 
     return () => clearTimeout(timer);
-  }, [netSatoshis, spendSatoshis]);
+  }, [receiveSatoshis, spendSatoshis]);
 
   if (isLoading) {
     return <UX.Loading />;
@@ -377,12 +357,12 @@ const SignPsbt = ({
               }}>
               <SVG.ArrowUpRight />
             </UX.Box>
-            <UX.Text
+            {/* <UX.Text
               title="Spend Amount"
               styleType="body_16_normal"
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
-            />
-            <UX.Text title={`${isReceipt ? '+' : '-'}${netAmount} BTC`} styleType="heading_24" />
+            /> */}
+            <UX.Text title={`${isReceipt ? '+' : '-'}${balanceChangedAmount} BTC`} styleType="heading_24" />
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text

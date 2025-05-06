@@ -33,6 +33,8 @@ interface TextAreaProps {
   onBlur?: () => void;
   className?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  height?: string;
+  width?: string;
 }
 
 interface MaxLengthInputProps
@@ -162,6 +164,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       onBlur,
       onChange,
       className,
+      height = '150px',
       ...rest
     } = props;
 
@@ -177,9 +180,10 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           onBlur={onBlur}
           onChange={onChange}
           style={{
-            height: '150px',
+            height: height,
             resize: 'none',
             minWidth: '310px',
+            width: 'auto',
             borderRadius: '10px',
             padding: '16px',
             border: '1px solid #545454',

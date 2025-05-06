@@ -33,7 +33,7 @@ const TapListChild = () => {
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,
   });
-
+  const isHaveAuthority = true;
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;
@@ -63,8 +63,8 @@ const TapListChild = () => {
   };
 
   const debouncedFetch = useCallback(
-    debounce( (value: string) => {
-       const filteredData = tapList?.filter((data) =>
+    debounce((value: string) => {
+      const filteredData = tapList?.filter(data =>
         data.ticker.toLowerCase().includes(value.toLowerCase()),
       );
       setTapItem(filteredData);
@@ -122,6 +122,23 @@ const TapListChild = () => {
           onChange={handleChange}
           value={tokenValue}
         />
+      </UX.Box>
+      <UX.Box
+        layout="box_border"
+        style={{cursor: 'pointer'}}
+        onClick={() => {
+          if (isHaveAuthority) {
+            navigate('/authority');
+          } else {
+            navigate('/create-authority', {
+              state: {
+                type: 'create',
+              },
+            });
+          }
+        }}>
+        <UX.Text title="Enable tx transfer" styleType="body_16_bold" />
+        <SVG.ArrowIconRight width={23} height={18} />
       </UX.Box>
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>

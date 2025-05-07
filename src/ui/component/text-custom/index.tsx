@@ -66,6 +66,14 @@ const type = {
     fontWeight: 500,
     lineHeight: '24px',
   }),
+  body_16_extra_bold: Object.assign({
+    color: colors.smoke,
+    fontFamily: 'Exo',
+    fontSize: '16px',
+    fontStyle: 'normal',
+    fontWeight: 700,
+    lineHeight: '24px',
+  }),
   body_14_bold: Object.assign({
     color: colors.smoke,
     fontFamily: 'Exo',

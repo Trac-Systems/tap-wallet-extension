@@ -33,6 +33,7 @@ const TapListChild = () => {
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,
   });
+  const tickerDemo = 'thuy';
   const isHaveAuthority = true;
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
@@ -140,6 +141,17 @@ const TapListChild = () => {
         <UX.Text title="Enable tx transfer" styleType="body_16_bold" />
         <SVG.ArrowIconRight width={23} height={18} />
       </UX.Box>
+      <UX.Button
+        styleType={'primary'}
+        title="1-TX Transfer"
+        onClick={() =>
+          navigate(`/home/list-tap-options/${tickerDemo}`, {
+            state: {
+              isAuthority: true,
+            },
+          })
+        }
+      />
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>
           <UX.Box

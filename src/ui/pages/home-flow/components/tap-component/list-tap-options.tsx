@@ -1,20 +1,20 @@
-import { formatNumberValue, formatTicker } from '@/src/shared/utils/btc-helper';
-import { UX } from '@/src/ui/component';
-import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
+import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
+import {UX} from '@/src/ui/component';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
-import { SVG } from '@/src/ui/svg';
-import { colors } from '@/src/ui/themes/color';
-import { useAppSelector } from '@/src/ui/utils';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {SVG} from '@/src/ui/svg';
+import {colors} from '@/src/ui/themes/color';
+import {useAppSelector} from '@/src/ui/utils';
 import {
   AddressTokenSummary,
   Inscription,
   TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
-import { isEmpty } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import {isEmpty} from 'lodash';
+import {useEffect, useMemo, useState} from 'react';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import CoinCount from '../coin-count';
 
 const ListTapOptions = () => {
@@ -23,7 +23,9 @@ const ListTapOptions = () => {
   const wallet = useWalletProvider();
   const location = useLocation();
   // TODO: brcTokenBalance is param passing, need check brcTokenBalance when back from other screen
-    const {id} = useParams();
+  const {id} = useParams();
+  const {state} = location;
+  const isAuthority = state?.isAuthority ?? false;
 
   //! State
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,7 @@ const ListTapOptions = () => {
       (pre, cur) => new BigNumber(cur.amount).plus(pre),
       new BigNumber(0),
     );
+
     return navigate('/home/tap-transfer', {
       state: {
         tokenBalance: tokenSummary?.tokenBalance,
@@ -145,6 +148,7 @@ const ListTapOptions = () => {
   const tapPreviewItemOnPress = async (item: TokenTransfer) => {
     const inscriptions = await wallet.getInscriptionInfo(item?.inscriptionId);
     const inscription = inscriptions?.length ? inscriptions[0] : undefined;
+
     navigate('/home/inscription-detail', {
       state: {
         inscriptionId: inscription?.inscriptionId,
@@ -166,23 +170,34 @@ const ListTapOptions = () => {
       }
       body={
         <UX.Box>
-          <UX.Box layout="row_center" style={{margin: '20px 0'}}>
+          {isAuthority ? (
+            <UX.Text
+              title="Total balance"
+              styleType="body_16_normal"
+              customStyles={{marginBottom: 8, textAlign: 'center'}}
+            />
+          ) : null}
+          <UX.Box layout="row_center" style={{marginBottom: 20}}>
             <UX.Text
               title={balance}
-              styleType="body_16_bold"
+              styleType="body_20_extra_bold"
               customStyles={{color: colors.white, marginRight: '8px'}}
             />
             <UX.Text
               title={formatTicker(id)}
-              styleType="body_14_bold"
+              styleType="body_20_extra_bold"
               customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
             />
           </UX.Box>
           <UX.Box layout="row" spacing="xl">
             <UX.Button
-              title="Transfer"
+              title={isAuthority ? '1-TX Transfer' : 'Transfer'}
               isDisable={!enableTransfer}
-              onClick={handleNavigate}
+              onClick={() => {
+                navigate('/transfer-authority', {
+                  state: {ticker: id},
+                });
+              }}
               svgIcon={
                 <SVG.TransferIcon color="white" width={20} height={20} />
               }
@@ -191,6 +206,20 @@ const ListTapOptions = () => {
               customStyles={{flex: 1, flexDirection: 'row-reverse'}}
             />
           </UX.Box>
+          {isAuthority ? (
+            <UX.Text
+              onClick={handleNavigate}
+              title="Use Native Transfer"
+              styleType="body_16_bold"
+              customStyles={{
+                margin: '20px 0',
+                color: 'white',
+                textDecoration: 'underline',
+                textAlign: 'center',
+                cursor: 'pointer',
+              }}
+            />
+          ) : null}
           <UX.Divider color="#fff" />
           {/* Transferable */}
           <UX.Box layout="row_between">

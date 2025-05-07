@@ -52,6 +52,7 @@ import DmtList from './pages/home-flow/components/dmt-list';
 import CreateAuthority from './pages/authority/create-authority';
 import SignAuthority from './pages/authority/sign-authority';
 import Authority from './pages/authority/authority';
+import TransferAuthority from './pages/authority/transfer-authority';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -233,6 +234,7 @@ function App() {
         <Route path="/create-authority" element={<CreateAuthority />} />
         <Route path="/sign-authority" element={<SignAuthority />} />
         <Route path="/authority" element={<Authority />} />
+        <Route path="/transfer-authority" element={<TransferAuthority />} />
       </Routes>
     </HashRouter>
   );

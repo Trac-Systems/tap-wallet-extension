@@ -1,14 +1,12 @@
-import {UX} from '@/src/ui/component';
-import {SVG} from '@/src/ui/svg';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {getRenderDmtLink, useAppSelector} from '@/src/ui/utils';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {AddressTokenSummary} from '@/src/wallet-instance';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
-import {colors} from '@/src/ui/themes/color';
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {UX} from '@/src/ui/component';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {SVG} from '@/src/ui/svg';
+import {useAppSelector} from '@/src/ui/utils';
+import {AddressTokenSummary} from '@/src/wallet-instance';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -20,13 +18,7 @@ interface TapBalanceItemProps {
 
 const TapBalanceItem = (props: TapBalanceItemProps) => {
   const wallet = useWalletProvider();
-  const network = useAppSelector(GlobalSelector.networkType);
-  const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
-  const {ticker, overallBalance, handleNavigate, tagColor, tokenInfo} = props;
-
-  const renderDmtLink = useMemo(() => {
-    return getRenderDmtLink(network);
-  }, [network]);
+  const {ticker, overallBalance, handleNavigate, tagColor} = props;
 
   //! Ref
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});

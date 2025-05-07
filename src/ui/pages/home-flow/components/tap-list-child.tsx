@@ -145,11 +145,7 @@ const TapListChild = () => {
         styleType={'primary'}
         title="1-TX Transfer"
         onClick={() =>
-          navigate(`/home/list-tap-options/${tickerDemo}`, {
-            state: {
-              isAuthority: true,
-            },
-          })
+          navigate('/transfer-authority')
         }
       />
       <UX.Box layout="box">

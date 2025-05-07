@@ -24,8 +24,6 @@ const ListTapOptions = () => {
   const location = useLocation();
   // TODO: brcTokenBalance is param passing, need check brcTokenBalance when back from other screen
   const {id} = useParams();
-  const {state} = location;
-  const isAuthority = state?.isAuthority ?? false;
 
   //! State
   const [loading, setLoading] = useState(false);
@@ -170,13 +168,11 @@ const ListTapOptions = () => {
       }
       body={
         <UX.Box>
-          {isAuthority ? (
             <UX.Text
               title="Total balance"
               styleType="body_16_normal"
               customStyles={{marginBottom: 8, textAlign: 'center'}}
             />
-          ) : null}
           <UX.Box layout="row_center" style={{marginBottom: 20}}>
             <UX.Text
               title={balance}
@@ -191,7 +187,7 @@ const ListTapOptions = () => {
           </UX.Box>
           <UX.Box layout="row" spacing="xl">
             <UX.Button
-              title={isAuthority ? '1-TX Transfer' : 'Transfer'}
+              title={'1-TX Transfer'}
               isDisable={!enableTransfer}
               onClick={() => {
                 navigate('/transfer-authority', {
@@ -206,7 +202,6 @@ const ListTapOptions = () => {
               customStyles={{flex: 1, flexDirection: 'row-reverse'}}
             />
           </UX.Box>
-          {isAuthority ? (
             <UX.Text
               onClick={handleNavigate}
               title="Use Native Transfer"
@@ -219,7 +214,6 @@ const ListTapOptions = () => {
                 cursor: 'pointer',
               }}
             />
-          ) : null}
           <UX.Divider color="#fff" />
           {/* Transferable */}
           <UX.Box layout="row_between">

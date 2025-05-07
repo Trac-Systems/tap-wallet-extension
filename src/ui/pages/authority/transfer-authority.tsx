@@ -1,18 +1,18 @@
-import {useLocation, useNavigate} from 'react-router-dom';
+import { formatAmountNumber } from '@/src/shared/utils/btc-helper';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { UX } from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
-import {UX} from '../../component';
-import {colors} from '../../themes/color';
-import {formatAmountNumber} from '@/src/shared/utils/btc-helper';
-import {useState} from 'react';
-import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
-import {SVG} from '../../svg';
+import { SVG } from '../../svg';
+import { colors } from '../../themes/color';
+import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
 
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
-  const location = useLocation();
-  const {state} = location;
-  const ticker = state?.ticker;
+  // const location = useLocation();
+  // const {state} = location;
+  const ticker = 'thuy';
   const amount = '0.12367124';
   const [tokenSections, setTokenSections] = useState([
     {id: Date.now(), selected: 'option1'},

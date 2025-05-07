@@ -128,15 +128,15 @@ const TapListChild = () => {
         layout="box_border"
         style={{cursor: 'pointer'}}
         onClick={() => {
-          if (isHaveAuthority) {
-            navigate('/authority');
-          } else {
+          // if (isHaveAuthority) {
+          //   navigate('/authority');
+          // } else {
             navigate('/create-authority', {
               state: {
                 type: 'create',
               },
             });
-          }
+          // }
         }}>
         <UX.Text title="Enable tx transfer" styleType="body_16_bold" />
         <SVG.ArrowIconRight width={23} height={18} />

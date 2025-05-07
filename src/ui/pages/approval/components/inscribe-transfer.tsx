@@ -290,12 +290,12 @@ export const Step2 = ({
     [rawTxInfo.fee],
   );
   const outputValue = useMemo(
-    () => satoshisToAmount(order.outputValue),
-    [order.outputValue],
+    () => satoshisToAmount(order.postage),
+    [order.postage],
   );
   const minerFee = useMemo(
-    () => satoshisToAmount(order.minerFee + rawTxInfo.fee),
-    [order.minerFee],
+    () => satoshisToAmount(order.networkFee + order.sizeToFee),
+    [order.networkFee, order.sizeToFee],
   );
   const serviceFee = useMemo(
     () => satoshisToAmount(order.serviceFee),
@@ -405,8 +405,8 @@ export const Step3 = ({
   const account = useAppSelector(AccountSelector.activeAccount);
   const activeAccountAddress = account.address;
   const minerFee = useMemo(
-    () => satoshisToAmount(order.minerFee + rawTxInfo.fee),
-    [order.minerFee],
+    () => satoshisToAmount(order.networkFee + order.sizeToFee),
+    [order.networkFee, order.sizeToFee],
   );
   // const serviceFee = useMemo(
   //   () => satoshisToAmount(order.serviceFee),

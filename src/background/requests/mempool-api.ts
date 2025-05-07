@@ -2,7 +2,7 @@ import {Network} from '../../wallet-instance';
 import {networkConfig} from '../service/singleton';
 import {AxiosRequest} from './axios';
 
-export const MEMPOOL_API_TESTNET = 'https://mempool.space/testnet';
+export const MEMPOOL_API_TESTNET = 'http://trac.intern.ungueltig.com:55001';
 export const MEMPOOL_API_MAINNET = 'https://mempool.space';
 export const API_ELECTRS = 'https://electrs-tw.tap-hosting.xyz';
 
@@ -33,13 +33,11 @@ export class MempoolApi {
         // apiKey: PAID_API_KEY_TESTNET,
       });
       this.api_electrs = new AxiosRequest({
-        baseUrl: MEMPOOL_API_TESTNET + '/api/'
+        baseUrl: MEMPOOL_API_TESTNET,
       });
-    }
-    else
-    {
+    } else {
       this.api_electrs = new AxiosRequest({
-        baseUrl: API_ELECTRS
+        baseUrl: API_ELECTRS,
       });
     }
   }

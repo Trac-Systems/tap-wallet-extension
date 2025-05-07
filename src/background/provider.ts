@@ -27,7 +27,7 @@ import {
   extractAddressFromScript,
 } from './utils';
 import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
-import {mempoolApi, paidApi, tapApi, usdApi} from './requests';
+import {mempoolApi, paidApi, tapApi, inscribeApi, usdApi} from './requests';
 import {
   AddressType,
   IDisplayAccount,
@@ -47,6 +47,7 @@ import {TapApi} from './requests/tap-api';
 import {ConnectedSite} from './service/permission.service';
 import {isEmpty} from 'lodash';
 import {Psbt} from 'bitcoinjs-lib';
+import {InscribeApi} from './requests/inscribe-api';
 export interface IDerivationPathOption {
   label: string;
   derivationPath: string;
@@ -57,6 +58,7 @@ export class Provider {
   paidApi: PaidApi = paidApi;
   mempoolApi: MempoolApi = mempoolApi;
   tapApi: TapApi = tapApi;
+  inscribeApi: InscribeApi = inscribeApi;
 
   unlockApp = async (pin: string) => {
     await walletService.unlockWallet(pin);
@@ -1048,12 +1050,14 @@ export class Provider {
     feeRate: number,
     outputValue: number,
   ) => {
-    return this.paidApi.createOrderRequest(
+    const connectedAddress = this.getActiveAccount()?.address;
+    return this.inscribeApi.createOrderTapTransfer(
+      feeRate,
+      outputValue,
+      connectedAddress,
       address,
       tick,
       amount,
-      feeRate,
-      outputValue,
     );
   };
 

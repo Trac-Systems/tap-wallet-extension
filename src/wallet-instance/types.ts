@@ -1,6 +1,11 @@
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 import {PublicWallet} from '../background/service/wallet.service';
 
+export enum OrderType {
+  TEXT = 'TEXT',
+  TAP_TRANSFER = 'TAP_TRANSFER',
+}
+
 export enum AddressType {
   P2PKH = 'P2PKH',
   P2WPKH = 'P2WPKH',
@@ -254,21 +259,45 @@ export interface InputForSigning {
   sighashTypes?: number[];
 }
 
+// export interface InscribeOrder {
+//   orderId: string;
+//   payAddress: string;
+//   totalFee: number;
+//   minerFee: number;
+//   originServiceFee: number;
+//   serviceFee: number;
+//   outputValue: number;
+// }
+
 export interface InscribeOrder {
-  orderId: string;
   payAddress: string;
+  files: InscribeTransferFile[];
+  type: OrderType;
+  postage: number;
+  feeRate: number;
   totalFee: number;
-  minerFee: number;
-  originServiceFee: number;
+  networkFee: number;
   serviceFee: number;
-  outputValue: number;
+  sizeToFee: number;
+  connectedAddress: string;
+  rebar: boolean;
+  firstRevealTxSize: number;
+  remainingRevealTxsSize: number;
+  tappingStatus: number;
+  paidAmount: number;
+  requestFrom: string;
+  repeat: string;
+  updatedAt: string;
+  createdAt: string;
+  id: string;
+  status: number;
 }
 
 export interface InscribeTransferFile {
   filename: string;
-  size: number;
+  receiver: string;
   inscriptionId: string;
-  status: string;
+  txId: string;
 }
 
 export interface InscribeOrderTransfer {

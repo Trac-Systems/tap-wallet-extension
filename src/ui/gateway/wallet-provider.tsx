@@ -214,6 +214,7 @@ export interface IWalletProvider {
   ): Promise<Inscription[]>;
 
   getAllRuneUtxos(address: string): Promise<UnspentOutput[]>;
+  signMessage(message: string): Promise<string>;
 }
 
 const WalletContext = createContext<{

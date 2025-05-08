@@ -33,8 +33,7 @@ const TapListChild = () => {
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,
   });
-  const tickerDemo = 'thuy';
-  const isHaveAuthority = true;
+
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;

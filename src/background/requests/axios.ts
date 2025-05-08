@@ -49,7 +49,7 @@ export class AxiosRequest {
   post = async (endpoint: string, bodyData: any) => {
     try {
       const response = await this.api.post(endpoint, bodyData);
-      if (response && response.status === 200) {
+      if (response && response.status >= 200 && response.status < 300) {
         return await Promise.resolve({
           success: true,
           message: response.statusText,

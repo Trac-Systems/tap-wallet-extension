@@ -13,6 +13,7 @@ export enum OrderType {
   FILE = 'FILE',
   TEXT = 'TEXT',
   AUTHORITY = 'AUTHORITY',
+  REDEEM = 'REDEEM',
 }
 export class InscribeApi {
   api!: AxiosRequest;
@@ -56,7 +57,7 @@ export class InscribeApi {
     if (!res?.data) {
       throw new Error('Inscribe text order failed');
     }
-    return {...res?.data};
+    return {...res?.data?.data};
   }
 
   async createOrderTapTransfer(
@@ -78,10 +79,9 @@ export class InscribeApi {
       amount,
       data,
     });
-    console.log('res', res);
     if (!res.data) {
       throw new Error('Inscribe tap transfer order failed');
     }
-    return {...res?.data};
+    return {...res?.data?.data};
   }
 }

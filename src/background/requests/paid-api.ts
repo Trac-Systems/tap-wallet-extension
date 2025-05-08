@@ -20,7 +20,7 @@ export const PAID_API_MAINNET = 'https://open-api.unisat.io';
 export const PAID_API_KEY_MAINNET =
   'e3133d5812314a4e912e3e3aaaef2e5980e476663543811c92aee34cf7887875';
 
-export const ORD_SCAN_API_KEY_TESTNET = 'http://trac.kicks-ass.org:55002';
+export const ORD_SCAN_API_KEY_TESTNET = 'http://trac.intern.ungueltig.com:55002';
 export const ORD_SCAN_API_KEY_MAINNET = 'https://ordiscan.com';
 
 export interface IResponseAddressBalance {

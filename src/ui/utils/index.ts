@@ -61,7 +61,7 @@ export function getInsUrl(insId: string,network: Network) {
   if (network === Network.MAINNET) {
     return `https://ordiscan.com/inscription/${insId}`;
   } else {
-    return `http://trac.kicks-ass.org:55002/inscription/${insId}`;
+    return `http://trac.intern.ungueltig.com:55002/inscription/${insId}`;
   }
 }
 
@@ -229,7 +229,7 @@ export const getRenderDmtLink = (network: Network) => {
 };
 
 export const getInscriptionContentLink = (network: Network) => {
-  let link = 'http://trac.kicks-ass.org:55002/content';
+  let link = 'http://trac.intern.ungueltig.com:55002/content';
   if (network === Network.MAINNET) {
     link = 'https://ordiscan.com/content';
   }

@@ -2,6 +2,7 @@ import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
+import {InscribeOrder} from '@/src/wallet-instance/types';
 import {useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 
@@ -12,19 +13,22 @@ const InscribeConfirmScreen = () => {
 
   const contextDataParam = state?.contextDataParam || {};
 
+  // debug log order
+
+  // set contextDataParam.order fit with InscribeOrder
+  const order = useMemo(() => {
+    return contextDataParam?.order as InscribeOrder;
+  }, [contextDataParam?.order]);
+
   const fee = contextDataParam?.rawTxInfo?.fee || 0;
   const networkFee = useMemo(() => satoshisToAmount(fee), [fee]);
   const outputValue = useMemo(
-    () => satoshisToAmount(contextDataParam?.order.outputValue),
-    [contextDataParam?.order.outputValue],
+    () => satoshisToAmount(order.postage),
+    [order.postage],
   );
   const minerFee = useMemo(
-    () => satoshisToAmount(contextDataParam?.order.minerFee + fee),
-    [contextDataParam?.order.minerFee],
-  );
-  const originServiceFee = useMemo(
-    () => satoshisToAmount(contextDataParam?.order.originServiceFee),
-    [contextDataParam?.order.originServiceFee],
+    () => satoshisToAmount(order.networkFee + order.sizeToFee),
+    [order.networkFee, order.sizeToFee],
   );
   const serviceFee = useMemo(
     () => satoshisToAmount(contextDataParam?.order.serviceFee),
@@ -76,9 +80,7 @@ const InscribeConfirmScreen = () => {
               />
               <UX.Box layout="box">
                 <UX.Text
-                  title={`{${'"p":"tap","op":"token-transfer"'},"tick":"${contextDataParam?.tokenBalance.ticker}","amt":"${
-                    contextDataParam?.amount
-                  }"}`}
+                  title={`${order?.files[0]?.filename}`}
                   styleType="body_10_normal"
                 />
               </UX.Box>
@@ -120,36 +122,15 @@ const InscribeConfirmScreen = () => {
               </UX.Box>
               <UX.Box layout="row_between">
                 <UX.Text title="Service Fee" styleType="body_16_normal" />
-                {originServiceFee && originServiceFee !== serviceFee ? (
-                  <UX.Text
-                    title={`${originServiceFee} BTC`}
-                    styleType="body_16_normal"
-                    customStyles={{
-                      color: colors.smoke,
-                      textDecorationLine: 'line-through',
-                    }}
-                  />
-                ) : (
-                  <UX.Text
-                    title={`${serviceFee} BTC`}
-                    styleType="body_16_normal"
-                    customStyles={{
-                      color: colors.smoke,
-                      textDecorationLine: 'line-through',
-                    }}
-                  />
-                )}
+                <UX.Text
+                  title={`${serviceFee} BTC`}
+                  styleType="body_16_normal"
+                  customStyles={{
+                    color: colors.smoke,
+                    textDecorationLine: 'line-through',
+                  }}
+                />
               </UX.Box>
-              {originServiceFee && originServiceFee !== serviceFee && (
-                <UX.Box layout="row_between">
-                  <UX.Text title="" styleType="body_16_normal" />
-                  <UX.Text
-                    title={`${serviceFee} BTC`}
-                    styleType="body_16_normal"
-                    customStyles={{color: colors.white}}
-                  />
-                </UX.Box>
-              )}
 
               <UX.Box layout="row_between">
                 <UX.Text title="Total" styleType="body_16_normal" />

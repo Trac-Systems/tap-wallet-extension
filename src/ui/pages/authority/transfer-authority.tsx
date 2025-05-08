@@ -1,29 +1,43 @@
 import { formatAmountNumber } from '@/src/shared/utils/btc-helper';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { UX } from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
 import { SVG } from '../../svg';
 import { colors } from '../../themes/color';
 import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
+import { useAppSelector } from '../../utils';
+import { InscriptionSelector } from '../../redux/reducer/inscription/selector';
+import { set } from 'lodash';
 
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
-  // const location = useLocation();
-  // const {state} = location;
-  const ticker = 'thuy';
-  const amount = '0.12367124';
+  const location = useLocation();
+  const { state } = location;
+  const ticker = state?.ticker;
+  const [feeRate, setFeeRate] = useState('');
   const [tokenSections, setTokenSections] = useState([
-    {id: Date.now(), selected: 'option1'},
+    { id: Date.now(), selected: ticker, amount: 0, address: '' },
   ]);
+  const [listTapList, setListTapList] = useState([]);
   const rawTxInfo = '';
+  const tapList = useAppSelector(InscriptionSelector.listTapToken);
 
-  const options = [
-    {label: 'Option 1', value: 'option1'},
-    {label: 'Option 2', value: 'option2'},
-    {label: 'Option 3', value: 'option3'},
-  ];
+  useEffect(() => {
+    const listTapList = tapList.map(item => ({
+      label: item.ticker,
+      value: item.ticker,
+      amount: Number(item.overallBalance || 0) - Number(item.transferableBalance),
+    }));
+    setListTapList(listTapList);
+  }, [tapList]);
+
+ 
+  const handleConfirm = async () => {
+    console.log('feeRate :>> ', feeRate);
+    console.log('tokenSections :>> ', tokenSections);
+  }
 
   //! Function
   const handleGoBack = () => {
@@ -31,25 +45,56 @@ const TransferAuthority = () => {
   };
 
   const handleAddTokenSection = () => {
-    setTokenSections(prev => [...prev, {id: Date.now(), selected: 'option1'}]);
+    setTokenSections(prev => [...prev, { id: Date.now(), selected: ticker, amount: 0, address: '' }]);
   };
 
-  const handleNavigate = () => {
-    navigate('/sign-authority', {
-      state: {rawTxInfo},
+  const onAmountChange = (id: number, amount: string) => {
+    setTokenSections(prev => {
+      const newSections = [...prev];
+      return newSections.map(section => {
+        if (section.id === id) {
+          return { ...section, amount: Number(amount) };
+        }
+        return section;
+      });
+    }
+    );
+  };
+
+  const onAddressChange = (id: number, address: string) => {
+    setTokenSections(prev => {
+      const newSections = [...prev];
+      return newSections.map(section => {
+        if (section.id === id) {
+          return { ...section, address };
+        }
+        return section;
+      });
     });
   };
 
-  const renderTokenSection = (section, index) => (
-    <UX.Box spacing="xl" style={{width: '100%'}} key={section.id}>
+
+  const handleNavigate = () => {
+    navigate('/sign-authority', {
+      state: { rawTxInfo },
+    });
+  };
+
+  const renderTokenSection = (section, index) => {
+    const selectedOption = listTapList.find(
+      option => option.value === section.selected,
+    );
+    const amount = selectedOption?.amount || 0;
+
+    return <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
       <UX.Box spacing="xss">
         <UX.Text
           title="Token name"
           styleType="body_16_extra_bold"
-          customStyles={{color: 'white'}}
+          customStyles={{ color: 'white' }}
         />
         <UX.Dropdown
-          options={options}
+          options={listTapList}
           value={section.selected}
           onChange={val => {
             const newSections = [...tokenSections];
@@ -62,7 +107,7 @@ const TransferAuthority = () => {
           <UX.Text
             title={`${amount} ${ticker}`}
             styleType="body_14_bold"
-            customStyles={{color: colors.green_500}}
+            customStyles={{ color: colors.green_500 }}
           />
         </UX.Box>
       </UX.Box>
@@ -70,7 +115,7 @@ const TransferAuthority = () => {
         <UX.Text
           title="Amount"
           styleType="body_16_extra_bold"
-          customStyles={{color: 'white'}}
+          customStyles={{ color: 'white' }}
         />
         <UX.AmountInput
           style={{
@@ -79,9 +124,10 @@ const TransferAuthority = () => {
             background: 'transparent',
           }}
           disableCoinSvg
-          value={formatAmountNumber(amount)}
+          value={formatAmountNumber(section?.amount?.toString())}
           onAmountInputChange={amount => {
-            // onBTCAmountChange(amount);
+            const cleanText = amount.replace(/[^0-9.]/g, '');
+            onAmountChange(section.id, cleanText);
           }}
         />
       </UX.Box>
@@ -89,7 +135,7 @@ const TransferAuthority = () => {
         <UX.Text
           title="Receiver"
           styleType="body_16_extra_bold"
-          customStyles={{color: 'white'}}
+          customStyles={{ color: 'white' }}
         />
         <UX.AddressInput
           style={{
@@ -99,22 +145,22 @@ const TransferAuthority = () => {
             width: '100%',
           }}
           addressInputData={{
-            address: 'tbdv23bjkasg2d7812juc8sgha8jhzxyuus',
+            address: section.address,
           }}
           onAddressInputChange={val => {
-            // onAddressChange(val?.address);
+            onAddressChange(section.id, val?.address);
           }}
         />
       </UX.Box>
     </UX.Box>
-  );
+  };
 
   //! Render
   return (
     <LayoutSendReceive
       header={<UX.TextHeader text="1-TX Transfer" onBackClick={handleGoBack} />}
       body={
-        <UX.Box style={{width: '100%'}} spacing="xl">
+        <UX.Box style={{ width: '100%' }} spacing="xl">
           {tokenSections.map((section, index) =>
             renderTokenSection(section, index),
           )}
@@ -122,24 +168,25 @@ const TransferAuthority = () => {
           <UX.Box
             layout="row"
             spacing="xss"
-            style={{cursor: 'pointer'}}
+            style={{ cursor: 'pointer' }}
             onClick={handleAddTokenSection}>
             <SVG.AddIcon color="#D16B7C" width={20} height={20} />
             <UX.Text
               styleType="body_14_bold"
               title="Transfer more token"
-              customStyles={{color: colors.main_500}}
+              customStyles={{ color: colors.main_500 }}
             />
           </UX.Box>
           <UX.Box spacing="xss">
             <UX.Text
               styleType="body_16_extra_bold"
-              customStyles={{color: 'white'}}
+              customStyles={{ color: 'white' }}
               title="Fee rate"
             />
             <FeeRateBar
               onChange={val => {
-                // setFeeRate(val);
+                  const cleanText = val.toString().replace(/[^0-9.]/g, '');
+                  setFeeRate(cleanText);
               }}
             />
           </UX.Box>
@@ -155,7 +202,8 @@ const TransferAuthority = () => {
           <UX.Button
             styleType="primary"
             title={'Confirm'}
-            onClick={handleNavigate}
+            onClick={handleConfirm}
+            // onClick={handleNavigate}
           />
         </UX.Box>
       }

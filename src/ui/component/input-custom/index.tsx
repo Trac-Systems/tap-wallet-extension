@@ -258,6 +258,7 @@ const AmountInput = (props: InputProp) => {
     typeCoin,
     autoFocus,
     disableCoinSvg,
+    onChange,
     ...rest
   } = props;
   const $style = Object.assign(
@@ -280,6 +281,7 @@ const AmountInput = (props: InputProp) => {
     const value = e.target.value;
     setValidAmount(value);
     setInputValue(value);
+    onChange?.(e);
     // if (disableDecimal) {
     //   if (/^[1-9]\d*$/.test(value) || value === '') {
     //     setValidAmount(value);

@@ -28,7 +28,6 @@ const ListTapOptions = () => {
 
   //! State
   const isAuthority = useAppSelector(GlobalSelector.isAuthority);
-  console.log('isAuthority :>> ', isAuthority);
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [deployInscriptionState, setDeployInscription] =

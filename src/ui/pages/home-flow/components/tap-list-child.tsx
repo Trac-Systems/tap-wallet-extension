@@ -34,7 +34,7 @@ const TapListChild = () => {
     pageSize: TOKEN_PAGE_SIZE,
   });
   const isAuthority = useAppSelector(GlobalSelector.isAuthority);
-  
+
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;

@@ -6,9 +6,11 @@ import LayoutSendReceive from '../../layouts/send-receive';
 import { SVG } from '../../svg';
 import { colors } from '../../themes/color';
 import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
-import { useAppSelector } from '../../utils';
+import { useAppSelector, validateBtcAddress } from '../../utils';
 import { InscriptionSelector } from '../../redux/reducer/inscription/selector';
-import { set } from 'lodash';
+import Text from '../../component/text-custom';
+import { GlobalSelector } from '../../redux/reducer/global/selector';
+
 
 const TransferAuthority = () => {
   //! State
@@ -18,11 +20,12 @@ const TransferAuthority = () => {
   const ticker = state?.ticker;
   const [feeRate, setFeeRate] = useState('');
   const [tokenSections, setTokenSections] = useState([
-    { id: Date.now(), selected: ticker, amount: 0, address: '' },
+    { id: 1, selected: ticker, amount: '', address: '', errorAmount: '', errorAddress: '' },
   ]);
   const [listTapList, setListTapList] = useState([]);
   const rawTxInfo = '';
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
+  const networkType = useAppSelector(GlobalSelector.networkType);
 
   useEffect(() => {
     const listTapList = tapList.map(item => ({
@@ -33,8 +36,13 @@ const TransferAuthority = () => {
     setListTapList(listTapList);
   }, [tapList]);
 
- 
+
   const handleConfirm = async () => {
+    const isValid = isValidForm();
+    console.log('isValid :>> ', isValid);
+    if (!isValid) {
+      return;
+    }
     console.log('feeRate :>> ', feeRate);
     console.log('tokenSections :>> ', tokenSections);
   }
@@ -45,33 +53,94 @@ const TransferAuthority = () => {
   };
 
   const handleAddTokenSection = () => {
-    setTokenSections(prev => [...prev, { id: Date.now(), selected: ticker, amount: 0, address: '' }]);
+    setTokenSections(prev => [...prev, { id: prev.length + 1, selected: ticker, amount: '', address: '', errorAmount: '', errorAddress: '' }]);
   };
 
-  const onAmountChange = (id: number, amount: string) => {
-    setTokenSections(prev => {
-      const newSections = [...prev];
-      return newSections.map(section => {
-        if (section.id === id) {
-          return { ...section, amount: Number(amount) };
-        }
-        return section;
-      });
-    }
+  const onAmountChange = (section, amount: string) => {
+    const selectedOption = listTapList.find(
+      option => option.value === section.selected,
     );
-  };
+    const optionAmount = selectedOption?.amount || 0;
+    const filterTokenSections = tokenSections.filter(item => item.id !== section.id);
+    const selectedAmount = filterTokenSections.reduce((acc, item) => {
+      if (item.selected === section.selected && !item.errorAmount) {
+        return acc + Number(item.amount || 0);
+      }
+      return acc;
+    }, 0);
+    const availableAmount = Number(optionAmount || 0) - Number(selectedAmount || 0);
+    let errorAmount = '';
+    if (!amount) {
+      errorAmount = 'Amount is required';
+    } else if (Number(amount) > Number(availableAmount)) {
+      errorAmount = 'Amount exceeds your available balance';
+    } else {
+      errorAmount = '';
+    }
+
+    const newSections = tokenSections.map(item => {
+      if (item.id === section.id) {
+        return { ...item, amount: amount ? Number(amount) : '', errorAmount };
+      }
+      return item;
+    })
+    setTokenSections(newSections as any);
+  }
 
   const onAddressChange = (id: number, address: string) => {
+    let errorAddress = '';
+
+    if (!address) {
+      errorAddress = 'Receiver address is required';
+    } else {
+      const isValid = validateBtcAddress(address, networkType);
+      if (!isValid) {
+        errorAddress = 'Receiver address is invalid';
+      } else {
+        errorAddress = '';
+      }
+    }
+
     setTokenSections(prev => {
       const newSections = [...prev];
       return newSections.map(section => {
         if (section.id === id) {
-          return { ...section, address };
+          return { ...section, address, errorAddress };
         }
         return section;
       });
     });
   };
+
+  const isValidForm = () => {
+    const newSections = tokenSections.map(section => {
+      // amount error
+      let errorAmount = '';
+      if (!section.amount) {
+        errorAmount = 'Amount is required';
+      } else {
+        errorAmount = '';
+      }
+
+      // address error
+      let errorAddress = '';
+      if (!section.address) {
+        errorAddress = 'Receiver address is required';
+      } else {
+        errorAddress = '';
+      }
+      return { ...section, errorAmount, errorAddress };
+    });
+    const isValid = newSections.every(section => {
+      return !section.errorAmount && !section.errorAddress;
+    });
+    setTokenSections(newSections as any);
+    return isValid;
+  }
+
+  const isDisabledForm = tokenSections.some(section => {
+    return section.errorAmount || section.errorAddress;
+  });
 
 
   const handleNavigate = () => {
@@ -81,6 +150,7 @@ const TransferAuthority = () => {
   };
 
   const renderTokenSection = (section, index) => {
+    console.log('section :>> ', section);
     const selectedOption = listTapList.find(
       option => option.value === section.selected,
     );
@@ -124,12 +194,21 @@ const TransferAuthority = () => {
             background: 'transparent',
           }}
           disableCoinSvg
+          onChange={e => {
+            console.log('321321 :>> ', 321321);
+            const val = e?.target?.value;
+            const cleanText = val?.toString()?.replace(/[^0-9.]/g, '');
+            onAmountChange(section, cleanText);
+          }
+          }
           value={formatAmountNumber(section?.amount?.toString())}
-          onAmountInputChange={amount => {
-            const cleanText = amount.replace(/[^0-9.]/g, '');
-            onAmountChange(section.id, cleanText);
-          }}
+          onAmountInputChange={amount => { }}
         />
+        {section.errorAmount && <Text
+          title={section.errorAmount}
+          styleType="body_14_bold"
+          customStyles={{ color: colors.red_500, marginTop: '4px' }}
+        />}
       </UX.Box>
       <UX.Box spacing="xss">
         <UX.Text
@@ -137,20 +216,23 @@ const TransferAuthority = () => {
           styleType="body_16_extra_bold"
           customStyles={{ color: 'white' }}
         />
-        <UX.AddressInput
+        <UX.Input
+          placeholder='Receiver address'
           style={{
             fontSize: '16px',
             border: 'none',
+            padding: '9px 16px',
             background: 'transparent',
-            width: '100%',
           }}
-          addressInputData={{
-            address: section.address,
-          }}
-          onAddressInputChange={val => {
-            onAddressChange(section.id, val?.address);
+          onChange={e => {
+            onAddressChange(section.id, e?.target?.value);
           }}
         />
+        {section.errorAddress && <Text
+          title={section.errorAddress}
+          styleType="body_14_bold"
+          customStyles={{ color: colors.red_500, marginTop: '4px' }}
+        />}
       </UX.Box>
     </UX.Box>
   };
@@ -185,8 +267,8 @@ const TransferAuthority = () => {
             />
             <FeeRateBar
               onChange={val => {
-                  const cleanText = val.toString().replace(/[^0-9.]/g, '');
-                  setFeeRate(cleanText);
+                const cleanText = val.toString().replace(/[^0-9.]/g, '');
+                setFeeRate(cleanText);
               }}
             />
           </UX.Box>
@@ -203,7 +285,7 @@ const TransferAuthority = () => {
             styleType="primary"
             title={'Confirm'}
             onClick={handleConfirm}
-            // onClick={handleNavigate}
+            isDisable={isDisabledForm}
           />
         </UX.Box>
       }

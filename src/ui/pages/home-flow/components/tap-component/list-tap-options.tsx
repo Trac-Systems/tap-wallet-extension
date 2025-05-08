@@ -1,21 +1,22 @@
-import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
-import {UX} from '@/src/ui/component';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import { formatNumberValue, formatTicker } from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
-import {useAppSelector} from '@/src/ui/utils';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
+import { useAppSelector } from '@/src/ui/utils';
 import {
   AddressTokenSummary,
   Inscription,
   TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
-import {isEmpty} from 'lodash';
-import {useEffect, useMemo, useState} from 'react';
-import {useLocation, useNavigate, useParams} from 'react-router-dom';
+import { isEmpty } from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import CoinCount from '../coin-count';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -23,9 +24,11 @@ const ListTapOptions = () => {
   const wallet = useWalletProvider();
   const location = useLocation();
   // TODO: brcTokenBalance is param passing, need check brcTokenBalance when back from other screen
-  const {id} = useParams();
+  const { id } = useParams();
 
   //! State
+  const isAuthority = useAppSelector(GlobalSelector.isAuthority);
+  console.log('isAuthority :>> ', isAuthority);
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [deployInscriptionState, setDeployInscription] =
@@ -130,12 +133,12 @@ const ListTapOptions = () => {
   const deployInscriptionAsTokenTransfer: TokenTransfer | undefined =
     deployInscriptionState
       ? {
-          ...deployInscriptionState,
-          ticker: id,
-          amount: '0',
-          inscriptionNumber: deployInscriptionState?.inscriptionNumber,
-          inscriptionId: deployInscriptionState?.inscriptionId,
-        }
+        ...deployInscriptionState,
+        ticker: id,
+        amount: '0',
+        inscriptionNumber: deployInscriptionState?.inscriptionNumber,
+        inscriptionId: deployInscriptionState?.inscriptionId,
+      }
       : undefined;
 
   const dataForList: TokenTransfer[] = [
@@ -168,40 +171,41 @@ const ListTapOptions = () => {
       }
       body={
         <UX.Box>
-            <UX.Text
-              title="Total balance"
-              styleType="body_16_normal"
-              customStyles={{marginBottom: 8, textAlign: 'center'}}
-            />
-          <UX.Box layout="row_center" style={{marginBottom: 20}}>
+          <UX.Text
+            title="Total balance"
+            styleType="body_16_normal"
+            customStyles={{ marginBottom: 8, textAlign: 'center' }}
+          />
+          <UX.Box layout="row_center" style={{ marginBottom: 20 }}>
             <UX.Text
               title={balance}
               styleType="body_20_extra_bold"
-              customStyles={{color: colors.white, marginRight: '8px'}}
+              customStyles={{ color: colors.white, marginRight: '8px' }}
             />
             <UX.Text
               title={formatTicker(id)}
               styleType="body_20_extra_bold"
-              customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+              customStyles={{ color: colors.main_500, whiteSpace: 'pre' }}
             />
           </UX.Box>
-          <UX.Box layout="row" spacing="xl">
-            <UX.Button
-              title={'1-TX Transfer'}
-              isDisable={!enableTransfer}
-              onClick={() => {
-                navigate('/transfer-authority', {
-                  state: {ticker: id},
-                });
-              }}
-              svgIcon={
-                <SVG.TransferIcon color="white" width={20} height={20} />
-              }
-              styleType="primary"
-              withIcon
-              customStyles={{flex: 1, flexDirection: 'row-reverse'}}
-            />
-          </UX.Box>
+          {isAuthority && <>
+            <UX.Box layout="row" spacing="xl">
+              <UX.Button
+                title={'1-TX Transfer'}
+                isDisable={!enableTransfer}
+                onClick={() => {
+                  navigate('/transfer-authority', {
+                    state: { ticker: id },
+                  });
+                }}
+                svgIcon={
+                  <SVG.TransferIcon color="white" width={20} height={20} />
+                }
+                styleType="primary"
+                withIcon
+                customStyles={{ flex: 1, flexDirection: 'row-reverse' }}
+              />
+            </UX.Box>
             <UX.Text
               onClick={handleNavigate}
               title="Use Native Transfer"
@@ -213,32 +217,52 @@ const ListTapOptions = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
               }}
-            />
+            /></>}
+          {!isAuthority &&
+            <UX.Box layout="row" spacing="xl">
+              <UX.Button
+                title={'Transfer'}
+                isDisable={!enableTransfer}
+                onClick={() => {
+                  handleNavigate();
+                  // navigate('/transfer-authority', {
+                  //   state: { ticker: id },
+                  // });
+                }}
+                svgIcon={
+                  <SVG.TransferIcon color="white" width={20} height={20} />
+                }
+                styleType="primary"
+                withIcon
+                customStyles={{ flex: 1, flexDirection: 'row-reverse', marginBottom: 20 }}
+              />
+            </UX.Box>}
+
           <UX.Divider color="#fff" />
           {/* Transferable */}
           <UX.Box layout="row_between">
             <UX.Text
               title="Transferable"
               styleType="body_14_normal"
-              customStyles={{color: colors.white}}
+              customStyles={{ color: colors.white }}
             />
             <UX.Box layout="row" spacing="xs">
               <UX.Text
                 title={`${transferableBalance}`}
                 styleType="body_12_bold"
-                customStyles={{color: colors.white}}
+                customStyles={{ color: colors.white }}
               />
               <UX.Text
                 title={formatTicker(id)}
                 styleType="body_12_bold"
-                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                customStyles={{ color: colors.main_500, whiteSpace: 'pre' }}
               />
             </UX.Box>
           </UX.Box>
           <UX.Box
             layout="row"
             spacing="xs"
-            style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
+            style={{ margin: '16px 0', width: '100%', overflowX: 'scroll' }}>
             {loading ? (
               <UX.Loading />
             ) : (
@@ -271,7 +295,7 @@ const ListTapOptions = () => {
             <UX.Text
               title="Click on the inscription for details. To transfer, click on the Transfer button above."
               styleType="body_14_normal"
-              customStyles={{textAlign: 'center'}}
+              customStyles={{ textAlign: 'center' }}
             />
           ) : (
             <></>

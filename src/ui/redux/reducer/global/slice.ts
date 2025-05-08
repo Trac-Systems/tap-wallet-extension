@@ -1,5 +1,6 @@
 import {Network} from '@/src/wallet-instance';
 import {createSlice} from '@reduxjs/toolkit';
+import { set } from 'lodash';
 
 export interface GlobalState {
   isUnlocked: boolean;
@@ -9,6 +10,7 @@ export interface GlobalState {
   networkType: Network;
   randomColors: string[];
   showSpendableList: boolean;
+  isAuthority: boolean;
 }
 
 export const initialState: GlobalState = {
@@ -19,6 +21,7 @@ export const initialState: GlobalState = {
   networkType: Network.MAINNET,
   randomColors: [],
   showSpendableList: false,
+  isAuthority: true,
 };
 
 const GlobalSlice = createSlice({
@@ -73,6 +76,13 @@ const GlobalSlice = createSlice({
         showSpendableList,
       };
     },
+    setIsAuthority: (state: GlobalState, action) => {
+      const {isAuthority} = action.payload;
+      return {
+        ...state,
+        isAuthority,
+      };
+    }
   },
 });
 

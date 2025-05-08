@@ -77,6 +77,9 @@ export const formatNumberValue = (num: string) => {
   return formatted;
 };
 export const formatAmountNumber = (num: string) => {
+  if (num === undefined || num === null) {
+    return '';
+  }
   if (num === '') {
     return '';
   }

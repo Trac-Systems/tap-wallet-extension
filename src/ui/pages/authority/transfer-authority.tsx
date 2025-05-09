@@ -33,7 +33,8 @@ const TransferAuthority = () => {
   const [loading, setLoading] = useState(false);
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const networkType = useAppSelector(GlobalSelector.networkType);
-  const auth = useAppSelector(GlobalSelector.auth);
+  const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
+  const auth = currentAuthority.ins;
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const prepareSendBTC = usePrepareSendBTCCallback();
 
@@ -134,7 +135,7 @@ const TransferAuthority = () => {
 
     const newSections = tokenSections.map(item => {
       if (item.id === section.id) {
-        return { ...item, amount: amount ? Number(amount) : '', errorAmount };
+        return { ...item, amount, errorAmount };
       }
       return item;
     })
@@ -242,11 +243,11 @@ const TransferAuthority = () => {
           disableCoinSvg
           onChange={e => {
             const val = e?.target?.value;
-            const cleanText = val?.toString()?.replace(/[^0-9.]/g, '');
+            const cleanText = val?.toString()?.replace(/[,a-zA-Z]/g, '');
             onAmountChange(section, cleanText);
           }
           }
-          value={formatAmountNumber(section?.amount?.toString())}
+          value={section?.amount?.toString()}
           onAmountInputChange={amount => { }}
         />
         {section.errorAmount && <Text
@@ -312,7 +313,7 @@ const TransferAuthority = () => {
             />
             <FeeRateBar
               onChange={val => {
-                const cleanText = val.toString().replace(/[^0-9.]/g, '');
+                const cleanText = val.toString().replace(/[,a-zA-Z]/g, '');
                 setFeeRate(cleanText);
               }}
             />

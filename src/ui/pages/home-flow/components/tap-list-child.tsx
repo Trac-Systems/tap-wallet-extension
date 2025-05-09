@@ -112,6 +112,7 @@ const TapListChild = () => {
       </UX.Box>
     );
   }
+  
   return (
     <UX.Box spacing="xl">
       <UX.Box layout="row" spacing="xs" className="search-box-token">
@@ -127,7 +128,7 @@ const TapListChild = () => {
         layout="box_border"
         style={{cursor: 'pointer'}}
         onClick={() => {
-          if (!currentAuthority) {
+          if (currentAuthority) {
             navigate('/manage-authority');
           } else {
             navigate('/create-authority', {
@@ -139,7 +140,7 @@ const TapListChild = () => {
         }}>
         <UX.Text
           title={
-            currentAuthority
+            !currentAuthority
               ? 'Enable tx transfer'
               : 'Manage Authority'
           }
@@ -147,7 +148,7 @@ const TapListChild = () => {
         />
         <SVG.ArrowIconRight width={23} height={18} />
       </UX.Box>
-      {Boolean(currentAuthority) && (
+      {currentAuthority && (
         <UX.Button
           styleType={'primary'}
           title="1-TX Transfer"

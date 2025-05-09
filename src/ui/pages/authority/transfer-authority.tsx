@@ -10,12 +10,16 @@ import { useAppSelector, validateBtcAddress } from '../../utils';
 import { InscriptionSelector } from '../../redux/reducer/inscription/selector';
 import Text from '../../component/text-custom';
 import { GlobalSelector } from '../../redux/reducer/global/selector';
+import { useWalletProvider } from '../../gateway/wallet-provider';
+import { AccountSelector } from '../../redux/reducer/account/selector';
+import { usePrepareSendBTCCallback } from '../send-receive/hook';
 
 
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
+  const walletProvider = useWalletProvider();
   const { state } = location;
   const ticker = state?.ticker;
   const [feeRate, setFeeRate] = useState('');
@@ -23,9 +27,13 @@ const TransferAuthority = () => {
     { id: 1, selected: ticker, amount: '', address: '', errorAmount: '', errorAddress: '' },
   ]);
   const [listTapList, setListTapList] = useState([]);
-  const rawTxInfo = '';
+  const [loading, setLoading] = useState(false);
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const networkType = useAppSelector(GlobalSelector.networkType);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const prepareSendBTC = usePrepareSendBTCCallback();
+
+
 
   useEffect(() => {
     const listTapList = tapList.map(item => ({
@@ -39,12 +47,52 @@ const TransferAuthority = () => {
 
   const handleConfirm = async () => {
     const isValid = isValidForm();
-    console.log('isValid :>> ', isValid);
     if (!isValid) {
       return;
     }
     console.log('feeRate :>> ', feeRate);
     console.log('tokenSections :>> ', tokenSections);
+    setLoading(true)
+    const message = {
+      items: tokenSections.map(item => ({
+        tick: item.selected,
+        amt: item.amount?.toString(),
+        address: item.address,
+      })),
+      auth: "5ca693cdd0a8ba7e32163ce82b0c03febd8fdbaa00e6e3199187e75395327454i0",
+      data: "",
+    }
+    console.log('message :>> ', message);
+    try {
+      const _tokenAuth = await walletProvider.generateTokenAuth(message, 'redeem');
+      console.log('_tokenAuth :>> ', _tokenAuth);
+      console.log('activeAccount :>> ', activeAccount);
+      const order = await walletProvider.createOrderAuthority(
+        activeAccount.address,
+        _tokenAuth.proto,
+        Number(feeRate),
+        546,
+      );
+      const rawTxInfo = await prepareSendBTC({
+        toAddressInfo: { address: order?.payAddress, domain: '' },
+        toAmount: order?.totalFee,
+        feeRate: order?.feeRate || Number(feeRate),
+        enableRBF: false,
+      });
+      navigate('/home/inscribe-confirm', {
+        state: {
+          contextDataParam: {
+            rawTxInfo,
+            order,
+          },
+        },
+      });
+      console.log('order :>> ', order);
+    } catch (error) {
+      console.log('error :>> ', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   //! Function
@@ -141,13 +189,6 @@ const TransferAuthority = () => {
   const isDisabledForm = tokenSections.some(section => {
     return section.errorAmount || section.errorAddress;
   });
-
-
-  const handleNavigate = () => {
-    navigate('/sign-authority', {
-      state: { rawTxInfo },
-    });
-  };
 
   const renderTokenSection = (section, index) => {
     console.log('section :>> ', section);
@@ -283,9 +324,9 @@ const TransferAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={'Confirm'}
+            title={loading ? 'Confirming...' : 'Confirm'}
             onClick={handleConfirm}
-            isDisable={isDisabledForm}
+            isDisable={isDisabledForm || loading}
           />
         </UX.Box>
       }

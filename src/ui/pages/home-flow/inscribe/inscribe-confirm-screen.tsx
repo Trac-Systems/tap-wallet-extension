@@ -118,6 +118,7 @@ const InscribeConfirmScreen = () => {
                 <UX.Text
                   title={`${order?.files[0]?.filename}`}
                   styleType="body_10_normal"
+                  customStyles={{wordBreak: 'break-all'}}
                 />
               </UX.Box>
             </UX.Box>

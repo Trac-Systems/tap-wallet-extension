@@ -1233,7 +1233,9 @@ export class Provider {
       return null;
     }
     const pubKey = account.pubkey;
+    console.log('debug1')
     const wallet = walletService.getWalletForBackground(pubKey, account.type);
+    console.log('debug2')
     if (!wallet) {
       return null;
     }
@@ -1243,7 +1245,7 @@ export class Provider {
     const privKeyUint8Array = new Uint8Array(privKeyBuffer);
     const pubKeyBuffer = Buffer.from(pubKey, 'hex');
     const pubKeyUint8Array = new Uint8Array(pubKeyBuffer);
-
+    console.log('debug3')
     const proto = {
       p: 'tap',
       op: 'token-auth',
@@ -1254,10 +1256,10 @@ export class Provider {
 
     const msgHash = this._sha256(JSON.stringify(message) + proto.salt);
     const signature = await secp.signAsync(msgHash, privKeyUint8Array);
-
+console.log('debug4')
     proto[authType] = message;
     proto.sig = {
-      v: '' + signature.recovery,
+      v: '' + signature.recovery, 
       r: signature.r.toString(),
       s: signature.s.toString(),
     };

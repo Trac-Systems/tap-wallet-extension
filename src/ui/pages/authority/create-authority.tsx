@@ -13,6 +13,9 @@ import {
 import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import { useAppSelector } from '@/src/ui/utils';
 import { usePrepareSendBTCCallback } from '@/src/ui/pages/send-receive/hook';
+import { useCustomToast } from '../../component/toast-custom';
+import { colors } from '../../themes/color';
+import { SVG } from '../../svg';
 
 // interface ContextData {
 //   ticker: string;
@@ -40,6 +43,8 @@ const CreateAuthority = () => {
   const location = useLocation();
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
+  const { showToast } = useCustomToast();
+  const [isWarning, setIsWarning] = useState(false);
 
   const { state } = location;
   const type = state.type;
@@ -50,24 +55,60 @@ const CreateAuthority = () => {
         ? 'Confirm Authority'
         : 'Cancel Authority';
   const [tokenAuth, setTokenAuth] = useState<string>('');
-  const [order, setOrder] = useState<InscribeOrder | null>(null);
   const [feeRate, setFeeRate] = useState<number>(5);
-  const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo | null>(null);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const [loading, setLoading] = useState(false);
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
-  const handleNavigate = () => {
+  const handleNavigate = async () => {
+    if (type === 'create') {
+      try {
+        setLoading(true);
+        const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
+        const order = await walletProvider.createOrderAuthority(
+          activeAccount.address,
+          _tokenAuth.proto,
+          feeRate,
+          546,
+        );
+        const rawTxInfo = await prepareSendBTC({
+          toAddressInfo: { address: order?.payAddress, domain: '' },
+          toAmount: order?.totalFee,
+          feeRate: order?.feeRate || feeRate,
+          enableRBF: false,
+        });
+        navigate('/home/inscribe-confirm', {
+          state: {
+            contextDataParam: {
+              tokenAuth,
+              order,
+              rawTxInfo
+            },
+          },
+        });
+      } catch (error) {
+        console.log('error :>> ', error);
+        showToast({
+          title: error.message,
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+
+      return;
+    }
     // TODO: create order authority instead through useEffect
-    navigate('/home/inscribe-confirm', {
-      state: {
-        contextDataParam: {
-          rawTxInfo,
-          order,
-        },
-      },
-    });
+    // navigate('/home/inscribe-confirm', {
+    //   state: {
+    //     contextDataParam: {
+    //       rawTxInfo,
+    //       order,
+    //     },
+    //   },
+    // });
   };
 
   // generate token auth
@@ -82,32 +123,32 @@ const CreateAuthority = () => {
   }, [type]);
 
   // create order authority
-  useEffect(() => {
-    const createOrderAuthority = async () => {
-      const order = await walletProvider.createOrderAuthority(
-        activeAccount.address,
-        tokenAuth,
-        feeRate,
-        546,
-      );
-      setOrder(order);
-    };
-    createOrderAuthority();
-  }, [tokenAuth, feeRate]);
+  // useEffect(() => {
+  //   const createOrderAuthority = async () => {
+  //     const order = await walletProvider.createOrderAuthority(
+  //       activeAccount.address,
+  //       tokenAuth,
+  //       feeRate,
+  //       546,
+  //     );
+  //     setOrder(order);
+  //   };
+  //   createOrderAuthority();
+  // }, [tokenAuth, feeRate]);
 
   // prepare raw tx info
-  useEffect(() => {
-    const prepareRawTxInfo = async () => {
-      const rawTxInfo = await prepareSendBTC({
-        toAddressInfo: { address: order?.payAddress, domain: '' },
-        toAmount: order?.totalFee,
-        feeRate: order?.feeRate || feeRate,
-        enableRBF: false,
-      });
-      setRawTxInfo(rawTxInfo);
-    };
-    prepareRawTxInfo();
-  }, [order]);
+  // useEffect(() => {
+  //   const prepareRawTxInfo = async () => {
+  //     const rawTxInfo = await prepareSendBTC({
+  //       toAddressInfo: { address: order?.payAddress, domain: '' },
+  //       toAmount: order?.totalFee,
+  //       feeRate: order?.feeRate || feeRate,
+  //       enableRBF: false,
+  //     });
+  //     setRawTxInfo(rawTxInfo);
+  //   };
+  //   prepareRawTxInfo();
+  // }, [order]);
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);
@@ -119,34 +160,47 @@ const CreateAuthority = () => {
       header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column" spacing="xxl" style={{ width: '100%' }}>
-          {type === 'confirm' ? null : (
-            <UX.Box layout="column" spacing="xss">
+          {isWarning ? <UX.Box spacing="xs">
+            <UX.Box
+              layout="box_border"
+              spacing="sm"
+              style={{ background: colors.red_700 }}>
+              <SVG.WaringIcon />
               <UX.Text
-                styleType="body_16_bold"
-                title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
+                styleType="body_14_bold"
+                customStyles={{ color: colors.white, maxWidth: '90%' }}
+                title={`You just created an authority which is being processed. Please take precautions while making continuous transactions.`}
               />
-              <div
-                style={{
-                  wordBreak: 'break-all',
-                  padding: '16px',
-                  borderRadius: '16px',
-                  border: '1px solid rgb(84, 84, 84)',
-                  backgroundColor: 'rgba(39, 39, 39, 0.42)',
-                }}
-              >
-                {tokenAuth}
-              </div>
             </UX.Box>
-          )}
+          </UX.Box> :
+            type === 'confirm' ? null : (
+              <UX.Box layout="column" spacing="xss">
+                <UX.Text
+                  styleType="body_16_bold"
+                  title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
+                />
+                <div
+                  style={{
+                    wordBreak: 'break-all',
+                    padding: '16px',
+                    borderRadius: '16px',
+                    border: '1px solid rgb(84, 84, 84)',
+                    backgroundColor: 'rgba(39, 39, 39, 0.42)',
+                  }}
+                >
+                  {tokenAuth}
+                </div>
+              </UX.Box>
+            )}
 
-          <UX.Box layout="column" spacing="xss">
+          {!isWarning && <UX.Box layout="column" spacing="xss">
             <UX.Text
               styleType="heading_16"
               customStyles={{ color: 'white' }}
               title="Fee rate"
             />
             <FeeRateBar onChange={handleUpdateFeeRate} />
-          </UX.Box>
+          </UX.Box>}
         </UX.Box>
       }
       footer={
@@ -160,6 +214,7 @@ const CreateAuthority = () => {
             styleType="primary"
             title={type !== 'create' ? 'Confirm' : 'Next'}
             onClick={handleNavigate}
+            isDisable={loading}
           />
         </UX.Box>
       }

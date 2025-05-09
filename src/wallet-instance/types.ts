@@ -343,7 +343,7 @@ export interface TokenAuth {
 }
 
 export interface TokenAuthority {
-  address: string;
+  addr: string;
   auth: string[];
   sig: {
     v: string;

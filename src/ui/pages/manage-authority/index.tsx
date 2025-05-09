@@ -1,14 +1,13 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UX } from '../../component';
-import LayoutSendReceive from '../../layouts/send-receive';
-import { colors } from '../../themes/color';
-import { useAppSelector } from '../../utils';
-import { InscriptionSelector } from '../../redux/reducer/inscription/selector';
-import { useEffect, useState } from 'react';
 import { useWalletProvider } from '../../gateway/wallet-provider';
+import LayoutSendReceive from '../../layouts/send-receive';
 import { AccountSelector } from '../../redux/reducer/account/selector';
-
-const limit = 1;
+import { useAppSelector } from '../../utils';
+import { networkConfig } from '@/src/background/service/singleton';
+import { Network } from '@/src/wallet-instance';
+import { preview } from 'vite';
 
 const ManageAuthority = () => {
     const [pagination, setPagination] = useState({
@@ -20,7 +19,11 @@ const ManageAuthority = () => {
     const navigate = useNavigate();
     const [authorityList, setAuthorityList] = useState<any[]>([]);
     const [totalAuthority, setTotalAuthority] = useState(0);
-
+    const network = networkConfig.getActiveNetwork();
+    const urlPreview =
+        network === Network.TESTNET
+            ? 'https://static-testnet.unisat.io/preview/'
+            : 'https://static.unisat.io/preview/';
     const handleGoBack = () => {
         navigate(-1);
     };
@@ -46,49 +49,39 @@ const ManageAuthority = () => {
         <LayoutSendReceive
             header={<UX.TextHeader text="Manage Authority" onBackClick={handleGoBack} />}
             body={
-                <UX.Box style={{ width: '100%', maxHeight: 'calc(100vh - 150px)', overflow: 'auto' }} spacing="xs" layout="grid_column_2">
-                    {authorityList.map((item, index) => {
-                        console.log('item :>> ', item);
-                        return (
-                            <UX.Box layout="box_border" key={index}>
-                                <UX.Box layout="column" spacing="xs" style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
+                <UX.Box>
+                    <UX.Box style={{ width: '100%', maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }} spacing="xs" layout="grid_column_2">
+                        {authorityList.map((item, index) => {
+                            return (
+                                <UX.Box key={item?.ins} layout="column" spacing="xs" style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
                                     <UX.InscriptionPreview
-                                        key={item.inscriptionId}
-                                        data={item}
+                                        data={{ ...item, inscriptionId: item?.ins, outputValue: item?.val, inscriptionNumber: item?.num, preview: `${urlPreview}${item?.ins}` }}
                                         preset="medium"
                                         onClick={() =>
-                                            navigate('/home/inscription-detail', {
+                                            navigate('/manage-authority/authority-detail', {
                                                 state: {
-                                                    inscriptionId: item?.inscriptionId,
+                                                    inscriptionId: item?.ins,
+                                                    inscriptionInfo: item,
                                                     hash: location.hash.replace('#', ''),
                                                 },
                                             })
                                         }
                                     />
-                                    <UX.Box layout="column">
-                                        <UX.Text
-                                            title={`#${item.num}`}
-                                            styleType="body_16_normal"
-                                        />
-                                        <UX.Text
-                                            title={`${item.val} SATs`}
-                                            styleType="body_16_normal"
-                                            customStyles={{ color: colors.main_500 }}
-                                        />
-                                    </UX.Box>
                                 </UX.Box>
-                                <UX.Box layout="row_center">
-                                    <UX.Pagination
-                                        pagination={pagination}
-                                        total={totalAuthority}
-                                        onChange={pagination => {
-                                            setPagination(pagination);
-                                        }}
-                                    />
-                                </UX.Box>
-                            </UX.Box>
-                        );
-                    })}
+                            );
+                        })}
+                    </UX.Box>
+                    {totalAuthority > 0 && <div style={{marginTop: '20px'}}><UX.Box layout="row_center">
+                        <UX.Pagination
+                            pagination={pagination}
+                            total={totalAuthority}
+                            onChange={pagination => {
+                                setPagination(pagination);
+                            }}
+                        />
+                    </UX.Box>
+                    </div>
+                    }
                 </UX.Box>
             }
             footer={

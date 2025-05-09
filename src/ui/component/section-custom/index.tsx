@@ -23,7 +23,7 @@ export function Section({
       <Text
         title={String(value)}
         styleType={link ? 'link' : 'body_14_normal'}
-        customStyles={{maxWidth: '100%', cursor: 'pointer'}}
+        customStyles={{maxWidth: '100%', cursor: 'pointer', wordBreak: 'break-all'}}
         onClick={() => {
           if (link) {
             window.open(link);

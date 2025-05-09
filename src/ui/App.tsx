@@ -1,7 +1,7 @@
-import {useCallback, useEffect, useRef} from 'react';
-import {useSelector} from 'react-redux';
-import {HashRouter, Route, Routes} from 'react-router-dom';
-import {useWalletProvider} from './gateway/wallet-provider';
+import { useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { HashRouter, Route, Routes } from 'react-router-dom';
+import { useWalletProvider } from './gateway/wallet-provider';
 import ApprovalScreen from './pages/approval/approval-screen';
 import CreateAccount from './pages/home-flow/components/create-account';
 import EditAccountName from './pages/home-flow/components/edit-account-name';
@@ -42,10 +42,10 @@ import SecuritySetting from './pages/settings/security';
 import SettingAdvanced from './pages/settings/setting-advance';
 import ShowKey from './pages/settings/show-key';
 import TxSecurity from './pages/settings/tx-security';
-import {AccountActions} from './redux/reducer/account/slice';
-import {GlobalSelector} from './redux/reducer/global/selector';
-import {GlobalActions} from './redux/reducer/global/slice';
-import {generateUniqueColors, useAppDispatch} from './utils';
+import { AccountActions } from './redux/reducer/account/slice';
+import { GlobalSelector } from './redux/reducer/global/selector';
+import { GlobalActions } from './redux/reducer/global/slice';
+import { generateUniqueColors, useAppDispatch } from './utils';
 import SendInscription from '@/src/ui/pages/send-receive/send-inscription';
 import SendInscriptionConfirm from '@/src/ui/pages/send-receive/send-inscription-confirm';
 import DmtList from './pages/home-flow/components/dmt-list';
@@ -53,6 +53,7 @@ import CreateAuthority from './pages/authority/create-authority';
 import Authority from './pages/authority/authority';
 import TransferAuthority from './pages/authority/transfer-authority';
 import ManageAuthority from './pages/manage-authority';
+import AuthorityDetail from './pages/manage-authority/authority-detail';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -70,7 +71,7 @@ function App() {
 
   useEffect(() => {
     const uniqueColors = generateUniqueColors(20);
-    dispatch(GlobalActions.setListRandomColor({listColor: uniqueColors}));
+    dispatch(GlobalActions.setListRandomColor({ listColor: uniqueColors }));
   }, []);
 
   const initRedux = useCallback(async () => {
@@ -97,7 +98,7 @@ function App() {
         );
         self.settingsLoaded = true;
       }
-      dispatch(GlobalActions.update({isReady: true}));
+      dispatch(GlobalActions.update({ isReady: true }));
     } catch (e) {
       console.log('init error', e);
     }
@@ -111,7 +112,7 @@ function App() {
     walletProvider.hasWallet().then(val => {
       if (val) {
         walletProvider.isUnlocked().then(isUnlocked => {
-          dispatch(GlobalActions.update({isUnlocked}));
+          dispatch(GlobalActions.update({ isUnlocked }));
           if (!isUnlocked && !location.href.includes('login')) {
             const basePath = location.href.split('#')[0];
             location.href = `${basePath}#/login`;
@@ -235,6 +236,7 @@ function App() {
         <Route path="/authority" element={<Authority />} />
         <Route path="/transfer-authority" element={<TransferAuthority />} />
         <Route path="/manage-authority" element={<ManageAuthority />} />
+        <Route path="/manage-authority/authority-detail" element={<AuthorityDetail />} />
       </Routes>
     </HashRouter>
   );

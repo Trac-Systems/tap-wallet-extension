@@ -34,7 +34,8 @@ const TapListChild = () => {
     pageSize: TOKEN_PAGE_SIZE,
   });
   const tickerDemo = 'thuy';
-  const isHaveAuthority = true;
+  const isAuthority = useAppSelector(GlobalSelector.isAuthority);
+  
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;
@@ -128,8 +129,8 @@ const TapListChild = () => {
         layout="box_border"
         style={{cursor: 'pointer'}}
         onClick={() => {
-          if (isHaveAuthority) {
-            navigate('/authority');
+          if (!isAuthority) {
+            navigate('/manage-authority');
           } else {
             navigate('/create-authority', {
               state: {
@@ -138,16 +139,16 @@ const TapListChild = () => {
             });
           }
         }}>
-        <UX.Text title="Enable tx transfer" styleType="body_16_bold" />
+        <UX.Text title={isAuthority ? "Enable tx transfer" : 'Manage Authority'} styleType="body_16_bold" />
         <SVG.ArrowIconRight width={23} height={18} />
       </UX.Box>
-      <UX.Button
+      {isAuthority && <UX.Button
         styleType={'primary'}
         title="1-TX Transfer"
         onClick={() =>
           navigate('/transfer-authority')
         }
-      />
+      />}
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>
           <UX.Box

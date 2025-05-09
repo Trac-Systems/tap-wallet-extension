@@ -79,7 +79,6 @@ export function useReloadAccounts() {
     const currentAuthority = await wallet.getCurrentAuthority(
       activeAccount.address,
     );
-    console.log('currentAuthority', currentAuthority);
     dispatch(AccountActions.setCurrentAuthority(currentAuthority));
   }, [dispatch, wallet]);
 }

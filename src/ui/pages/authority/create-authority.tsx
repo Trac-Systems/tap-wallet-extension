@@ -1,21 +1,21 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { UX } from '../../component';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
-import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
-import { useEffect, useState } from 'react';
-import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
+import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
+import {useEffect, useState} from 'react';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {
   InscribeOrder,
   TokenBalance,
   RawTxInfo,
   TokenInfo,
 } from '@/src/wallet-instance/types';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
-import { useAppSelector } from '@/src/ui/utils';
-import { usePrepareSendBTCCallback } from '@/src/ui/pages/send-receive/hook';
-import { useCustomToast } from '../../component/toast-custom';
-import { colors } from '../../themes/color';
-import { SVG } from '../../svg';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {useAppSelector} from '@/src/ui/utils';
+import {usePrepareSendBTCCallback} from '@/src/ui/pages/send-receive/hook';
+import {useCustomToast} from '../../component/toast-custom';
+import {colors} from '../../themes/color';
+import {SVG} from '../../svg';
 
 // interface ContextData {
 //   ticker: string;
@@ -43,10 +43,10 @@ const CreateAuthority = () => {
   const location = useLocation();
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
-  const { showToast } = useCustomToast();
+  const {showToast} = useCustomToast();
   const [isWarning, setIsWarning] = useState(false);
 
-  const { state } = location;
+  const {state} = location;
   const type = state.type;
   const title =
     type === 'create'
@@ -58,6 +58,7 @@ const CreateAuthority = () => {
   const [feeRate, setFeeRate] = useState<number>(5);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [loading, setLoading] = useState(false);
+  // const [authorityOrders, setAuthorityOrders] = useState<InscribeOrder[]>([]);
   //! Function
   const handleGoBack = () => {
     navigate(-1);
@@ -74,7 +75,7 @@ const CreateAuthority = () => {
           546,
         );
         const rawTxInfo = await prepareSendBTC({
-          toAddressInfo: { address: order?.payAddress, domain: '' },
+          toAddressInfo: {address: order?.payAddress, domain: ''},
           toAmount: order?.totalFee,
           feeRate: order?.feeRate || feeRate,
           enableRBF: false,
@@ -84,7 +85,7 @@ const CreateAuthority = () => {
             contextDataParam: {
               tokenAuth,
               order,
-              rawTxInfo
+              rawTxInfo,
             },
           },
         });
@@ -112,43 +113,29 @@ const CreateAuthority = () => {
   };
 
   // generate token auth
+  const generateTokenAuth = async () => {
+    if (type === 'create') {
+      const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
+      setTokenAuth(_tokenAuth.proto);
+    }
+  };
+
+  // get authority orders
   useEffect(() => {
-    const generateTokenAuth = async () => {
-      if (type === 'create') {
-        const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
-        setTokenAuth(_tokenAuth.proto);
+    const getAuthorityOrders = async () => {
+      const orders = await walletProvider.getAuthorityOrders(
+        activeAccount.address,
+      );
+      // if there is no authority orders, generate token auth
+      if (!orders?.length) {
+        generateTokenAuth();
+      } else {
+        setIsWarning(true);
       }
+      // setAuthorityOrders(orders);
     };
-    generateTokenAuth();
-  }, [type]);
-
-  // create order authority
-  // useEffect(() => {
-  //   const createOrderAuthority = async () => {
-  //     const order = await walletProvider.createOrderAuthority(
-  //       activeAccount.address,
-  //       tokenAuth,
-  //       feeRate,
-  //       546,
-  //     );
-  //     setOrder(order);
-  //   };
-  //   createOrderAuthority();
-  // }, [tokenAuth, feeRate]);
-
-  // prepare raw tx info
-  // useEffect(() => {
-  //   const prepareRawTxInfo = async () => {
-  //     const rawTxInfo = await prepareSendBTC({
-  //       toAddressInfo: { address: order?.payAddress, domain: '' },
-  //       toAmount: order?.totalFee,
-  //       feeRate: order?.feeRate || feeRate,
-  //       enableRBF: false,
-  //     });
-  //     setRawTxInfo(rawTxInfo);
-  //   };
-  //   prepareRawTxInfo();
-  // }, [order]);
+    getAuthorityOrders();
+  }, []);
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);
@@ -159,48 +146,50 @@ const CreateAuthority = () => {
     <LayoutSendReceive
       header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
       body={
-        <UX.Box layout="column" spacing="xxl" style={{ width: '100%' }}>
-          {isWarning ? <UX.Box spacing="xs">
-            <UX.Box
-              layout="box_border"
-              spacing="sm"
-              style={{ background: colors.red_700 }}>
-              <SVG.WaringIcon />
-              <UX.Text
-                styleType="body_14_bold"
-                customStyles={{ color: colors.white, maxWidth: '90%' }}
-                title={`You just created an authority which is being processed. Please take precautions while making continuous transactions.`}
-              />
-            </UX.Box>
-          </UX.Box> :
-            type === 'confirm' ? null : (
-              <UX.Box layout="column" spacing="xss">
+        <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
+          {isWarning ? (
+            <UX.Box spacing="xs">
+              <UX.Box
+                layout="box_border"
+                spacing="sm"
+                style={{background: colors.red_700}}>
+                <SVG.WaringIcon />
                 <UX.Text
-                  styleType="body_16_bold"
-                  title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
+                  styleType="body_14_bold"
+                  customStyles={{color: colors.white, maxWidth: '90%'}}
+                  title={`You just created an authority which is being processed. Please take precautions while making continuous transactions.`}
                 />
-                <div
-                  style={{
-                    wordBreak: 'break-all',
-                    padding: '16px',
-                    borderRadius: '16px',
-                    border: '1px solid rgb(84, 84, 84)',
-                    backgroundColor: 'rgba(39, 39, 39, 0.42)',
-                  }}
-                >
-                  {tokenAuth}
-                </div>
               </UX.Box>
-            )}
+            </UX.Box>
+          ) : type === 'confirm' ? null : (
+            <UX.Box layout="column" spacing="xss">
+              <UX.Text
+                styleType="body_16_bold"
+                title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
+              />
+              <div
+                style={{
+                  wordBreak: 'break-all',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  border: '1px solid rgb(84, 84, 84)',
+                  backgroundColor: 'rgba(39, 39, 39, 0.42)',
+                }}>
+                {tokenAuth}
+              </div>
+            </UX.Box>
+          )}
 
-          {!isWarning && <UX.Box layout="column" spacing="xss">
-            <UX.Text
-              styleType="heading_16"
-              customStyles={{ color: 'white' }}
-              title="Fee rate"
-            />
-            <FeeRateBar onChange={handleUpdateFeeRate} />
-          </UX.Box>}
+          {!isWarning && (
+            <UX.Box layout="column" spacing="xss">
+              <UX.Text
+                styleType="heading_16"
+                customStyles={{color: 'white'}}
+                title="Fee rate"
+              />
+              <FeeRateBar onChange={handleUpdateFeeRate} />
+            </UX.Box>
+          )}
         </UX.Box>
       }
       footer={

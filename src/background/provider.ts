@@ -1095,6 +1095,10 @@ export class Provider {
     );
   };
 
+  getAuthorityOrders = async (address: string) => {
+    return await this.inscribeApi.getAuthorityOrders(address);
+  };
+
   getInscribeTapResult = (orderId: string) => {
     return this.paidApi.getInscribeTapResult(orderId);
   };

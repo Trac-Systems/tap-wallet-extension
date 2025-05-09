@@ -172,7 +172,7 @@ export interface IWalletProvider {
     feeRate: number,
     outputValue: number,
   ): Promise<InscribeOrder>;
-
+  getAuthorityOrders(address: string): Promise<InscribeOrder[]>;
   getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer>;
   sendOrdinalsInscription(data: {
     to: string;

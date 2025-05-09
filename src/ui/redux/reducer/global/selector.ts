@@ -10,4 +10,5 @@ export const GlobalSelector = {
   randomColors: (state: AppState) => state.globalReducer.randomColors,
   showSpendableList: (state: AppState) => state.globalReducer.showSpendableList,
   isAuthority: (state: AppState) => state.globalReducer.isAuthority,
+  auth: (state: AppState) => state.globalReducer.auth
 };

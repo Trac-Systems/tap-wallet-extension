@@ -59,6 +59,7 @@ const CreateAuthority = () => {
     navigate(-1);
   };
   const handleNavigate = () => {
+    // TODO: create order authority instead through useEffect
     navigate('/home/inscribe-confirm', {
       state: {
         contextDataParam: {

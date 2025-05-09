@@ -35,6 +35,7 @@ interface TextAreaProps {
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   height?: string;
   width?: string;
+  customStyles?: CSSProperties;
 }
 
 interface MaxLengthInputProps
@@ -165,6 +166,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       onChange,
       className,
       height = '150px',
+      customStyles,
       ...rest
     } = props;
 
@@ -189,6 +191,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             border: '1px solid #545454',
             backgroundColor: colors.greyRgba42,
             outline: 'none',
+            ...customStyles
           }}
           {...rest}
         />

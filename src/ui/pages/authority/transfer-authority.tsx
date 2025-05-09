@@ -13,6 +13,8 @@ import { GlobalSelector } from '../../redux/reducer/global/selector';
 import { useWalletProvider } from '../../gateway/wallet-provider';
 import { AccountSelector } from '../../redux/reducer/account/selector';
 import { usePrepareSendBTCCallback } from '../send-receive/hook';
+import { useCustomToast } from '../../component/toast-custom';
+import { OrderType } from '@/src/wallet-instance/types';
 
 
 const TransferAuthority = () => {
@@ -20,6 +22,7 @@ const TransferAuthority = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const walletProvider = useWalletProvider();
+  const { showToast } = useCustomToast();
   const { state } = location;
   const ticker = state?.ticker;
   const [feeRate, setFeeRate] = useState('');
@@ -30,9 +33,9 @@ const TransferAuthority = () => {
   const [loading, setLoading] = useState(false);
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const networkType = useAppSelector(GlobalSelector.networkType);
+  const auth = useAppSelector(GlobalSelector.auth);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const prepareSendBTC = usePrepareSendBTCCallback();
-
 
 
   useEffect(() => {
@@ -59,14 +62,12 @@ const TransferAuthority = () => {
         amt: item.amount?.toString(),
         address: item.address,
       })),
-      auth: "5ca693cdd0a8ba7e32163ce82b0c03febd8fdbaa00e6e3199187e75395327454i0",
+      auth,
       data: "",
     }
     console.log('message :>> ', message);
     try {
       const _tokenAuth = await walletProvider.generateTokenAuth(message, 'redeem');
-      console.log('_tokenAuth :>> ', _tokenAuth);
-      console.log('activeAccount :>> ', activeAccount);
       const order = await walletProvider.createOrderAuthority(
         activeAccount.address,
         _tokenAuth.proto,
@@ -81,15 +82,21 @@ const TransferAuthority = () => {
       });
       navigate('/home/inscribe-confirm', {
         state: {
+          
           contextDataParam: {
             rawTxInfo,
             order,
+            type: OrderType.REDEEM,
           },
         },
       });
       console.log('order :>> ', order);
     } catch (error) {
       console.log('error :>> ', error);
+      showToast({
+        title: error.message,
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -191,7 +198,6 @@ const TransferAuthority = () => {
   });
 
   const renderTokenSection = (section, index) => {
-    console.log('section :>> ', section);
     const selectedOption = listTapList.find(
       option => option.value === section.selected,
     );
@@ -213,14 +219,14 @@ const TransferAuthority = () => {
             setTokenSections(newSections);
           }}
         />
-        <UX.Box layout="row_between">
+        {section.selected && <UX.Box layout="row_between">
           <UX.Text title="Available:" styleType="body_14_bold" />
           <UX.Text
-            title={`${amount} ${ticker}`}
+            title={`${amount} ${section.selected}`}
             styleType="body_14_bold"
             customStyles={{ color: colors.green_500 }}
           />
-        </UX.Box>
+        </UX.Box>}
       </UX.Box>
       <UX.Box spacing="xss">
         <UX.Text
@@ -236,7 +242,6 @@ const TransferAuthority = () => {
           }}
           disableCoinSvg
           onChange={e => {
-            console.log('321321 :>> ', 321321);
             const val = e?.target?.value;
             const cleanText = val?.toString()?.replace(/[^0-9.]/g, '');
             onAmountChange(section, cleanText);
@@ -324,7 +329,7 @@ const TransferAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={loading ? 'Confirming...' : 'Confirm'}
+            title={'Next'}
             onClick={handleConfirm}
             isDisable={isDisabledForm || loading}
           />

@@ -1,18 +1,18 @@
-import {useLocation, useNavigate} from 'react-router-dom';
-import {UX} from '../../component';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { UX } from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
-import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
-import {useEffect, useState} from 'react';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
+import { useEffect, useState } from 'react';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import {
   InscribeOrder,
   TokenBalance,
   RawTxInfo,
   TokenInfo,
 } from '@/src/wallet-instance/types';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {useAppSelector} from '@/src/ui/utils';
-import {usePrepareSendBTCCallback} from '@/src/ui/pages/send-receive/hook';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { useAppSelector } from '@/src/ui/utils';
+import { usePrepareSendBTCCallback } from '@/src/ui/pages/send-receive/hook';
 
 // interface ContextData {
 //   ticker: string;
@@ -41,7 +41,7 @@ const CreateAuthority = () => {
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
 
-  const {state} = location;
+  const { state } = location;
   const type = state.type;
   const title =
     type === 'create'
@@ -99,7 +99,7 @@ const CreateAuthority = () => {
   useEffect(() => {
     const prepareRawTxInfo = async () => {
       const rawTxInfo = await prepareSendBTC({
-        toAddressInfo: {address: order?.payAddress, domain: ''},
+        toAddressInfo: { address: order?.payAddress, domain: '' },
         toAmount: order?.totalFee,
         feeRate: order?.feeRate || feeRate,
         enableRBF: false,
@@ -118,27 +118,31 @@ const CreateAuthority = () => {
     <LayoutSendReceive
       header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
       body={
-        <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
+        <UX.Box layout="column" spacing="xxl" style={{ width: '100%' }}>
           {type === 'confirm' ? null : (
             <UX.Box layout="column" spacing="xss">
               <UX.Text
                 styleType="body_16_bold"
                 title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
               />
-              {/* disable edit */}
-              <UX.TextArea
-                height="230px"
-                disabled
-                placeholder={tokenAuth}
-                className="textareaWidth"
-              />
+              <div
+                style={{
+                  wordBreak: 'break-all',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  border: '1px solid rgb(84, 84, 84)',
+                  backgroundColor: 'rgba(39, 39, 39, 0.42)',
+                }}
+              >
+                {tokenAuth}
+              </div>
             </UX.Box>
           )}
 
           <UX.Box layout="column" spacing="xss">
             <UX.Text
               styleType="heading_16"
-              customStyles={{color: 'white'}}
+              customStyles={{ color: 'white' }}
               title="Fee rate"
             />
             <FeeRateBar onChange={handleUpdateFeeRate} />
@@ -154,7 +158,7 @@ const CreateAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={type !== 'create' ? 'Confirm' : 'Create'}
+            title={type !== 'create' ? 'Confirm' : 'Next'}
             onClick={handleNavigate}
           />
         </UX.Box>

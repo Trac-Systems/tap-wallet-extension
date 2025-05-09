@@ -11,6 +11,7 @@ export interface GlobalState {
   randomColors: string[];
   showSpendableList: boolean;
   isAuthority: boolean;
+  auth: string;
 }
 
 export const initialState: GlobalState = {
@@ -22,6 +23,7 @@ export const initialState: GlobalState = {
   randomColors: [],
   showSpendableList: false,
   isAuthority: true,
+  auth: '5ca693cdd0a8ba7e32163ce82b0c03febd8fdbaa00e6e3199187e75395327454i0'
 };
 
 const GlobalSlice = createSlice({

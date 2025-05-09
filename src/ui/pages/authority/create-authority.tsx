@@ -14,6 +14,8 @@ import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import { useAppSelector } from '@/src/ui/utils';
 import { usePrepareSendBTCCallback } from '@/src/ui/pages/send-receive/hook';
 import { useCustomToast } from '../../component/toast-custom';
+import { colors } from '../../themes/color';
+import { SVG } from '../../svg';
 
 // interface ContextData {
 //   ticker: string;
@@ -42,6 +44,7 @@ const CreateAuthority = () => {
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
   const { showToast } = useCustomToast();
+  const [isWarning, setIsWarning] = useState(false);
 
   const { state } = location;
   const type = state.type;
@@ -157,34 +160,47 @@ const CreateAuthority = () => {
       header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column" spacing="xxl" style={{ width: '100%' }}>
-          {type === 'confirm' ? null : (
-            <UX.Box layout="column" spacing="xss">
+          {isWarning ? <UX.Box spacing="xs">
+            <UX.Box
+              layout="box_border"
+              spacing="sm"
+              style={{ background: colors.red_700 }}>
+              <SVG.WaringIcon />
               <UX.Text
-                styleType="body_16_bold"
-                title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
+                styleType="body_14_bold"
+                customStyles={{ color: colors.white, maxWidth: '90%' }}
+                title={`You just created an authority which is being processed. Please take precautions while making continuous transactions.`}
               />
-              <div
-                style={{
-                  wordBreak: 'break-all',
-                  padding: '16px',
-                  borderRadius: '16px',
-                  border: '1px solid rgb(84, 84, 84)',
-                  backgroundColor: 'rgba(39, 39, 39, 0.42)',
-                }}
-              >
-                {tokenAuth}
-              </div>
             </UX.Box>
-          )}
+          </UX.Box> :
+            type === 'confirm' ? null : (
+              <UX.Box layout="column" spacing="xss">
+                <UX.Text
+                  styleType="body_16_bold"
+                  title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
+                />
+                <div
+                  style={{
+                    wordBreak: 'break-all',
+                    padding: '16px',
+                    borderRadius: '16px',
+                    border: '1px solid rgb(84, 84, 84)',
+                    backgroundColor: 'rgba(39, 39, 39, 0.42)',
+                  }}
+                >
+                  {tokenAuth}
+                </div>
+              </UX.Box>
+            )}
 
-          <UX.Box layout="column" spacing="xss">
+          {!isWarning && <UX.Box layout="column" spacing="xss">
             <UX.Text
               styleType="heading_16"
               customStyles={{ color: 'white' }}
               title="Fee rate"
             />
             <FeeRateBar onChange={handleUpdateFeeRate} />
-          </UX.Box>
+          </UX.Box>}
         </UX.Box>
       }
       footer={

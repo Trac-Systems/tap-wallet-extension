@@ -2,23 +2,57 @@ import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
-import {InscribeOrder} from '@/src/wallet-instance/types';
+import {
+  InscribeOrder,
+  OrderType,
+  RawTxInfo,
+  TokenBalance,
+} from '@/src/wallet-instance/types';
 import {useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
+
+// set style for contextDataParam.order interface
+interface ContextDataParam {
+  order: InscribeOrder;
+  tokenBalance?: TokenBalance;
+  transferAmount?: string;
+  rawTxInfo: RawTxInfo;
+}
 
 const InscribeConfirmScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {state} = location;
 
-  const contextDataParam = state?.contextDataParam || {};
+  const contextDataParam: ContextDataParam = state?.contextDataParam || {};
 
   // debug log order
 
   // set contextDataParam.order fit with InscribeOrder
   const order = useMemo(() => {
-    return contextDataParam?.order as InscribeOrder;
+    return contextDataParam?.order;
   }, [contextDataParam?.order]);
+
+  const title = useMemo(() => {
+    switch (contextDataParam?.order.type) {
+      case OrderType.TAP_MINT:
+        return 'Inscribe Mint';
+      case OrderType.TAP_DEPLOY:
+        return 'Inscribe Deploy';
+      case OrderType.TAP_TRANSFER:
+        return 'Inscribe Transfer';
+      case OrderType.FILE:
+        return 'Inscribe File';
+      case OrderType.TEXT:
+        return 'Inscribe Text';
+      case OrderType.AUTHORITY:
+        return 'Inscribe Authority';
+      case OrderType.REDEEM:
+        return 'Inscribe Redeem';
+      default:
+        return 'Inscribe';
+    }
+  }, [contextDataParam?.order.type]);
 
   const fee = contextDataParam?.rawTxInfo?.fee || 0;
   const networkFee = useMemo(() => satoshisToAmount(fee), [fee]);
@@ -44,9 +78,9 @@ const InscribeConfirmScreen = () => {
   };
 
   const handleInscribeSign = () => {
-    navigate('/home/inscribe-sign-tap', {
+    navigate('/home/inscribe-sign', {
       state: {
-        tokenBalance: contextDataParam.tokenBalance,
+        tokenBalance: contextDataParam?.tokenBalance,
         rawTxInfo: contextDataParam?.rawTxInfo,
         order: contextDataParam?.order,
       },
@@ -55,23 +89,25 @@ const InscribeConfirmScreen = () => {
 
   return (
     <LayoutTap
-      header={
-        <UX.TextHeader text={'Inscribe Transfer'} onBackClick={handleGoBack} />
-      }
+      header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
       body={
         <UX.Box style={{width: '100%'}}>
           <UX.Box spacing="xxl">
-            <UX.Box layout="row_center" spacing="xs">
-              <UX.Text
-                title={contextDataParam?.amount}
-                styleType="heading_16"
-              />
-              <UX.Text
-                title={formatTicker(contextDataParam?.tokenBalance.ticker)}
-                styleType="heading_16"
-                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
-              />
-            </UX.Box>
+            {/* show if order type is tap */}
+            {contextDataParam?.order.type === OrderType.TAP_TRANSFER && (
+              <UX.Box layout="row_center" spacing="xs">
+                <UX.Text
+                  title={contextDataParam?.transferAmount}
+                  styleType="heading_16"
+                />
+                <UX.Text
+                  title={formatTicker(contextDataParam?.tokenBalance.ticker)}
+                  styleType="heading_16"
+                  customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                />
+              </UX.Box>
+            )}
+
             <UX.Box spacing="xs" style={{margin: '16px 0'}}>
               <UX.Text
                 title="Preview"

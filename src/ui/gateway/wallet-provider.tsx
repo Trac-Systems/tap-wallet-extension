@@ -18,6 +18,7 @@ import {
   ExtractPsbt,
   TransactionSigningOptions,
   TokenBalance,
+  TokenAuth,
 } from '../../wallet-instance';
 import {Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
@@ -158,6 +159,19 @@ export interface IWalletProvider {
     feeRate: number,
     outputValue: number,
   ): Promise<InscribeOrder>;
+  createOrderAuthority(
+    address: string,
+    content: string,
+    feeRate: number,
+    outputValue: number,
+  ): Promise<InscribeOrder>;
+  createOrderRedeem(
+    address: string,
+    content: string,
+    feeRate: number,
+    outputValue: number,
+  ): Promise<InscribeOrder>;
+
   getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer>;
   sendOrdinalsInscription(data: {
     to: string;
@@ -215,6 +229,10 @@ export interface IWalletProvider {
 
   getAllRuneUtxos(address: string): Promise<UnspentOutput[]>;
   signMessage(message: string): Promise<string>;
+  generateTokenAuth(
+    message: any,
+    authType: 'redeem' | 'auth',
+  ): Promise<TokenAuth>;
 }
 
 const WalletContext = createContext<{

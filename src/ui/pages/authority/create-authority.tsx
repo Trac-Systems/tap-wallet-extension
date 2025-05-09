@@ -1,30 +1,115 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { UX } from '../../component';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
-import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
+import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
+import {useEffect, useState} from 'react';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {
+  InscribeOrder,
+  TokenBalance,
+  RawTxInfo,
+  TokenInfo,
+} from '@/src/wallet-instance/types';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {useAppSelector} from '@/src/ui/utils';
+import {usePrepareSendBTCCallback} from '@/src/ui/pages/send-receive/hook';
+
+// interface ContextData {
+//   ticker: string;
+//   session?: any;
+//   tokenBalance?: TokenBalance;
+//   order?: InscribeOrder;
+//   rawTxInfo?: RawTxInfo;
+//   amount?: string;
+//   isApproval: boolean;
+//   tokenInfo?: TokenInfo;
+// }
+
+// interface UpdateContextDataParams {
+//   ticket?: string;
+//   session?: any;
+//   tokenBalance?: TokenBalance;
+//   order?: InscribeOrder;
+//   rawTxInfo?: RawTxInfo;
+//   amount?: string;
+// }
 
 const CreateAuthority = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
+  const walletProvider = useWalletProvider();
+  const prepareSendBTC = usePrepareSendBTCCallback();
+
   const {state} = location;
   const type = state.type;
-  const rawTxInfo = '';
   const title =
     type === 'create'
-      ? 'Create account'
+      ? 'Create Authority'
       : type === 'confirm'
-        ? 'Confirm Tap'
-        : 'Cancel Tapped';
-
+        ? 'Confirm Authority'
+        : 'Cancel Authority';
+  const [tokenAuth, setTokenAuth] = useState<string>('');
+  const [order, setOrder] = useState<InscribeOrder | null>(null);
+  const [feeRate, setFeeRate] = useState<number>(5);
+  const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo | null>(null);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
   const handleNavigate = () => {
-    navigate('/sign-authority', {
-      state: {rawTxInfo},
+    navigate('/home/inscribe-confirm', {
+      state: {
+        contextDataParam: {
+          rawTxInfo,
+          order,
+        },
+      },
     });
+  };
+
+  // generate token auth
+  useEffect(() => {
+    const generateTokenAuth = async () => {
+      if (type === 'create') {
+        const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
+        setTokenAuth(_tokenAuth.proto);
+      }
+    };
+    generateTokenAuth();
+  }, [type]);
+
+  // create order authority
+  useEffect(() => {
+    const createOrderAuthority = async () => {
+      const order = await walletProvider.createOrderAuthority(
+        activeAccount.address,
+        tokenAuth,
+        feeRate,
+        546,
+      );
+      setOrder(order);
+    };
+    createOrderAuthority();
+  }, [tokenAuth, feeRate]);
+
+  // prepare raw tx info
+  useEffect(() => {
+    const prepareRawTxInfo = async () => {
+      const rawTxInfo = await prepareSendBTC({
+        toAddressInfo: {address: order?.payAddress, domain: ''},
+        toAmount: order?.totalFee,
+        feeRate: order?.feeRate || feeRate,
+        enableRBF: false,
+      });
+      setRawTxInfo(rawTxInfo);
+    };
+    prepareRawTxInfo();
+  }, [order]);
+
+  const handleUpdateFeeRate = (feeRate: number) => {
+    setFeeRate(feeRate);
   };
 
   //! Render
@@ -37,9 +122,15 @@ const CreateAuthority = () => {
             <UX.Box layout="column" spacing="xss">
               <UX.Text
                 styleType="body_16_bold"
-                title={type === 'cancel' ? 'Cancel Preview' : 'Preview'}
+                title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
               />
-              <UX.TextArea height="350px" />
+              {/* disable edit */}
+              <UX.TextArea
+                height="230px"
+                disabled
+                placeholder={tokenAuth}
+                className="textareaWidth"
+              />
             </UX.Box>
           )}
 
@@ -49,11 +140,7 @@ const CreateAuthority = () => {
               customStyles={{color: 'white'}}
               title="Fee rate"
             />
-            <FeeRateBar
-            // onChange={val => {
-            //   updateContextData({feeRate: val});
-            // }}
-            />
+            <FeeRateBar onChange={handleUpdateFeeRate} />
           </UX.Box>
         </UX.Box>
       }

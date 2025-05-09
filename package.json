@@ -16,6 +16,7 @@
     "@metamask/browser-passworder": "^5.0.1",
     "@metamask/obs-store": "^9.0.0",
     "@metamask/post-message-stream": "^8.1.1",
+    "@noble/secp256k1": "^2.2.3",
     "@reduxjs/toolkit": "^2.2.7",
     "@svgr/webpack": "^8.1.0",
     "@types/events": "^3.0.3",

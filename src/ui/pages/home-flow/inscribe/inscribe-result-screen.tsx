@@ -8,6 +8,7 @@ import {isEmpty} from 'lodash';
 import {useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useTapInscribeTransferHook} from './hooks';
+import {OrderType} from '@/src/wallet-instance/types';
 
 const InscribeResultScreen = () => {
   const navigate = useNavigate();
@@ -28,7 +29,12 @@ const InscribeResultScreen = () => {
   };
 
   const onClickDone = () => {
-    onConfirmInscribeTransfer(tokenBalance, result);
+    // if order type is transfer handle onConfirmInscribeTransfer
+    if (order.type === OrderType.TAP_TRANSFER) {
+      onConfirmInscribeTransfer(tokenBalance, result);
+    } else {
+      navigate('/home');
+    }
   };
 
   const checkResult = async () => {

@@ -35,7 +35,7 @@ interface ContextData {
   tokenBalance?: TokenBalance;
   order?: InscribeOrder;
   rawTxInfo?: RawTxInfo;
-  amount?: string;
+  transferAmount?: string;
   isApproval: boolean;
   tokenInfo?: TokenInfo;
 }
@@ -46,7 +46,7 @@ interface UpdateContextDataParams {
   tokenBalance?: TokenBalance;
   order?: InscribeOrder;
   rawTxInfo?: RawTxInfo;
-  amount?: string;
+  transferAmount?: string;
   tokenInfo?: TokenInfo;
 }
 
@@ -89,8 +89,8 @@ const InscribeTransferTapScreen = () => {
   );
 
   useEffect(() => {
-    if (contextData.amount) {
-      setInputAmount(contextData.amount.toString());
+    if (contextData.transferAmount) {
+      setInputAmount(contextData.transferAmount.toString());
       setInputDisabled(true);
     }
   }, []);
@@ -209,13 +209,13 @@ const InscribeTransferTapScreen = () => {
         feeRate: feeRate,
         enableRBF: enableRBF,
       });
-      updateContextData({order, amount, rawTxInfo});
-      navigate('/home/inscribe-confirm-tap', {
+      updateContextData({order, transferAmount: amount, rawTxInfo});
+      navigate('/home/inscribe-confirm', {
         state: {
           contextDataParam: {
             ...contextData,
             order,
-            amount,
+            transferAmount: amount,
             rawTxInfo,
           },
         },

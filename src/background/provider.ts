@@ -39,6 +39,7 @@ import {
   WalletDisplay,
   ExtractPsbt,
   Inscription,
+  OrderType,
 } from '../wallet-instance';
 import {toXOnly} from 'bitcoinjs-lib/src/psbt/bip371';
 import {convertScriptToAddress} from '../shared/utils/btc-helper';
@@ -48,6 +49,9 @@ import {ConnectedSite} from './service/permission.service';
 import {isEmpty} from 'lodash';
 import {Psbt} from 'bitcoinjs-lib';
 import {InscribeApi} from './requests/inscribe-api';
+import {createHash} from 'crypto';
+import * as secp from '@noble/secp256k1';
+
 export interface IDerivationPathOption {
   label: string;
   derivationPath: string;
@@ -1061,6 +1065,36 @@ export class Provider {
     );
   };
 
+  createOrderAuthority = (
+    address: string,
+    content: string,
+    feeRate: number,
+    outputValue: number,
+  ) => {
+    return this.inscribeApi.createOrderText(
+      content,
+      OrderType.AUTHORITY,
+      address,
+      feeRate,
+      outputValue,
+    );
+  };
+
+  createOrderRedeem = (
+    address: string,
+    content: string,
+    feeRate: number,
+    outputValue: number,
+  ) => {
+    return this.inscribeApi.createOrderText(
+      content,
+      OrderType.REDEEM,
+      address,
+      feeRate,
+      outputValue,
+    );
+  };
+
   getInscribeTapResult = (orderId: string) => {
     return this.paidApi.getInscribeTapResult(orderId);
   };
@@ -1184,6 +1218,61 @@ export class Provider {
 
   getAllRuneUtxos = async (address: string) => {
     return await this.paidApi.getAllRuneUtxos(address);
+  };
+
+  // convert this to private property
+  private _sha256 = (content: string) => {
+    // convert content to hex
+    const hash = createHash('sha256').update(content).digest();
+    return hash.toString('hex');
+  };
+
+  generateTokenAuth = async (message: any, authType: 'redeem' | 'auth') => {
+    const account = this.getActiveAccount();
+    if (!account) {
+      return null;
+    }
+    const pubKey = account.pubkey;
+    const wallet = walletService.getWalletForBackground(pubKey, account.type);
+    if (!wallet) {
+      return null;
+    }
+    const salt = Math.random();
+    const privateKey = await wallet.exportPrivateKey(pubKey);
+    const privKeyBuffer = Buffer.from(privateKey, 'hex');
+    const privKeyUint8Array = new Uint8Array(privKeyBuffer);
+    const pubKeyBuffer = Buffer.from(pubKey, 'hex');
+    const pubKeyUint8Array = new Uint8Array(pubKeyBuffer);
+
+    const proto = {
+      p: 'tap',
+      op: 'token-auth',
+      sig: null,
+      hash: null,
+      salt: '' + salt,
+    };
+
+    const msgHash = this._sha256(JSON.stringify(message) + proto.salt);
+    const signature = await secp.signAsync(msgHash, privKeyUint8Array);
+
+    proto[authType] = message;
+    proto.sig = {
+      v: '' + signature.recovery,
+      r: signature.r.toString(),
+      s: signature.s.toString(),
+    };
+    proto.hash = Buffer.from(msgHash).toString('hex');
+
+    const test_proto = JSON.parse(JSON.stringify(proto));
+    const test_msgHash = this._sha256(
+      JSON.stringify(test_proto[authType]) + test_proto.salt,
+    );
+    const isValid = secp.verify(signature, test_msgHash, pubKeyUint8Array);
+
+    return {
+      proto: JSON.stringify(proto),
+      isValid,
+    };
   };
 }
 

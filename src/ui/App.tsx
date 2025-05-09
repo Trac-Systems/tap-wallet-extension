@@ -11,10 +11,10 @@ import ListTapOptions from './pages/home-flow/components/tap-component/list-tap-
 import TapTransfer from './pages/home-flow/components/tap-component/tap-transfer';
 import TransferTap from './pages/home-flow/components/tap-component/transfer-tap';
 import Home from './pages/home-flow/home';
-import InscribeConfirmScreen from './pages/home-flow/inscribe-transfer/inscribe-confirm-screen';
-import InscribeResultScreen from './pages/home-flow/inscribe-transfer/inscribe-result-screen';
-import InscribeSignScreen from './pages/home-flow/inscribe-transfer/inscribe-sign-screen';
-import InscribeTransferTapScreen from './pages/home-flow/inscribe-transfer/inscribe-transfer-tab-screen';
+import InscribeConfirmScreen from './pages/home-flow/inscribe/inscribe-confirm-screen';
+import InscribeResultScreen from './pages/home-flow/inscribe/inscribe-result-screen';
+import InscribeSignScreen from './pages/home-flow/inscribe/inscribe-sign-screen';
+import InscribeTransferTapScreen from './pages/home-flow/inscribe/inscribe-transfer-tab-screen';
 import CheckSeedPhrase from './pages/import-flow/check-seed-phrase-step';
 import ChooseAddressPrivate from './pages/import-flow/choose-address-private';
 import ChooseAddress from './pages/import-flow/choose-address-step';
@@ -50,7 +50,6 @@ import SendInscription from '@/src/ui/pages/send-receive/send-inscription';
 import SendInscriptionConfirm from '@/src/ui/pages/send-receive/send-inscription-confirm';
 import DmtList from './pages/home-flow/components/dmt-list';
 import CreateAuthority from './pages/authority/create-authority';
-import SignAuthority from './pages/authority/sign-authority';
 import Authority from './pages/authority/authority';
 import TransferAuthority from './pages/authority/transfer-authority';
 
@@ -171,12 +170,12 @@ function App() {
           element={<ConfirmTransaction />}
         />
         <Route
-          path="/home/inscribe-sign-tap"
+          path="/home/inscribe-sign"
           element={<InscribeSignScreen />}
         />
 
         <Route
-          path="/home/inscribe-confirm-tap"
+          path="/home/inscribe-confirm"
           element={<InscribeConfirmScreen />}
         />
 
@@ -232,7 +231,6 @@ function App() {
 
         {/* Authority */}
         <Route path="/create-authority" element={<CreateAuthority />} />
-        <Route path="/sign-authority" element={<SignAuthority />} />
         <Route path="/authority" element={<Authority />} />
         <Route path="/transfer-authority" element={<TransferAuthority />} />
       </Routes>

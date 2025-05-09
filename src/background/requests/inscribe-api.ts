@@ -41,7 +41,6 @@ export class InscribeApi {
   async createOrderText(
     text: string,
     type: OrderType,
-    connectedAddress: string,
     receiveAddress: string,
     feeRate: number,
     outputValue: number,
@@ -49,7 +48,7 @@ export class InscribeApi {
     const res = await this.api.post('/v1/inscribe/order/texts', {
       feeRate,
       postage: outputValue,
-      connectedAddress,
+      connectedAddress: receiveAddress, // connectedAddress is receiveAddress
       rebar: false,
       data: [{text, receiver: receiveAddress}],
       orderType: type,

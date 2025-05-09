@@ -4,6 +4,11 @@ import {PublicWallet} from '../background/service/wallet.service';
 export enum OrderType {
   TEXT = 'TEXT',
   TAP_TRANSFER = 'TAP_TRANSFER',
+  TAP_MINT = 'TAP_MINT',
+  TAP_DEPLOY = 'TAP_DEPLOY',
+  FILE = 'FILE',
+  AUTHORITY = 'AUTHORITY',
+  REDEEM = 'REDEEM',
 }
 
 export enum AddressType {
@@ -330,4 +335,9 @@ export interface IListInscription {
   isCursed: boolean;
   isVindicate: boolean;
   isBRC20: boolean;
+}
+
+export interface TokenAuth {
+  proto: string;
+  isValid: boolean;
 }

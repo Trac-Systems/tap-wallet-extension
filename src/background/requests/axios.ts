@@ -77,6 +77,37 @@ export class AxiosRequest {
     }
   };
 
+  put = async (endpoint: string, bodyData: any) => {
+    try {
+      const response = await this.api.put(endpoint, bodyData);
+      if (response && response.status >= 200 && response.status < 300) {
+        return await Promise.resolve({
+          success: true,
+          message: response.statusText,
+          statusCode: response.status,
+          data: response.data,
+        });
+      }
+    } catch (error: any) {
+      const {response} = error;
+      let msg;
+      let statusCode;
+      if (response && response instanceof Object) {
+        const {data, statusText} = response;
+        statusCode = response.status;
+        msg = data?.message || statusText;
+      } else {
+        statusCode = 600;
+        msg = error?.message || 'Network Error';
+      }
+      return Promise.reject({
+        success: false,
+        statusCode,
+        message: msg,
+      });
+    }
+  };
+
   postAsPlainText = async (endpoint: string, data: string) => {
     try {
       const url = `${this.url()}${endpoint}`;

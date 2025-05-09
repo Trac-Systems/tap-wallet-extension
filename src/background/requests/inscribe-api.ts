@@ -83,4 +83,22 @@ export class InscribeApi {
     }
     return {...res?.data?.data};
   }
+
+  // get orders ready to tap
+  async getReadyToTap(address: string) {
+    const res = await this.api.get(`/v1/inscribe/order/readyToTap/${address}`,{});
+    if (!res.data) {
+      throw new Error('Get ready to tap order failed');
+    }
+    return {...res?.data?.data};
+  }
+
+  // mark order as tapping
+  async tappingOrder(orderId: string) {
+    const res = await this.api.put(`/v1/inscribe/order/tapping/${orderId}`,{});
+    if (!res.data) {
+      throw new Error('Tapping order failed');
+    }
+    return {...res?.data?.data};
+  }
 }

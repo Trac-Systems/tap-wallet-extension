@@ -54,7 +54,6 @@ const InscribeConfirmScreen = () => {
     }
   }, [contextDataParam?.order.type]);
 
-
   const fee = contextDataParam?.rawTxInfo?.fee || 0;
   const networkFee = useMemo(() => satoshisToAmount(fee), [fee]);
   const outputValue = useMemo(

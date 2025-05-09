@@ -3,6 +3,7 @@ import {
   IDisplayAccount,
   Inscription,
   InscriptionSummary,
+  TokenAuthority,
   TxHistoryItem,
   UnspentOutput,
 } from '@/src/wallet-instance';
@@ -64,6 +65,8 @@ export interface AccountsState {
   dmtGroupMap?: {
     [key: string]: DmtDeployInfo;
   };
+
+  currentAuthority: TokenAuthority;
 }
 
 const initialAccount = {
@@ -101,6 +104,7 @@ export const initialState: AccountsState = {
   runeUtxos: [],
   dmtCollectibleMap: {},
   dmtGroupMap: {},
+  currentAuthority: null,
 };
 
 const AccountSlice = createSlice({
@@ -274,7 +278,9 @@ const AccountSlice = createSlice({
       const _dmtGroupMap = state.dmtGroupMap;
       Object.keys(_dmtGroupMap).forEach(key => {
         if (_dmtGroupMap[key].dmtInscriptionIds.includes(payload)) {
-          _dmtGroupMap[key].dmtInscriptionIds = _dmtGroupMap[key].dmtInscriptionIds.filter(id => id !== payload);
+          _dmtGroupMap[key].dmtInscriptionIds = _dmtGroupMap[
+            key
+          ].dmtInscriptionIds.filter(id => id !== payload);
           if (_dmtGroupMap[key].dmtInscriptionIds.length === 0) {
             delete _dmtGroupMap[key];
           }
@@ -295,6 +301,12 @@ const AccountSlice = createSlice({
     },
     resetDmtGroupMap(state: AccountsState) {
       state.dmtGroupMap = {};
+    },
+    setCurrentAuthority(
+      state: AccountsState,
+      action: {payload: TokenAuthority},
+    ) {
+      state.currentAuthority = action.payload;
     },
   },
 });

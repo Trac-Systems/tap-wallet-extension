@@ -1,7 +1,5 @@
 import {Network} from '@/src/wallet-instance';
 import {createSlice} from '@reduxjs/toolkit';
-import { set } from 'lodash';
-
 export interface GlobalState {
   isUnlocked: boolean;
   isReady: boolean;

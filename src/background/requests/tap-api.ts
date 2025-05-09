@@ -371,11 +371,12 @@ export class TapApi {
 
   // get authority list
   async getAuthorityList(address: string, offset: number, max: number) {
+    const total = await this.getTotalTokenAuthority(address);
     const response = await this.api.get(`/getAccountAuthList/${address}`, {
       offset,
       max,
     });
-    return response?.data?.result;
+    return {data: response?.data?.result, total};
   }
 
   // get current authority
@@ -384,7 +385,10 @@ export class TapApi {
     if (total === 0) {
       return null;
     }
-    const response = await this.getAuthorityList(address, total - 1, 1);
-    return response.length > 0 ? response[0] : null;
+    const response = await this.api.get(`/getAccountAuthList/${address}`, {
+      offset: total - 1,
+      max: 1,
+    });
+    return response?.data?.result[0] || null;
   }
 }

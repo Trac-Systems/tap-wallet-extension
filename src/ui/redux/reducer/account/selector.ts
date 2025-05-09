@@ -11,4 +11,5 @@ export const AccountSelector = {
   runeUtxos: (state: AppState) => state.accountReducer.runeUtxos,
   dmtCollectibleMap: (state: AppState) => state.accountReducer.dmtCollectibleMap,
   dmtGroupMap: (state: AppState) => state.accountReducer.dmtGroupMap,
+  currentAuthority: (state: AppState) => state.accountReducer.currentAuthority,
 };

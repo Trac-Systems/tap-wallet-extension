@@ -19,6 +19,7 @@ import {
   TransactionSigningOptions,
   TokenBalance,
   TokenAuth,
+  TokenAuthority,
 } from '../../wallet-instance';
 import {Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
@@ -233,6 +234,12 @@ export interface IWalletProvider {
     message: any,
     authType: 'redeem' | 'auth',
   ): Promise<TokenAuth>;
+  getAuthorityList(
+    address: string,
+    offset: number,
+    max: number,
+  ): Promise<{data: TokenAuthority[]; total: number}>;
+  getCurrentAuthority(address: string): Promise<TokenAuthority>;
 }
 
 const WalletContext = createContext<{

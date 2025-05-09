@@ -75,6 +75,12 @@ export function useReloadAccounts() {
 
     dispatch(AccountActions.resetDmtCollectibleMap());
     dispatch(AccountActions.resetDmtGroupMap());
+
+    const currentAuthority = await wallet.getCurrentAuthority(
+      activeAccount.address,
+    );
+    console.log('currentAuthority', currentAuthority);
+    dispatch(AccountActions.setCurrentAuthority(currentAuthority));
   }, [dispatch, wallet]);
 }
 

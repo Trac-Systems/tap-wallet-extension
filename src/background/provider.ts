@@ -1255,7 +1255,7 @@ export class Provider {
     const signature = await secp.signAsync(msgHash, privKeyUint8Array);
     proto[authType] = message;
     proto.sig = {
-      v: '' + signature.recovery, 
+      v: '' + signature.recovery,
       r: signature.r.toString(),
       s: signature.s.toString(),
     };
@@ -1271,6 +1271,14 @@ export class Provider {
       proto: JSON.stringify(proto),
       isValid,
     };
+  };
+
+  getAuthorityList = async (address: string, offset: number, max: number) => {
+    return await this.tapApi.getAuthorityList(address, offset, max);
+  };
+
+  getCurrentAuthority = async (address: string) => {
+    return await this.tapApi.getCurrentAuthority(address);
   };
 }
 

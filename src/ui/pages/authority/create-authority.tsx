@@ -13,6 +13,7 @@ import {
 import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import { useAppSelector } from '@/src/ui/utils';
 import { usePrepareSendBTCCallback } from '@/src/ui/pages/send-receive/hook';
+import { useCustomToast } from '../../component/toast-custom';
 
 // interface ContextData {
 //   ticker: string;
@@ -40,6 +41,7 @@ const CreateAuthority = () => {
   const location = useLocation();
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
+  const { showToast } = useCustomToast();
 
   const { state } = location;
   const type = state.type;
@@ -50,24 +52,60 @@ const CreateAuthority = () => {
         ? 'Confirm Authority'
         : 'Cancel Authority';
   const [tokenAuth, setTokenAuth] = useState<string>('');
-  const [order, setOrder] = useState<InscribeOrder | null>(null);
   const [feeRate, setFeeRate] = useState<number>(5);
-  const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo | null>(null);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const [loading, setLoading] = useState(false);
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
-  const handleNavigate = () => {
+  const handleNavigate = async () => {
+    if (type === 'create') {
+      try {
+        setLoading(true);
+        const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
+        const order = await walletProvider.createOrderAuthority(
+          activeAccount.address,
+          _tokenAuth.proto,
+          feeRate,
+          546,
+        );
+        const rawTxInfo = await prepareSendBTC({
+          toAddressInfo: { address: order?.payAddress, domain: '' },
+          toAmount: order?.totalFee,
+          feeRate: order?.feeRate || feeRate,
+          enableRBF: false,
+        });
+        navigate('/home/inscribe-confirm', {
+          state: {
+            contextDataParam: {
+              tokenAuth,
+              order,
+              rawTxInfo
+            },
+          },
+        });
+      } catch (error) {
+        console.log('error :>> ', error);
+        showToast({
+          title: error.message,
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+
+      return;
+    }
     // TODO: create order authority instead through useEffect
-    navigate('/home/inscribe-confirm', {
-      state: {
-        contextDataParam: {
-          rawTxInfo,
-          order,
-        },
-      },
-    });
+    // navigate('/home/inscribe-confirm', {
+    //   state: {
+    //     contextDataParam: {
+    //       rawTxInfo,
+    //       order,
+    //     },
+    //   },
+    // });
   };
 
   // generate token auth
@@ -82,32 +120,32 @@ const CreateAuthority = () => {
   }, [type]);
 
   // create order authority
-  useEffect(() => {
-    const createOrderAuthority = async () => {
-      const order = await walletProvider.createOrderAuthority(
-        activeAccount.address,
-        tokenAuth,
-        feeRate,
-        546,
-      );
-      setOrder(order);
-    };
-    createOrderAuthority();
-  }, [tokenAuth, feeRate]);
+  // useEffect(() => {
+  //   const createOrderAuthority = async () => {
+  //     const order = await walletProvider.createOrderAuthority(
+  //       activeAccount.address,
+  //       tokenAuth,
+  //       feeRate,
+  //       546,
+  //     );
+  //     setOrder(order);
+  //   };
+  //   createOrderAuthority();
+  // }, [tokenAuth, feeRate]);
 
   // prepare raw tx info
-  useEffect(() => {
-    const prepareRawTxInfo = async () => {
-      const rawTxInfo = await prepareSendBTC({
-        toAddressInfo: { address: order?.payAddress, domain: '' },
-        toAmount: order?.totalFee,
-        feeRate: order?.feeRate || feeRate,
-        enableRBF: false,
-      });
-      setRawTxInfo(rawTxInfo);
-    };
-    prepareRawTxInfo();
-  }, [order]);
+  // useEffect(() => {
+  //   const prepareRawTxInfo = async () => {
+  //     const rawTxInfo = await prepareSendBTC({
+  //       toAddressInfo: { address: order?.payAddress, domain: '' },
+  //       toAmount: order?.totalFee,
+  //       feeRate: order?.feeRate || feeRate,
+  //       enableRBF: false,
+  //     });
+  //     setRawTxInfo(rawTxInfo);
+  //   };
+  //   prepareRawTxInfo();
+  // }, [order]);
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);
@@ -160,6 +198,7 @@ const CreateAuthority = () => {
             styleType="primary"
             title={type !== 'create' ? 'Confirm' : 'Next'}
             onClick={handleNavigate}
+            isDisable={loading}
           />
         </UX.Box>
       }

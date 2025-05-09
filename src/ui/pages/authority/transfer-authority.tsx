@@ -82,7 +82,6 @@ const TransferAuthority = () => {
       });
       navigate('/home/inscribe-confirm', {
         state: {
-          
           contextDataParam: {
             rawTxInfo,
             order,

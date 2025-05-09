@@ -21,7 +21,7 @@ export const initialState: GlobalState = {
   networkType: Network.MAINNET,
   randomColors: [],
   showSpendableList: false,
-  isAuthority: true,
+  isAuthority: false,
 };
 
 const GlobalSlice = createSlice({

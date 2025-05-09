@@ -359,4 +359,32 @@ export class TapApi {
     );
     return response?.data?.unats[0]?.script_inscription;
   }
+
+  // get total token authority
+  async getTotalTokenAuthority(address: string) {
+    const response = await this.api.get(
+      `/getAccountAuthListLength/${address}`,
+      {},
+    );
+    return response?.data?.result || 0;
+  }
+
+  // get authority list
+  async getAuthorityList(address: string, offset: number, max: number) {
+    const response = await this.api.get(`/getAccountAuthList/${address}`, {
+      offset,
+      max,
+    });
+    return response?.data?.result;
+  }
+
+  // get current authority
+  async getCurrentAuthority(address: string) {
+    const total = await this.getTotalTokenAuthority(address);
+    if (total === 0) {
+      return null;
+    }
+    const response = await this.getAuthorityList(address, total - 1, 1);
+    return response.length > 0 ? response[0] : null;
+  }
 }

@@ -341,3 +341,22 @@ export interface TokenAuth {
   proto: string;
   isValid: boolean;
 }
+
+export interface TokenAuthority {
+  address: string;
+  auth: string[];
+  sig: {
+    v: string;
+    r: string;
+    s: string;
+  };
+  hash: string;
+  slt: string;
+  blck: number;
+  tx: string;
+  vo: number;
+  val: string;
+  ins: string;
+  num: number;
+  ts: number;
+}

@@ -1,3 +1,5 @@
+import { networkConfig } from '@/src/background/service/singleton';
+import { Network } from '@/src/wallet-instance';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UX } from '../../component';
@@ -5,14 +7,11 @@ import { useWalletProvider } from '../../gateway/wallet-provider';
 import LayoutSendReceive from '../../layouts/send-receive';
 import { AccountSelector } from '../../redux/reducer/account/selector';
 import { useAppSelector } from '../../utils';
-import { networkConfig } from '@/src/background/service/singleton';
-import { Network } from '@/src/wallet-instance';
-import { preview } from 'vite';
 
 const ManageAuthority = () => {
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 1,
+        pageSize: 10,
     });
     const wallet = useWalletProvider();
     const activeAccount = useAppSelector(AccountSelector.activeAccount);

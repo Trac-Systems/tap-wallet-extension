@@ -196,7 +196,7 @@ const AuthorityDetail = () => {
   return (
     <UX.Box className="inscription-detail">
       <UX.Box className="image-box">
-        <UX.Box onClick={() => navigate(state?.hash)} className="circle">
+        <UX.Box onClick={() => navigate('/home')} className="circle">
           <SVG.ArrowBackIcon width={24} height={24} />
         </UX.Box>
         <InscriptionPreview

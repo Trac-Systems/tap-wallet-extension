@@ -16,7 +16,6 @@ import { usePrepareSendBTCCallback } from '../send-receive/hook';
 import { useCustomToast } from '../../component/toast-custom';
 import { OrderType } from '@/src/wallet-instance/types';
 
-
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
@@ -37,7 +36,7 @@ const TransferAuthority = () => {
   const auth = currentAuthority.ins;
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const prepareSendBTC = usePrepareSendBTCCallback();
-
+  const tokens = currentAuthority?.auth || [];
 
   useEffect(() => {
     const listTapList = tapList.map(item => ({
@@ -45,9 +44,14 @@ const TransferAuthority = () => {
       value: item.ticker,
       amount: Number(item.overallBalance || 0) - Number(item.transferableBalance),
     }));
-    setListTapList(listTapList);
-  }, [tapList]);
 
+    if (!tokens.length) {
+      setListTapList(listTapList);
+    } else {
+      const filteredTapList = listTapList.filter(item => tokens?.includes(item.value));
+      setListTapList(filteredTapList);
+    }
+  }, [tapList, tokens]);
 
   const handleConfirm = async () => {
     const isValid = isValidForm();
@@ -108,7 +112,9 @@ const TransferAuthority = () => {
   };
 
   const handleAddTokenSection = () => {
-    setTokenSections(prev => [...prev, { id: prev.length + 1, selected: ticker, amount: '', address: '', errorAmount: '', errorAddress: '' }]);
+    const latestToken = tokenSections.filter(item => !!item.selected);
+    console.log('latestToken :>> ', latestToken);
+    setTokenSections(prev => [...prev, { id: prev.length + 1, selected: latestToken[latestToken.length - 1]?.selected, amount: '', address: '', errorAmount: '', errorAddress: '' }]);
   };
 
   const onAmountChange = (section, amount: string) => {
@@ -214,9 +220,15 @@ const TransferAuthority = () => {
           options={listTapList}
           value={section.selected}
           onChange={val => {
-            const newSections = [...tokenSections];
-            newSections[index].selected = val;
-            setTokenSections(newSections);
+            setTokenSections(prev => {
+              const newSections = [...prev];
+              return newSections.map(item => {
+                if (item.id === section.id) {
+                  return { ...section, selected: val, amount: '', errorAmount: '', errorAddress: '', address: '' };
+                }
+                return item;
+              });
+            });
           }}
         />
         {section.selected && <UX.Box layout="row_between">
@@ -270,6 +282,7 @@ const TransferAuthority = () => {
             padding: '9px 16px',
             background: 'transparent',
           }}
+          value={section?.address}
           onChange={e => {
             onAddressChange(section.id, e?.target?.value);
           }}

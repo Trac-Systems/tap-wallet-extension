@@ -156,6 +156,10 @@ const ListTapOptions = () => {
     });
   };
 
+  const tokens = currentAuthority?.auth || [];
+  const isExistToken = tokens?.includes(id);
+  const isValidToken = isExistToken && Boolean(currentAuthority);
+
   //! Render
   return (
     <LayoutTap
@@ -186,7 +190,7 @@ const ListTapOptions = () => {
               customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
             />
           </UX.Box>
-          {Boolean(currentAuthority) && (
+          {isValidToken && (
             <>
               <UX.Box layout="row" spacing="xl">
                 <UX.Button
@@ -219,7 +223,7 @@ const ListTapOptions = () => {
               />
             </>
           )}
-          {!currentAuthority && (
+          {!isValidToken && (
             <UX.Box layout="row" spacing="xl">
               <UX.Button
                 title={'Transfer'}

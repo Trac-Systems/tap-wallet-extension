@@ -50,6 +50,7 @@ const AuthorityDetail = () => {
 
   console.log('inscriptionInfo :>> ', inscriptionInfo);
   const inscriptionStatus = 'UNCONFIRMED'
+  const tokens = inscriptionInfo?.auth || [];
 
   return (
     <UX.Box className="inscription-detail">
@@ -80,6 +81,31 @@ const AuthorityDetail = () => {
           }}
         />
         <UX.Badge text={AuthorityStatus[inscriptionStatus].text} status={AuthorityStatus[inscriptionStatus].status as BadgeProps['status']} customStyles={{ marginLeft: '16px' }} />
+        <UX.Box layout="box" spacing="xl" style={{ margin: '16px', gap: '8px' }}>
+          {tokens?.length > 0 ?
+            <>
+              <UX.Text title={`Token List (${tokens.length})`} styleType="body_14_normal" />
+              {tokens?.length > 0 && (
+                <UX.Box
+                  layout="row"
+                  style={{
+                    gap: '8px',
+                  }}>
+                  {tokens.map((item, index) => (
+                    <UX.Badge
+                      key={index}
+                      text={item}
+                      status={'default'}
+                      customStyles={{ borderRadius: '24px', backgroundColor: 'transparent', border: `1px solid ${colors.gray}`, padding: '4px 8px', color: colors.white, fontSize: '12px', lineHeight: '18px' }}
+                    />
+                  ))}
+                </UX.Box>
+              )}
+            </> :
+            <UX.Text title='Applied for all tokens' styleType="body_14_normal" />
+          }
+
+        </UX.Box>
         <UX.Box layout="box" spacing="xl" style={{ margin: '16px' }}>
           <UX.Section title="ID" value={inscriptionInfo?.ins} />
           <UX.Section title="Address" value={inscriptionInfo?.addr} />

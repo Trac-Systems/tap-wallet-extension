@@ -34,24 +34,23 @@ const InscribeConfirmScreen = () => {
   }, [contextDataParam?.order]);
 
   const title = useMemo(() => {
-    switch (contextDataParam?.order.type) {
-      case OrderType.TAP_MINT:
-        return 'Inscribe Mint';
-      case OrderType.TAP_DEPLOY:
-        return 'Inscribe Deploy';
-      case OrderType.TAP_TRANSFER:
-        return 'Inscribe Transfer';
-      case OrderType.FILE:
-        return 'Inscribe File';
-      case OrderType.TEXT:
-        return 'Inscribe Text';
-      case OrderType.AUTHORITY:
-        return 'Inscribe Authority';
-      case OrderType.REDEEM:
-        return 'Inscribe Redeem';
-      default:
-        return 'Inscribe';
+    if (contextDataParam?.order) {
+      switch (contextDataParam?.order.type) {
+        case OrderType.TAP_MINT:
+          return 'Inscribe Mint';
+        case OrderType.TAP_DEPLOY:
+          return 'Inscribe Deploy';
+        case OrderType.TAP_TRANSFER:
+          return 'Inscribe Transfer';
+        case OrderType.AUTHORITY:
+          return 'Inscribe Authority';
+        case OrderType.REDEEM:
+          return 'Inscribe Redeem';
+        default:
+          return 'Inscribe';
+      }
     }
+    return '';
   }, [contextDataParam?.order.type]);
 
   const fee = contextDataParam?.rawTxInfo?.fee || 0;

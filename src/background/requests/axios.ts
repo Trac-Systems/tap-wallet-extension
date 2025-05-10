@@ -46,9 +46,11 @@ export class AxiosRequest {
     });
   };
 
-  post = async (endpoint: string, bodyData: any) => {
+  post = async (endpoint: string, bodyData: any, headers?: any) => {
     try {
-      const response = await this.api.post(endpoint, bodyData);
+      const response = await this.api.post(endpoint, bodyData, {
+        headers,
+      });
       if (response && response.status >= 200 && response.status < 300) {
         return await Promise.resolve({
           success: true,

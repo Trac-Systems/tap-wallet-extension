@@ -49,11 +49,11 @@ import { generateUniqueColors, useAppDispatch } from './utils';
 import SendInscription from '@/src/ui/pages/send-receive/send-inscription';
 import SendInscriptionConfirm from '@/src/ui/pages/send-receive/send-inscription-confirm';
 import DmtList from './pages/home-flow/components/dmt-list';
-import CreateAuthority from './pages/authority/create-authority';
 import Authority from './pages/authority/authority';
 import TransferAuthority from './pages/authority/transfer-authority';
 import ManageAuthority from './pages/manage-authority';
 import AuthorityDetail from './pages/manage-authority/authority-detail';
+import HandleAuthority from './pages/authority/handle-authority';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -232,7 +232,7 @@ function App() {
         <Route path="/approval" element={<ApprovalScreen />} />
 
         {/* Authority */}
-        <Route path="/create-authority" element={<CreateAuthority />} />
+        <Route path="/handle-authority" element={<HandleAuthority />} />
         <Route path="/authority" element={<Authority />} />
         <Route path="/transfer-authority" element={<TransferAuthority />} />
         <Route path="/manage-authority" element={<ManageAuthority />} />

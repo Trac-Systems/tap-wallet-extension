@@ -115,7 +115,7 @@ const Authority = () => {
             }}
             title={status === 'Tapped' ? 'Cancel' : 'Tap'}
             onClick={() =>
-              navigate('/create-authority', {
+              navigate('/handle-authority', {
                 state: {
                   type: status === 'Confirmed' ? 'confirm' : 'cancel',
                 },

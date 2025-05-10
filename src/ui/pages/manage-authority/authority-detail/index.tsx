@@ -103,18 +103,22 @@ const AuthorityDetail = () => {
   const handleOnClick = () => {
     if (inscriptionStatus === 'CONFIRMED') {
       //TODO: Handle taping
-      // navigate('/home/inscribe-confirm', {
-      //   state: {inscriptionId},
-      // });
-      return;
+      navigate('/handle-authority', {
+        state: {
+          type: 'tapping',
+          inscriptionId,
+        },
+      });
     }
 
     if (inscriptionStatus === 'TAPPED') {
       //TODO: Handle cancel tap
-      // navigate('/home/inscribe-confirm', {
-      //   state: {inscriptionId},
-      // });
-      return;
+      navigate('/handle-authority', {
+        state: {
+          type: 'cancel',
+          inscriptionId,
+        },
+      });
     }
   };
 
@@ -122,13 +126,13 @@ const AuthorityDetail = () => {
     if (Array.isArray(auth)) {
       return 'TAPPED';
     }
+    const satpointTxid = inscriptionInfo?.satpoint.split(':')[0];
+    const inscriptionTxid = inscriptionId.split('i')[0];
     if (inscriptionInfo?.height === 0) {
-      const satpointTxid = inscriptionInfo?.satpoint.split(':')[0];
-      const inscriptionTxid = inscriptionId.split('i')[0];
-
       return satpointTxid === inscriptionTxid ? 'UNCONFIRMED' : 'TAPPING';
+    } else {
+      return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
     }
-    return 'CONFIRMED';
   }, [auth, inscriptionInfo]);
 
   const renderCheckedList = () => {

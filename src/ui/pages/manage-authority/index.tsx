@@ -93,7 +93,7 @@ const ManageAuthority = () => {
                         styleType="primary"
                         title={'Crate Authority'}
                         onClick={() =>
-                            navigate('/create-authority', {
+                            navigate('/handle-authority', {
                                 state: {
                                     type: 'create',
                                 },

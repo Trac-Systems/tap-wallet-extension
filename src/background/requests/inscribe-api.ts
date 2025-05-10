@@ -122,8 +122,12 @@ export class InscribeApi {
   }
 
   // mark order as paid
-  async paidOrder(orderId: string) {
-    const res = await this.api.post(`/v1/inscribe/order/paid/${orderId}`, {});
+  async paidOrder(orderId: string, headers?: any) {
+    const res = await this.api.post(
+      `/v1/inscribe/order/paid/${orderId}`,
+      {},
+      headers,
+    );
     if (!res.data) {
       throw new Error('Paid order failed');
     }

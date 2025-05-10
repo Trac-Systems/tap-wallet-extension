@@ -136,7 +136,7 @@ const TapListChild = () => {
               }
             });
           } else {
-            navigate('/create-authority', {
+            navigate('/handle-authority', {
               state: {
                 type: 'create',
               },

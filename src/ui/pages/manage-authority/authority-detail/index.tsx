@@ -1,4 +1,5 @@
 import { UX } from '@/src/ui/component';
+import { BadgeProps } from '@/src/ui/component/badge';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import { linkDetail } from '@/src/ui/helper';
 import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
@@ -15,14 +16,31 @@ import { Network } from '@/src/wallet-instance';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+const AuthorityStatus = {
+  UNCONFIRMED: {
+    text: 'Unconfirmed',
+    status: 'default',
+  },
+  CONFIRMED: {
+    text: 'Confirmed',
+    status: 'success',
+  },
+  PENDING: {
+    text: 'Pending',
+    status: 'warning',
+  },
+  TAPPED: {
+    text: 'Tapped',
+    status: 'error',
+  },
+}
+
 const AuthorityDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = location;
-  const [changeInscription, setChangeInscription] = useState<boolean>(false);
 
   const network = useAppSelector(GlobalSelector.networkType);
-  const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
   const inscriptionInfo = state?.inscriptionInfo;
   const isUnconfirmed = inscriptionInfo?.ts === 0;
   const urlPreview =
@@ -31,6 +49,7 @@ const AuthorityDetail = () => {
       : 'https://static.unisat.io/preview/';
 
   console.log('inscriptionInfo :>> ', inscriptionInfo);
+  const inscriptionStatus = 'UNCONFIRMED'
 
   return (
     <UX.Box className="inscription-detail">
@@ -42,7 +61,6 @@ const AuthorityDetail = () => {
           data={{ ...inscriptionInfo, inscriptionId: inscriptionInfo?.ins, outputValue: inscriptionInfo?.val, inscriptionNumber: inscriptionInfo?.num, preview: `${urlPreview}${inscriptionInfo?.ins}` }}
           preset="large"
           asLogo
-          changeInscription={changeInscription}
         />
       </UX.Box>
       <UX.Box className="image-box-section" style={{ marginTop: '16px' }}>
@@ -61,6 +79,7 @@ const AuthorityDetail = () => {
             marginLeft: '16px',
           }}
         />
+        <UX.Badge text={AuthorityStatus[inscriptionStatus].text} status={AuthorityStatus[inscriptionStatus].status as BadgeProps['status']} customStyles={{ marginLeft: '16px' }} />
         <UX.Box layout="box" spacing="xl" style={{ margin: '16px' }}>
           <UX.Section title="ID" value={inscriptionInfo?.ins} />
           <UX.Section title="Address" value={inscriptionInfo?.addr} />

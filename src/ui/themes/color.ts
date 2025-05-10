@@ -24,5 +24,7 @@ export const colors = {
   redC54359: '#C54359',
 
   orange: '#FF7B21',
+  yellow: '#F4C242',
+  yellow_500: 'linear-gradient(180deg, #F79E6D 0%, #EA5B64 50%, #C54359 100%)',
   yellowRgba60: 'rgba(244, 194, 66, 0.60)'
 };

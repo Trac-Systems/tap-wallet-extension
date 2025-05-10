@@ -31,6 +31,7 @@ import Text from './text-custom';
 import Tooltip from './tooltip';
 import TapDmtGroupItem from '@/src/ui/pages/home-flow/components/tap-dmt-group-items';
 import Dropdown from './dropdown-box';
+import Badge from './badge';
 
 export const UX = {
   Text: Text,
@@ -64,4 +65,5 @@ export const UX = {
   Pagination,
   Empty,
   Dropdown,
+  Badge
 };

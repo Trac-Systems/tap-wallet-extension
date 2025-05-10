@@ -1,23 +1,23 @@
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
-import {UX} from '@/src/ui/component';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
-import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
-import {SVG} from '@/src/ui/svg';
+import { satoshisToAmount } from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import { InscriptionSelector } from '@/src/ui/redux/reducer/inscription/selector';
+import { SVG } from '@/src/ui/svg';
 import {
   generateUniqueColors,
   TOKEN_PAGE_SIZE,
   useAppSelector,
 } from '@/src/ui/utils';
-import {TokenBalance} from '@/src/wallet-instance';
-import {debounce, isEmpty} from 'lodash';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {useAccountBalance, useInscriptionHook} from '../hook';
+import { TokenBalance } from '@/src/wallet-instance';
+import { debounce, isEmpty } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAccountBalance, useInscriptionHook } from '../hook';
 
 const TapListChild = () => {
   const navigate = useNavigate();
-  const {getTapList} = useInscriptionHook();
+  const { getTapList } = useInscriptionHook();
 
   //! State
   const accountBalance = useAccountBalance();
@@ -112,7 +112,7 @@ const TapListChild = () => {
       </UX.Box>
     );
   }
-  
+
   return (
     <UX.Box spacing="xl">
       <UX.Box layout="row" spacing="xs" className="search-box-token">
@@ -126,10 +126,16 @@ const TapListChild = () => {
       </UX.Box>
       <UX.Box
         layout="box_border"
-        style={{cursor: 'pointer'}}
+        style={{ cursor: 'pointer' }}
         onClick={() => {
           if (currentAuthority) {
-            navigate('/manage-authority');
+            navigate('/manage-authority/authority-detail', {
+              state: {
+                inscriptionId: currentAuthority?.ins,
+                inscriptionInfo: currentAuthority,
+                hash: location.hash.replace('#', ''),
+              }
+            });
           } else {
             navigate('/create-authority', {
               state: {
@@ -156,7 +162,7 @@ const TapListChild = () => {
         />
       )}
       <UX.Box layout="box">
-        <UX.Box layout="row_between" style={{width: '100%'}}>
+        <UX.Box layout="row_between" style={{ width: '100%' }}>
           <UX.Box
             layout="row"
             style={{
@@ -167,14 +173,14 @@ const TapListChild = () => {
             <UX.Text
               title={'BTC'}
               styleType="body_16_normal"
-              customStyles={{color: 'white', marginLeft: '8px'}}
+              customStyles={{ color: 'white', marginLeft: '8px' }}
             />
           </UX.Box>
 
           <UX.Text
             title={`${balanceValue}`}
             styleType="body_16_normal"
-            customStyles={{color: 'white'}}
+            customStyles={{ color: 'white' }}
           />
         </UX.Box>
       </UX.Box>

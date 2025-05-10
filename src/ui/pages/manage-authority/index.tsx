@@ -25,7 +25,7 @@ const ManageAuthority = () => {
             ? 'https://static-testnet.unisat.io/preview/'
             : 'https://static.unisat.io/preview/';
     const handleGoBack = () => {
-        navigate(-1);
+        navigate('/home');
     };
 
     const handleGetListAuthority = async () => {

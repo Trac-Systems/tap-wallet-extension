@@ -70,6 +70,8 @@ const TxSecurity = () => {
             try {
               pushBitcoinTx(rawtx, spendUtxos).then(({success, error}) => {
                 if (success) {
+                  // mark order as paid
+                  wallet.paidOrder(order.id);
                   navigate('/home/inscribe-result', {
                     state: {
                       order,

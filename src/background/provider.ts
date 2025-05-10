@@ -1103,6 +1103,11 @@ export class Provider {
     return await this.inscribeApi.getAuthorityOrders(address);
   };
 
+  paidOrder = async (orderId: string) => {
+    const headers = await this._generateHeaders();
+    await this.inscribeApi.paidOrder(orderId, headers);
+  };
+
   getInscribeTapResult = (orderId: string) => {
     return this.paidApi.getInscribeTapResult(orderId);
   };
@@ -1287,6 +1292,16 @@ export class Provider {
 
   getCurrentAuthority = async (address: string) => {
     return await this.tapApi.getCurrentAuthority(address);
+  };
+
+  _generateHeaders = async (): Promise<{message: string; signature: string, address: string}> => {
+    const address = this.getActiveAccount()?.address;
+    if (!address) {
+      return null;
+    }
+    const message = 'wallet-auth';
+    const signature = await this.signMessage(message);
+    return {message, signature, address};
   };
 }
 

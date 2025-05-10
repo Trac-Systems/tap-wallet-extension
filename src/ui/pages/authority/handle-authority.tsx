@@ -2,7 +2,7 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
 import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {
   InscribeOrder,
@@ -12,7 +12,10 @@ import {
 } from '@/src/wallet-instance/types';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useAppSelector} from '@/src/ui/utils';
-import {usePrepareSendBTCCallback} from '@/src/ui/pages/send-receive/hook';
+import {
+  usePrepareSendBTCCallback,
+  usePrepareSendOrdinalsInscriptionCallback,
+} from '@/src/ui/pages/send-receive/hook';
 import {useCustomToast} from '../../component/toast-custom';
 import {colors} from '../../themes/color';
 import {SVG} from '../../svg';
@@ -37,28 +40,41 @@ import {SVG} from '../../svg';
 //   amount?: string;
 // }
 
-const CreateAuthority = () => {
+const HandleAuthority = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
+  const prepareSendOrdinalsInscription =
+    usePrepareSendOrdinalsInscriptionCallback();
   const {showToast} = useCustomToast();
   const [isWarning, setIsWarning] = useState(false);
 
   const {state} = location;
-  const type = state.type;
-  const title =
-    type === 'create'
-      ? 'Create Authority'
-      : type === 'confirm'
-        ? 'Confirm Authority'
-        : 'Cancel Authority';
+  // typecast for type
+  const type = state.type as 'create' | 'confirm' | 'cancel' | 'tapping';
+  const inscriptionId = state.inscriptionId;
+  // switch title based on type
+  const title = useMemo(() => {
+    switch (type) {
+      case 'create':
+        return 'Create Authority';
+      case 'confirm':
+        return 'Confirm Authority';
+      case 'cancel':
+        return 'Cancel Authority';
+      case 'tapping':
+        return 'Tapping Authority';
+      default:
+        return '';
+    }
+  }, [type]);
+  const showPreview = type !== 'tapping' && type !== 'confirm';
   const [tokenAuth, setTokenAuth] = useState<string>('');
   const [feeRate, setFeeRate] = useState<number>(5);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [loading, setLoading] = useState(false);
-  // const [authorityOrders, setAuthorityOrders] = useState<InscribeOrder[]>([]);
   //! Function
   const handleGoBack = () => {
     navigate(-1);
@@ -100,7 +116,26 @@ const CreateAuthority = () => {
 
       return;
     }
-    // TODO: create order authority instead through useEffect
+    if (type === 'tapping') {
+      const rawTxInfo = await prepareSendOrdinalsInscription({
+        toAddressInfo: {address: activeAccount.address, domain: ''},
+        inscriptionId,
+        feeRate,
+        enableRBF: false,
+      });
+
+      navigate('/home/send-inscription-confirm', {
+        state: {rawTxInfo},
+      });
+      // TODO: create order authority instead through useEffect
+      // navigate('/home/inscribe-confirm', {
+      //   state: {
+      //     contextDataParam: {
+      //       rawTxInfo,
+      //     },
+      //   },
+      // });
+    }
     // navigate('/home/inscribe-confirm', {
     //   state: {
     //     contextDataParam: {
@@ -129,26 +164,40 @@ const CreateAuthority = () => {
       if (!orders?.length) {
         generateTokenAuth();
       } else {
-        setIsWarning(true);
         // setAuthorityOrder(orders[0]);
         const authorityOrder = orders[0];
 
         // inscription has been created
-        if(authorityOrder?.files?.length && authorityOrder?.files[0]?.inscriptionId){
-          // go to authority detail
-          navigate('/manage-authority/authority-detail', {
-            
-            state: {
-              inscriptionId: authorityOrder?.files[0]?.inscriptionId,
-            },
-          });
+        if (
+          authorityOrder?.files?.length &&
+          authorityOrder?.files[0]?.inscriptionId
+        ) {
+          // check if inscription appeared in the blockchain
+          try {
+            const inscriptionInfo =
+              await walletProvider.getInscriptionInfoOrdClient(
+                authorityOrder?.files[0]?.inscriptionId,
+              );
+            if (inscriptionInfo) {
+              // go to authority detail
+              navigate('/manage-authority/authority-detail', {
+                state: {
+                  inscriptionId: authorityOrder?.files[0]?.inscriptionId,
+                },
+              });
+            } else {
+              setIsWarning(true);
+            }
+          } catch {
+            setIsWarning(true);
+          }
         }
       }
     };
-    getAuthorityOrders();
+    if (type === 'create') {
+      getAuthorityOrders();
+    }
   }, []);
-
-
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);
@@ -170,16 +219,15 @@ const CreateAuthority = () => {
                 <UX.Text
                   styleType="body_14_bold"
                   customStyles={{color: colors.white, maxWidth: '90%'}}
-                  title={`You just created an authority which is being processed. Please take precautions while making continuous transactions.`}
+                  title={
+                    'You just created an authority which is being processed. Please take precautions while making continuous transactions.'
+                  }
                 />
               </UX.Box>
             </UX.Box>
-          ) : type === 'confirm' ? null : (
+          ) : showPreview ? (
             <UX.Box layout="column" spacing="xss">
-              <UX.Text
-                styleType="body_16_bold"
-                title={type === 'cancel' ? 'Cancel Authority' : 'Preview'}
-              />
+              <UX.Text styleType="body_16_bold" title={'Preview'} />
               <div
                 style={{
                   wordBreak: 'break-all',
@@ -191,7 +239,7 @@ const CreateAuthority = () => {
                 {tokenAuth}
               </div>
             </UX.Box>
-          )}
+          ) : null}
 
           {!isWarning && (
             <UX.Box layout="column" spacing="xss">
@@ -224,4 +272,4 @@ const CreateAuthority = () => {
   );
 };
 
-export default CreateAuthority;
+export default HandleAuthority;

@@ -7,6 +7,7 @@ import {
   InscribeOrder,
   InscribeOrderTransfer,
   Inscription,
+  InscriptionOrdClient,
   Network,
   UnspentOutput,
 } from '@/src/wallet-instance';
@@ -21,7 +22,7 @@ export const PAID_API_KEY_MAINNET =
   'e3133d5812314a4e912e3e3aaaef2e5980e476663543811c92aee34cf7887875';
 
 export const ORD_SCAN_API_KEY_TESTNET = 'http://trac.intern.ungueltig.com:55002';
-export const ORD_SCAN_API_KEY_MAINNET = 'https://ordiscan.com';
+export const ORD_SCAN_API_KEY_MAINNET = 'https://ord-tw.tap-hosting.xyz';
 
 export interface IResponseAddressBalance {
   address: string;
@@ -169,6 +170,14 @@ export class PaidApi {
       total: dataResult?.total,
       cursor: dataResult?.cursor,
     };
+  }
+
+  async getInscriptionInfoOrdClient(inscriptionId: string): Promise<InscriptionOrdClient> {
+    const result = await this.ordinalScanApi.get(
+      `/inscription/${inscriptionId}`,
+      {},
+    );
+    return result?.data;
   }
 
   async getInscriptionInfo(inscriptionId: string): Promise<Inscription[]> {

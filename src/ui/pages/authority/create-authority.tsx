@@ -90,7 +90,6 @@ const CreateAuthority = () => {
           },
         });
       } catch (error) {
-        console.log('error :>> ', error);
         showToast({
           title: error.message,
           type: 'error',
@@ -131,11 +130,25 @@ const CreateAuthority = () => {
         generateTokenAuth();
       } else {
         setIsWarning(true);
+        // setAuthorityOrder(orders[0]);
+        const authorityOrder = orders[0];
+
+        // inscription has been created
+        if(authorityOrder?.files?.length && authorityOrder?.files[0]?.inscriptionId){
+          // go to authority detail
+          navigate('/manage-authority/authority-detail', {
+            
+            state: {
+              inscriptionId: authorityOrder?.files[0]?.inscriptionId,
+            },
+          });
+        }
       }
-      // setAuthorityOrders(orders);
     };
     getAuthorityOrders();
   }, []);
+
+
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);

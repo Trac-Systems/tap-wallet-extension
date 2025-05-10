@@ -931,6 +931,10 @@ export class Provider {
     }
   };
 
+  getInscriptionInfoOrdClient = async (inscriptionId: string) => {
+    return this.paidApi.getInscriptionInfoOrdClient(inscriptionId);
+  };
+
   getInscriptions = async (
     address: string,
     pageNumber: number,

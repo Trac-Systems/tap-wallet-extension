@@ -109,6 +109,29 @@ export interface TxHistoryItem {
   address: string;
 }
 
+export interface InscriptionOrdClient {
+  address: string;
+  charms: string[];
+  child_count: number;
+  children: string[];
+  content_length: number;
+  content_type: string;
+  effective_content_type: string;
+  fee: number;
+  height: number;
+  id: string;
+  next: string;
+  number: number;
+  parents: string[];
+  previous: string;
+  rune: string;
+  sat: string;
+  satpoint: string;
+  timestamp: number;
+  value: number;
+  metaprotocol: string;
+}
+
 export interface Inscription {
   inscriptionId: string;
   inscriptionNumber: number;

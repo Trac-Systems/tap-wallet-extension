@@ -60,8 +60,7 @@ const ManageAuthority = () => {
                                             navigate('/manage-authority/authority-detail', {
                                                 state: {
                                                     inscriptionId: item?.ins,
-                                                    inscriptionInfo: item,
-                                                    hash: location.hash.replace('#', ''),
+                                                    auth: item?.auth,
                                                 },
                                             })
                                         }

@@ -20,6 +20,7 @@ import {
   TokenBalance,
   TokenAuth,
   TokenAuthority,
+  InscriptionOrdClient,
 } from '../../wallet-instance';
 import {Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
@@ -110,6 +111,7 @@ export interface IWalletProvider {
     list: Inscription[];
   }>;
   getInscriptionInfo(inscriptionId: string): Promise<Inscription[]>;
+  getInscriptionInfoOrdClient(inscriptionId: string): Promise<InscriptionOrdClient>;
   getInscriptionContent(inscriptionId: string): Promise<any>;
   getAllInscriptions(address: string): Promise<Inscription[]>;
   sendBTC({

@@ -132,8 +132,7 @@ const TapListChild = () => {
             navigate('/manage-authority/authority-detail', {
               state: {
                 inscriptionId: currentAuthority?.ins,
-                inscriptionInfo: currentAuthority,
-                hash: location.hash.replace('#', ''),
+                auth: currentAuthority?.auth,
               }
             });
           } else {

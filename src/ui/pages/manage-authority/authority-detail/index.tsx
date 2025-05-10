@@ -1,21 +1,21 @@
-import {UX} from '@/src/ui/component';
-import {BadgeProps} from '@/src/ui/component/badge';
+import { UX } from '@/src/ui/component';
+import { BadgeProps } from '@/src/ui/component/badge';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {linkDetail} from '@/src/ui/helper';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
-import {SVG} from '@/src/ui/svg';
-import {colors} from '@/src/ui/themes/color';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
+import { linkDetail } from '@/src/ui/helper';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
 import {
   convertTimestampToDeviceTime,
   getInsUrl,
   getTxIdUrl,
   useAppSelector,
 } from '@/src/ui/utils';
-import {InscriptionOrdClient, Network} from '@/src/wallet-instance';
-import {useEffect, useMemo, useState} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import { InscriptionOrdClient, Network } from '@/src/wallet-instance';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const AuthorityStatus = {
   UNCONFIRMED: {
@@ -48,7 +48,7 @@ const AuthorityDetail = () => {
   const wallet = useWalletProvider();
   const navigate = useNavigate();
   const location = useLocation();
-  const {state} = location;
+  const { state } = location;
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -134,12 +134,12 @@ const AuthorityDetail = () => {
   const renderCheckedList = () => {
     return (
       <UX.Box spacing="xs" className="card-spendable">
-        {authorityList.map((item, index) => {
+        {[...authorityList, ...authorityList, ...authorityList, ...authorityList].map((item, index) => {
           return (
             <UX.Box
               layout="box_border"
               key={index}
-              style={{cursor: 'pointer'}}
+              style={{ cursor: 'pointer' }}
               onClick={() => {
                 navigate('/manage-authority/authority-detail', {
                   state: {
@@ -168,7 +168,7 @@ const AuthorityDetail = () => {
                   <UX.Text
                     title={`${item.val} SATs`}
                     styleType="body_16_normal"
-                    customStyles={{color: colors.main_500}}
+                    customStyles={{ color: colors.main_500 }}
                   />
                 </UX.Box>
               </UX.Box>
@@ -177,7 +177,7 @@ const AuthorityDetail = () => {
         })}
 
         {totalAuthority > 0 && (
-          <div style={{marginTop: '20px'}}>
+          <div style={{ marginTop: '20px' }}>
             <UX.Box layout="row_center">
               <UX.Pagination
                 pagination={pagination}
@@ -211,15 +211,15 @@ const AuthorityDetail = () => {
           asLogo
         />
       </UX.Box>
-      <UX.Box className="image-box-section" style={{marginTop: '16px'}}>
+      <UX.Box className="image-box-section" style={{ marginTop: '16px' }}>
         <UX.Box layout="row_between" spacing="xs">
           <UX.Text
             title={`Inscription ${inscriptionInfo?.number}`}
             styleType="heading_20"
-            customStyles={{marginLeft: '16px'}}
+            customStyles={{ marginLeft: '16px' }}
           />
           <UX.Box
-            style={{cursor: 'pointer'}}
+            style={{ cursor: 'pointer' }}
             onClick={() => setOpenDrawerInscription(true)}>
             <SVG.FilterIcon />
           </UX.Box>
@@ -239,9 +239,9 @@ const AuthorityDetail = () => {
           status={
             AuthorityStatus[inscriptionStatus].status as BadgeProps['status']
           }
-          customStyles={{marginLeft: '16px'}}
+          customStyles={{ marginLeft: '16px' }}
         />
-        <UX.Box layout="box" spacing="xl" style={{margin: '16px', gap: '8px'}}>
+        <UX.Box layout="box" spacing="xl" style={{ margin: '16px', gap: '8px' }}>
           {auth?.length > 0 ? (
             <>
               <UX.Text
@@ -280,7 +280,7 @@ const AuthorityDetail = () => {
             />
           )}
         </UX.Box>
-        <UX.Box layout="box" spacing="xl" style={{margin: '16px'}}>
+        <UX.Box layout="box" spacing="xl" style={{ margin: '16px' }}>
           <UX.Section title="ID" value={inscriptionInfo?.id} />
           <UX.Section title="Address" value={inscriptionInfo?.address} />
           <UX.Section
@@ -298,7 +298,6 @@ const AuthorityDetail = () => {
               height: '75vh',
             }}>
             <UX.Text title="List authorities" styleType="body_20_extra_bold" />
-
             <UX.Box
               style={{
                 justifyContent: 'space-between',
@@ -306,6 +305,24 @@ const AuthorityDetail = () => {
                 maxHeight: '65vh',
               }}>
               {renderCheckedList()}
+            </UX.Box>
+            <UX.Box
+              layout="column"
+              spacing="xl"
+              style={{
+                padding: '10px 0',
+              }}>
+              <UX.Button
+                styleType="primary"
+                title='Create authority'
+                onClick={() => {
+                  navigate('/create-authority', {
+                    state: {
+                      type: 'create',
+                    },
+                  });
+                }}
+              />
             </UX.Box>
           </UX.Box>
         </UX.DrawerCustom>

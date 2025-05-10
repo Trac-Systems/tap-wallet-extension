@@ -146,7 +146,7 @@ const TapListChild = () => {
         <UX.Text
           title={
             !currentAuthority
-              ? 'Enable tx transfer'
+              ? 'Enable 1-TX Transfer'
               : 'Manage Authority'
           }
           styleType="body_16_bold"

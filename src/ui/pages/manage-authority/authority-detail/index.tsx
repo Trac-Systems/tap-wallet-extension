@@ -44,6 +44,11 @@ const AuthorityStatus = {
   },
 };
 
+export const DropdownTabs = {
+  LIST_AUTHORITIES: 'listAuthorities',
+  PENDING_CANCELLATION: 'pendingCancellation'
+}
+
 const AuthorityDetail = () => {
   const wallet = useWalletProvider();
   const navigate = useNavigate();
@@ -54,8 +59,15 @@ const AuthorityDetail = () => {
     currentPage: 1,
     pageSize: 10,
   });
+  const [paginationPendingCancellation, setPaginationPendingCancellation] = useState({
+    currentPage: 1,
+    pageSize: 10,
+  });
   const [authorityList, setAuthorityList] = useState<any[]>([]);
+  const [pendingInscriptionList, setPendingInscriptionList] = useState<any[]>([])
+  const [totalPendingInscription, setTotalPendingInscription] = useState(0)
   const [totalAuthority, setTotalAuthority] = useState(0);
+  const [activeTab, setActiveTab] = useState(DropdownTabs.LIST_AUTHORITIES);
 
   const handleGetListAuthority = async () => {
     try {
@@ -70,6 +82,27 @@ const AuthorityDetail = () => {
       console.log('error :>> ', error);
     }
   };
+
+  const handleGetListPendingCancellation = async () => {
+    try {
+      const response = await wallet.getAuthorityList(
+        activeAccount.address,
+        (pagination.currentPage - 1) * pagination.pageSize,
+        pagination.pageSize,
+      );
+      setPendingInscriptionList(response?.data || []);
+      setTotalPendingInscription(response?.total || 0);
+    } catch (error) {
+      console.log('error :>> ', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeAccount.address) {
+      handleGetListAuthority();
+      handleGetListPendingCancellation();
+    }
+  }, [pagination.currentPage, activeAccount]);
 
   useEffect(() => {
     if (activeAccount.address) {
@@ -136,9 +169,14 @@ const AuthorityDetail = () => {
   }, [auth, inscriptionInfo]);
 
   const renderCheckedList = () => {
+    const isAuthoritiesTab = activeTab === DropdownTabs.LIST_AUTHORITIES;
+    const total = isAuthoritiesTab ? totalAuthority : totalPendingInscription;
+    const list = isAuthoritiesTab ? authorityList : pendingInscriptionList;
+    const currentPagination = isAuthoritiesTab ? pagination : paginationPendingCancellation;
+    const currentSetPagination = isAuthoritiesTab ? setPagination : setPaginationPendingCancellation;
     return (
       <UX.Box spacing="xs" className="card-spendable">
-        {authorityList.map((item, index) => {
+        {list.map((item, index) => {
           return (
             <UX.Box
               layout="box_border"
@@ -179,14 +217,14 @@ const AuthorityDetail = () => {
           );
         })}
 
-        {totalAuthority > 0 && (
+        {total > 0 && (
           <div style={{ marginTop: '20px' }}>
             <UX.Box layout="row_center">
               <UX.Pagination
-                pagination={pagination}
-                total={totalAuthority}
+                pagination={currentPagination}
+                total={total}
                 onChange={pagination => {
-                  setPagination(pagination);
+                  currentSetPagination(pagination);
                 }}
               />
             </UX.Box>
@@ -300,33 +338,70 @@ const AuthorityDetail = () => {
               padding: '16px',
               height: '75vh',
             }}>
-            <UX.Text title="List authorities" styleType="body_20_extra_bold" />
-            <UX.Box
-              style={{
-                justifyContent: 'space-between',
-                flex: 1,
-                maxHeight: '65vh',
-              }}>
-              {renderCheckedList()}
-            </UX.Box>
-            <UX.Box
-              layout="column"
-              spacing="xl"
-              style={{
-                padding: '10px 0',
-              }}>
-              <UX.Button
-                styleType="primary"
-                title='Create authority'
-                onClick={() => {
-                  navigate('/create-authority', {
-                    state: {
-                      type: 'create',
-                    },
-                  });
-                }}
+            <UX.Box layout='row_between'>
+              <UX.Text title="List authorities" styleType="body_20_extra_bold"
+                customStyles={{ cursor: 'pointer' }}
+                onClick={() => setActiveTab(DropdownTabs.LIST_AUTHORITIES)}
+              />
+              <UX.Text title="Pending Cancellation" styleType="body_20_extra_bold"
+                customStyles={{ cursor: 'pointer' }}
+                onClick={() => setActiveTab(DropdownTabs.PENDING_CANCELLATION)}
               />
             </UX.Box>
+            {activeTab === DropdownTabs.LIST_AUTHORITIES &&
+              <><UX.Box
+                style={{
+                  justifyContent: 'space-between',
+                  flex: 1,
+                  maxHeight: '65vh',
+                }}>
+                {renderCheckedList()}
+              </UX.Box>
+                <UX.Box
+                  layout="column"
+                  spacing="xl"
+                  style={{
+                    padding: '10px 0',
+                  }}>
+                  <UX.Button
+                    styleType="primary"
+                    title='Create authority'
+                    onClick={() => {
+                      navigate('/create-authority', {
+                        state: {
+                          type: 'create',
+                        },
+                      });
+                    }}
+                  />
+                </UX.Box></>}
+            {activeTab === DropdownTabs.PENDING_CANCELLATION &&
+              <><UX.Box
+                style={{
+                  justifyContent: 'space-between',
+                  flex: 1,
+                  maxHeight: '65vh',
+                }}>
+                {renderCheckedList()}
+              </UX.Box>
+                <UX.Box
+                  layout="column"
+                  spacing="xl"
+                  style={{
+                    padding: '10px 0',
+                  }}>
+                  <UX.Button
+                    styleType="primary"
+                    title='Create authority'
+                    onClick={() => {
+                      navigate('/create-authority', {
+                        state: {
+                          type: 'create',
+                        },
+                      });
+                    }}
+                  />
+                </UX.Box></>}
           </UX.Box>
         </UX.DrawerCustom>
       </UX.Box>

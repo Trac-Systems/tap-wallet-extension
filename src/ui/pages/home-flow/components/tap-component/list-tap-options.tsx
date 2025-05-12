@@ -157,8 +157,9 @@ const ListTapOptions = () => {
   };
 
   const tokens = currentAuthority?.auth || [];
+  console.log('tokens :>> ', tokens);
   const isExistToken = tokens?.includes(id);
-  const isValidToken = isExistToken && Boolean(currentAuthority);
+  const isValidToken = !tokens.length || (isExistToken && Boolean(currentAuthority));
 
   //! Render
   return (

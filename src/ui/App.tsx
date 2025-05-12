@@ -52,9 +52,13 @@ import DmtList from './pages/home-flow/components/dmt-list';
 import Authority from './pages/authority/authority';
 import TransferAuthority from './pages/authority/transfer-authority';
 import ManageAuthority from './pages/manage-authority';
-import AuthorityDetail from './pages/manage-authority/authority-detail';
+import AuthorityDetail from './pages/authority/authority-detail';
 import HandleAuthority from './pages/authority/handle-authority';
 import HandleTapingScreen from '@/src/ui/pages/home-flow/inscribe/handle-taping-screen';
+import HandleCancelAuthority from './pages/authority/handle/cancel';
+import HandleCreateAuthority from './pages/authority/handle/create';
+import HandleTappingAuthority from './pages/authority/handle/tapping';
+import HandleConfirmAuthority from './pages/authority/handle/confirm';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -237,8 +241,12 @@ function App() {
         <Route path="/authority" element={<Authority />} />
         <Route path="/transfer-authority" element={<TransferAuthority />} />
         <Route path="/manage-authority" element={<ManageAuthority />} />
-        <Route path="/manage-authority/authority-detail" element={<AuthorityDetail />} />
+        <Route path="/authority/authority-detail" element={<AuthorityDetail />} />
         <Route path="/handle-taping-confirm" element={<HandleTapingScreen />} />
+        <Route path="/handle-cancel-authority" element={<HandleCancelAuthority />} />
+        <Route path="/handle-tapping-authority" element={<HandleTappingAuthority />} />
+        <Route path="/handle-create-authority" element={<HandleCreateAuthority />} />
+        <Route path="/handle-confirm-authority" element={<HandleConfirmAuthority />} />
       </Routes>
     </HashRouter>
   );

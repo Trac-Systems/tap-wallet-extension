@@ -114,13 +114,21 @@ const Authority = () => {
               margin: '0 24px',
             }}
             title={status === 'Tapped' ? 'Cancel' : 'Tap'}
-            onClick={() =>
-              navigate('/handle-authority', {
-                state: {
-                  type: status === 'Confirmed' ? 'confirm' : 'cancel',
-                },
-              })
-            }
+            onClick={() => {
+              if (status === 'Confirmed') {
+                navigate('/handle-confirm-authority', {
+                  state: {
+                    type: 'confirm',
+                  },
+                });
+              } else {
+                navigate('/handle-cancel-authority', {
+                  state: {
+                    type: 'cancel',
+                  },
+                });
+              }
+            }}
           />
         </UX.Box>
       </footer>

@@ -1,53 +1,27 @@
-import {useLocation, useNavigate} from 'react-router-dom';
-import {UX} from '../../component';
-import LayoutSendReceive from '../../layouts/send-receive';
-import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
-import {useEffect, useMemo, useState} from 'react';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import { UX } from '@/src/ui/component';
+import { useCustomToast } from '@/src/ui/component/toast-custom';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
+import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {
-  InscribeOrder,
-  TokenBalance,
-  RawTxInfo,
-  TokenInfo,
-} from '@/src/wallet-instance/types';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {useAppSelector} from '@/src/ui/utils';
-import {
-  usePrepareSendBTCCallback,
-  usePrepareSendOrdinalsInscriptionCallback,
+    usePrepareSendBTCCallback
 } from '@/src/ui/pages/send-receive/hook';
-import {useCustomToast} from '../../component/toast-custom';
-import {colors} from '../../themes/color';
-import {SVG} from '../../svg';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { SVG } from '@/src/ui/svg';
+import { colors } from '@/src/ui/themes/color';
+import { useAppSelector } from '@/src/ui/utils';
+import {
+    InscribeOrder
+} from '@/src/wallet-instance/types';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FeeRateBar } from '../../../send-receive/component/fee-rate-bar';
 
-// interface ContextData {
-//   ticker: string;
-//   session?: any;
-//   tokenBalance?: TokenBalance;
-//   order?: InscribeOrder;
-//   rawTxInfo?: RawTxInfo;
-//   amount?: string;
-//   isApproval: boolean;
-//   tokenInfo?: TokenInfo;
-// }
-
-// interface UpdateContextDataParams {
-//   ticket?: string;
-//   session?: any;
-//   tokenBalance?: TokenBalance;
-//   order?: InscribeOrder;
-//   rawTxInfo?: RawTxInfo;
-//   amount?: string;
-// }
-
-const HandleAuthority = () => {
+const HandleCreateAuthority = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
   const walletProvider = useWalletProvider();
   const prepareSendBTC = usePrepareSendBTCCallback();
-  const prepareSendOrdinalsInscription =
-    usePrepareSendOrdinalsInscriptionCallback();
   const {showToast} = useCustomToast();
   const [isWarning, setIsWarning] = useState(false);
 
@@ -60,22 +34,6 @@ const HandleAuthority = () => {
   const {state} = location as {state: LocationState};
   // typecast for type
   const {type, inscriptionId, order} = state;
-  // switch title based on type
-  const title = useMemo(() => {
-    switch (type) {
-      case 'create':
-        return 'Create Authority';
-      case 'confirm':
-        return 'Confirm Authority';
-      case 'cancel':
-        return 'Cancel Authority';
-      case 'tapping':
-        return 'Tapping Authority';
-      default:
-        return '';
-    }
-  }, [type]);
-  const showPreview = type !== 'tapping' && type !== 'confirm';
   const [orderPreview, setOrderPreview] = useState<string>('');
   const [feeRate, setFeeRate] = useState<number>(5);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -85,7 +43,6 @@ const HandleAuthority = () => {
     navigate(-1);
   };
   const handleNavigate = async () => {
-    if (type === 'create') {
       try {
         setLoading(true);
         const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
@@ -118,59 +75,8 @@ const HandleAuthority = () => {
       } finally {
         setLoading(false);
       }
-
-      return;
-    }
-
-    if (type === 'cancel') {
-      try {
-        setLoading(true);
-        const order = await walletProvider.createOrderCancelAuthority(
-          activeAccount.address,
-          orderPreview,
-          feeRate,
-          546,
-        );
-        const rawTxInfo = await prepareSendBTC({
-          toAddressInfo: {address: order?.payAddress, domain: ''},
-          toAmount: order?.totalFee,
-          feeRate: order?.feeRate || feeRate,
-          enableRBF: false,
-        });
-        navigate('/home/inscribe-confirm', {
-          state: {
-            contextDataParam: {
-              orderPreview,
-              order,
-              rawTxInfo,
-            },
-          },
-        });
-      } catch (error) {
-        showToast({
-          title: error.message,
-          type: 'error',
-        });
-      } finally {
-        setLoading(false);
-      }
-
-      return;
-    }
-
-    if (type === 'tapping') {
-      const rawTxInfo = await prepareSendOrdinalsInscription({
-        toAddressInfo: {address: activeAccount.address, domain: ''},
-        inscriptionId,
-        feeRate,
-        enableRBF: false,
-      });
-
-      navigate('/handle-taping-confirm', {
-        state: {rawTxInfo, order},
-      });
-    }
   };
+
   // generate token auth
   const generateTokenAuth = async () => {
     const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
@@ -215,24 +121,12 @@ const HandleAuthority = () => {
         }
       }
     };
-    if (type === 'create') {
-      getAuthorityOrders();
-    }
+    getAuthorityOrders();
   }, [type]);
 
   // generate order preview
   useEffect(() => {
-    if (type === 'create') {
       generateTokenAuth();
-    }
-    if (type === 'cancel') {
-      const cancelContent = {
-        p: 'tap',
-        op: 'token-auth',
-        cancel: inscriptionId,
-      };
-      setOrderPreview(JSON.stringify(cancelContent));
-    }
   }, [type, inscriptionId]);
 
   const handleUpdateFeeRate = (feeRate: number) => {
@@ -242,7 +136,7 @@ const HandleAuthority = () => {
   //! Render
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
+      header={<UX.TextHeader text='Create Authority' onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
           {isWarning ? (
@@ -261,7 +155,7 @@ const HandleAuthority = () => {
                 />
               </UX.Box>
             </UX.Box>
-          ) : showPreview ? (
+          ) : (
             <UX.Box layout="column" spacing="xss">
               <UX.Text styleType="body_16_bold" title={'Preview'} />
               <div
@@ -275,7 +169,7 @@ const HandleAuthority = () => {
                 {orderPreview}
               </div>
             </UX.Box>
-          ) : null}
+          )}
 
           {!isWarning && (
             <UX.Box layout="column" spacing="xss">
@@ -298,7 +192,7 @@ const HandleAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={type !== 'create' ? 'Confirm' : 'Next'}
+            title={'Next'}
             onClick={handleNavigate}
             isDisable={loading}
           />
@@ -308,4 +202,4 @@ const HandleAuthority = () => {
   );
 };
 
-export default HandleAuthority;
+export default HandleCreateAuthority;

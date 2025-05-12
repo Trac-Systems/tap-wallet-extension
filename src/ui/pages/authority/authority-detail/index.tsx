@@ -2,19 +2,12 @@ import {UX} from '@/src/ui/component';
 import {BadgeProps} from '@/src/ui/component/badge';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {linkDetail} from '@/src/ui/helper';
-import AuthorityList from '@/src/ui/pages/manage-authority/authority-list';
-import PendingCancellation from '@/src/ui/pages/manage-authority/pending-cancelation';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import AuthorityList from '@/src/ui/pages/authority/authority-list';
+import PendingCancellation from '@/src/ui/pages/authority/pending-cancelation';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
-import {
-  convertTimestampToDeviceTime,
-  getInsUrl,
-  getTxIdUrl,
-  useAppSelector,
-} from '@/src/ui/utils';
+import {useAppSelector} from '@/src/ui/utils';
 import {InscriptionOrdClient, Network} from '@/src/wallet-instance';
 import {useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
@@ -109,7 +102,7 @@ const AuthorityDetail = () => {
   const handleOnClick = () => {
     if (inscriptionStatus === 'CONFIRMED') {
       //TODO: Handle taping
-      navigate('/handle-authority', {
+      navigate('/handle-tapping/authority', {
         state: {
           type: 'tapping',
           inscriptionId,
@@ -120,7 +113,7 @@ const AuthorityDetail = () => {
 
     if (inscriptionStatus === 'TAPPED') {
       //TODO: Handle cancel tap
-      navigate('/handle-authority', {
+      navigate('/handle-cancel-authority', {
         state: {
           type: 'cancel',
           inscriptionId,
@@ -136,6 +129,7 @@ const AuthorityDetail = () => {
     }
     const satpointTxid = inscriptionInfo?.satpoint?.split(':')[0];
     const inscriptionTxid = inscriptionId?.split('i')[0];
+
     if (inscriptionInfo?.height === 0) {
       return satpointTxid === inscriptionTxid ? 'UNCONFIRMED' : 'TAPPING';
     } else {

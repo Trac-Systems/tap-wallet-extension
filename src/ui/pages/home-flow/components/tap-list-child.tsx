@@ -129,14 +129,14 @@ const TapListChild = () => {
         style={{ cursor: 'pointer' }}
         onClick={() => {
           if (currentAuthority) {
-            navigate('/manage-authority/authority-detail', {
+            navigate('/authority/authority-detail', {
               state: {
                 inscriptionId: currentAuthority?.ins,
                 auth: currentAuthority?.auth,
               }
             });
           } else {
-            navigate('/handle-authority', {
+            navigate('/handle-create-authority', {
               state: {
                 type: 'create',
               },

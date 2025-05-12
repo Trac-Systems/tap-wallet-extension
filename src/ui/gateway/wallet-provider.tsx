@@ -168,6 +168,12 @@ export interface IWalletProvider {
     feeRate: number,
     outputValue: number,
   ): Promise<InscribeOrder>;
+  createOrderCancelAuthority(
+    address: string,
+    content: string,
+    feeRate: number,
+    outputValue: number,
+  ): Promise<InscribeOrder>;
   createOrderRedeem(
     address: string,
     content: string,

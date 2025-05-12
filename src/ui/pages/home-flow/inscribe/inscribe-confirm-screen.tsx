@@ -44,6 +44,8 @@ const InscribeConfirmScreen = () => {
           return 'Inscribe Transfer';
         case OrderType.AUTHORITY:
           return 'Inscribe Authority';
+        case OrderType.CANCEL_AUTHORITY:
+          return 'Cancel Authority';
         case OrderType.REDEEM:
           return 'Inscribe Redeem';
         default:

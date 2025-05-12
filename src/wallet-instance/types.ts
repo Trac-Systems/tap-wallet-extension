@@ -8,6 +8,7 @@ export enum OrderType {
   TAP_DEPLOY = 'TAP_DEPLOY',
   FILE = 'FILE',
   AUTHORITY = 'AUTHORITY',
+  CANCEL_AUTHORITY = 'CANCEL_AUTHORITY',
   REDEEM = 'REDEEM',
 }
 
@@ -31,6 +32,7 @@ export enum TxType {
   SEND_BITCOIN,
   SEND_ORDINALS_INSCRIPTION,
   INSCRIBE_TAP,
+  INSCRIBE_TAPPING
 }
 
 export interface TokenInfo {

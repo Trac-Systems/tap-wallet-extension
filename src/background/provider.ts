@@ -1084,6 +1084,21 @@ export class Provider {
     );
   };
 
+  createOrderCancelAuthority = (
+    address: string,
+    content: string,
+    feeRate: number,
+    outputValue: number,
+  ) => {
+    return this.inscribeApi.createOrderText(
+      content,
+      OrderType.CANCEL_AUTHORITY,
+      address,
+      feeRate,
+      outputValue,
+    );
+  };
+
   createOrderRedeem = (
     address: string,
     content: string,
@@ -1294,7 +1309,11 @@ export class Provider {
     return await this.tapApi.getCurrentAuthority(address);
   };
 
-  _generateHeaders = async (): Promise<{message: string; signature: string, address: string}> => {
+  _generateHeaders = async (): Promise<{
+    message: string;
+    signature: string;
+    address: string;
+  }> => {
     const address = this.getActiveAccount()?.address;
     if (!address) {
       return null;

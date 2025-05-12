@@ -1,32 +1,38 @@
-import { formatAmountNumber } from '@/src/shared/utils/btc-helper';
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { UX } from '../../component';
+import {useEffect, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
-import { SVG } from '../../svg';
-import { colors } from '../../themes/color';
-import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
-import { useAppSelector, validateBtcAddress } from '../../utils';
-import { InscriptionSelector } from '../../redux/reducer/inscription/selector';
+import {SVG} from '../../svg';
+import {colors} from '../../themes/color';
+import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
+import {useAppSelector, validateBtcAddress} from '../../utils';
+import {InscriptionSelector} from '../../redux/reducer/inscription/selector';
 import Text from '../../component/text-custom';
-import { GlobalSelector } from '../../redux/reducer/global/selector';
-import { useWalletProvider } from '../../gateway/wallet-provider';
-import { AccountSelector } from '../../redux/reducer/account/selector';
-import { usePrepareSendBTCCallback } from '../send-receive/hook';
-import { useCustomToast } from '../../component/toast-custom';
-import { OrderType } from '@/src/wallet-instance/types';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {useWalletProvider} from '../../gateway/wallet-provider';
+import {AccountSelector} from '../../redux/reducer/account/selector';
+import {usePrepareSendBTCCallback} from '../send-receive/hook';
+import {useCustomToast} from '../../component/toast-custom';
+import {OrderType} from '@/src/wallet-instance/types';
 
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
   const walletProvider = useWalletProvider();
-  const { showToast } = useCustomToast();
-  const { state } = location;
+  const {showToast} = useCustomToast();
+  const {state} = location;
   const ticker = state?.ticker;
   const [feeRate, setFeeRate] = useState('');
   const [tokenSections, setTokenSections] = useState([
-    { id: 1, selected: ticker, amount: '', address: '', errorAmount: '', errorAddress: '' },
+    {
+      id: 1,
+      selected: ticker,
+      amount: '',
+      address: '',
+      errorAmount: '',
+      errorAddress: '',
+    },
   ]);
   const [listTapList, setListTapList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,13 +48,16 @@ const TransferAuthority = () => {
     const listTapList = tapList.map(item => ({
       label: item.ticker,
       value: item.ticker,
-      amount: Number(item.overallBalance || 0) - Number(item.transferableBalance),
+      amount:
+        Number(item.overallBalance || 0) - Number(item.transferableBalance),
     }));
 
     if (!tokens.length) {
       setListTapList(listTapList);
     } else {
-      const filteredTapList = listTapList.filter(item => tokens?.includes(item.value));
+      const filteredTapList = listTapList.filter(item =>
+        tokens?.includes(item.value),
+      );
       setListTapList(filteredTapList);
     }
   }, [tapList, tokens]);
@@ -60,7 +69,7 @@ const TransferAuthority = () => {
     }
     console.log('feeRate :>> ', feeRate);
     console.log('tokenSections :>> ', tokenSections);
-    setLoading(true)
+    setLoading(true);
     const message = {
       items: tokenSections.map(item => ({
         tick: item.selected,
@@ -68,19 +77,21 @@ const TransferAuthority = () => {
         address: item.address,
       })),
       auth,
-      data: "",
-    }
-    console.log('message :>> ', message);
+      data: '',
+    };
     try {
-      const _tokenAuth = await walletProvider.generateTokenAuth(message, 'redeem');
-      const order = await walletProvider.createOrderAuthority(
+      const _tokenAuth = await walletProvider.generateTokenAuth(
+        message,
+        'redeem',
+      );
+      const order = await walletProvider.createOrderRedeem(
         activeAccount.address,
         _tokenAuth.proto,
         Number(feeRate),
         546,
       );
       const rawTxInfo = await prepareSendBTC({
-        toAddressInfo: { address: order?.payAddress, domain: '' },
+        toAddressInfo: {address: order?.payAddress, domain: ''},
         toAmount: order?.totalFee,
         feeRate: order?.feeRate || Number(feeRate),
         enableRBF: false,
@@ -104,7 +115,7 @@ const TransferAuthority = () => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   //! Function
   const handleGoBack = () => {
@@ -114,7 +125,17 @@ const TransferAuthority = () => {
   const handleAddTokenSection = () => {
     const latestToken = tokenSections.filter(item => !!item.selected);
     console.log('latestToken :>> ', latestToken);
-    setTokenSections(prev => [...prev, { id: prev.length + 1, selected: latestToken[latestToken.length - 1]?.selected, amount: '', address: '', errorAmount: '', errorAddress: '' }]);
+    setTokenSections(prev => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        selected: latestToken[latestToken.length - 1]?.selected,
+        amount: '',
+        address: '',
+        errorAmount: '',
+        errorAddress: '',
+      },
+    ]);
   };
 
   const onAmountChange = (section, amount: string) => {
@@ -122,14 +143,17 @@ const TransferAuthority = () => {
       option => option.value === section.selected,
     );
     const optionAmount = selectedOption?.amount || 0;
-    const filterTokenSections = tokenSections.filter(item => item.id !== section.id);
+    const filterTokenSections = tokenSections.filter(
+      item => item.id !== section.id,
+    );
     const selectedAmount = filterTokenSections.reduce((acc, item) => {
       if (item.selected === section.selected && !item.errorAmount) {
         return acc + Number(item.amount || 0);
       }
       return acc;
     }, 0);
-    const availableAmount = Number(optionAmount || 0) - Number(selectedAmount || 0);
+    const availableAmount =
+      Number(optionAmount || 0) - Number(selectedAmount || 0);
     let errorAmount = '';
     if (!amount) {
       errorAmount = 'Amount is required';
@@ -141,12 +165,12 @@ const TransferAuthority = () => {
 
     const newSections = tokenSections.map(item => {
       if (item.id === section.id) {
-        return { ...item, amount, errorAmount };
+        return {...item, amount, errorAmount};
       }
       return item;
-    })
+    });
     setTokenSections(newSections as any);
-  }
+  };
 
   const onAddressChange = (id: number, address: string) => {
     let errorAddress = '';
@@ -166,7 +190,7 @@ const TransferAuthority = () => {
       const newSections = [...prev];
       return newSections.map(section => {
         if (section.id === id) {
-          return { ...section, address, errorAddress };
+          return {...section, address, errorAddress};
         }
         return section;
       });
@@ -190,14 +214,14 @@ const TransferAuthority = () => {
       } else {
         errorAddress = '';
       }
-      return { ...section, errorAmount, errorAddress };
+      return {...section, errorAmount, errorAddress};
     });
     const isValid = newSections.every(section => {
       return !section.errorAmount && !section.errorAddress;
     });
     setTokenSections(newSections as any);
     return isValid;
-  }
+  };
 
   const isDisabledForm = tokenSections.some(section => {
     return section.errorAmount || section.errorAddress;
@@ -209,91 +233,105 @@ const TransferAuthority = () => {
     );
     const amount = selectedOption?.amount || 0;
 
-    return <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
-      <UX.Box spacing="xss">
-        <UX.Text
-          title="Token name"
-          styleType="body_16_extra_bold"
-          customStyles={{ color: 'white' }}
-        />
-        <UX.Dropdown
-          options={listTapList}
-          value={section.selected}
-          onChange={val => {
-            setTokenSections(prev => {
-              const newSections = [...prev];
-              return newSections.map(item => {
-                if (item.id === section.id) {
-                  return { ...section, selected: val, amount: '', errorAmount: '', errorAddress: '', address: '' };
-                }
-                return item;
-              });
-            });
-          }}
-        />
-        {section.selected && <UX.Box layout="row_between">
-          <UX.Text title="Available:" styleType="body_14_bold" />
+    return (
+      <UX.Box spacing="xl" style={{width: '100%'}} key={section.id}>
+        <UX.Box spacing="xss">
           <UX.Text
-            title={`${amount} ${section.selected}`}
-            styleType="body_14_bold"
-            customStyles={{ color: colors.green_500 }}
+            title="Token name"
+            styleType="body_16_extra_bold"
+            customStyles={{color: 'white'}}
           />
-        </UX.Box>}
+          <UX.Dropdown
+            options={listTapList}
+            value={section.selected}
+            onChange={val => {
+              setTokenSections(prev => {
+                const newSections = [...prev];
+                return newSections.map(item => {
+                  if (item.id === section.id) {
+                    return {
+                      ...section,
+                      selected: val,
+                      amount: '',
+                      errorAmount: '',
+                      errorAddress: '',
+                      address: '',
+                    };
+                  }
+                  return item;
+                });
+              });
+            }}
+          />
+          {section.selected && (
+            <UX.Box layout="row_between">
+              <UX.Text title="Available:" styleType="body_14_bold" />
+              <UX.Text
+                title={`${amount} ${section.selected}`}
+                styleType="body_14_bold"
+                customStyles={{color: colors.green_500}}
+              />
+            </UX.Box>
+          )}
+        </UX.Box>
+        <UX.Box spacing="xss">
+          <UX.Text
+            title="Amount"
+            styleType="body_16_extra_bold"
+            customStyles={{color: 'white'}}
+          />
+          <UX.AmountInput
+            style={{
+              fontSize: '20px',
+              lineHeight: '28px',
+              background: 'transparent',
+            }}
+            disableCoinSvg
+            onChange={e => {
+              const val = e?.target?.value;
+              const cleanText = val?.toString()?.replace(/[,a-zA-Z]/g, '');
+              onAmountChange(section, cleanText);
+            }}
+            value={section?.amount?.toString()}
+            onAmountInputChange={amount => {}}
+          />
+          {section.errorAmount && (
+            <Text
+              title={section.errorAmount}
+              styleType="body_14_bold"
+              customStyles={{color: colors.red_500, marginTop: '4px'}}
+            />
+          )}
+        </UX.Box>
+        <UX.Box spacing="xss">
+          <UX.Text
+            title="Receiver"
+            styleType="body_16_extra_bold"
+            customStyles={{color: 'white'}}
+          />
+          <UX.Input
+            placeholder="Receiver address"
+            style={{
+              fontSize: '16px',
+              border: 'none',
+              padding: '9px 16px',
+              background: 'transparent',
+            }}
+            value={section?.address}
+            onChange={e => {
+              onAddressChange(section.id, e?.target?.value);
+            }}
+          />
+          {section.errorAddress && (
+            <Text
+              title={section.errorAddress}
+              styleType="body_14_bold"
+              customStyles={{color: colors.red_500, marginTop: '4px'}}
+            />
+          )}
+        </UX.Box>
       </UX.Box>
-      <UX.Box spacing="xss">
-        <UX.Text
-          title="Amount"
-          styleType="body_16_extra_bold"
-          customStyles={{ color: 'white' }}
-        />
-        <UX.AmountInput
-          style={{
-            fontSize: '20px',
-            lineHeight: '28px',
-            background: 'transparent',
-          }}
-          disableCoinSvg
-          onChange={e => {
-            const val = e?.target?.value;
-            const cleanText = val?.toString()?.replace(/[,a-zA-Z]/g, '');
-            onAmountChange(section, cleanText);
-          }
-          }
-          value={section?.amount?.toString()}
-          onAmountInputChange={amount => { }}
-        />
-        {section.errorAmount && <Text
-          title={section.errorAmount}
-          styleType="body_14_bold"
-          customStyles={{ color: colors.red_500, marginTop: '4px' }}
-        />}
-      </UX.Box>
-      <UX.Box spacing="xss">
-        <UX.Text
-          title="Receiver"
-          styleType="body_16_extra_bold"
-          customStyles={{ color: 'white' }}
-        />
-        <UX.Input
-          placeholder='Receiver address'
-          style={{
-            fontSize: '16px',
-            border: 'none',
-            padding: '9px 16px',
-            background: 'transparent',
-          }}
-          value={section?.address}
-          onChange={e => {
-            onAddressChange(section.id, e?.target?.value);
-          }}
-        />
-        {section.errorAddress && <Text
-          title={section.errorAddress}
-          styleType="body_14_bold"
-          customStyles={{ color: colors.red_500, marginTop: '4px' }}
-        />}
-      </UX.Box>
-    </UX.Box>
+    );
   };
 
   //! Render
@@ -301,7 +339,7 @@ const TransferAuthority = () => {
     <LayoutSendReceive
       header={<UX.TextHeader text="1-TX Transfer" onBackClick={handleGoBack} />}
       body={
-        <UX.Box style={{ width: '100%' }} spacing="xl">
+        <UX.Box style={{width: '100%'}} spacing="xl">
           {tokenSections.map((section, index) =>
             renderTokenSection(section, index),
           )}
@@ -309,19 +347,19 @@ const TransferAuthority = () => {
           <UX.Box
             layout="row"
             spacing="xss"
-            style={{ cursor: 'pointer' }}
+            style={{cursor: 'pointer'}}
             onClick={handleAddTokenSection}>
             <SVG.AddIcon color="#D16B7C" width={20} height={20} />
             <UX.Text
               styleType="body_14_bold"
               title="Transfer more token"
-              customStyles={{ color: colors.main_500 }}
+              customStyles={{color: colors.main_500}}
             />
           </UX.Box>
           <UX.Box spacing="xss">
             <UX.Text
               styleType="body_16_extra_bold"
-              customStyles={{ color: 'white' }}
+              customStyles={{color: 'white'}}
               title="Fee rate"
             />
             <FeeRateBar

@@ -51,10 +51,14 @@ const HandleAuthority = () => {
   const {showToast} = useCustomToast();
   const [isWarning, setIsWarning] = useState(false);
 
-  const {state} = location;
+  type LocationState = {
+    type: 'confirm' | 'create' | 'cancel' | 'tapping';
+    inscriptionId: string;
+  };
+
+  const {state} = location as {state: LocationState};
   // typecast for type
-  const type = state.type as 'create' | 'confirm' | 'cancel' | 'tapping';
-  const inscriptionId = state.inscriptionId;
+  const {type, inscriptionId} = state;
   // switch title based on type
   const title = useMemo(() => {
     switch (type) {
@@ -71,7 +75,7 @@ const HandleAuthority = () => {
     }
   }, [type]);
   const showPreview = type !== 'tapping' && type !== 'confirm';
-  const [tokenAuth, setTokenAuth] = useState<string>('');
+  const [orderPreview, setOrderPreview] = useState<string>('');
   const [feeRate, setFeeRate] = useState<number>(5);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [loading, setLoading] = useState(false);
@@ -99,7 +103,7 @@ const HandleAuthority = () => {
         navigate('/home/inscribe-confirm', {
           state: {
             contextDataParam: {
-              tokenAuth,
+              orderPreview,
               order,
               rawTxInfo,
             },
@@ -116,6 +120,43 @@ const HandleAuthority = () => {
 
       return;
     }
+
+    if (type === 'cancel') {
+      try {
+        setLoading(true);
+        const order = await walletProvider.createOrderCancelAuthority(
+          activeAccount.address,
+          orderPreview,
+          feeRate,
+          546,
+        );
+        const rawTxInfo = await prepareSendBTC({
+          toAddressInfo: {address: order?.payAddress, domain: ''},
+          toAmount: order?.totalFee,
+          feeRate: order?.feeRate || feeRate,
+          enableRBF: false,
+        });
+        navigate('/home/inscribe-confirm', {
+          state: {
+            contextDataParam: {
+              orderPreview,
+              order,
+              rawTxInfo,
+            },
+          },
+        });
+      } catch (error) {
+        showToast({
+          title: error.message,
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+
+      return;
+    }
+
     if (type === 'tapping') {
       const rawTxInfo = await prepareSendOrdinalsInscription({
         toAddressInfo: {address: activeAccount.address, domain: ''},
@@ -127,31 +168,12 @@ const HandleAuthority = () => {
       navigate('/home/send-inscription-confirm', {
         state: {rawTxInfo},
       });
-      // TODO: create order authority instead through useEffect
-      // navigate('/home/inscribe-confirm', {
-      //   state: {
-      //     contextDataParam: {
-      //       rawTxInfo,
-      //     },
-      //   },
-      // });
     }
-    // navigate('/home/inscribe-confirm', {
-    //   state: {
-    //     contextDataParam: {
-    //       rawTxInfo,
-    //       order,
-    //     },
-    //   },
-    // });
   };
-
   // generate token auth
   const generateTokenAuth = async () => {
-    if (type === 'create') {
-      const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
-      setTokenAuth(_tokenAuth.proto);
-    }
+    const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
+    setOrderPreview(_tokenAuth.proto);
   };
 
   // get authority orders
@@ -161,9 +183,7 @@ const HandleAuthority = () => {
         activeAccount.address,
       );
       // if there is no authority orders, generate token auth
-      if (!orders?.length) {
-        generateTokenAuth();
-      } else {
+      if (orders?.length) {
         // setAuthorityOrder(orders[0]);
         const authorityOrder = orders[0];
 
@@ -197,7 +217,22 @@ const HandleAuthority = () => {
     if (type === 'create') {
       getAuthorityOrders();
     }
-  }, []);
+  }, [type]);
+
+  // generate order preview
+  useEffect(() => {
+    if (type === 'create') {
+      generateTokenAuth();
+    }
+    if (type === 'cancel') {
+      const cancelContent = {
+        p: 'tap',
+        op: 'token-auth',
+        cancel: inscriptionId,
+      };
+      setOrderPreview(JSON.stringify(cancelContent));
+    }
+  }, [type, inscriptionId]);
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);
@@ -236,7 +271,7 @@ const HandleAuthority = () => {
                   border: '1px solid rgb(84, 84, 84)',
                   backgroundColor: 'rgba(39, 39, 39, 0.42)',
                 }}>
-                {tokenAuth}
+                {orderPreview}
               </div>
             </UX.Box>
           ) : null}

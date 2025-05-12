@@ -1,20 +1,11 @@
 /* eslint-disable no-unsafe-optional-chaining */
-import {InscribeOrder, Network} from '@/src/wallet-instance';
+import {InscribeOrder, Network, OrderType} from '@/src/wallet-instance';
 import {networkConfig} from '../service/singleton';
 import {AxiosRequest} from './axios';
 export const INSCRIBE_API_TESTNET = 'http://157.230.45.91:8080';
 
 export const INSCRIBE_API_MAINNET = 'https://inscriber.trac.network';
 
-export enum OrderType {
-  TAP_MINT = 'TAP_MINT',
-  TAP_DEPLOY = 'TAP_DEPLOY',
-  TAP_TRANSFER = 'TAP_TRANSFER',
-  FILE = 'FILE',
-  TEXT = 'TEXT',
-  AUTHORITY = 'AUTHORITY',
-  REDEEM = 'REDEEM',
-}
 export class InscribeApi {
   api!: AxiosRequest;
   constructor() {

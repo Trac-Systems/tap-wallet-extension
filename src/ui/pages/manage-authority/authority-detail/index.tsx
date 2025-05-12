@@ -138,7 +138,7 @@ const AuthorityDetail = () => {
   const renderCheckedList = () => {
     return (
       <UX.Box spacing="xs" className="card-spendable">
-        {[...authorityList, ...authorityList, ...authorityList, ...authorityList].map((item, index) => {
+        {authorityList.map((item, index) => {
           return (
             <UX.Box
               layout="box_border"
@@ -148,8 +148,6 @@ const AuthorityDetail = () => {
                 navigate('/manage-authority/authority-detail', {
                   state: {
                     inscriptionId: item?.ins,
-                    inscriptionInfo: item,
-                    hash: location.hash.replace('#', ''),
                   },
                 });
               }}>

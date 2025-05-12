@@ -1,12 +1,13 @@
 import {
   AddressTokenSummary,
   Network,
+  TokenAuthority,
   TokenBalance,
 } from '../../wallet-instance';
 import {networkConfig} from '../service/singleton';
 import {AxiosRequest} from './axios';
 
-import {isEmpty} from 'lodash';
+import {isEmpty, max} from 'lodash';
 import {mempoolApi} from '.';
 import {
   TapTokenInfo,
@@ -369,14 +370,38 @@ export class TapApi {
     return response?.data?.result || 0;
   }
 
+  // get authority canceled
+  async getAuthorityCanceled(inscriptionId: string) {
+    const response = await this.api.get(
+      `/getAuthCancelled/${inscriptionId}`,
+      {},
+    );
+    return response?.data?.result as boolean;
+  }
   // get authority list
-  async getAuthorityList(address: string, offset: number, max: number) {
+  async getAuthorityList(
+    address: string,
+    offset: number,
+    max: number,
+  ): Promise<{data: TokenAuthority[]; total: number}> {
     const total = await this.getTotalTokenAuthority(address);
     const response = await this.api.get(`/getAccountAuthList/${address}`, {
       offset,
       max,
     });
-    return {data: response?.data?.result, total};
+    const authorityList = response?.data?.result as TokenAuthority[];
+    // remove canceled authority
+    const data = [];
+    for (const authority of authorityList) {
+      const isCanceled = await this.getAuthorityCanceled(authority.ins);
+      console.log('🚀 ~ TapApi ~ isCanceled:', isCanceled);
+      if (isCanceled) {
+        continue;
+      }
+      data.push(authority);
+    }
+
+    return {data, total};
   }
 
   // get current authority
@@ -385,10 +410,10 @@ export class TapApi {
     if (total === 0) {
       return null;
     }
-    const response = await this.api.get(`/getAccountAuthList/${address}`, {
-      offset: total - 1,
-      max: 1,
-    });
-    return response?.data?.result[0] || null;
+    const response = await this.getAuthorityList(address, 0, 500);
+    if (response?.data?.length) {
+      return response?.data[response?.data?.length - 1] || null;
+    }
+    return null;
   }
 }

@@ -21,6 +21,7 @@ import {
   TokenAuth,
   TokenAuthority,
   InscriptionOrdClient,
+  OrderType,
 } from '../../wallet-instance';
 import {Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
@@ -182,6 +183,8 @@ export interface IWalletProvider {
   ): Promise<InscribeOrder>;
   getAuthorityOrders(address: string): Promise<InscribeOrder[]>;
   paidOrder(orderId: string): Promise<void>;
+  tappingOrder(orderId: string): Promise<void>;
+  getOrderReadyToTap(address: string, orderType: OrderType): Promise<InscribeOrder[]>;
   getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer>;
   sendOrdinalsInscription(data: {
     to: string;

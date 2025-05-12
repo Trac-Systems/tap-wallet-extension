@@ -93,14 +93,20 @@ const TxSecurity = () => {
               });
             }
             break;
-          default:
-            pushBitcoinTx(rawtx, spendUtxos).then(({success, txid, error}) => {
+          case TxType.INSCRIBE_TAPPING:
+            pushOrdinalsTx(rawtx, spendUtxos).then(({success, txid, error}) => {
               if (success) {
+                // mark order as tapping
+                if (order?.id) {
+                  wallet.tappingOrder(order.id);
+                }
                 navigate('/home/send-success', {state: {txid}});
               } else {
                 navigate('/home/send-fail', {state: {error}});
               }
             });
+            break;
+          default:
             break;
         }
       })

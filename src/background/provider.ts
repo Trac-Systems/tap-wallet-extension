@@ -153,6 +153,7 @@ export class Provider {
     paidApi.changeNetwork();
     this.mempoolApi.changeNetwork(network);
     this.tapApi.changeNetwork(network);
+    this.inscribeApi.changeNetwork(network);
     const activeAccount = this.getActiveAccount();
     const wallet = this.getActiveWallet();
     if (!wallet) {
@@ -1118,6 +1119,10 @@ export class Provider {
     return await this.inscribeApi.getAuthorityOrders(address);
   };
 
+  getOrderReadyToTap = async (address: string, orderType: OrderType) => {
+    return await this.inscribeApi.getReadyToTap(address, orderType);
+  };
+
   paidOrder = async (orderId: string) => {
     const headers = await this._generateHeaders();
     await this.inscribeApi.paidOrder(orderId, headers);
@@ -1251,8 +1256,7 @@ export class Provider {
   // convert this to private property
   private _sha256 = (content: string) => {
     // convert content to hex
-    const hash = createHash('sha256').update(content).digest();
-    return hash.toString('hex');
+    return createHash('sha256').update(content).digest();
   };
 
   generateTokenAuth = async (message: any, authType: 'redeem' | 'auth') => {

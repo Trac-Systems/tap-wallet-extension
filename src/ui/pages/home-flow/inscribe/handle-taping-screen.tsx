@@ -1,10 +1,11 @@
 import SignConfirm from '@/src/ui/pages/send-receive/component/sign-confirm';
-import { RawTxInfo, TxType } from '@/src/wallet-instance';
+import { InscribeOrder, RawTxInfo, TxType } from '@/src/wallet-instance';
 import {useLocation} from 'react-router-dom';
 
 export default function HandleTapingScreen() {
   const location = useLocation();
-  const {rawTxInfo}: {rawTxInfo: RawTxInfo} = location.state;
+  const {rawTxInfo, order}: {rawTxInfo: RawTxInfo; order: InscribeOrder} =
+    location.state;
   return (
     <SignConfirm
       params={{
@@ -14,6 +15,7 @@ export default function HandleTapingScreen() {
           rawTxInfo,
         },
       }}
+      order={order}
     />
   );
 }

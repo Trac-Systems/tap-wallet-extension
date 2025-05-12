@@ -54,11 +54,12 @@ const HandleAuthority = () => {
   type LocationState = {
     type: 'confirm' | 'create' | 'cancel' | 'tapping';
     inscriptionId: string;
+    order?: InscribeOrder;
   };
 
   const {state} = location as {state: LocationState};
   // typecast for type
-  const {type, inscriptionId} = state;
+  const {type, inscriptionId, order} = state;
   // switch title based on type
   const title = useMemo(() => {
     switch (type) {
@@ -165,8 +166,8 @@ const HandleAuthority = () => {
         enableRBF: false,
       });
 
-      navigate('/home/send-inscription-confirm', {
-        state: {rawTxInfo},
+      navigate('/handle-taping-confirm', {
+        state: {rawTxInfo, order},
       });
     }
   };

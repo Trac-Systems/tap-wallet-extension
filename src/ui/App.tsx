@@ -54,6 +54,7 @@ import TransferAuthority from './pages/authority/transfer-authority';
 import ManageAuthority from './pages/manage-authority';
 import AuthorityDetail from './pages/manage-authority/authority-detail';
 import HandleAuthority from './pages/authority/handle-authority';
+import HandleTapingScreen from '@/src/ui/pages/home-flow/inscribe/handle-taping-screen';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -237,6 +238,7 @@ function App() {
         <Route path="/transfer-authority" element={<TransferAuthority />} />
         <Route path="/manage-authority" element={<ManageAuthority />} />
         <Route path="/manage-authority/authority-detail" element={<AuthorityDetail />} />
+        <Route path="/handle-taping-confirm" element={<HandleTapingScreen />} />
       </Routes>
     </HashRouter>
   );

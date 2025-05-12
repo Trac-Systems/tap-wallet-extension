@@ -1,21 +1,23 @@
-import { UX } from '@/src/ui/component';
-import { BadgeProps } from '@/src/ui/component/badge';
+import {UX} from '@/src/ui/component';
+import {BadgeProps} from '@/src/ui/component/badge';
 import InscriptionPreview from '@/src/ui/component/inscription-preview';
-import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
-import { linkDetail } from '@/src/ui/helper';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
-import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
-import { SVG } from '@/src/ui/svg';
-import { colors } from '@/src/ui/themes/color';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {linkDetail} from '@/src/ui/helper';
+import AuthorityList from '@/src/ui/pages/manage-authority/authority-list';
+import PendingCancellation from '@/src/ui/pages/manage-authority/pending-cancelation';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {SVG} from '@/src/ui/svg';
+import {colors} from '@/src/ui/themes/color';
 import {
   convertTimestampToDeviceTime,
   getInsUrl,
   getTxIdUrl,
   useAppSelector,
 } from '@/src/ui/utils';
-import { InscriptionOrdClient, Network } from '@/src/wallet-instance';
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {InscriptionOrdClient, Network} from '@/src/wallet-instance';
+import {useEffect, useMemo, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
 
 const AuthorityStatus = {
   UNCONFIRMED: {
@@ -46,73 +48,23 @@ const AuthorityStatus = {
 
 export const DropdownTabs = {
   LIST_AUTHORITIES: 'listAuthorities',
-  PENDING_CANCELLATION: 'pendingCancellation'
-}
+  PENDING_CANCELLATION: 'pendingCancellation',
+};
 
 const AuthorityDetail = () => {
   const wallet = useWalletProvider();
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = location;
-  const activeAccount = useAppSelector(AccountSelector.activeAccount);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    pageSize: 10,
-  });
-  const [paginationPendingCancellation, setPaginationPendingCancellation] = useState({
-    currentPage: 1,
-    pageSize: 10,
-  });
-  const [authorityList, setAuthorityList] = useState<any[]>([]);
-  const [pendingInscriptionList, setPendingInscriptionList] = useState<any[]>([])
-  const [totalPendingInscription, setTotalPendingInscription] = useState(0)
-  const [totalAuthority, setTotalAuthority] = useState(0);
-  const [activeTab, setActiveTab] = useState(DropdownTabs.LIST_AUTHORITIES);
-
-  const handleGetListAuthority = async () => {
-    try {
-      const response = await wallet.getAuthorityList(
-        activeAccount.address,
-        (pagination.currentPage - 1) * pagination.pageSize,
-        pagination.pageSize,
-      );
-      setAuthorityList(response?.data || []);
-      setTotalAuthority(response?.total || 0);
-    } catch (error) {
-      console.log('error :>> ', error);
-    }
-  };
-
-  const handleGetListPendingCancellation = async () => {
-    try {
-      const response = await wallet.getAuthorityList(
-        activeAccount.address,
-        (pagination.currentPage - 1) * pagination.pageSize,
-        pagination.pageSize,
-      );
-      setPendingInscriptionList(response?.data || []);
-      setTotalPendingInscription(response?.total || 0);
-    } catch (error) {
-      console.log('error :>> ', error);
-    }
-  };
-
-  useEffect(() => {
-    if (activeAccount.address) {
-      handleGetListAuthority();
-      handleGetListPendingCancellation();
-    }
-  }, [pagination.currentPage, activeAccount]);
-
-  useEffect(() => {
-    if (activeAccount.address) {
-      handleGetListAuthority();
-    }
-  }, [pagination.currentPage, activeAccount]);
+  const {state} = location;
 
   const network = useAppSelector(GlobalSelector.networkType);
   const inscriptionId = state?.inscriptionId;
   const auth = state?.auth;
+  const order = state?.order;
+
+  const isAuthorityToken = useMemo(() => {
+    return Array.isArray(auth);
+  }, [auth]);
 
   const urlPreview = useMemo(() => {
     return network === Network.TESTNET
@@ -120,9 +72,30 @@ const AuthorityDetail = () => {
       : 'https://ord-tw.tap-hosting.xyz/preview/';
   }, [network]);
 
-  const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
   const [inscriptionInfo, setInscriptionInfo] =
     useState<InscriptionOrdClient | null>(null);
+  const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
+
+  const tabItems = [
+    {
+      label: 'Tapped',
+      content: (
+        <AuthorityList
+          setOpenDrawerInscription={setOpenDrawerInscription}
+          urlPreview={urlPreview}
+        />
+      ),
+    },
+    {
+      label: 'Pending Cancellation',
+      content: (
+        <PendingCancellation
+          setOpenDrawerInscription={setOpenDrawerInscription}
+          urlPreview={urlPreview}
+        />
+      ),
+    },
+  ];
 
   // get token info
   useEffect(() => {
@@ -140,6 +113,7 @@ const AuthorityDetail = () => {
         state: {
           type: 'tapping',
           inscriptionId,
+          order,
         },
       });
     }
@@ -150,6 +124,7 @@ const AuthorityDetail = () => {
         state: {
           type: 'cancel',
           inscriptionId,
+          order,
         },
       });
     }
@@ -159,80 +134,14 @@ const AuthorityDetail = () => {
     if (Array.isArray(auth)) {
       return 'TAPPED';
     }
-    const satpointTxid = inscriptionInfo?.satpoint.split(':')[0];
-    const inscriptionTxid = inscriptionId.split('i')[0];
+    const satpointTxid = inscriptionInfo?.satpoint?.split(':')[0];
+    const inscriptionTxid = inscriptionId?.split('i')[0];
     if (inscriptionInfo?.height === 0) {
       return satpointTxid === inscriptionTxid ? 'UNCONFIRMED' : 'TAPPING';
     } else {
       return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
     }
   }, [auth, inscriptionInfo]);
-
-  const renderCheckedList = () => {
-    const isAuthoritiesTab = activeTab === DropdownTabs.LIST_AUTHORITIES;
-    const total = isAuthoritiesTab ? totalAuthority : totalPendingInscription;
-    const list = isAuthoritiesTab ? authorityList : pendingInscriptionList;
-    const currentPagination = isAuthoritiesTab ? pagination : paginationPendingCancellation;
-    const currentSetPagination = isAuthoritiesTab ? setPagination : setPaginationPendingCancellation;
-    return (
-      <UX.Box spacing="xs" className="card-spendable">
-        {list.map((item, index) => {
-          return (
-            <UX.Box
-              layout="box_border"
-              key={index}
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                setOpenDrawerInscription(false);
-                navigate('/manage-authority/authority-detail', {
-                  state: {
-                    inscriptionId: item?.ins,
-                  },
-                });
-              }}>
-              <UX.Box layout="row_center" spacing="xs">
-                <UX.InscriptionPreview
-                  key={item.ins}
-                  data={{
-                    ...item,
-                    inscriptionId: item?.ins,
-                    outputValue: item?.val,
-                    inscriptionNumber: item?.num,
-                    preview: `${urlPreview}${item?.ins}`,
-                  }}
-                  asLogo
-                  isModalSpendable
-                  preset="asLogo"
-                />
-                <UX.Box layout="column">
-                  <UX.Text title={`#${item.num}`} styleType="body_16_normal" />
-                  <UX.Text
-                    title={`${item.val} SATs`}
-                    styleType="body_16_normal"
-                    customStyles={{ color: colors.main_500 }}
-                  />
-                </UX.Box>
-              </UX.Box>
-            </UX.Box>
-          );
-        })}
-
-        {total > 0 && (
-          <div style={{ marginTop: '20px' }}>
-            <UX.Box layout="row_center">
-              <UX.Pagination
-                pagination={currentPagination}
-                total={total}
-                onChange={pagination => {
-                  currentSetPagination(pagination);
-                }}
-              />
-            </UX.Box>
-          </div>
-        )}
-      </UX.Box>
-    );
-  };
 
   return (
     <UX.Box className="inscription-detail">
@@ -252,15 +161,15 @@ const AuthorityDetail = () => {
           asLogo
         />
       </UX.Box>
-      <UX.Box className="image-box-section" style={{ marginTop: '16px' }}>
+      <UX.Box className="image-box-section" style={{marginTop: '16px'}}>
         <UX.Box layout="row_between" spacing="xs">
           <UX.Text
             title={`Inscription ${inscriptionInfo?.number}`}
             styleType="heading_20"
-            customStyles={{ marginLeft: '16px' }}
+            customStyles={{marginLeft: '16px'}}
           />
           <UX.Box
-            style={{ cursor: 'pointer', marginRight: '16px' }}
+            style={{cursor: 'pointer', marginRight: '16px'}}
             onClick={() => setOpenDrawerInscription(true)}>
             <SVG.FilterIcon />
           </UX.Box>
@@ -280,16 +189,19 @@ const AuthorityDetail = () => {
           status={
             AuthorityStatus[inscriptionStatus].status as BadgeProps['status']
           }
-          customStyles={{ marginLeft: '16px' }}
+          customStyles={{marginLeft: '16px'}}
         />
-        <UX.Box layout="box" spacing="xl" style={{ margin: '16px', gap: '8px' }}>
-          {auth?.length > 0 ? (
-            <>
-              <UX.Text
-                title={`Token List (${auth.length})`}
-                styleType="body_14_normal"
-              />
-              {auth?.length > 0 && (
+        {isAuthorityToken && (
+          <UX.Box
+            layout="box"
+            spacing="xl"
+            style={{margin: '16px', gap: '8px'}}>
+            {auth?.length > 0 ? (
+              <>
+                <UX.Text
+                  title={`Token List (${auth.length})`}
+                  styleType="body_14_normal"
+                />
                 <UX.Box
                   layout="row"
                   style={{
@@ -312,16 +224,16 @@ const AuthorityDetail = () => {
                     />
                   ))}
                 </UX.Box>
-              )}
-            </>
-          ) : (
-            <UX.Text
-              title="Applied for all tokens"
-              styleType="body_14_normal"
-            />
-          )}
-        </UX.Box>
-        <UX.Box layout="box" spacing="xl" style={{ margin: '16px' }}>
+              </>
+            ) : (
+              <UX.Text
+                title="Applied for all tokens"
+                styleType="body_14_normal"
+              />
+            )}
+          </UX.Box>
+        )}
+        <UX.Box layout="box" spacing="xl" style={{margin: '16px'}}>
           <UX.Section title="ID" value={inscriptionInfo?.id} />
           <UX.Section title="Address" value={inscriptionInfo?.address} />
           <UX.Section
@@ -338,70 +250,32 @@ const AuthorityDetail = () => {
               padding: '16px',
               height: '75vh',
             }}>
-            <UX.Box layout='row_between'>
-              <UX.Text title="List authorities" styleType="body_20_extra_bold"
-                customStyles={{ cursor: 'pointer' }}
-                onClick={() => setActiveTab(DropdownTabs.LIST_AUTHORITIES)}
-              />
-              <UX.Text title="Pending Cancellation" styleType="body_20_extra_bold"
-                customStyles={{ cursor: 'pointer' }}
-                onClick={() => setActiveTab(DropdownTabs.PENDING_CANCELLATION)}
+            <UX.Box
+              style={{
+                justifyContent: 'space-between',
+                flex: 1,
+                maxHeight: '65vh',
+              }}>
+              <UX.Tabs tabs={tabItems} isChildren parentIndex={1} />
+            </UX.Box>
+            <UX.Box
+              layout="column"
+              spacing="xl"
+              style={{
+                padding: '10px 0',
+              }}>
+              <UX.Button
+                styleType="primary"
+                title="Create authority"
+                onClick={() => {
+                  navigate('/create-authority', {
+                    state: {
+                      type: 'create',
+                    },
+                  });
+                }}
               />
             </UX.Box>
-            {activeTab === DropdownTabs.LIST_AUTHORITIES &&
-              <><UX.Box
-                style={{
-                  justifyContent: 'space-between',
-                  flex: 1,
-                  maxHeight: '65vh',
-                }}>
-                {renderCheckedList()}
-              </UX.Box>
-                <UX.Box
-                  layout="column"
-                  spacing="xl"
-                  style={{
-                    padding: '10px 0',
-                  }}>
-                  <UX.Button
-                    styleType="primary"
-                    title='Create authority'
-                    onClick={() => {
-                      navigate('/create-authority', {
-                        state: {
-                          type: 'create',
-                        },
-                      });
-                    }}
-                  />
-                </UX.Box></>}
-            {activeTab === DropdownTabs.PENDING_CANCELLATION &&
-              <><UX.Box
-                style={{
-                  justifyContent: 'space-between',
-                  flex: 1,
-                  maxHeight: '65vh',
-                }}>
-                {renderCheckedList()}
-              </UX.Box>
-                <UX.Box
-                  layout="column"
-                  spacing="xl"
-                  style={{
-                    padding: '10px 0',
-                  }}>
-                  <UX.Button
-                    styleType="primary"
-                    title='Create authority'
-                    onClick={() => {
-                      navigate('/create-authority', {
-                        state: {
-                          type: 'create',
-                        },
-                      });
-                    }}
-                  />
-                </UX.Box></>}
           </UX.Box>
         </UX.DrawerCustom>
       </UX.Box>

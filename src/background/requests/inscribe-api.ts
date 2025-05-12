@@ -76,15 +76,17 @@ export class InscribeApi {
   }
 
   // get orders ready to tap
-  async getReadyToTap(address: string) {
+  async getReadyToTap(address: string, orderType: OrderType) {
     const res = await this.api.get(
-      `/v1/inscribe/order/readyToTap/${address}`,
+      `/v1/inscribe/order/readyToTap/${address}?orderType=${orderType}`,
       {},
     );
     if (!res.data) {
       throw new Error('Get ready to tap order failed');
     }
-    return {...res?.data?.data};
+    console.log('res?.data?.data :>> ', res?.data?.data);
+    // cast type
+    return res?.data?.data as InscribeOrder[];
   }
 
   // get authority orders

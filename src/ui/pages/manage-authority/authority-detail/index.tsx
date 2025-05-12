@@ -145,6 +145,7 @@ const AuthorityDetail = () => {
               key={index}
               style={{ cursor: 'pointer' }}
               onClick={() => {
+                setOpenDrawerInscription(false);
                 navigate('/manage-authority/authority-detail', {
                   state: {
                     inscriptionId: item?.ins,
@@ -221,7 +222,7 @@ const AuthorityDetail = () => {
             customStyles={{ marginLeft: '16px' }}
           />
           <UX.Box
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', marginRight: '16px' }}
             onClick={() => setOpenDrawerInscription(true)}>
             <SVG.FilterIcon />
           </UX.Box>

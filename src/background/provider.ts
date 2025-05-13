@@ -1128,6 +1128,11 @@ export class Provider {
     await this.inscribeApi.paidOrder(orderId, headers);
   };
 
+  tappingOrder = async (orderId: string) => {
+    const headers = await this._generateHeaders();
+    await this.inscribeApi.tappingOrder(orderId, headers);
+  };
+
   getInscribeTapResult = (orderId: string) => {
     return this.paidApi.getInscribeTapResult(orderId);
   };
@@ -1311,6 +1316,10 @@ export class Provider {
 
   getCurrentAuthority = async (address: string) => {
     return await this.tapApi.getCurrentAuthority(address);
+  };
+
+  getAuthorityCanceled = async (ins: string) => {
+    return await this.tapApi.getAuthorityCanceled(ins);
   };
 
   _generateHeaders = async (): Promise<{

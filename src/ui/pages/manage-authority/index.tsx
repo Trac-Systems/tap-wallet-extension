@@ -86,7 +86,7 @@ const ManageAuthority = () => {
                     }}
                     preset="medium"
                     onClick={() =>
-                      navigate('/authority/authority-detail', {
+                      navigate('/authority-detail', {
                         state: {
                           inscriptionId: item?.ins,
                           auth: item?.auth,

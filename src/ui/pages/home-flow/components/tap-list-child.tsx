@@ -1,26 +1,31 @@
-import { satoshisToAmount } from '@/src/shared/utils/btc-helper';
-import { UX } from '@/src/ui/component';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
-import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
-import { InscriptionSelector } from '@/src/ui/redux/reducer/inscription/selector';
-import { SVG } from '@/src/ui/svg';
+import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {UX} from '@/src/ui/component';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import {SVG} from '@/src/ui/svg';
 import {
   generateUniqueColors,
   TOKEN_PAGE_SIZE,
+  useAppDispatch,
   useAppSelector,
 } from '@/src/ui/utils';
-import { TokenBalance } from '@/src/wallet-instance';
-import { debounce, isEmpty } from 'lodash';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAccountBalance, useInscriptionHook } from '../hook';
+import {TokenAuthority, TokenBalance} from '@/src/wallet-instance';
+import {debounce, isEmpty} from 'lodash';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useAccountBalance, useInscriptionHook} from '../hook';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 
 const TapListChild = () => {
   const navigate = useNavigate();
-  const { getTapList } = useInscriptionHook();
+  const {getTapList} = useInscriptionHook();
 
   //! State
   const accountBalance = useAccountBalance();
+  const walletProvider = useWalletProvider();
+  const dispatch = useAppDispatch();
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
@@ -33,7 +38,21 @@ const TapListChild = () => {
     currentPage: 1,
     pageSize: TOKEN_PAGE_SIZE,
   });
-  const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
+  const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
+
+  // fetch current authority
+  useEffect(() => {
+    const fetchCurrentAuthority = async () => {
+      const authority = await walletProvider.getCurrentAuthority(
+        activeAccount.address,
+      );
+      setCurrentAuthority(authority);
+      // update current authority
+      dispatch(AccountActions.setCurrentAuthority(authority));
+    };
+    fetchCurrentAuthority();
+  }, [activeAccount.address]);
+
   const listRandomColor: string[] = useMemo(() => {
     if (!isEmpty(randomColors)) {
       return randomColors;
@@ -126,14 +145,14 @@ const TapListChild = () => {
       </UX.Box>
       <UX.Box
         layout="box_border"
-        style={{ cursor: 'pointer' }}
+        style={{cursor: 'pointer'}}
         onClick={() => {
           if (currentAuthority) {
-            navigate('/authority/authority-detail', {
+            navigate('/authority-detail', {
               state: {
                 inscriptionId: currentAuthority?.ins,
                 auth: currentAuthority?.auth,
-              }
+              },
             });
           } else {
             navigate('/handle-create-authority', {
@@ -145,9 +164,7 @@ const TapListChild = () => {
         }}>
         <UX.Text
           title={
-            !currentAuthority
-              ? 'Enable 1-TX Transfer'
-              : 'Manage Authority'
+            !currentAuthority ? 'Enable 1-TX Transfer' : 'Manage Authority'
           }
           styleType="body_16_bold"
         />
@@ -161,7 +178,7 @@ const TapListChild = () => {
         />
       )}
       <UX.Box layout="box">
-        <UX.Box layout="row_between" style={{ width: '100%' }}>
+        <UX.Box layout="row_between" style={{width: '100%'}}>
           <UX.Box
             layout="row"
             style={{
@@ -172,14 +189,14 @@ const TapListChild = () => {
             <UX.Text
               title={'BTC'}
               styleType="body_16_normal"
-              customStyles={{ color: 'white', marginLeft: '8px' }}
+              customStyles={{color: 'white', marginLeft: '8px'}}
             />
           </UX.Box>
 
           <UX.Text
             title={`${balanceValue}`}
             styleType="body_16_normal"
-            customStyles={{ color: 'white' }}
+            customStyles={{color: 'white'}}
           />
         </UX.Box>
       </UX.Box>

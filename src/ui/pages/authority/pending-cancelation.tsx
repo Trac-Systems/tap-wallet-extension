@@ -63,7 +63,7 @@ const PendingCancellation: React.FC<Props> = ({
           style={{cursor: 'pointer'}}
           onClick={() => {
             setOpenDrawerInscription(false);
-            navigate('/handle-cancel-authority', {
+            navigate('/cancel-authority-detail', {
               state: {
                 inscriptionId: item.inscriptionInfo.id,
                 order: item.order,

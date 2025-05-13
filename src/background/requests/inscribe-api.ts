@@ -84,8 +84,7 @@ export class InscribeApi {
     if (!res.data) {
       throw new Error('Get ready to tap order failed');
     }
-    console.log('res?.data?.data :>> ', res?.data?.data);
-    // cast type
+    // type cast
     return res?.data?.data as InscribeOrder[];
   }
 
@@ -103,10 +102,11 @@ export class InscribeApi {
   }
 
   // mark order as tapping
-  async tappingOrder(orderId: string) {
+  async tappingOrder(orderId: string, headers?: any) {
     const res = await this.api.post(
       `/v1/inscribe/order/tapping/${orderId}`,
       {},
+      headers,
     );
     if (!res.data) {
       throw new Error('Tapping order failed');

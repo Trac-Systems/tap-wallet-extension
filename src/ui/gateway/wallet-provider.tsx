@@ -112,7 +112,9 @@ export interface IWalletProvider {
     list: Inscription[];
   }>;
   getInscriptionInfo(inscriptionId: string): Promise<Inscription[]>;
-  getInscriptionInfoOrdClient(inscriptionId: string): Promise<InscriptionOrdClient>;
+  getInscriptionInfoOrdClient(
+    inscriptionId: string,
+  ): Promise<InscriptionOrdClient>;
   getInscriptionContent(inscriptionId: string): Promise<any>;
   getAllInscriptions(address: string): Promise<Inscription[]>;
   sendBTC({
@@ -184,7 +186,10 @@ export interface IWalletProvider {
   getAuthorityOrders(address: string): Promise<InscribeOrder[]>;
   paidOrder(orderId: string): Promise<void>;
   tappingOrder(orderId: string): Promise<void>;
-  getOrderReadyToTap(address: string, orderType: OrderType): Promise<InscribeOrder[]>;
+  getOrderReadyToTap(
+    address: string,
+    orderType: OrderType,
+  ): Promise<InscribeOrder[]>;
   getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer>;
   sendOrdinalsInscription(data: {
     to: string;
@@ -252,6 +257,7 @@ export interface IWalletProvider {
     max: number,
   ): Promise<{data: TokenAuthority[]; total: number}>;
   getCurrentAuthority(address: string): Promise<TokenAuthority>;
+  getAuthorityCanceled(ins: string): Promise<boolean>;
 }
 
 const WalletContext = createContext<{

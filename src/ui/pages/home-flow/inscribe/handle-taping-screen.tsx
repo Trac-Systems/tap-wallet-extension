@@ -11,7 +11,7 @@ export default function HandleTapingScreen() {
       params={{
         data: {
           psbtHex: rawTxInfo.psbtHex,
-          type: TxType.INSCRIBE_TAPPING,
+          type: TxType.TAPPING,
           rawTxInfo,
         },
       }}

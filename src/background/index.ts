@@ -14,7 +14,6 @@ import {loadApi} from './requests';
 import {createTabs} from './browser-api/browser';
 import browser from 'webextension-polyfill';
 
-
 // Set Buffer globally
 globalThis.Buffer = Buffer;
 
@@ -50,8 +49,10 @@ browser.runtime.onConnect.addListener(port => {
             break;
           case 'provider':
           default:
-            if (data.method) {
+            if (data.method && walletProvider[data.method]) {
               return walletProvider[data.method].apply(null, data.params);
+            } else {
+              throw new Error(`Method not found: ${data.method}`);
             }
         }
       }

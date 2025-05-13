@@ -112,7 +112,7 @@ const AuthorityDetail = () => {
   const handleOnClick = () => {
     if (inscriptionStatus === 'CONFIRMED') {
       //TODO: Handle taping
-      navigate('/handle-tapping/authority', {
+      navigate('/handle-tapping-authority', {
         state: {
           type: 'tapping',
           inscriptionId,
@@ -146,8 +146,6 @@ const AuthorityDetail = () => {
       return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
     }
   }, [auth, inscriptionInfo]);
-
-  console.log('loading :>> ', loading);
 
   if (loading) {
     return <UX.Loading />;
@@ -278,9 +276,9 @@ const AuthorityDetail = () => {
                 styleType="primary"
                 title="Create authority"
                 onClick={() => {
-                  navigate('/create-authority', {
+                  navigate('/handle-create-authority', {
                     state: {
-                      type: 'create',
+                      type: 'force_create',
                     },
                   });
                 }}

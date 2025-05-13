@@ -53,22 +53,29 @@ const TxSecurity = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    // unlock app
     try {
       await wallet.unlockApp(valueInput);
-      const handleResult = (success: boolean, data: any) => {
-        if (!success) {
-          navigate('/home/send-fail', {state: {error: data?.error}});
-        }
-        return success;
-      };
+    } catch (e: any) {
+      showToast({
+        title: e?.message || 'Wrong PIN',
+        type: 'error',
+      });
+      setLoading(false);
+      return;
+    }
+    // push tx
+    try {
       switch (type) {
         case TxType.SEND_ORDINALS_INSCRIPTION: {
           const {success, txid, error} = await pushOrdinalsTx(
             rawtx,
             spendUtxos,
           );
-          if (handleResult(success, {error})) {
+          if (success) {
             navigate('/home/send-success', {state: {txid}});
+          } else {
+            navigate('/home/send-fail', {state: {error}});
           }
           break;
         }
@@ -98,16 +105,16 @@ const TxSecurity = () => {
           break;
         }
 
-        case TxType.INSCRIBE_TAPPING: {
+        case TxType.TAPPING: {
           const {success, txid, error} = await pushOrdinalsTx(
             rawtx,
             spendUtxos,
           );
-          if (handleResult(success, {error})) {
-            if (order?.id) {
-              await wallet.tappingOrder(order.id);
-            }
+          if (success) {
+            await wallet.tappingOrder(order.id);
             navigate('/home/send-success', {state: {txid}});
+          } else {
+            navigate('/home/send-fail', {state: {error}});
           }
           break;
         }
@@ -122,13 +129,11 @@ const TxSecurity = () => {
           break;
         }
       }
-    } catch (e) {
+    } catch (error) {
       showToast({
-        title: 'Wrong PIN',
+        title: error?.message || 'Unknown error',
         type: 'error',
       });
-      setValueInput('');
-      pinInputRef.current?.clearPin();
     } finally {
       setLoading(false);
     }

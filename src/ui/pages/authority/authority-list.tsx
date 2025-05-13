@@ -54,7 +54,7 @@ const AuthorityList: React.FC<Props> = ({
           style={{ cursor: 'pointer' }}
           onClick={() => {
             setOpenDrawerInscription(false);
-            navigate('/authority/authority-detail', {
+            navigate('/authority-detail', {
               state: { inscriptionId: item.ins,
                 auth: item.auth,
                },

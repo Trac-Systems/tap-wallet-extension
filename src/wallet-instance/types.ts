@@ -32,7 +32,7 @@ export enum TxType {
   SEND_BITCOIN,
   SEND_ORDINALS_INSCRIPTION,
   INSCRIBE_TAP,
-  INSCRIBE_TAPPING
+  TAPPING
 }
 
 export interface TokenInfo {

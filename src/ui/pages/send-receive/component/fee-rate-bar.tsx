@@ -169,7 +169,7 @@ export function FeeRateBar({
               const cleanText = amount.replace(/[^0-9.]/g, '');
               adjustFeeRateInput(cleanText);
             }}
-            style={{fontSize: '14px', lineHeight: '22px'}}
+            style={{fontSize: '14px', lineHeight: '22px', backgroundColor: 'transparent'}}
             autoFocus={true}
           />
           {feeRateInputVal.length > 9 && (

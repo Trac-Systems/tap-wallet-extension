@@ -99,6 +99,8 @@ const RestoreWallet = () => {
             className="textareaWidth"
             onChange={e => handleOnChange(e.target.value)}
             placeholder={`Enter/paste ${placeholder} here `}
+            customStyles={{width: '100%'}}
+            style={{display: 'flex', width: '100%'}}
           />
         </UX.Box>
       }

@@ -1,23 +1,13 @@
 import {useLocation, useNavigate} from 'react-router-dom';
-import {useEffect, useMemo, useState} from 'react';
+import {useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {
   InscribeOrder,
-  TokenBalance,
-  RawTxInfo,
-  TokenInfo,
 } from '@/src/wallet-instance/types';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {useAppSelector} from '@/src/ui/utils';
-import {
-  usePrepareSendBTCCallback,
-  usePrepareSendOrdinalsInscriptionCallback,
-} from '@/src/ui/pages/send-receive/hook';
-import {useCustomToast} from '@/src/ui/component/toast-custom';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {UX} from '@/src/ui/component';
-import {colors} from '@/src/ui/themes/color';
-import {SVG} from '@/src/ui/svg';
 import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
 
 const HandleConfirmAuthority = () => {

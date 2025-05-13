@@ -394,7 +394,6 @@ export class TapApi {
     const data = [];
     for (const authority of authorityList) {
       const isCanceled = await this.getAuthorityCanceled(authority.ins);
-      console.log('🚀 ~ TapApi ~ isCanceled:', isCanceled);
       if (isCanceled) {
         continue;
       }

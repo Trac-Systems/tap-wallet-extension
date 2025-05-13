@@ -53,72 +53,85 @@ const TxSecurity = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    await wallet
-      .unlockApp(valueInput)
-      .then(() => {
-        switch (type) {
-          case TxType.SEND_ORDINALS_INSCRIPTION:
-            pushOrdinalsTx(rawtx, spendUtxos).then(({success, txid, error}) => {
-              if (success) {
-                navigate('/home/send-success', {state: {txid}});
-              } else {
-                navigate('/home/send-fail', {state: {error}});
-              }
-            });
-            break;
-          case TxType.INSCRIBE_TAP:
-            try {
-              pushBitcoinTx(rawtx, spendUtxos).then(({success, error}) => {
-                if (success) {
-                  // mark order as paid
-                  wallet.paidOrder(order.id);
-                  navigate('/home/inscribe-result', {
-                    state: {
-                      order,
-                      tokenBalance,
-                    },
-                  });
-                } else {
-                  navigate('/home/inscribe-result', {
-                    state: {
-                      error,
-                    },
-                  });
-                }
+    try {
+      await wallet.unlockApp(valueInput);
+      const handleResult = (success: boolean, data: any) => {
+        if (!success) {
+          navigate('/home/send-fail', {state: {error: data?.error}});
+        }
+        return success;
+      };
+      switch (type) {
+        case TxType.SEND_ORDINALS_INSCRIPTION: {
+          const {success, txid, error} = await pushOrdinalsTx(
+            rawtx,
+            spendUtxos,
+          );
+          if (handleResult(success, {error})) {
+            navigate('/home/send-success', {state: {txid}});
+          }
+          break;
+        }
+
+        case TxType.INSCRIBE_TAP: {
+          try {
+            const {success, error} = await pushBitcoinTx(rawtx, spendUtxos);
+            if (success) {
+              await wallet.paidOrder(order.id);
+              navigate('/home/inscribe-result', {
+                state: {
+                  order,
+                  tokenBalance,
+                },
               });
-            } catch (e: any) {
-              showToast({
-                title: (e as Error).message || '',
-                type: 'error',
+            } else {
+              navigate('/home/inscribe-result', {
+                state: {error},
               });
             }
-            break;
-          case TxType.INSCRIBE_TAPPING:
-            pushOrdinalsTx(rawtx, spendUtxos).then(({success, txid, error}) => {
-              if (success) {
-                // mark order as tapping
-                if (order?.id) {
-                  wallet.tappingOrder(order.id);
-                }
-                navigate('/home/send-success', {state: {txid}});
-              } else {
-                navigate('/home/send-fail', {state: {error}});
-              }
+          } catch (e: any) {
+            showToast({
+              title: e?.message || 'Unknown error',
+              type: 'error',
             });
-            break;
-          default:
-            break;
+          }
+          break;
         }
-      })
-      .catch(() => {
-        setLoading(false);
-        showToast({
-          title: 'Wrong PIN',
-          type: 'error',
-        });
-        setValueInput('');
-        pinInputRef.current?.clearPin();
+
+        case TxType.INSCRIBE_TAPPING: {
+          const {success, txid, error} = await pushOrdinalsTx(
+            rawtx,
+            spendUtxos,
+          );
+          if (handleResult(success, {error})) {
+            if (order?.id) {
+              await wallet.tappingOrder(order.id);
+            }
+            navigate('/home/send-success', {state: {txid}});
+          }
+          break;
+        }
+
+        default: {
+          const {success, txid, error} = await pushBitcoinTx(rawtx, spendUtxos);
+          if (success) {
+            navigate('/home/send-success', {state: {txid}});
+          } else {
+            navigate('/home/send-fail', {state: {error}});
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      showToast({
+        title: 'Wrong PIN',
+        type: 'error',
       });
+      setValueInput('');
+      pinInputRef.current?.clearPin();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {

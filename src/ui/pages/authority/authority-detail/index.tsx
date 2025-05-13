@@ -49,6 +49,7 @@ const AuthorityDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {state} = location;
+  const [loading, setLoading] = useState(false);
 
   const network = useAppSelector(GlobalSelector.networkType);
   const inscriptionId = state?.inscriptionId;
@@ -96,7 +97,16 @@ const AuthorityDetail = () => {
       const ins = await wallet.getInscriptionInfoOrdClient(inscriptionId);
       setInscriptionInfo(ins);
     };
-    getTokenInfo();
+    if(inscriptionId) {
+      try {
+        setLoading(true)
+        getTokenInfo();
+      } catch (error) {
+        console.log('error :>> ', error);
+      } finally {
+        setLoading(false)
+      }
+    }
   }, [inscriptionId]);
 
   const handleOnClick = () => {
@@ -136,6 +146,12 @@ const AuthorityDetail = () => {
       return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
     }
   }, [auth, inscriptionInfo]);
+
+  console.log('loading :>> ', loading);
+
+  if (loading) {
+    return <UX.Loading />;
+  }
 
   return (
     <UX.Box className="inscription-detail">

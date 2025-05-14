@@ -636,7 +636,7 @@ export const Step4 = ({
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
   const pushBitcoinTx = usePushBitcoinTxCallback();
-  const [, rejectApproval, resolveApproval] = useApproval();
+  const [, resolveApproval, rejectApproval] = useApproval();
   const [valueInput, setValueInput] = useState('');
   const checkValue = valueInput.length !== 4;
   const wallet = useWalletProvider();

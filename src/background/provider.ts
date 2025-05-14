@@ -1090,6 +1090,7 @@ export class Provider {
     content: string,
     feeRate: number,
     outputValue: number,
+    inscriptionAuthority?: string,
   ) => {
     return this.inscribeApi.createOrderText(
       content,
@@ -1097,6 +1098,7 @@ export class Provider {
       address,
       feeRate,
       outputValue,
+      inscriptionAuthority,
     );
   };
 
@@ -1131,6 +1133,10 @@ export class Provider {
   tappingOrder = async (orderId: string) => {
     const headers = await this._generateHeaders();
     await this.inscribeApi.tappingOrder(orderId, headers);
+  };
+
+  getCancelAuthority = async (authorityInscriptionId: string) => {
+    return await this.inscribeApi.getCancelAuthority(authorityInscriptionId);
   };
 
   getInscribeTapResult = (orderId: string) => {

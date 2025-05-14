@@ -50,6 +50,7 @@ const HandleCancelAuthority = () => {
         orderPreview,
         feeRate,
         546,
+        inscriptionId,
       );
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order?.payAddress, domain: ''},

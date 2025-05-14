@@ -176,6 +176,7 @@ export interface IWalletProvider {
     content: string,
     feeRate: number,
     outputValue: number,
+    inscriptionAuthority?: string,
   ): Promise<InscribeOrder>;
   createOrderRedeem(
     address: string,
@@ -190,6 +191,7 @@ export interface IWalletProvider {
     address: string,
     orderType: OrderType,
   ): Promise<InscribeOrder[]>;
+  getCancelAuthority(authorityInscriptionId: string): Promise<InscribeOrder>;
   getInscribeTapResult(orderId: string): Promise<InscribeOrderTransfer>;
   sendOrdinalsInscription(data: {
     to: string;

@@ -8,7 +8,12 @@ import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {useAppSelector} from '@/src/ui/utils';
-import {InscriptionOrdClient, Network} from '@/src/wallet-instance';
+import {
+  InscribeOrder,
+  InscriptionOrdClient,
+  Network,
+  TappingStatus,
+} from '@/src/wallet-instance';
 import {useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 
@@ -54,7 +59,7 @@ const AuthorityDetail = () => {
   const network = useAppSelector(GlobalSelector.networkType);
   const inscriptionId = state?.inscriptionId;
   const auth = state?.auth;
-  const order = state?.order;
+  const order = state?.order as InscribeOrder;
 
   const isAuthorityToken = useMemo(() => {
     return Array.isArray(auth);
@@ -69,6 +74,25 @@ const AuthorityDetail = () => {
   const [inscriptionInfo, setInscriptionInfo] =
     useState<InscriptionOrdClient | null>(null);
   const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
+  const [isWaitingCancel, setIsWaitingCancel] = useState(false);
+
+  const inscriptionStatus = useMemo(() => {
+    if (Array.isArray(auth)) {
+      return 'TAPPED';
+    }
+
+    if (order?.tappingStatus === TappingStatus.TAPPING) {
+      return 'TAPPING';
+    }
+    const satpointTxid = inscriptionInfo?.satpoint?.split(':')[0];
+    const inscriptionTxid = inscriptionId?.split('i')[0];
+
+    if (inscriptionInfo?.height === 0) {
+      return satpointTxid === inscriptionTxid ? 'UNCONFIRMED' : 'TAPPING';
+    } else {
+      return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
+    }
+  }, [auth, inscriptionInfo]);
 
   const tabItems = [
     {
@@ -90,6 +114,18 @@ const AuthorityDetail = () => {
       ),
     },
   ];
+  // get cancel authority order
+  useEffect(() => {
+    if (inscriptionStatus === 'TAPPED') {
+      const getCancelAuthority = async () => {
+        const order = await wallet.getCancelAuthority(inscriptionId);
+        if (order) {
+          setIsWaitingCancel(true);
+        }
+      };
+      getCancelAuthority();
+    }
+  }, [inscriptionId, inscriptionStatus]);
 
   // get token info
   useEffect(() => {
@@ -97,14 +133,14 @@ const AuthorityDetail = () => {
       const ins = await wallet.getInscriptionInfoOrdClient(inscriptionId);
       setInscriptionInfo(ins);
     };
-    if(inscriptionId) {
+    if (inscriptionId) {
       try {
-        setLoading(true)
+        setLoading(true);
         getTokenInfo();
       } catch (error) {
         console.log('error :>> ', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
   }, [inscriptionId]);
@@ -133,20 +169,6 @@ const AuthorityDetail = () => {
     }
   };
 
-  const inscriptionStatus = useMemo(() => {
-    if (Array.isArray(auth)) {
-      return 'TAPPED';
-    }
-    const satpointTxid = inscriptionInfo?.satpoint?.split(':')[0];
-    const inscriptionTxid = inscriptionId?.split('i')[0];
-
-    if (inscriptionInfo?.height === 0) {
-      return satpointTxid === inscriptionTxid ? 'UNCONFIRMED' : 'TAPPING';
-    } else {
-      return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
-    }
-  }, [auth, inscriptionInfo]);
-
   if (loading) {
     return <UX.Loading />;
   }
@@ -156,6 +178,23 @@ const AuthorityDetail = () => {
       <UX.Box className="image-box">
         <UX.Box onClick={() => navigate('/home')} className="circle">
           <SVG.ArrowBackIcon width={24} height={24} />
+          {isWaitingCancel && (
+            <UX.Box spacing="xs">
+              <UX.Box
+                layout="box_border"
+                spacing="sm"
+                style={{background: colors.red_700}}>
+                <SVG.WaringIcon />
+                <UX.Text
+                  styleType="body_14_bold"
+                  customStyles={{color: colors.white, maxWidth: '90%'}}
+                  title={
+                    'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
+                  }
+                />
+              </UX.Box>
+            </UX.Box>
+          )}
         </UX.Box>
         <InscriptionPreview
           data={{
@@ -266,7 +305,7 @@ const AuthorityDetail = () => {
               }}>
               <UX.Tabs tabs={tabItems} isChildren parentIndex={1} />
             </UX.Box>
-            <UX.Box
+            {/* <UX.Box
               layout="column"
               spacing="xl"
               style={{
@@ -283,7 +322,7 @@ const AuthorityDetail = () => {
                   });
                 }}
               />
-            </UX.Box>
+            </UX.Box> */}
           </UX.Box>
         </UX.DrawerCustom>
       </UX.Box>
@@ -296,15 +335,34 @@ const AuthorityDetail = () => {
           style={{
             padding: '10px 0',
           }}>
-          <UX.Button
-            styleType="primary"
-            customStyles={{
-              margin: '0 24px',
-            }}
-            title={AuthorityStatus[inscriptionStatus].btnTitle}
-            isDisable={AuthorityStatus[inscriptionStatus].btnDisable}
-            onClick={handleOnClick}
-          />
+          {isWaitingCancel ? (
+            // <UX.Box spacing="xs">
+            //   <UX.Box
+            //     layout="box_border"
+            //     spacing="sm"
+            //     style={{background: colors.red_700}}>
+            //     <SVG.WaringIcon />
+            //     <UX.Text
+            //       styleType="body_14_bold"
+            //       customStyles={{color: colors.white, maxWidth: '90%'}}
+            //       title={
+            //         'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
+            //       }
+            //     />
+            //   </UX.Box>
+            // </UX.Box>
+            <></>
+          ) : (
+            <UX.Button
+              styleType="primary"
+              customStyles={{
+                margin: '0 24px',
+              }}
+              title={AuthorityStatus[inscriptionStatus].btnTitle}
+              isDisable={AuthorityStatus[inscriptionStatus].btnDisable}
+              onClick={handleOnClick}
+            />
+          )}
         </UX.Box>
       </footer>
     </UX.Box>

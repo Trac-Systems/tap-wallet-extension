@@ -201,12 +201,14 @@ const HandleCreateAuthority = () => {
           style={{
             padding: '10px 0',
           }}>
-          <UX.Button
-            styleType="primary"
-            title={'Next'}
-            onClick={handleNavigate}
-            isDisable={loading}
-          />
+          {!isWarning && (
+            <UX.Button
+              styleType="primary"
+              title={'Next'}
+              onClick={handleNavigate}
+              isDisable={loading}
+            />
+          )}
         </UX.Box>
       }
     />

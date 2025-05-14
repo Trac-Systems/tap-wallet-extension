@@ -35,6 +35,7 @@ export class InscribeApi {
     receiveAddress: string,
     feeRate: number,
     outputValue: number,
+    inscriptionAuthority?: string,
   ) {
     const res = await this.api.post('/v1/inscribe/order/texts', {
       feeRate,
@@ -43,6 +44,7 @@ export class InscribeApi {
       rebar: false,
       data: [{text, receiver: receiveAddress}],
       orderType: type,
+      inscriptionAuthority,
     });
     if (!res?.data) {
       throw new Error('Inscribe text order failed');
@@ -124,5 +126,17 @@ export class InscribeApi {
     if (!res.data) {
       throw new Error('Paid order failed');
     }
+  }
+
+  // get cancel authority by authority inscription id
+  async getCancelAuthority(authorityInscriptionId: string) {
+    const res = await this.api.get(
+      `/v1/inscribe/order/cancelAuthority/${authorityInscriptionId}`,
+      {},
+    );
+    if (!res.data) {
+      throw new Error('Get cancel authority failed');
+    }
+    return res?.data?.data as InscribeOrder;
   }
 }

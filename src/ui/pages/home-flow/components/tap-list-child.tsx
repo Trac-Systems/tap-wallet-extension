@@ -10,7 +10,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@/src/ui/utils';
-import {TokenAuthority, TokenBalance} from '@/src/wallet-instance';
+import {OrderType, TokenAuthority, TokenBalance} from '@/src/wallet-instance';
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -39,6 +39,15 @@ const TapListChild = () => {
     pageSize: TOKEN_PAGE_SIZE,
   });
   const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
+  const [haveAuthorityNeedTap, setHaveAuthorityNeedTap] = useState(false);
+
+  const fetchHaveAuthorityNeedTap = async () => {
+    const orders = await walletProvider.getOrderReadyToTap(
+      activeAccount.address,
+      OrderType.AUTHORITY,
+    );
+    setHaveAuthorityNeedTap(orders?.length > 0);
+  };
 
   // fetch current authority
   useEffect(() => {
@@ -49,6 +58,11 @@ const TapListChild = () => {
       setCurrentAuthority(authority);
       // update current authority
       dispatch(AccountActions.setCurrentAuthority(authority));
+
+      // trigger fetch have authority need tap
+      if (!authority) {
+        fetchHaveAuthorityNeedTap();
+      }
     };
     fetchCurrentAuthority();
   }, [activeAccount.address]);
@@ -164,7 +178,11 @@ const TapListChild = () => {
         }}>
         <UX.Text
           title={
-            !currentAuthority ? 'Enable 1-TX Transfer' : 'Manage Authority'
+            currentAuthority
+              ? 'Manage Authority'
+              : haveAuthorityNeedTap
+                ? 'Confirm your 1-TX Transfer NOW'
+                : 'Enable 1-TX Transfer'
           }
           styleType="body_16_bold"
         />

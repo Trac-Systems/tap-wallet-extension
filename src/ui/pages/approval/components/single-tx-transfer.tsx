@@ -40,7 +40,7 @@ import {
   usePushBitcoinTxCallback,
 } from '../../send-receive/hook';
 import {useApproval} from '../hook';
-import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 
 enum TabKey {
   STEP1,
@@ -294,10 +294,7 @@ export const Step2 = ({
   const {order, transferAmount, rawTxInfo} = contextData;
   const fee = rawTxInfo?.fee || 0;
 
-  const networkFee = useMemo(
-    () => satoshisToAmount(fee),
-    [fee],
-  );
+  const networkFee = useMemo(() => satoshisToAmount(fee), [fee]);
   const outputValue = useMemo(
     () => satoshisToAmount(order.postage),
     [order.postage],
@@ -639,7 +636,7 @@ export const Step4 = ({
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
   const pushBitcoinTx = usePushBitcoinTxCallback();
-  const [, , rejectApproval] = useApproval();
+  const [, rejectApproval, resolveApproval] = useApproval();
   const [valueInput, setValueInput] = useState('');
   const checkValue = valueInput.length !== 4;
   const wallet = useWalletProvider();
@@ -655,11 +652,9 @@ export const Step4 = ({
       .unlockApp(valueInput)
       .then(() => {
         pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos).then(
-          ({success, error}) => {
+          ({success, error, txid}) => {
             if (success) {
-              updateContextData({
-                tabKey: TabKey.STEP5,
-              });
+              resolveApproval({txid});
             } else {
               rejectApproval(error);
             }
@@ -709,104 +704,104 @@ export const Step4 = ({
   );
 };
 
-export const Step5 = ({
-  contextData,
-  updateContextData,
-}: {
-  contextData: ContextData;
-  updateContextData: (params: UpdateContextDataParams) => void;
-}) => {
-  const {tokenBalance, order} = contextData;
-  const wallet = useWalletProvider();
-  const {showToast} = useCustomToast();
+// export const Step5 = ({
+//   contextData,
+//   updateContextData,
+// }: {
+//   contextData: ContextData;
+//   updateContextData: (params: UpdateContextDataParams) => void;
+// }) => {
+//   const {tokenBalance, order} = contextData;
+//   const wallet = useWalletProvider();
+//   const {showToast} = useCustomToast();
 
-  const account = useAppSelector(AccountSelector.activeAccount);
-  const [, resolveApproval] = useApproval();
-  const [result, setResult] = useState<any>();
-  const timeCount = useRef(0);
+//   const account = useAppSelector(AccountSelector.activeAccount);
+//   const [, resolveApproval] = useApproval();
+//   const [result, setResult] = useState<any>();
+//   const timeCount = useRef(0);
 
-  const checkResult = async () => {
-    let _result: any = null;
-    try {
-      _result = await wallet.getTapSummary(account.address, contextData.ticker);
-    } catch (e) {
-      const txError = (e as any).message || '';
-      if (timeCount.current >= 3) {
-        showToast({
-          title: txError,
-          type: 'error',
-        });
-      }
-    }
+//   const checkResult = async () => {
+//     let _result: any = null;
+//     try {
+//       _result = await wallet.getTapSummary(account.address, contextData.ticker);
+//     } catch (e) {
+//       const txError = (e as any).message || '';
+//       if (timeCount.current >= 3) {
+//         showToast({
+//           title: txError,
+//           type: 'error',
+//         });
+//       }
+//     }
 
-    if (!_result && timeCount.current < 3) {
-      timeCount.current++;
-      setTimeout(checkResult, 2000);
-      return;
-    }
+//     if (!_result && timeCount.current < 3) {
+//       timeCount.current++;
+//       setTimeout(checkResult, 2000);
+//       return;
+//     }
 
-    setResult(_result);
-  };
+//     setResult(_result);
+//   };
 
-  useEffect(() => {
-    checkResult();
-  }, []);
+//   useEffect(() => {
+//     checkResult();
+//   }, []);
 
-  const onClickConfirm = useCallback(async () => {
-    // tools.showLoading(true);
-    wallet
-      .getTapSummary(account.address, tokenBalance.ticker)
-      .then(() => {
-        resolveApproval({
-          inscriptionId: result?.inscriptionId,
-          inscriptionNumber: result?.inscriptionNumber,
-          ticker: tokenBalance.ticker,
-          amount: result?.amount,
-        });
-      })
-      .finally(() => {
-        // tools.showLoading(false);
-      });
-  }, [result, account, tokenBalance]);
+//   const onClickConfirm = useCallback(async () => {
+//     // tools.showLoading(true);
+//     wallet
+//       .getTapSummary(account.address, tokenBalance.ticker)
+//       .then(() => {
+//         resolveApproval({
+//           inscriptionId: result?.inscriptionId,
+//           inscriptionNumber: result?.inscriptionNumber,
+//           ticker: tokenBalance.ticker,
+//           amount: result?.amount,
+//         });
+//       })
+//       .finally(() => {
+//         // tools.showLoading(false);
+//       });
+//   }, [result, account, tokenBalance]);
 
-  useEffect(() => {
-    updateContextData({handleConfirmDone: onClickConfirm});
-  }, [result, account, tokenBalance]);
+//   useEffect(() => {
+//     updateContextData({handleConfirmDone: onClickConfirm});
+//   }, [result, account, tokenBalance]);
 
-  if (!result) {
-    return (
-      <UX.Box layout="column" style={{marginTop: '7rem'}} spacing="xl">
-        <UX.Box layout="column_center" spacing="xl">
-          <SVG.SendSuccessIcon />
-          <UX.Text
-            title="Payment Sent"
-            styleType="heading_24"
-            customStyles={{
-              marginTop: '16px',
-            }}
-          />
-          <UX.Text
-            title={'Your transaction has been successfully sent'}
-            styleType="body_16_normal"
-            customStyles={{textAlign: 'center'}}
-          />
-        </UX.Box>
-      </UX.Box>
-    );
-  }
-  return (
-    <UX.Box spacing="xxl">
-      <UX.Box>
-        <InscriptionPreview data={result?.inscription} preset="medium" />
-      </UX.Box>
-      <UX.Text
-        title="The transferable and available balance of Tap will be refresh in a few minutes"
-        styleType="body_14_normal"
-        customStyles={{color: colors.white, textAlign: 'center'}}
-      />
-    </UX.Box>
-  );
-};
+//   if (!result) {
+//     return (
+//       <UX.Box layout="column" style={{marginTop: '7rem'}} spacing="xl">
+//         <UX.Box layout="column_center" spacing="xl">
+//           <SVG.SendSuccessIcon />
+//           <UX.Text
+//             title="Payment Sent"
+//             styleType="heading_24"
+//             customStyles={{
+//               marginTop: '16px',
+//             }}
+//           />
+//           <UX.Text
+//             title={'Your transaction has been successfully sent'}
+//             styleType="body_16_normal"
+//             customStyles={{textAlign: 'center'}}
+//           />
+//         </UX.Box>
+//       </UX.Box>
+//     );
+//   }
+//   return (
+//     <UX.Box spacing="xxl">
+//       <UX.Box>
+//         <InscriptionPreview data={result?.inscription} preset="medium" />
+//       </UX.Box>
+//       <UX.Text
+//         title="The transferable and available balance of Tap will be refresh in a few minutes"
+//         styleType="body_14_normal"
+//         customStyles={{color: colors.white, textAlign: 'center'}}
+//       />
+//     </UX.Box>
+//   );
+// };
 
 export default function SingleTxTransfer({params: {data, session}}: Props) {
   const prepareSendBTC = usePrepareSendBTCCallback();
@@ -907,15 +902,6 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
           updateContextData={updateContextData}
         />
       );
-    } else {
-      {
-        return (
-          <Step5
-            contextData={contextData}
-            updateContextData={updateContextData}
-          />
-        );
-      }
     }
   }, [contextData]);
 
@@ -939,16 +925,27 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
   const {showToast} = useCustomToast();
   const onClickInscribe = useCallback(async () => {
     try {
+      const item: any = {
+        tick: contextData.ticker,
+        amt: contextData.transferAmount?.toString(),
+        address: contextData.addr,
+      };
+      if (contextData.dta) {
+        item.dta = contextData.dta;
+      }
+
+      let auth = currentAuthority?.ins;
+      if (!auth) {
+        const _currentAuthority = await walletProvider.getCurrentAuthority(
+          account.address,
+        );
+        auth = _currentAuthority?.ins;
+      }
+
       const message = {
-        items: [
-          {
-            tick: contextData.ticker,
-            amt: contextData.transferAmount?.toString(),
-            address: contextData.addr,
-            dta: contextData.dta || null,
-          },
-        ],
-        auth: currentAuthority?.ins,
+        items: [item],
+        auth,
+        data: '',
       };
       // tools.showLoading(true)
       updateContextData({isLoading: true});
@@ -1000,7 +997,11 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
             <UX.Button
               title="Next"
               styleType="primary"
-              isDisable={contextData.disableBtn}
+              isDisable={
+                contextData.disableBtn ||
+                !currentAuthority?.ins ||
+                contextData.isLoading
+              }
               onClick={onClickInscribe}
               customStyles={{flex: 1}}
             />

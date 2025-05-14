@@ -12,6 +12,15 @@ export enum OrderType {
   REDEEM = 'REDEEM',
 }
 
+export enum TappingStatus {
+  NOT_ELIGIBLE = -1, // Order should not be tapped
+  INSCRIPTION_MISSING = 0, // Inscription does not appear
+  UNCONFIRMED = 1, // Inscription is pending confirmation
+  READY_TO_TAP = 2, // Confirmed and needs tapping
+  TAPPING = 3, // Tapping in progress
+  TAPPED = 4, // Tapping completed
+}
+
 export enum AddressType {
   P2PKH = 'P2PKH',
   P2WPKH = 'P2WPKH',
@@ -32,7 +41,7 @@ export enum TxType {
   SEND_BITCOIN,
   SEND_ORDINALS_INSCRIPTION,
   INSCRIBE_TAP,
-  TAPPING
+  TAPPING,
 }
 
 export interface TokenInfo {
@@ -313,7 +322,7 @@ export interface InscribeOrder {
   rebar: boolean;
   firstRevealTxSize: number;
   remainingRevealTxsSize: number;
-  tappingStatus: number;
+  tappingStatus: TappingStatus;
   paidAmount: number;
   requestFrom: string;
   repeat: string;
@@ -321,6 +330,7 @@ export interface InscribeOrder {
   createdAt: string;
   id: string;
   status: number;
+  tapStatus: TappingStatus;
 }
 
 export interface InscribeTransferFile {

@@ -6,3 +6,4 @@ export {default as SwitchNetwork} from './switch-network';
 export {default as InscribeTransfer} from './inscribe-transfer';
 export {default as SendTapTransfer} from './send-tap-transfer';
 export {default as MultiSignPsbt} from './multi-sign-psbt'
+export {default as SingleTxTransfer} from './single-tx-transfer';

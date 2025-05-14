@@ -336,6 +336,29 @@ export class TapProvider extends EventEmitter {
     });
   };
 
+  singleTxTransfer = async (
+    ticker: string,
+    amount: string,
+    addr: string,
+    dta?: string,
+  ) => {
+    return this._request({
+      method: 'singleTxTransfer',
+      params: {
+        ticker,
+        amount,
+        addr,
+        dta,
+      },
+    });
+  };
+
+  hasActiveAuthority = async () => {
+    return this._request({
+      method: 'hasActiveAuthority',
+    });
+  };
+
   getBitcoinUtxos = async (cursor = 0, size = 20) => {
     return this._request({
       method: 'getBitcoinUtxos',

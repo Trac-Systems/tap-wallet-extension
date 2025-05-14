@@ -67,8 +67,6 @@ const TransferAuthority = () => {
     if (!isValid) {
       return;
     }
-    console.log('feeRate :>> ', feeRate);
-    console.log('tokenSections :>> ', tokenSections);
     setLoading(true);
     const message = {
       items: tokenSections.map(item => ({

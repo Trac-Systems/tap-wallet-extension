@@ -302,13 +302,32 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {ticker},
+          params: {ticker, addr, dta},
         },
       } = req;
       // todo
     },
   ])
   inscribeTransfer = async ({approvalRes}) => {
+    console.log('inscribeTransfer', approvalRes);
+    const account = await walletProvider.getActiveAccount();
+    if (!account) return [];
+    return approvalRes;
+  };
+
+  @Reflect.metadata('SAFE', true)
+  hasActiveAuthority = async () => {
+    const account = await walletProvider.getActiveAccount();
+    if (!account) return false;
+    const currentAuthority = await walletProvider.getCurrentAuthority(
+      account?.address,
+    );
+    if (!currentAuthority) return false;
+    return true;
+  };
+
+  @Reflect.metadata('APPROVAL', ['SingleTxTransfer'])
+  singleTxTransfer = async ({approvalRes}) => {
     return approvalRes;
   };
 

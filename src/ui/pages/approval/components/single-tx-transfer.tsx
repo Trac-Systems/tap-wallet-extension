@@ -149,11 +149,13 @@ export const Step1 = ({
     }
 
     if (amount.lte(0)) {
+      rejectApproval('Amount must be greater than 0');
       return;
     }
 
     if (amount.gt(contextData.tokenBalance?.availableBalance)) {
-      setInputError('Insufficient Balance');
+      rejectApproval('Insufficient Balance');
+      // setInputError('Insufficient Balance');
       return;
     }
 
@@ -233,6 +235,7 @@ export const Step1 = ({
             />
           </UX.Box>
         </UX.Box>
+        {/* disable edit amount */}
         <UX.AmountInput
           defaultValue={contextData.transferAmount}
           style={{
@@ -240,6 +243,7 @@ export const Step1 = ({
             lineHeight: '32px',
             backgroundColor: 'transparent',
           }}
+          disabled={true}
           value={contextData.transferAmount}
           onAmountInputChange={amount => {
             updateContextData({transferAmount: amount});

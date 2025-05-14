@@ -1263,6 +1263,15 @@ export class Provider {
     // convert content to hex
     return createHash('sha256').update(content).digest();
   };
+  // generate salt
+  private _generateSalt = () => {
+    const array = new Uint32Array(4);
+    crypto.getRandomValues(array);
+    return Array.from(array)
+      .map(n => n.toString().padStart(10, '0')) // Each 32-bit number gives up to 10 digits
+      .join('')
+      .slice(0, 32); // Trim to exact length
+  };
 
   generateTokenAuth = async (message: any, authType: 'redeem' | 'auth') => {
     const account = this.getActiveAccount();
@@ -1274,7 +1283,7 @@ export class Provider {
     if (!wallet) {
       return null;
     }
-    const salt = Math.random();
+    const salt = this._generateSalt();
     const privateKey = await wallet.exportPrivateKey(pubKey);
     const privKeyBuffer = Buffer.from(privateKey, 'hex');
     const privKeyUint8Array = new Uint8Array(privKeyBuffer);
@@ -1285,7 +1294,7 @@ export class Provider {
       op: 'token-auth',
       sig: null,
       hash: null,
-      salt: '' + salt,
+      salt: salt,
     };
 
     const msgHash = this._sha256(JSON.stringify(message) + proto.salt);

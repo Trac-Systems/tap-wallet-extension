@@ -15,6 +15,7 @@ import {
   formatAddressLongText,
   shortAddress,
   useAppSelector,
+  validateBtcAddress,
 } from '@/src/ui/utils';
 import {
   InscribeOrder,
@@ -39,6 +40,7 @@ import {
   usePushBitcoinTxCallback,
 } from '../../send-receive/hook';
 import {useApproval} from '../hook';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 
 enum TabKey {
   STEP1,
@@ -290,10 +292,11 @@ export const Step2 = ({
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
   const {order, transferAmount, rawTxInfo} = contextData;
+  const fee = rawTxInfo?.fee || 0;
 
   const networkFee = useMemo(
-    () => satoshisToAmount(rawTxInfo.fee),
-    [rawTxInfo.fee],
+    () => satoshisToAmount(fee),
+    [fee],
   );
   const outputValue = useMemo(
     () => satoshisToAmount(order.postage),
@@ -308,7 +311,7 @@ export const Step2 = ({
     [order.serviceFee],
   );
   const totalFee = useMemo(
-    () => satoshisToAmount(order.totalFee + rawTxInfo.fee),
+    () => satoshisToAmount(order.totalFee + fee),
     [order.totalFee],
   );
   return (
@@ -426,9 +429,9 @@ export const Step3 = ({
 
   const account = useAppSelector(AccountSelector.activeAccount);
   const activeAccountAddress = account.address;
-  const minerFee = useMemo(
-    () => satoshisToAmount(order.networkFee + order.sizeToFee),
-    [order.networkFee, order.sizeToFee],
+  const networkFee = useMemo(
+    () => satoshisToAmount(rawTxInfo.fee),
+    [rawTxInfo.fee],
   );
   // const serviceFee = useMemo(
   //   () => satoshisToAmount(order.serviceFee),
@@ -521,7 +524,7 @@ export const Step3 = ({
         <UX.Box layout="row_between">
           <UX.Text title="Network fee" styleType="body_14_normal" />
           <UX.Text
-            title={`${minerFee} BTC`}
+            title={`${networkFee} BTC`}
             styleType="body_14_normal"
             customStyles={{color: 'white'}}
           />
@@ -809,16 +812,28 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
   const prepareSendBTC = usePrepareSendBTCCallback();
   const walletProvider = useWalletProvider();
   const [, , rejectApproval] = useApproval();
-  const account = useAppSelector(AccountSelector.activeAccount);
   const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
+  const networkType = useAppSelector(GlobalSelector.networkType);
+  const account = useAppSelector(AccountSelector.activeAccount);
 
   if (!data.addr) {
     rejectApproval('Missing receiver address');
     return;
+  } else {
+    const isValid = validateBtcAddress(data.addr, networkType);
+    if (!isValid) {
+      rejectApproval('Invalid receiver address');
+      return;
+    }
   }
 
   if (!data.ticker) {
     rejectApproval('Missing ticker');
+    return;
+  }
+
+  if (!Number(data.amount)) {
+    rejectApproval('Invalid amount');
     return;
   }
 

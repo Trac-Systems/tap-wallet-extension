@@ -658,6 +658,9 @@ export const Step4 = ({
         pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos).then(
           ({success, error, txid}) => {
             if (success) {
+              // mark order as paid
+              wallet.paidOrder(contextData.order?.id);
+
               resolveApproval({txid});
             } else {
               rejectApproval(error);

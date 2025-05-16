@@ -27,6 +27,7 @@ const TapListChild = () => {
   const walletProvider = useWalletProvider();
   const dispatch = useAppDispatch();
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
+  const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,8 @@ const TapListChild = () => {
   });
   const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
   const [haveAuthorityNeedTap, setHaveAuthorityNeedTap] = useState(false);
+
+  const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
 
   const fetchHaveAuthorityNeedTap = async () => {
     const orders = await walletProvider.getOrderReadyToTap(
@@ -97,12 +100,13 @@ const TapListChild = () => {
 
   const debouncedFetch = useCallback(
     debounce((value: string) => {
-      const filteredData = tapList?.filter(data =>
+      const tokenList = allTapToken.length > 0 ? allTapToken : tapList;
+      const filteredData = tokenList?.filter(data =>
         data.ticker.toLowerCase().includes(value.toLowerCase()),
       );
       setTapItem(filteredData);
     }, 400),
-    [tapList],
+    [tapList, allTapToken],
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,6 +140,24 @@ const TapListChild = () => {
   useEffect(() => {
     setTapItem(tapList);
   }, [tapList.length]);
+
+  // fetch all tap token
+  useEffect(() => {
+    setLoading(true);
+    walletProvider
+      .getAllTapToken(activeAccount.address)
+      .then(res => {
+        setAllTapToken(res);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [activeAccount.address]);
+
+  const hidePagination = useMemo(() => {
+    return tokenValue.length > 0 || !tapList?.length;
+  }, [tokenValue, tapList]);
 
   //! Render
   if (loading) {
@@ -230,17 +252,18 @@ const TapListChild = () => {
           />
         );
       })}
-      {tapItem.length > 0 ? (
+
+      {!hidePagination && (
         <UX.Box layout="row_center">
           <UX.Pagination
             pagination={pagination}
-            total={tapItem.length}
+            total={totalTapToken || tapItem.length}
             onChange={pagination => {
               setPagination(pagination);
             }}
           />
         </UX.Box>
-      ) : null}
+      )}
     </UX.Box>
   );
 };

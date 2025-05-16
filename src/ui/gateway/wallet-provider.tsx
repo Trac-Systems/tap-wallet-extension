@@ -145,6 +145,7 @@ export interface IWalletProvider {
     total: number;
     list: any[];
   }>;
+  getAllTapToken(address: string): Promise<TokenBalance[]>;
   getTapSummary(address: string, ticker: string): Promise<AddressTokenSummary>;
   getTapTransferAbleList(
     address: string,

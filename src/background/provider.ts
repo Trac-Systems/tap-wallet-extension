@@ -976,6 +976,10 @@ export class Provider {
     };
   };
 
+  getAllTapToken = async (address: string) => {
+    return await this.tapApi.getAllAddressTapTokens(address);
+  };
+
   getTapSummary = async (address: string, ticker: string) => {
     const tokenSummary = await this.tapApi.getTapTokenSummary(address, ticker);
 

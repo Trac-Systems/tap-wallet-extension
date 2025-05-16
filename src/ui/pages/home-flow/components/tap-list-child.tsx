@@ -40,8 +40,18 @@ const TapListChild = () => {
   });
   const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
   const [haveAuthorityNeedTap, setHaveAuthorityNeedTap] = useState(false);
+  const [isGettingAuthorityStatus, setIsGettingAuthorityStatus] =
+    useState(false);
 
   const fetchHaveAuthorityNeedTap = async () => {
+    const orders = await walletProvider.getOrderReadyToTap(
+      activeAccount.address,
+      OrderType.AUTHORITY,
+    );
+    setHaveAuthorityNeedTap(orders?.length > 0);
+  };
+
+  const fetchAuthorityTapping = async () => {
     const orders = await walletProvider.getOrderReadyToTap(
       activeAccount.address,
       OrderType.AUTHORITY,
@@ -52,16 +62,23 @@ const TapListChild = () => {
   // fetch current authority
   useEffect(() => {
     const fetchCurrentAuthority = async () => {
-      const authority = await walletProvider.getCurrentAuthority(
-        activeAccount.address,
-      );
-      setCurrentAuthority(authority);
-      // update current authority
-      dispatch(AccountActions.setCurrentAuthority(authority));
+      try {
+        setIsGettingAuthorityStatus(true);
+        const authority = await walletProvider.getCurrentAuthority(
+          activeAccount.address,
+        );
+        setCurrentAuthority(authority);
+        // update current authority
+        dispatch(AccountActions.setCurrentAuthority(authority));
 
       // trigger fetch have authority need tap
       if (!authority) {
-        fetchHaveAuthorityNeedTap();
+          fetchHaveAuthorityNeedTap();
+        }
+      } catch (error) {
+        console.log('error', error);
+      } finally {
+        setIsGettingAuthorityStatus(false);
       }
     };
     fetchCurrentAuthority();
@@ -137,8 +154,21 @@ const TapListChild = () => {
     setTapItem(tapList);
   }, [tapList.length]);
 
-  //! Render
-  if (loading) {
+
+  const mangeAuthorityTitle = useMemo(() => {
+    if (isGettingAuthorityStatus) {
+      return 'Loading...';
+    }
+    if (currentAuthority) {
+      return 'Manage Authority';
+    } else if (haveAuthorityNeedTap) {
+      return 'Confirm your 1-TX Transfer NOW';
+    }
+    return 'Enable 1-TX Transfer';
+  }, [currentAuthority, haveAuthorityNeedTap, isGettingAuthorityStatus]);
+
+   //! Render
+   if (loading) {
     return (
       <UX.Box layout="row_center">
         <SVG.LoadingIcon />
@@ -177,13 +207,7 @@ const TapListChild = () => {
           }
         }}>
         <UX.Text
-          title={
-            currentAuthority
-              ? 'Manage Authority'
-              : haveAuthorityNeedTap
-                ? 'Confirm your 1-TX Transfer NOW'
-                : 'Enable 1-TX Transfer'
-          }
+          title={mangeAuthorityTitle}
           styleType="body_16_bold"
         />
         <SVG.ArrowIconRight width={23} height={18} />

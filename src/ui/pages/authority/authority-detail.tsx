@@ -4,6 +4,7 @@ import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import AuthorityList from '@/src/ui/pages/authority/authority-list';
 import PendingCancellation from '@/src/ui/pages/authority/pending-cancelation';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
@@ -55,6 +56,7 @@ const AuthorityDetail = () => {
   const location = useLocation();
   const {state} = location;
   const [loading, setLoading] = useState(false);
+  const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
 
   const network = useAppSelector(GlobalSelector.networkType);
   const inscriptionId = state?.inscriptionId;
@@ -77,7 +79,7 @@ const AuthorityDetail = () => {
   const [isWaitingCancel, setIsWaitingCancel] = useState(false);
 
   const inscriptionStatus = useMemo(() => {
-    if (Array.isArray(auth)) {
+    if (Array.isArray(auth) || currentAuthority?.ins === inscriptionId) {
       return 'TAPPED';
     }
 

@@ -45,6 +45,8 @@ const TapListChild = () => {
     useState(false);
 
   const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
+  const [isGettingAuthorityStatus, setIsGettingAuthorityStatus] =
+    useState(false);
 
   const fetchHaveAuthorityNeedTap = async () => {
     const orders = await walletProvider.getOrderReadyToTap(
@@ -189,8 +191,21 @@ const TapListChild = () => {
     return tokenValue.length > 0 || !tapList?.length;
   }, [tokenValue, tapList]);
 
-  //! Render
-  if (loading) {
+
+  const mangeAuthorityTitle = useMemo(() => {
+    if (isGettingAuthorityStatus) {
+      return 'Loading...';
+    }
+    if (currentAuthority) {
+      return 'Manage Authority';
+    } else if (haveAuthorityNeedTap) {
+      return 'Confirm your 1-TX Transfer NOW';
+    }
+    return 'Enable 1-TX Transfer';
+  }, [currentAuthority, haveAuthorityNeedTap, isGettingAuthorityStatus]);
+
+   //! Render
+   if (loading) {
     return (
       <UX.Box layout="row_center">
         <SVG.LoadingIcon />

@@ -82,13 +82,14 @@ const TxSecurity = () => {
 
         case TxType.INSCRIBE_TAP: {
           try {
-            const {success, error} = await pushBitcoinTx(rawtx, spendUtxos);
+            const {success, error, txid} = await pushBitcoinTx(rawtx, spendUtxos);
             if (success && order?.id) {
               await wallet.paidOrder(order.id);
               navigate('/home/inscribe-result', {
                 state: {
                   order,
                   tokenBalance,
+                  txid,
                 },
               });
             } else {

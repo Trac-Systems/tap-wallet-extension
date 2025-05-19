@@ -334,7 +334,7 @@ const SignConfirm = ({
                               color: colors.main_500,
                               background: colors.main_100,
                               border: '1px solid #D16B7C',
-                              padding: '0 8px',
+                              padding: '0 5px',
                               borderRadius: '24px',
                             }}
                           />

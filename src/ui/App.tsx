@@ -52,7 +52,7 @@ import DmtList from './pages/home-flow/components/dmt-list';
 import TransferAuthority from './pages/authority/transfer-authority';
 import ManageAuthority from './pages/manage-authority';
 import AuthorityDetail from './pages/authority/authority-detail';
-import HandleTapingScreen from '@/src/ui/pages/home-flow/inscribe/handle-taping-screen';
+import HandleTapingConfirmScreen from '@/src/ui/pages/home-flow/inscribe/handle-taping-screen';
 import HandleCancelAuthority from './pages/authority/handle/cancel';
 import HandleCreateAuthority from './pages/authority/handle/create';
 import HandleTappingAuthority from './pages/authority/handle/tapping';
@@ -239,7 +239,7 @@ function App() {
         <Route path="/manage-authority" element={<ManageAuthority />} />
         <Route path="/authority-detail" element={<AuthorityDetail />} />
         <Route path="/cancel-authority-detail" element={<CancelAuthorityDetail />} />
-        <Route path="/handle-taping-confirm" element={<HandleTapingScreen />} />
+        <Route path="/handle-taping-confirm" element={<HandleTapingConfirmScreen />} />
         <Route path="/handle-cancel-authority" element={<HandleCancelAuthority />} />
         <Route path="/handle-tapping-authority" element={<HandleTappingAuthority />} />
         <Route path="/handle-create-authority" element={<HandleCreateAuthority />} />

@@ -71,8 +71,6 @@ const TapListChild = () => {
     setOrderNeedTap(null);
   };
 
-  const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
-
   const fetchHaveAuthorityNeedTap = async () => {
     const orders = await walletProvider.getOrderReadyToTap(
       activeAccount.address,

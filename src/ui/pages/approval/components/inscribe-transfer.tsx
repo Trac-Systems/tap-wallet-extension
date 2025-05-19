@@ -867,15 +867,6 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
             customStyles={{flex: 1}}
           />
         );
-      case TabKey.STEP5:
-        return (
-          <UX.Button
-            title="Done"
-            styleType="primary"
-            onClick={contextData.handleConfirmDone}
-            customStyles={{flex: 1}}
-          />
-        );
     }
   }, [
     contextData.feeRate,
@@ -884,7 +875,6 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
     contextData.tabKey,
     contextData.disableBtn,
     contextData.handleSubmitTx,
-    contextData.handleConfirmDone,
   ]);
   return (
     <LayoutTap

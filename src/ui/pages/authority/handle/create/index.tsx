@@ -11,6 +11,12 @@ import {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
 
+enum LoadStatus {
+  NOT_LOADED,
+  LOADING,
+  LOADED,
+}
+
 const HandleCreateAuthority = () => {
   //! State
   const navigate = useNavigate();
@@ -30,14 +36,15 @@ const HandleCreateAuthority = () => {
   const [orderPreview, setOrderPreview] = useState<string>('');
   const [feeRate, setFeeRate] = useState<number>(5);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
-  const [loading, setLoading] = useState(false);
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>(LoadStatus.NOT_LOADED);
+  // const [getAuthorityStatus, setGetAuthorityStatus] = useState(false);
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
   const handleNavigate = async () => {
     try {
-      setLoading(true);
+      setLoadStatus(LoadStatus.LOADING);
       const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
       const order = await walletProvider.createOrderAuthority(
         activeAccount.address,
@@ -66,7 +73,7 @@ const HandleCreateAuthority = () => {
         type: 'error',
       });
     } finally {
-      setLoading(false);
+      setLoadStatus(LoadStatus.LOADED);
     }
   };
 
@@ -79,6 +86,7 @@ const HandleCreateAuthority = () => {
   // get authority orders
   useEffect(() => {
     const getAuthorityOrders = async () => {
+      setLoadStatus(LoadStatus.LOADING);
       const orders = await walletProvider.getAuthorityOrders(
         activeAccount.address,
       );
@@ -123,6 +131,7 @@ const HandleCreateAuthority = () => {
           }
         }
       }
+      setLoadStatus(LoadStatus.LOADED);
     };
     if (type === 'force_create') {
       // do nothing
@@ -135,8 +144,10 @@ const HandleCreateAuthority = () => {
 
   // generate order preview
   useEffect(() => {
-    generateTokenAuth();
-  }, [type]);
+    if (loadStatus === LoadStatus.LOADED) {
+      generateTokenAuth();
+    }
+  }, [type, loadStatus]);
 
   const handleUpdateFeeRate = (feeRate: number) => {
     setFeeRate(feeRate);
@@ -206,7 +217,7 @@ const HandleCreateAuthority = () => {
               styleType="primary"
               title={'Next'}
               onClick={handleNavigate}
-              isDisable={loading}
+              isDisable={loadStatus === LoadStatus.LOADING}
             />
           )}
         </UX.Box>

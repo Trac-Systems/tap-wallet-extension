@@ -240,12 +240,14 @@ const TapListChild = () => {
             navigate('/authority-detail', {
               state: {
                 inscriptionId: orderNeedTap.files[0].inscriptionId,
+                order: orderNeedTap,
               },
             });
           } else if (orderAuthorityPending) {
             navigate('/authority-detail', {
               state: {
                 inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+                order: orderAuthorityPending,
               },
             });
           } else if (currentAuthority) {

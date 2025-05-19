@@ -10,7 +10,12 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@/src/ui/utils';
-import {OrderType, TokenAuthority, TokenBalance} from '@/src/wallet-instance';
+import {
+  InscribeOrder,
+  OrderType,
+  TokenAuthority,
+  TokenBalance,
+} from '@/src/wallet-instance';
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -40,28 +45,40 @@ const TapListChild = () => {
     pageSize: TOKEN_PAGE_SIZE,
   });
   const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
-  const [haveAuthorityNeedTap, setHaveAuthorityNeedTap] = useState(false);
+  const [orderNeedTap, setOrderNeedTap] = useState<InscribeOrder | null>();
+  const [orderAuthorityPending, setOrderAuthorityPending] =
+    useState<InscribeOrder | null>();
   const [isGettingAuthorityStatus, setIsGettingAuthorityStatus] =
     useState(false);
 
   const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
-  const [isGettingAuthorityStatus, setIsGettingAuthorityStatus] =
-    useState(false);
+
+  const fetchAuthorityOrders = async () => {
+    const orders = await walletProvider.getAuthorityOrders(
+      activeAccount.address,
+    );
+    const pendingAuthorityOrder = orders?.length ? orders[0] : null;
+    if (pendingAuthorityOrder) {
+      // check authority is canceled or not
+      const isCanceled = await walletProvider.getAuthorityCanceled(
+        pendingAuthorityOrder.files[0].inscriptionId,
+      );
+      if (!isCanceled) {
+        setOrderAuthorityPending(pendingAuthorityOrder);
+        return;
+      }
+    }
+    setOrderNeedTap(null);
+  };
 
   const fetchHaveAuthorityNeedTap = async () => {
     const orders = await walletProvider.getOrderReadyToTap(
       activeAccount.address,
       OrderType.AUTHORITY,
     );
-    setHaveAuthorityNeedTap(orders?.length > 0);
-  };
-
-  const fetchAuthorityTapping = async () => {
-    const orders = await walletProvider.getOrderReadyToTap(
-      activeAccount.address,
-      OrderType.AUTHORITY,
-    );
-    setHaveAuthorityNeedTap(orders?.length > 0);
+    const orderNeedTap = orders?.length ? orders[0] : null;
+    setOrderNeedTap(orderNeedTap);
+    return orderNeedTap;
   };
 
   // fetch current authority
@@ -76,9 +93,14 @@ const TapListChild = () => {
         // update current authority
         dispatch(AccountActions.setCurrentAuthority(authority));
 
-      // trigger fetch have authority need tap
-      if (!authority) {
-          fetchHaveAuthorityNeedTap();
+        // trigger fetch have authority need tap
+        if (!authority) {
+          const orderNeedTap = await fetchHaveAuthorityNeedTap();
+
+          // if have no order need tap, fetch authority order tapping or creating
+          if (!orderNeedTap) {
+            await fetchAuthorityOrders();
+          }
         }
       } catch (error) {
         console.log('error', error);
@@ -160,18 +182,17 @@ const TapListChild = () => {
     setTapItem(tapList);
   }, [tapList.length]);
 
-
   const mangeAuthorityTitle = useMemo(() => {
     if (isGettingAuthorityStatus) {
       return 'Loading...';
     }
-    if (currentAuthority) {
+    if (currentAuthority || orderAuthorityPending) {
       return 'Manage Authority';
-    } else if (haveAuthorityNeedTap) {
+    } else if (orderNeedTap) {
       return 'Confirm your 1-TX Transfer NOW';
     }
     return 'Enable 1-TX Transfer';
-  }, [currentAuthority, haveAuthorityNeedTap, isGettingAuthorityStatus]);
+  }, [currentAuthority, orderNeedTap, orderAuthorityPending, isGettingAuthorityStatus]);
 
   // fetch all tap token
   useEffect(() => {
@@ -191,21 +212,8 @@ const TapListChild = () => {
     return tokenValue.length > 0 || !tapList?.length;
   }, [tokenValue, tapList]);
 
-
-  const mangeAuthorityTitle = useMemo(() => {
-    if (isGettingAuthorityStatus) {
-      return 'Loading...';
-    }
-    if (currentAuthority) {
-      return 'Manage Authority';
-    } else if (haveAuthorityNeedTap) {
-      return 'Confirm your 1-TX Transfer NOW';
-    }
-    return 'Enable 1-TX Transfer';
-  }, [currentAuthority, haveAuthorityNeedTap, isGettingAuthorityStatus]);
-
-   //! Render
-   if (loading) {
+  //! Render
+  if (loading) {
     return (
       <UX.Box layout="row_center">
         <SVG.LoadingIcon />
@@ -228,7 +236,19 @@ const TapListChild = () => {
         layout="box_border"
         style={{cursor: 'pointer'}}
         onClick={() => {
-          if (currentAuthority) {
+          if (orderNeedTap) {
+            navigate('/authority-detail', {
+              state: {
+                inscriptionId: orderNeedTap.files[0].inscriptionId,
+              },
+            });
+          } else if (orderAuthorityPending) {
+            navigate('/authority-detail', {
+              state: {
+                inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+              },
+            });
+          } else if (currentAuthority) {
             navigate('/authority-detail', {
               state: {
                 inscriptionId: currentAuthority?.ins,
@@ -243,10 +263,7 @@ const TapListChild = () => {
             });
           }
         }}>
-        <UX.Text
-          title={mangeAuthorityTitle}
-          styleType="body_16_bold"
-        />
+        <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />
         <SVG.ArrowIconRight width={23} height={18} />
       </UX.Box>
       {currentAuthority && (

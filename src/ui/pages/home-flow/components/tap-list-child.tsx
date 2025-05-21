@@ -257,25 +257,7 @@ const TapListChild = () => {
               },
             });
           } else if (orderAuthorityPending) {
-            if (
-              orderAuthorityPending.files.length > 0 &&
-              orderAuthorityPending.files[0].inscriptionId
-            ) {
-              // authority inscription is created and waiting to confirm
-              navigate('/authority-detail', {
-                state: {
-                  inscriptionId: orderAuthorityPending.files[0].inscriptionId,
-                  order: orderAuthorityPending,
-                },
-              });
-            } else {
-              // authority inscription is not created
-              navigate('/handle-create-authority', {
-                state: {
-                  type: 'waiting_inscription',
-                },
-              });
-            }
+            navigate('/authority-warning');
           } else if (currentAuthority) {
             navigate('/authority-detail', {
               state: {
@@ -287,11 +269,7 @@ const TapListChild = () => {
             // disable button
             return;
           } else {
-            navigate('/handle-create-authority', {
-              state: {
-                type: 'force_create',
-              },
-            });
+            navigate('/handle-create-authority');
           }
         }}>
         <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />

@@ -283,22 +283,18 @@ export const Step1 = ({
     updateContextData({disableBtn: true});
 
     if (contextData.feeRate <= 0) {
-      console.log('🚀 ~ debug 1');
       return;
     }
 
     if (!contextData.outputValue) {
-      console.log('🚀 ~ debug 2');
       return;
     }
 
     if (!validated) {
-      console.log('🚀 ~ debug 3');
       return;
     }
 
     if (!contextData.redeemContent) {
-      console.log('🚀 ~ debug 4');
       return;
     }
 

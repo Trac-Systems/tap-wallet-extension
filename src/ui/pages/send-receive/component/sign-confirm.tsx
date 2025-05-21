@@ -62,7 +62,6 @@ const SignConfirm = ({
 
   const wallet = useWalletProvider();
 
-  console.log('SignConfirm :>> ', type, order);
   //! Function
   const handleGoBack = () => {
     navigate(-1);

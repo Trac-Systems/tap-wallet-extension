@@ -254,11 +254,7 @@ export interface IWalletProvider {
     message: any,
     authType: 'redeem' | 'auth',
   ): Promise<TokenAuth>;
-  getAuthorityList(
-    address: string,
-    offset: number,
-    max: number,
-  ): Promise<{data: TokenAuthority[]; total: number}>;
+  getAllAuthorityList(address: string): Promise<TokenAuthority[]>;
   getCurrentAuthority(address: string): Promise<TokenAuthority>;
   getAuthorityCanceled(ins: string): Promise<boolean>;
 }

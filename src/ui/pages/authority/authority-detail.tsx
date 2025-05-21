@@ -79,7 +79,11 @@ const AuthorityDetail = () => {
   const [isWaitingCancel, setIsWaitingCancel] = useState(false);
 
   const inscriptionStatus = useMemo(() => {
-    if (Array.isArray(auth) || currentAuthority?.ins === inscriptionId) {
+    if (
+      Array.isArray(auth) ||
+      currentAuthority?.ins === inscriptionId ||
+      inscriptionInfo?.id === currentAuthority?.ins
+    ) {
       return 'TAPPED';
     }
 
@@ -116,6 +120,12 @@ const AuthorityDetail = () => {
       ),
     },
   ];
+
+  const urlPreviewInscription = useMemo(() => {
+    const insId = inscriptionInfo?.id || inscriptionId;
+    return `${urlPreview}${insId}`;
+  }, [urlPreview, inscriptionId, inscriptionInfo]);
+
   // get cancel authority order
   useEffect(() => {
     if (inscriptionStatus === 'TAPPED') {
@@ -180,31 +190,36 @@ const AuthorityDetail = () => {
       <UX.Box className="image-box">
         <UX.Box onClick={() => navigate('/home')} className="circle">
           <SVG.ArrowBackIcon width={24} height={24} />
-          {isWaitingCancel && (
-            <UX.Box spacing="xs">
-              <UX.Box
-                layout="box_border"
-                spacing="sm"
-                style={{background: colors.red_700}}>
-                <SVG.WaringIcon />
-              </UX.Box>
-              <UX.Text
-                styleType="body_14_bold"
-                customStyles={{color: colors.white, maxWidth: '90%'}}
-                title={
-                  'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
-                }
-              />
-            </UX.Box>
-          )}
         </UX.Box>
+        {isWaitingCancel && (
+          <UX.Box
+            layout="box_border"
+            spacing="sm"
+            style={{
+              background: colors.red_700,
+              position: 'absolute',
+              bottom: 0, // or top: 0
+              left: 0,
+              right: 0,
+              zIndex: 2, // to make sure it's above InscriptionPreview
+            }}>
+            <SVG.WaringIcon />
+            <UX.Text
+              styleType="body_14_bold"
+              customStyles={{color: colors.white, maxWidth: '90%'}}
+              title={
+                'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
+              }
+            />
+          </UX.Box>
+        )}
         <InscriptionPreview
           data={{
             ...inscriptionInfo,
             inscriptionId: inscriptionInfo?.id,
             outputValue: inscriptionInfo?.value,
             inscriptionNumber: inscriptionInfo?.number,
-            preview: `${urlPreview}${inscriptionInfo?.id}`,
+            preview: urlPreviewInscription,
           }}
           preset="large"
           asLogo
@@ -307,24 +322,6 @@ const AuthorityDetail = () => {
               }}>
               <UX.Tabs tabs={tabItems} isChildren parentIndex={1} />
             </UX.Box>
-            {/* <UX.Box
-              layout="column"
-              spacing="xl"
-              style={{
-                padding: '10px 0',
-              }}>
-              <UX.Button
-                styleType="primary"
-                title="Create authority"
-                onClick={() => {
-                  navigate('/handle-create-authority', {
-                    state: {
-                      type: 'force_create',
-                    },
-                  });
-                }}
-              />
-            </UX.Box> */}
           </UX.Box>
         </UX.DrawerCustom>
       </UX.Box>
@@ -338,21 +335,6 @@ const AuthorityDetail = () => {
             padding: '10px 0',
           }}>
           {isWaitingCancel ? (
-            // <UX.Box spacing="xs">
-            //   <UX.Box
-            //     layout="box_border"
-            //     spacing="sm"
-            //     style={{background: colors.red_700}}>
-            //     <SVG.WaringIcon />
-            //     <UX.Text
-            //       styleType="body_14_bold"
-            //       customStyles={{color: colors.white, maxWidth: '90%'}}
-            //       title={
-            //         'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
-            //       }
-            //     />
-            //   </UX.Box>
-            // </UX.Box>
             <></>
           ) : (
             <UX.Button

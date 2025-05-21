@@ -383,36 +383,46 @@ export class TapApi {
     address: string,
     offset: number,
     max: number,
-  ): Promise<{data: TokenAuthority[]; total: number}> {
-    const total = await this.getTotalTokenAuthority(address);
+  ): Promise<TokenAuthority[]> {
     const response = await this.api.get(`/getAccountAuthList/${address}`, {
       offset,
       max,
     });
-    const authorityList = response?.data?.result as TokenAuthority[];
-    // remove canceled authority
-    const data = [];
+    return response?.data?.result as TokenAuthority[];
+  }
+
+  // get all authority list
+  async getAllAuthorityList(address: string) {
+    const total = await this.getTotalTokenAuthority(address);
+    let offset = 500;
+    const authorityList = await this.getAuthorityList(address, 0, 500);
+    while (offset < total) {
+      offset += 500;
+      const result = await this.getAuthorityList(address, offset, 500);
+      if (result) {
+        authorityList.push(...(result || []));
+      }
+    }
     for (const authority of authorityList) {
       const isCanceled = await this.getAuthorityCanceled(authority.ins);
+      // remove canceled authority
       if (isCanceled) {
-        continue;
+        authorityList.splice(authorityList.indexOf(authority), 1);
       }
-      data.push(authority);
+      // remove authority no apply for all token
+      if (authority.auth.length !== 0) {
+        authorityList.splice(authorityList.indexOf(authority), 1);
+      }
     }
-
-    return {data, total};
+    return authorityList;
   }
 
   // get current authority
-  async getCurrentAuthority(address: string) {
-    const total = await this.getTotalTokenAuthority(address);
-    if (total === 0) {
+  async getCurrentAuthority(address: string): Promise<TokenAuthority | null> {
+    const allAuthorityList = await this.getAllAuthorityList(address);
+    if (allAuthorityList.length === 0) {
       return null;
     }
-    const response = await this.getAuthorityList(address, 0, 500);
-    if (response?.data?.length) {
-      return response?.data[response?.data?.length - 1] || null;
-    }
-    return null;
+    return allAuthorityList[allAuthorityList.length - 1];
   }
 }

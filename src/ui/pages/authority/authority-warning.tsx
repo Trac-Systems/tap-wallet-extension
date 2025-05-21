@@ -3,11 +3,16 @@ import {UX} from '@/src/ui/component';
 import {colors} from '@/src/ui/themes/color';
 import {SVG} from '@/src/ui/svg';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
+import {useNavigate} from 'react-router-dom';
 
 export const AuthorityWarning = () => {
+  const navigate = useNavigate();
+  const handleGoBack = () => {
+    navigate(-1);
+  };
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Create Authority" />}
+      header={<UX.TextHeader text="Create Authority" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
           <UX.Box spacing="xs">

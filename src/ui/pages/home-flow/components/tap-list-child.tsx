@@ -76,7 +76,15 @@ const TapListChild = () => {
       activeAccount.address,
       OrderType.AUTHORITY,
     );
-    const orderNeedTap = orders?.length ? orders[0] : null;
+    let orderNeedTap = orders?.length ? orders[0] : null;
+    if (orderNeedTap) {
+      const isCanceled = await walletProvider.getAuthorityCanceled(
+        orderNeedTap.files[0].inscriptionId,
+      );
+      if (isCanceled) {
+        orderNeedTap = null;
+      }
+    }
     setOrderNeedTap(orderNeedTap);
     return orderNeedTap;
   };
@@ -192,7 +200,12 @@ const TapListChild = () => {
       return 'Confirm your 1-TX Transfer NOW';
     }
     return 'Enable 1-TX Transfer';
-  }, [currentAuthority, orderNeedTap, orderAuthorityPending, isGettingAuthorityStatus]);
+  }, [
+    currentAuthority,
+    orderNeedTap,
+    orderAuthorityPending,
+    isGettingAuthorityStatus,
+  ]);
 
   // fetch all tap token
   useEffect(() => {
@@ -244,12 +257,25 @@ const TapListChild = () => {
               },
             });
           } else if (orderAuthorityPending) {
-            navigate('/authority-detail', {
-              state: {
-                inscriptionId: orderAuthorityPending.files[0].inscriptionId,
-                order: orderAuthorityPending,
-              },
-            });
+            if (
+              orderAuthorityPending.files.length > 0 &&
+              orderAuthorityPending.files[0].inscriptionId
+            ) {
+              // authority inscription is created and waiting to confirm
+              navigate('/authority-detail', {
+                state: {
+                  inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+                  order: orderAuthorityPending,
+                },
+              });
+            } else {
+              // authority inscription is not created
+              navigate('/handle-create-authority', {
+                state: {
+                  type: 'waiting_inscription',
+                },
+              });
+            }
           } else if (currentAuthority) {
             navigate('/authority-detail', {
               state: {
@@ -257,10 +283,13 @@ const TapListChild = () => {
                 auth: currentAuthority?.auth,
               },
             });
+          } else if (isGettingAuthorityStatus) {
+            // disable button
+            return;
           } else {
             navigate('/handle-create-authority', {
               state: {
-                type: 'create',
+                type: 'force_create',
               },
             });
           }

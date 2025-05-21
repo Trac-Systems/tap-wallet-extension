@@ -4,7 +4,7 @@ import InscriptionPreview from '@/src/ui/component/inscription-preview';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import AuthorityList from '@/src/ui/pages/authority/authority-list';
 import PendingCancellation from '@/src/ui/pages/authority/pending-cancelation';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
@@ -187,14 +187,14 @@ const AuthorityDetail = () => {
                 spacing="sm"
                 style={{background: colors.red_700}}>
                 <SVG.WaringIcon />
-                <UX.Text
-                  styleType="body_14_bold"
-                  customStyles={{color: colors.white, maxWidth: '90%'}}
-                  title={
-                    'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
-                  }
-                />
               </UX.Box>
+              <UX.Text
+                styleType="body_14_bold"
+                customStyles={{color: colors.white, maxWidth: '90%'}}
+                title={
+                  'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
+                }
+              />
             </UX.Box>
           )}
         </UX.Box>

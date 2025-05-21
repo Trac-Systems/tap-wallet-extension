@@ -243,6 +243,7 @@ function App() {
         <Route path="/handle-cancel-authority" element={<HandleCancelAuthority />} />
         <Route path="/handle-tapping-authority" element={<HandleTappingAuthority />} />
         <Route path="/handle-create-authority" element={<HandleCreateAuthority />} />
+
       </Routes>
     </HashRouter>
   );

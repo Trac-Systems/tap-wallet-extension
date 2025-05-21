@@ -27,7 +27,7 @@ const HandleCreateAuthority = () => {
   const [isWarning, setIsWarning] = useState(false);
 
   type LocationState = {
-    type: 'force_create' | 'create';
+    type: 'force_create' | 'create' | 'waiting_inscription';
   };
 
   const {state} = location as {state: LocationState};
@@ -109,6 +109,7 @@ const HandleCreateAuthority = () => {
             if (isCanceled) {
               // do nothing
               // continue to create authority
+              setLoadStatus(LoadStatus.LOADED);
               return;
             }
             const inscriptionInfo =
@@ -133,7 +134,11 @@ const HandleCreateAuthority = () => {
       }
       setLoadStatus(LoadStatus.LOADED);
     };
-    if (type === 'force_create') {
+    if (type === 'waiting_inscription') {
+      // inscription is waiting to appear in the blockchain
+      setIsWarning(true);
+      return;
+    } else if (type === 'force_create') {
       // do nothing
       // continue to create authority
       return;

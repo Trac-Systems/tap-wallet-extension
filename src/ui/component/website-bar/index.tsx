@@ -9,7 +9,9 @@ const WebsiteBar = ({
   return (
     <CardApproval preset="style2" selfItemsCenter>
       <UX.Box layout="row_center" spacing="sm">
-        <img src={session.icon} alt="logo" style={{width: 32, height: 32}} />
+        {session.icon && (
+          <img src={session.icon} alt="logo" style={{width: 32, height: 32}} />
+        )}
         <UX.Text
           title={session.origin}
           styleType="body_14_bold"

@@ -395,14 +395,14 @@ export class TapApi {
   async getAllAuthorityList(address: string) {
     const total = await this.getTotalTokenAuthority(address);
     let offset = 0;
-    const authorityList = await this.getAuthorityList(address, 0, 500);
+    const authorityList: TokenAuthority[] = [];
     const filteredAuthorityList = [];
     while (offset < total) {
-      offset += 500;
       const result = await this.getAuthorityList(address, offset, 500);
       if (result) {
         authorityList.push(...result);
       }
+      offset += 500;
     }
     for (const authority of authorityList) {
       const isCanceled = await this.getAuthorityCanceled(authority.ins);

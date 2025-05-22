@@ -313,6 +313,7 @@ export const Step1 = ({
         <UX.TextArea
           placeholder={contextData.redeemContent?.proto}
           height="200px"
+          disabled={true}
           style={{
             width: '100%',
             height: '100%',

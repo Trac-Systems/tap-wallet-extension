@@ -394,27 +394,25 @@ export class TapApi {
   // get all authority list
   async getAllAuthorityList(address: string) {
     const total = await this.getTotalTokenAuthority(address);
-    let offset = 500;
+    let offset = 0;
     const authorityList = await this.getAuthorityList(address, 0, 500);
+    const filteredAuthorityList = [];
     while (offset < total) {
       offset += 500;
       const result = await this.getAuthorityList(address, offset, 500);
       if (result) {
-        authorityList.push(...(result || []));
+        authorityList.push(...result);
       }
     }
     for (const authority of authorityList) {
       const isCanceled = await this.getAuthorityCanceled(authority.ins);
       // remove canceled authority
-      if (isCanceled) {
-        authorityList.splice(authorityList.indexOf(authority), 1);
-      }
       // remove authority no apply for all token
-      if (authority.auth.length !== 0) {
-        authorityList.splice(authorityList.indexOf(authority), 1);
+      if (!isCanceled && authority.auth.length === 0) {
+        filteredAuthorityList.push(authority);
       }
     }
-    return authorityList;
+    return filteredAuthorityList;
   }
 
   // get current authority

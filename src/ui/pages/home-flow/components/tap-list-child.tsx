@@ -13,6 +13,7 @@ import {
 import {
   InscribeOrder,
   OrderType,
+  TappingStatus,
   TokenAuthority,
   TokenBalance,
 } from '@/src/wallet-instance';
@@ -257,7 +258,18 @@ const TapListChild = () => {
               },
             });
           } else if (orderAuthorityPending) {
-            navigate('/authority-warning');
+            // if authority is tapping, navigate to authority detail
+            if (orderAuthorityPending.tappingStatus === TappingStatus.TAPPING) {
+              navigate('/authority-detail', {
+                state: {
+                  inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+                  order: orderAuthorityPending,
+                },
+              });
+            } else {
+              // if authority is not tapping, navigate to authority warning
+              navigate('/authority-warning');
+            }
           } else if (currentAuthority) {
             navigate('/authority-detail', {
               state: {

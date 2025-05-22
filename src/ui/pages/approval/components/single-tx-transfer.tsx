@@ -311,13 +311,12 @@ export const Step1 = ({
       <UX.Box layout="column" spacing="xss">
         <UX.Text styleType="body_16_bold" title={'Preview'} />
         <UX.TextArea
+          className="textareaWidth"
           placeholder={contextData.redeemContent?.proto}
           height="200px"
           disabled={true}
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
+          customStyles={{width: '100%'}}
+          style={{display: 'flex', width: '100%'}}
         />
       </UX.Box>
       <UX.Box layout="column" spacing="xss">

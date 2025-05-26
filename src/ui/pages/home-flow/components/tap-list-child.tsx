@@ -195,10 +195,11 @@ const TapListChild = () => {
     if (isGettingAuthorityStatus) {
       return 'Loading...';
     }
+    if (orderNeedTap) {
+      return 'Confirm your 1-TX Transfer NOW';
+    }
     if (currentAuthority || orderAuthorityPending) {
       return 'Manage Authority';
-    } else if (orderNeedTap) {
-      return 'Confirm your 1-TX Transfer NOW';
     }
     return 'Enable 1-TX Transfer';
   }, [
@@ -246,53 +247,50 @@ const TapListChild = () => {
           value={tokenValue}
         />
       </UX.Box>
-      <UX.Box
-        layout="box_border"
-        style={{cursor: 'pointer'}}
-        onClick={() => {
-          if (orderNeedTap) {
-            navigate('/authority-detail', {
-              state: {
-                inscriptionId: orderNeedTap.files[0].inscriptionId,
-                order: orderNeedTap,
-              },
-            });
-          } else if (orderAuthorityPending) {
-            // if authority is tapping, navigate to authority detail
-            if (orderAuthorityPending.tappingStatus === TappingStatus.TAPPING) {
-              navigate('/authority-detail', {
-                state: {
-                  inscriptionId: orderAuthorityPending.files[0].inscriptionId,
-                  order: orderAuthorityPending,
-                },
-              });
-            } else {
-              // if authority is not tapping, navigate to authority warning
-              navigate('/authority-warning');
-            }
-          } else if (currentAuthority) {
-            navigate('/authority-detail', {
-              state: {
-                inscriptionId: currentAuthority?.ins,
-                auth: currentAuthority?.auth,
-              },
-            });
-          } else if (isGettingAuthorityStatus) {
-            // disable button
-            return;
-          } else {
-            navigate('/handle-create-authority');
-          }
-        }}>
-        <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />
-        <SVG.ArrowIconRight width={23} height={18} />
-      </UX.Box>
-      {currentAuthority && (
+
+      {currentAuthority ? (
         <UX.Button
           styleType={'primary'}
           title="1-TX Transfer"
           onClick={() => navigate('/transfer-authority')}
         />
+      ) : (
+        <UX.Box
+          layout="box_border"
+          style={{cursor: 'pointer'}}
+          onClick={() => {
+            if (orderNeedTap) {
+              navigate('/authority-detail', {
+                state: {
+                  inscriptionId: orderNeedTap.files[0].inscriptionId,
+                  order: orderNeedTap,
+                },
+              });
+            } else if (orderAuthorityPending) {
+              // if authority is tapping, navigate to authority detail
+              if (
+                orderAuthorityPending.tappingStatus === TappingStatus.TAPPING
+              ) {
+                navigate('/authority-detail', {
+                  state: {
+                    inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+                    order: orderAuthorityPending,
+                  },
+                });
+              } else {
+                // if authority is not tapping, navigate to authority warning
+                navigate('/authority-warning');
+              }
+            } else if (isGettingAuthorityStatus) {
+              // disable button
+              return;
+            } else {
+              navigate('/handle-create-authority');
+            }
+          }}>
+          <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />
+          <SVG.ArrowIconRight width={23} height={18} />
+        </UX.Box>
       )}
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>

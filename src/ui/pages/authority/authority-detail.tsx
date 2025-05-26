@@ -59,8 +59,8 @@ const AuthorityDetail = () => {
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
 
   const network = useAppSelector(GlobalSelector.networkType);
-  const inscriptionId = state?.inscriptionId;
-  const auth = state?.auth;
+  const inscriptionId = state?.inscriptionId || currentAuthority?.ins;
+  const auth = state?.auth || currentAuthority?.auth;
   const order = state?.order as InscribeOrder;
 
   const isAuthorityToken = useMemo(() => {

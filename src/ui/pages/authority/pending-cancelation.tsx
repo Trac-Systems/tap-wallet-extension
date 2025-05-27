@@ -23,12 +23,13 @@ const PendingCancellation: React.FC<Props> = ({
   const navigate = useNavigate();
   const wallet = useWalletProvider();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [pendingCancellationList, setPendingCancellationList] = useState<
     {inscriptionInfo: InscriptionOrdClient; order: InscribeOrder}[]
   >([]);
   const handleGetListPendingCancellation = async () => {
     try {
+      setIsLoading(true);
       const response = await wallet.getOrderReadyToTap(
         activeAccount.address,
         OrderType.CANCEL_AUTHORITY,
@@ -45,6 +46,8 @@ const PendingCancellation: React.FC<Props> = ({
       setPendingCancellationList(list);
     } catch (error) {
       console.log('error :>> ', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,48 +59,52 @@ const PendingCancellation: React.FC<Props> = ({
 
   return (
     <UX.Box spacing="xs" className="card-spendable">
-      {pendingCancellationList.map((item, index) => (
-        <UX.Box
-          layout="box_border"
-          key={index}
-          style={{cursor: 'pointer'}}
-          onClick={() => {
-            setOpenDrawerInscription(false);
-            navigate('/cancel-authority-detail', {
-              state: {
-                inscriptionId: item.inscriptionInfo.id,
-                order: item.order,
-              },
-            });
-          }}>
-          <UX.Box layout="row_center" spacing="xs">
-            <UX.InscriptionPreview
-              key={item.inscriptionInfo.id}
-              data={{
-                ...item.inscriptionInfo,
-                inscriptionId: item.inscriptionInfo.id,
-                outputValue: item.inscriptionInfo.value,
-                inscriptionNumber: item.inscriptionInfo.number,
-                preview: `${urlPreview}${item.inscriptionInfo.id}`,
-              }}
-              asLogo
-              isModalSpendable
-              preset="asLogo"
-            />
-            <UX.Box layout="column">
-              <UX.Text
-                title={`#${item.inscriptionInfo.number}`}
-                styleType="body_16_normal"
+      {isLoading ? (
+        <UX.Loading />
+      ) : (
+        pendingCancellationList.map((item, index) => (
+          <UX.Box
+            layout="box_border"
+            key={index}
+            style={{cursor: 'pointer'}}
+            onClick={() => {
+              setOpenDrawerInscription(false);
+              navigate('/cancel-authority-detail', {
+                state: {
+                  inscriptionId: item.inscriptionInfo.id,
+                  order: item.order,
+                },
+              });
+            }}>
+            <UX.Box layout="row_center" spacing="xs">
+              <UX.InscriptionPreview
+                key={item.inscriptionInfo.id}
+                data={{
+                  ...item.inscriptionInfo,
+                  inscriptionId: item.inscriptionInfo.id,
+                  outputValue: item.inscriptionInfo.value,
+                  inscriptionNumber: item.inscriptionInfo.number,
+                  preview: `${urlPreview}${item.inscriptionInfo.id}`,
+                }}
+                asLogo
+                isModalSpendable
+                preset="asLogo"
               />
-              <UX.Text
-                title={`${item.inscriptionInfo.value} SATs`}
-                styleType="body_16_normal"
-                customStyles={{color: colors.main_500}}
-              />
+              <UX.Box layout="column">
+                <UX.Text
+                  title={`#${item.inscriptionInfo.number}`}
+                  styleType="body_16_normal"
+                />
+                <UX.Text
+                  title={`${item.inscriptionInfo.value} SATs`}
+                  styleType="body_16_normal"
+                  customStyles={{color: colors.main_500}}
+                />
+              </UX.Box>
             </UX.Box>
           </UX.Box>
-        </UX.Box>
-      ))}
+        ))
+      )}
     </UX.Box>
   );
 };

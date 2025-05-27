@@ -44,7 +44,6 @@ enum TabKey {
   STEP2,
   STEP3,
   STEP4,
-  STEP5,
 }
 
 interface Props {
@@ -543,7 +542,7 @@ export const Step3 = ({
                         color: colors.main_500,
                         background: colors.main_100,
                         border: '1px solid #D16B7C',
-                        padding: '0 8px',
+                        padding: '0 5px',
                         borderRadius: '24px',
                       }}
                     />
@@ -614,7 +613,7 @@ export const Step4 = ({
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
   const pushBitcoinTx = usePushBitcoinTxCallback();
-  const [, , rejectApproval] = useApproval();
+  const [, resolveApproval, rejectApproval] = useApproval();
   const [valueInput, setValueInput] = useState('');
   const checkValue = valueInput.length !== 4;
   const wallet = useWalletProvider();
@@ -630,11 +629,12 @@ export const Step4 = ({
       .unlockApp(valueInput)
       .then(() => {
         pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos).then(
-          ({success, error}) => {
+          ({success, error, txid}) => {
             if (success) {
-              updateContextData({
-                tabKey: TabKey.STEP5,
-              });
+               // mark order as paid
+               wallet.paidOrder(contextData.order?.id);
+
+               resolveApproval({txid});
             } else {
               rejectApproval(error);
             }
@@ -684,105 +684,6 @@ export const Step4 = ({
   );
 };
 
-export const Step5 = ({
-  contextData,
-  updateContextData,
-}: {
-  contextData: ContextData;
-  updateContextData: (params: UpdateContextDataParams) => void;
-}) => {
-  const {tokenBalance, order} = contextData;
-  const wallet = useWalletProvider();
-  const {showToast} = useCustomToast();
-
-  const account = useAppSelector(AccountSelector.activeAccount);
-  const [, resolveApproval] = useApproval();
-  const [result, setResult] = useState<any>();
-  const timeCount = useRef(0);
-
-  const checkResult = async () => {
-    let _result: any = null;
-    try {
-      _result = await wallet.getTapSummary(account.address, contextData.ticker);
-    } catch (e) {
-      const txError = (e as any).message || '';
-      if (timeCount.current >= 3) {
-        showToast({
-          title: txError,
-          type: 'error',
-        });
-      }
-    }
-
-    if (!_result && timeCount.current < 3) {
-      timeCount.current++;
-      setTimeout(checkResult, 2000);
-      return;
-    }
-
-    setResult(_result);
-  };
-
-  useEffect(() => {
-    checkResult();
-  }, []);
-
-  const onClickConfirm = useCallback(async () => {
-    // tools.showLoading(true);
-    wallet
-      .getTapSummary(account.address, tokenBalance.ticker)
-      .then(() => {
-        resolveApproval({
-          inscriptionId: result?.inscriptionId,
-          inscriptionNumber: result?.inscriptionNumber,
-          ticker: tokenBalance.ticker,
-          amount: result?.amount,
-        });
-      })
-      .finally(() => {
-        // tools.showLoading(false);
-      });
-  }, [result, account, tokenBalance]);
-
-  useEffect(() => {
-    updateContextData({handleConfirmDone: onClickConfirm});
-  }, [result, account, tokenBalance]);
-
-  if (!result) {
-    return (
-      <UX.Box layout="column" style={{marginTop: '7rem'}} spacing="xl">
-        <UX.Box layout="column_center" spacing="xl">
-          <SVG.SendSuccessIcon />
-          <UX.Text
-            title="Payment Sent"
-            styleType="heading_24"
-            customStyles={{
-              marginTop: '16px',
-            }}
-          />
-          <UX.Text
-            title={'Your transaction has been successfully sent'}
-            styleType="body_16_normal"
-            customStyles={{textAlign: 'center'}}
-          />
-        </UX.Box>
-      </UX.Box>
-    );
-  }
-  return (
-    <UX.Box spacing="xxl">
-      <UX.Box>
-        <InscriptionPreview data={result?.inscription} preset="medium" />
-      </UX.Box>
-      <UX.Text
-        title="The transferable and available balance of Tap will be refresh in a few minutes"
-        styleType="body_14_normal"
-        customStyles={{color: colors.white, textAlign: 'center'}}
-      />
-    </UX.Box>
-  );
-};
-
 export default function InscriptionTransfer({params: {data, session}}: Props) {
   //! State
   const [contextData, setContextData] = useState<ContextData>({
@@ -806,7 +707,7 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
       decimal: 18,
       holder: '',
       inscriptionId: '',
-      dmt: false
+      dmt: false,
     },
     disableBtn: true,
   });
@@ -852,15 +753,6 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
           updateContextData={updateContextData}
         />
       );
-    } else {
-      {
-        return (
-          <Step5
-            contextData={contextData}
-            updateContextData={updateContextData}
-          />
-        );
-      }
     }
   }, [contextData]);
 
@@ -975,15 +867,6 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
             customStyles={{flex: 1}}
           />
         );
-      case TabKey.STEP5:
-        return (
-          <UX.Button
-            title="Done"
-            styleType="primary"
-            onClick={contextData.handleConfirmDone}
-            customStyles={{flex: 1}}
-          />
-        );
     }
   }, [
     contextData.feeRate,
@@ -992,7 +875,6 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
     contextData.tabKey,
     contextData.disableBtn,
     contextData.handleSubmitTx,
-    contextData.handleConfirmDone,
   ]);
   return (
     <LayoutTap

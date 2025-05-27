@@ -6,12 +6,12 @@ export const convertInscriptionTransferList = (
 ): Inscription[] => {
   const urlPreview =
     network === Network.TESTNET
-      ? 'https://static-testnet.unisat.io/preview/'
-      : 'https://static.unisat.io/preview/';
+      ? 'http://trac.intern.ungueltig.com:55002/preview/'
+      : 'https://ord-tw.tap-hosting.xyz/preview/';
   const urlContent =
     network === Network.TESTNET
-      ? 'https://static-testnet.unisat.io/content/'
-      : 'https://static.unisat.io/content/';
+      ? 'http://trac.intern.ungueltig.com:55002/content/'
+      : 'https://ord-tw.tap-hosting.xyz/content/';
   const result: Inscription[] = [];
   data.forEach(v => {
     const hasMoreInscriptions = v.inscriptions.map(ins => ins?.inscriptionId);
@@ -58,12 +58,12 @@ export const transferResponseToInscription = (
 ): Inscription[] => {
   const urlPreview =
     network === Network.TESTNET
-      ? 'https://static-testnet.unisat.io/preview/'
-      : 'https://static.unisat.io/preview/';
+      ? 'http://trac.intern.ungueltig.com:55002/preview/'
+      : 'https://ord-tw.tap-hosting.xyz/preview/';
   const urlContent =
     network === Network.TESTNET
-      ? 'https://static-testnet.unisat.io/content/'
-      : 'https://static.unisat.io/content/';
+      ? 'http://trac.intern.ungueltig.com:55002/content/'
+      : 'https://ord-tw.tap-hosting.xyz/content/';
   const hasMoreInscriptions = response?.utxo?.inscriptions?.map(ins => ins?.utxo);
 
   return response?.utxo?.inscriptions?.map(ins => {

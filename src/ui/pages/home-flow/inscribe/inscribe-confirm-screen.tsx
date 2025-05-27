@@ -26,8 +26,6 @@ const InscribeConfirmScreen = () => {
 
   const contextDataParam: ContextDataParam = state?.contextDataParam || {};
 
-  // debug log order
-
   // set contextDataParam.order fit with InscribeOrder
   const order = useMemo(() => {
     return contextDataParam?.order;

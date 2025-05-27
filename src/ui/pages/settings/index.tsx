@@ -20,6 +20,7 @@ const SettingPage = () => {
   const networkType = useAppSelector(GlobalSelector.networkType);
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
   const isTabOpen = useIsTabOpen();
   const openInTab = useOpenInTab();
   const [isExtensionInTab, setIsExtensionInTab] = useState(false);
@@ -93,12 +94,26 @@ const SettingPage = () => {
         link: '/setting/security',
       },
       {title: 'Show private key', type: 'private', link: '/setting/security'},
+      {title: 'Manage Authority', link: '/authority-detail'},
     ];
 
-    return checkIsSingleWallet
+    const settings = checkIsSingleWallet
       ? functions.filter(item => item.title !== 'Show recovery phrase')
       : functions;
-  }, [networkType, checkIsSingleWallet, activeWallet, sitesConnected]);
+
+    return settings.filter(item => {
+      if (item.title === 'Manage Authority') {
+        return !!currentAuthority;
+      }
+      return true;
+    });
+  }, [
+    networkType,
+    checkIsSingleWallet,
+    activeWallet,
+    sitesConnected,
+    currentAuthority,
+  ]);
 
   const handleExpandView = async () => {
     if (!isExtensionInTab) {

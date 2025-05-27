@@ -1329,8 +1329,8 @@ export class Provider {
     };
   };
 
-  getAuthorityList = async (address: string, offset: number, max: number) => {
-    return await this.tapApi.getAuthorityList(address, offset, max);
+  getAllAuthorityList = async (address: string) => {
+    return await this.tapApi.getAllAuthorityList(address);
   };
 
   getCurrentAuthority = async (address: string) => {

@@ -337,18 +337,17 @@ export class TapProvider extends EventEmitter {
   };
 
   singleTxTransfer = async (
-    addr: string,
-    ticker: string,
-    amount: string,
-    dta?: string,
+    items: {
+      addr: string;
+      tick: string;
+      amt: string;
+      dta?: string;
+    }[],
   ) => {
     return this._request({
       method: 'singleTxTransfer',
       params: {
-        ticker,
-        amount,
-        addr,
-        dta,
+        items,
       },
     });
   };

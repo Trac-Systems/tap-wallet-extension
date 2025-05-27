@@ -1,4 +1,3 @@
-import {getUtxoDustThreshold} from '@/src/background/utils';
 import {
   formatNumberValue,
   satoshisToAmount,
@@ -16,24 +15,21 @@ import {
   shortAddress,
   useAppSelector,
   validateBtcAddress,
+  validateTapTokenAmount,
 } from '@/src/ui/utils';
 import {
   InscribeOrder,
   RawTxInfo,
+  TokenAuth,
   TokenAuthority,
-  TokenBalance,
-  TokenInfo,
-  TokenTransfer,
 } from '@/src/wallet-instance';
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import InscriptionPreview from '../../../component/inscription-preview';
 import {PinInputRef} from '../../../component/pin-input';
 import {useCustomToast} from '../../../component/toast-custom';
 import WebsiteBar from '../../../component/website-bar';
 import {FeeRateBar} from '../../send-receive/component/fee-rate-bar';
-import {OutputValueBar} from '../../send-receive/component/output-value';
 import {
   useFetchUtxosCallback,
   usePrepareSendBTCCallback,
@@ -47,16 +43,20 @@ enum TabKey {
   STEP2,
   STEP3,
   STEP4,
-  STEP5,
+}
+
+interface RedeemItem {
+  tick: string;
+  amt: string;
+  address: string;
+  dta?: string;
 }
 
 interface Props {
   params: {
+    // data must have an array of RedeemItem
     data: {
-      ticker: string;
-      amount: string;
-      addr: string;
-      dta?: string;
+      items: RedeemItem[];
     };
     session: {
       origin: string;
@@ -66,20 +66,15 @@ interface Props {
   };
 }
 interface ContextData {
-  ticker?: string;
   session?: any;
   tabKey: TabKey;
-  tokenBalance: TokenBalance;
-  transferAmount: string;
-  addr: string;
-  dta?: string;
-  inscriptionIdSet: Set<string>;
   feeRate: number;
   outputValue: number;
-  receiver: string;
   order?: InscribeOrder;
+  items: RedeemItem[];
+  redeemContent?: TokenAuth;
+  currentAuthority?: TokenAuthority;
   rawTxInfo: RawTxInfo;
-  tokenInfo: TokenInfo;
   rawTx?: string;
   disableBtn?: boolean;
   isLoading?: boolean;
@@ -91,16 +86,13 @@ interface UpdateContextDataParams {
   ticket?: string;
   session?: any;
   tabKey?: TabKey;
-  tokenBalance?: TokenBalance;
-  transferAmount?: string;
-  transferableList?: TokenTransfer[];
-  inscriptionIdSet?: Set<string>;
   feeRate?: number;
   outputValue?: number;
-  receiver?: string;
   order?: InscribeOrder;
+  items?: RedeemItem[];
+  redeemContent?: TokenAuth;
+  currentAuthority?: TokenAuthority;
   rawTxInfo?: RawTxInfo;
-  tokenInfo?: TokenInfo;
   rawTx?: string;
   disableBtn?: boolean;
   isLoading?: boolean;
@@ -119,52 +111,178 @@ export const Step1 = ({
 }) => {
   const account = useAppSelector(AccountSelector.activeAccount);
   const wallet = useAppSelector(WalletSelector.activeWallet);
+  const network = useAppSelector(GlobalSelector.networkType);
   const walletProvider = useWalletProvider();
 
   const fetchUtxos = useFetchUtxosCallback();
   const [, , rejectApproval] = useApproval();
-  const [inputError, setInputError] = useState('');
 
   // const [inputDisabled, setInputDisabled] = useState(false);
 
-  const dust = getUtxoDustThreshold(wallet.addressType);
+  const [tokenMap, setTokenMap] = useState<{
+    [key: string]: {
+      availableBalance: BigNumber;
+      sendAmount: BigNumber;
+    };
+  }>({});
 
-  const {showToast} = useCustomToast();
+  const [insufficientTokens, setInsufficientTokens] = useState<string[]>([]);
+  // Change to Map<number, boolean> to simply track invalid items
+  const [invalidItemsMap, setInvalidItemsMap] = useState<Map<number, boolean>>(
+    new Map(),
+  );
+  const [validated, setValidated] = useState<boolean>(false);
 
+  // fetch token info on transfer list
   useEffect(() => {
-    setInputError('');
+    const fetchTokenInfo = async () => {
+      try {
+        updateContextData({isLoading: true});
+        const _tokenMap = {};
+        const newInvalidItemsMap = new Map<number, boolean>();
+
+        for (let i = 0; i < contextData.items.length; i++) {
+          const item = contextData.items[i];
+          if (!item) {
+            newInvalidItemsMap.set(i, true);
+            continue;
+          }
+
+          // validate address
+          if (!validateBtcAddress(item?.address, network)) {
+            newInvalidItemsMap.set(i, true);
+            continue;
+          }
+
+          // validate ticker
+          if (!item?.tick) {
+            newInvalidItemsMap.set(i, true);
+            continue;
+          }
+
+          try {
+            if (!_tokenMap[item?.tick]) {
+              const v = await walletProvider.getTapSummary(
+                account.address,
+                item?.tick,
+              );
+              // validate amount
+              if (!validateTapTokenAmount(item.amt, v.tokenInfo.decimal)) {
+                newInvalidItemsMap.set(i, true);
+                continue;
+              }
+
+              _tokenMap[item.tick] = {
+                availableBalance: BigNumber(v.tokenBalance.availableBalance),
+                sendAmount: BigNumber(item.amt) || BigNumber(0),
+                tokenInfo: v.tokenInfo,
+              };
+            } else {
+              // validate amount
+              if (
+                !validateTapTokenAmount(
+                  item.amt,
+                  _tokenMap[item.tick].tokenInfo.decimal,
+                )
+              ) {
+                newInvalidItemsMap.set(i, true);
+                continue;
+              }
+
+              _tokenMap[item.tick].sendAmount = _tokenMap[
+                item.tick
+              ].sendAmount.plus(BigNumber(item.amt));
+            }
+          } catch (error) {
+            console.error('Error processing item:', error);
+            newInvalidItemsMap.set(i, true);
+            continue;
+          }
+        }
+
+        setInvalidItemsMap(newInvalidItemsMap);
+        setTokenMap(_tokenMap);
+      } catch (error) {
+        console.error('Error in fetchTokenInfo:', error);
+        rejectApproval('Error processing items');
+      } finally {
+        updateContextData({isLoading: false});
+        setValidated(true);
+      }
+    };
+
+    fetchTokenInfo();
+  }, []);
+
+  // validate sufficient balance for each item on tokenMap
+  useEffect(() => {
+    try {
+      const insufficient: string[] = [];
+      for (const [key, value] of Object.entries(tokenMap)) {
+        if (value.sendAmount.gt(value.availableBalance)) {
+          insufficient.push(key);
+        }
+      }
+      setInsufficientTokens(insufficient);
+    } catch (error) {
+      console.error('Error checking balances:', error);
+      rejectApproval('Error checking token balances');
+    }
+  }, [tokenMap]);
+
+  // after validated, rejectApproval if insufficient tokens or invalid indexs
+  useEffect(() => {
+    if (!validated) {
+      return;
+    }
+
+    // skip if all things are good
+    if (insufficientTokens.length === 0 && invalidItemsMap.size === 0) {
+      return;
+    }
+
+    const tokenList = insufficientTokens.join(', ');
+    const indexList = Array.from(invalidItemsMap.keys())
+      .map(i => `item #${i}`)
+      .join(', ');
+
+    const message =
+      'Transaction cannot be processed due to the following issues:\n\n' +
+      (insufficientTokens.length
+        ? `• Insufficient amount for tokens: ${tokenList}\n`
+        : '') +
+      (invalidItemsMap.size
+        ? `• Invalid one of the following parameters(address, tick, amt) at: ${indexList}\n`
+        : '');
+    rejectApproval(message);
+  }, [validated, insufficientTokens, invalidItemsMap]);
+
+  // generate redeem content
+  useEffect(() => {
+    if (!validated) {
+      return;
+    }
+
+    if (!contextData.currentAuthority) {
+      return;
+    }
+
+    const message = {
+      items: contextData.items,
+      auth: contextData.currentAuthority?.ins,
+      data: '',
+    };
+
+    walletProvider.generateTokenAuth(message, 'redeem').then(redeemContent => {
+      updateContextData({redeemContent});
+    });
+  }, [validated, contextData.currentAuthority]);
+
+  // check conditions for disable button
+  useEffect(() => {
     updateContextData({disableBtn: true});
 
-    if (!contextData.transferAmount) {
-      return;
-    }
-
-    const amount = new BigNumber(contextData.transferAmount);
-    if (!amount) {
-      return;
-    }
-
-    if (!contextData.tokenBalance?.ticker) {
-      return;
-    }
-
-    if (amount.lte(0)) {
-      rejectApproval('Amount must be greater than 0');
-      return;
-    }
-
-    if (amount.gt(contextData.tokenBalance?.availableBalance)) {
-      rejectApproval('Insufficient Balance');
-      // setInputError('Insufficient Balance');
-      return;
-    }
-
     if (contextData.feeRate <= 0) {
-      return;
-    }
-
-    if (contextData.outputValue < dust) {
-      setInputError(`OutputValue must be at least ${dust}`);
       return;
     }
 
@@ -172,108 +290,36 @@ export const Step1 = ({
       return;
     }
 
+    if (!validated) {
+      return;
+    }
+
+    if (!contextData.redeemContent) {
+      return;
+    }
+
     updateContextData({disableBtn: false});
   }, [
-    contextData.transferAmount,
     contextData.feeRate,
     contextData.outputValue,
-    contextData.tokenBalance,
+    contextData.redeemContent,
+    validated,
   ]);
 
-  useEffect(() => {
-    try {
-      updateContextData({isLoading: true});
-      fetchUtxos();
-      walletProvider
-        .getTapSummary(account.address, contextData.ticker)
-        .then(v => {
-          updateContextData({
-            tokenBalance: v.tokenBalance,
-            tokenInfo: v.tokenInfo,
-          });
-        })
-        .catch(e => {
-          showToast({type: 'error', title: e.message});
-          rejectApproval(e.message);
-        });
-    } catch (e) {
-      showToast({type: 'error', title: e.message});
-      rejectApproval(e.message);
-    } finally {
-      updateContextData({isLoading: false});
-    }
-  }, []);
-
-  const {tokenBalance} = contextData;
-
-  const availableToken = useMemo(() => {
-    if (tokenBalance) {
-      return tokenBalance.availableBalance;
-    }
-    return '0';
-  }, [tokenBalance]);
-
   return (
-    <UX.Box spacing="xxl">
-      <UX.Box spacing="xss">
-        <UX.Box layout="row_between">
-          <UX.Text
-            styleType="heading_16"
-            customStyles={{color: 'white'}}
-            title="Available"
-          />
-          <UX.Box layout="row" spacing="xs">
-            <UX.Text
-              title={availableToken}
-              styleType="body_12_bold"
-              customStyles={{color: colors.white}}
-            />
-            <UX.Text
-              title={tokenBalance.ticker}
-              styleType="body_12_bold"
-              customStyles={{color: colors.main_500}}
-            />
-          </UX.Box>
-        </UX.Box>
-        {/* disable edit amount */}
-        <UX.AmountInput
-          defaultValue={contextData.transferAmount}
-          style={{
-            fontSize: '24px',
-            lineHeight: '32px',
-            backgroundColor: 'transparent',
-          }}
+    <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
+      <UX.Box layout="column" spacing="xss">
+        <UX.Text styleType="body_16_bold" title={'Preview'} />
+        <UX.TextArea
+          className="textareaWidth"
+          placeholder={contextData.redeemContent?.proto}
+          height="200px"
           disabled={true}
-          value={contextData.transferAmount}
-          onAmountInputChange={amount => {
-            updateContextData({transferAmount: amount});
-          }}
-          disableCoinSvg
-        />
-        {inputError && (
-          <UX.Text
-            styleType="body_12_bold"
-            customStyles={{color: colors.red_700}}
-            title={inputError}
-          />
-        )}
-      </UX.Box>
-
-      <UX.Box spacing="xss">
-        <UX.Text
-          styleType="heading_16"
-          customStyles={{color: 'white'}}
-          title="OutputValue"
-        />
-        <OutputValueBar
-          defaultValue={defaultOutputValue}
-          minValue={dust}
-          onChange={val => {
-            updateContextData({outputValue: val});
-          }}
+          customStyles={{width: '100%'}}
+          style={{display: 'flex', width: '100%'}}
         />
       </UX.Box>
-      <UX.Box spacing="xss">
+      <UX.Box layout="column" spacing="xss">
         <UX.Text
           styleType="heading_16"
           customStyles={{color: 'white'}}
@@ -295,7 +341,7 @@ export const Step2 = ({
   contextData: ContextData;
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
-  const {order, transferAmount, rawTxInfo} = contextData;
+  const {order, rawTxInfo} = contextData;
   const fee = rawTxInfo?.fee || 0;
 
   const networkFee = useMemo(() => satoshisToAmount(fee), [fee]);
@@ -317,14 +363,14 @@ export const Step2 = ({
   );
   return (
     <UX.Box spacing="xxl">
-      <UX.Box layout="row_center" spacing="xs">
+      {/* <UX.Box layout="row_center" spacing="xs">
         <UX.Text title={transferAmount} styleType="heading_16" />
         <UX.Text
           title={contextData.ticker}
           styleType="heading_16"
           customStyles={{color: colors.main_500}}
         />
-      </UX.Box>
+      </UX.Box> */}
       <UX.Box spacing="xs" style={{margin: '16px 0'}}>
         <UX.Text
           title="Preview"
@@ -339,9 +385,9 @@ export const Step2 = ({
             border: '1px solid rgb(84, 84, 84)',
             backgroundColor: 'rgba(39, 39, 39, 0.42)',
           }}>
-          {contextData.order?.files?.length
-            ? contextData.order.files[0].filename
-            : `{"p":"tap-token","op":"transfer","tick":"${contextData.ticker}","amount":${transferAmount},"addr":"${contextData.addr}","dta":"${contextData.dta}"}`}
+          {contextData.redeemContent?.proto
+            ? contextData.redeemContent.proto
+            : ''}
         </div>
         {/* <UX.Box layout="box">
           <UX.Text
@@ -505,23 +551,6 @@ export const Step3 = ({
         </UX.Box>
       </UX.Box>
       <UX.Box>
-        {/* <UX.Box layout="box" spacing="xl">
-            <UX.Box layout="row_between">
-                <UX.Text title="Spend amount" styleType="body_14_normal" />
-                <UX.Text
-                title={`${totalFee} BTC`}
-                styleType="body_14_normal"
-                customStyles={{color: 'white'}}
-                />
-            </UX.Box>
-            <UX.Box layout="row_end" spacing="xss_s">
-                <UX.Text title="≈" styleType="body_14_normal" />
-                <UX.Text
-                title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
-                styleType="body_14_normal"
-                />
-            </UX.Box>
-            </UX.Box> */}
         <UX.Box layout="row_between">
           <UX.Text title="Network fee" styleType="body_14_normal" />
           <UX.Text
@@ -569,7 +598,7 @@ export const Step3 = ({
                         color: colors.main_500,
                         background: colors.main_100,
                         border: '1px solid #D16B7C',
-                        padding: '0 8px',
+                        padding: '0 5px',
                         borderRadius: '24px',
                       }}
                     />
@@ -711,158 +740,28 @@ export const Step4 = ({
   );
 };
 
-// export const Step5 = ({
-//   contextData,
-//   updateContextData,
-// }: {
-//   contextData: ContextData;
-//   updateContextData: (params: UpdateContextDataParams) => void;
-// }) => {
-//   const {tokenBalance, order} = contextData;
-//   const wallet = useWalletProvider();
-//   const {showToast} = useCustomToast();
-
-//   const account = useAppSelector(AccountSelector.activeAccount);
-//   const [, resolveApproval] = useApproval();
-//   const [result, setResult] = useState<any>();
-//   const timeCount = useRef(0);
-
-//   const checkResult = async () => {
-//     let _result: any = null;
-//     try {
-//       _result = await wallet.getTapSummary(account.address, contextData.ticker);
-//     } catch (e) {
-//       const txError = (e as any).message || '';
-//       if (timeCount.current >= 3) {
-//         showToast({
-//           title: txError,
-//           type: 'error',
-//         });
-//       }
-//     }
-
-//     if (!_result && timeCount.current < 3) {
-//       timeCount.current++;
-//       setTimeout(checkResult, 2000);
-//       return;
-//     }
-
-//     setResult(_result);
-//   };
-
-//   useEffect(() => {
-//     checkResult();
-//   }, []);
-
-//   const onClickConfirm = useCallback(async () => {
-//     // tools.showLoading(true);
-//     wallet
-//       .getTapSummary(account.address, tokenBalance.ticker)
-//       .then(() => {
-//         resolveApproval({
-//           inscriptionId: result?.inscriptionId,
-//           inscriptionNumber: result?.inscriptionNumber,
-//           ticker: tokenBalance.ticker,
-//           amount: result?.amount,
-//         });
-//       })
-//       .finally(() => {
-//         // tools.showLoading(false);
-//       });
-//   }, [result, account, tokenBalance]);
-
-//   useEffect(() => {
-//     updateContextData({handleConfirmDone: onClickConfirm});
-//   }, [result, account, tokenBalance]);
-
-//   if (!result) {
-//     return (
-//       <UX.Box layout="column" style={{marginTop: '7rem'}} spacing="xl">
-//         <UX.Box layout="column_center" spacing="xl">
-//           <SVG.SendSuccessIcon />
-//           <UX.Text
-//             title="Payment Sent"
-//             styleType="heading_24"
-//             customStyles={{
-//               marginTop: '16px',
-//             }}
-//           />
-//           <UX.Text
-//             title={'Your transaction has been successfully sent'}
-//             styleType="body_16_normal"
-//             customStyles={{textAlign: 'center'}}
-//           />
-//         </UX.Box>
-//       </UX.Box>
-//     );
-//   }
-//   return (
-//     <UX.Box spacing="xxl">
-//       <UX.Box>
-//         <InscriptionPreview data={result?.inscription} preset="medium" />
-//       </UX.Box>
-//       <UX.Text
-//         title="The transferable and available balance of Tap will be refresh in a few minutes"
-//         styleType="body_14_normal"
-//         customStyles={{color: colors.white, textAlign: 'center'}}
-//       />
-//     </UX.Box>
-//   );
-// };
-
 export default function SingleTxTransfer({params: {data, session}}: Props) {
   const prepareSendBTC = usePrepareSendBTCCallback();
   const walletProvider = useWalletProvider();
   const [, , rejectApproval] = useApproval();
-  const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
-  const networkType = useAppSelector(GlobalSelector.networkType);
   const account = useAppSelector(AccountSelector.activeAccount);
 
-  if (!data.addr) {
-    rejectApproval('Missing receiver address');
-    return;
-  } else {
-    const isValid = validateBtcAddress(data.addr, networkType);
-    if (!isValid) {
-      rejectApproval('Invalid receiver address');
-      return;
-    }
-  }
-
-  if (!data.ticker) {
-    rejectApproval('Missing ticker');
-    return;
-  }
-
-  if (!Number(data.amount)) {
-    rejectApproval('Invalid amount');
+  // check items is empty or invalid type
+  if (!data?.items?.length || !Array.isArray(data.items)) {
+    rejectApproval('Invalid items');
     return;
   }
 
   //! State
   const [contextData, setContextData] = useState<ContextData>({
     tabKey: TabKey.STEP1,
-    ticker: data.ticker,
-    tokenBalance: {} as TokenBalance,
-    transferAmount: data.amount,
+    items: data.items,
     session,
-    addr: data.addr,
-    dta: data.dta,
-    inscriptionIdSet: new Set([]),
     feeRate: 5,
     outputValue: defaultOutputValue,
-    receiver: '',
     rawTxInfo: {
       psbtHex: '',
       rawtx: '',
-    },
-    tokenInfo: {
-      totalSupply: '0',
-      totalMinted: '0',
-      decimal: 18,
-      holder: '',
-      inscriptionId: '',
-      dmt: false,
     },
     disableBtn: true,
     isLoading: false,
@@ -922,7 +821,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
           rejectApproval('No authority found');
           return;
         }
-        setCurrentAuthority(v);
+        updateContextData({currentAuthority: v});
       })
       .finally(() => {
         updateContextData({isLoading: false});
@@ -932,37 +831,12 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
   const {showToast} = useCustomToast();
   const onClickInscribe = useCallback(async () => {
     try {
-      const item: any = {
-        tick: contextData.ticker,
-        amt: contextData.transferAmount?.toString(),
-        address: contextData.addr,
-      };
-      if (contextData.dta) {
-        item.dta = contextData.dta;
-      }
-
-      let auth = currentAuthority?.ins;
-      if (!auth) {
-        const _currentAuthority = await walletProvider.getCurrentAuthority(
-          account.address,
-        );
-        auth = _currentAuthority?.ins;
-      }
-
-      const message = {
-        items: [item],
-        auth,
-        data: '',
-      };
       // tools.showLoading(true)
       updateContextData({isLoading: true});
-      const redeemContent = await walletProvider.generateTokenAuth(
-        message,
-        'redeem',
-      );
+
       const order = await walletProvider.createOrderRedeem(
         account.address,
-        redeemContent.proto,
+        contextData.redeemContent?.proto,
         contextData.feeRate,
         contextData.outputValue,
       );
@@ -987,7 +861,9 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
   }, [
     contextData.feeRate,
     contextData.outputValue,
-    contextData.transferAmount,
+    contextData.items,
+    account.address,
+    contextData.redeemContent,
   ]);
 
   const footer = useMemo(() => {
@@ -1006,7 +882,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
               styleType="primary"
               isDisable={
                 contextData.disableBtn ||
-                !currentAuthority?.ins ||
+                !contextData.currentAuthority?.ins ||
                 contextData.isLoading
               }
               onClick={onClickInscribe}
@@ -1065,35 +941,24 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
             customStyles={{flex: 1}}
           />
         );
-      case TabKey.STEP5:
-        return (
-          <UX.Button
-            title="Done"
-            styleType="primary"
-            onClick={contextData.handleConfirmDone}
-            customStyles={{flex: 1}}
-          />
-        );
     }
   }, [
     contextData.feeRate,
     contextData.outputValue,
-    contextData.transferAmount,
     contextData.tabKey,
     contextData.disableBtn,
     contextData.handleSubmitTx,
-    contextData.handleConfirmDone,
   ]);
-
-  if (contextData.isLoading) {
-    console.log('isLoading', contextData.isLoading);
-    return <UX.Loading />;
-  }
 
   return (
     <LayoutTap
       header={<WebsiteBar session={contextData.session} />}
-      body={<UX.Box style={{width: '100%'}}>{component}</UX.Box>}
+      body={
+        <UX.Box style={{width: '100%'}}>
+          {component}
+          {contextData.isLoading && <UX.Loading />}
+        </UX.Box>
+      }
       footer={footer}
     />
   );

@@ -10,7 +10,13 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@/src/ui/utils';
-import {OrderType, TokenAuthority, TokenBalance} from '@/src/wallet-instance';
+import {
+  InscribeOrder,
+  OrderType,
+  TappingStatus,
+  TokenAuthority,
+  TokenBalance,
+} from '@/src/wallet-instance';
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -40,31 +46,75 @@ const TapListChild = () => {
     pageSize: TOKEN_PAGE_SIZE,
   });
   const [currentAuthority, setCurrentAuthority] = useState<TokenAuthority>();
-  const [haveAuthorityNeedTap, setHaveAuthorityNeedTap] = useState(false);
+  const [orderNeedTap, setOrderNeedTap] = useState<InscribeOrder | null>();
+  const [orderAuthorityPending, setOrderAuthorityPending] =
+    useState<InscribeOrder | null>();
+  const [isGettingAuthorityStatus, setIsGettingAuthorityStatus] =
+    useState(false);
 
   const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
+
+  const fetchAuthorityOrders = async () => {
+    const orders = await walletProvider.getAuthorityOrders(
+      activeAccount.address,
+    );
+    const pendingAuthorityOrder = orders?.length ? orders[0] : null;
+    if (pendingAuthorityOrder) {
+      // check authority is canceled or not
+      const isCanceled = await walletProvider.getAuthorityCanceled(
+        pendingAuthorityOrder.files[0].inscriptionId,
+      );
+      if (!isCanceled) {
+        setOrderAuthorityPending(pendingAuthorityOrder);
+        return;
+      }
+    }
+    setOrderNeedTap(null);
+  };
 
   const fetchHaveAuthorityNeedTap = async () => {
     const orders = await walletProvider.getOrderReadyToTap(
       activeAccount.address,
       OrderType.AUTHORITY,
     );
-    setHaveAuthorityNeedTap(orders?.length > 0);
+    let orderNeedTap = orders?.length ? orders[0] : null;
+    if (orderNeedTap) {
+      const isCanceled = await walletProvider.getAuthorityCanceled(
+        orderNeedTap.files[0].inscriptionId,
+      );
+      if (isCanceled) {
+        orderNeedTap = null;
+      }
+    }
+    setOrderNeedTap(orderNeedTap);
+    return orderNeedTap;
   };
 
   // fetch current authority
   useEffect(() => {
     const fetchCurrentAuthority = async () => {
-      const authority = await walletProvider.getCurrentAuthority(
-        activeAccount.address,
-      );
-      setCurrentAuthority(authority);
-      // update current authority
-      dispatch(AccountActions.setCurrentAuthority(authority));
+      try {
+        setIsGettingAuthorityStatus(true);
+        const authority = await walletProvider.getCurrentAuthority(
+          activeAccount.address,
+        );
+        setCurrentAuthority(authority);
+        // update current authority
+        dispatch(AccountActions.setCurrentAuthority(authority));
 
-      // trigger fetch have authority need tap
-      if (!authority) {
-        fetchHaveAuthorityNeedTap();
+        // trigger fetch have authority need tap
+        if (!authority) {
+          const orderNeedTap = await fetchHaveAuthorityNeedTap();
+
+          // if have no order need tap, fetch authority order tapping or creating
+          if (!orderNeedTap) {
+            await fetchAuthorityOrders();
+          }
+        }
+      } catch (error) {
+        console.log('error', error);
+      } finally {
+        setIsGettingAuthorityStatus(false);
       }
     };
     fetchCurrentAuthority();
@@ -141,6 +191,24 @@ const TapListChild = () => {
     setTapItem(tapList);
   }, [tapList.length]);
 
+  const mangeAuthorityTitle = useMemo(() => {
+    if (isGettingAuthorityStatus) {
+      return 'Loading...';
+    }
+    if (orderNeedTap) {
+      return 'Confirm your 1-TX Transfer NOW';
+    }
+    if (currentAuthority || orderAuthorityPending) {
+      return 'Manage Authority';
+    }
+    return 'Enable 1-TX Transfer';
+  }, [
+    currentAuthority,
+    orderNeedTap,
+    orderAuthorityPending,
+    isGettingAuthorityStatus,
+  ]);
+
   // fetch all tap token
   useEffect(() => {
     setLoading(true);
@@ -179,43 +247,50 @@ const TapListChild = () => {
           value={tokenValue}
         />
       </UX.Box>
-      <UX.Box
-        layout="box_border"
-        style={{cursor: 'pointer'}}
-        onClick={() => {
-          if (currentAuthority) {
-            navigate('/authority-detail', {
-              state: {
-                inscriptionId: currentAuthority?.ins,
-                auth: currentAuthority?.auth,
-              },
-            });
-          } else {
-            navigate('/handle-create-authority', {
-              state: {
-                type: 'create',
-              },
-            });
-          }
-        }}>
-        <UX.Text
-          title={
-            currentAuthority
-              ? 'Manage Authority'
-              : haveAuthorityNeedTap
-                ? 'Confirm your 1-TX Transfer NOW'
-                : 'Enable 1-TX Transfer'
-          }
-          styleType="body_16_bold"
-        />
-        <SVG.ArrowIconRight width={23} height={18} />
-      </UX.Box>
-      {currentAuthority && (
+
+      {currentAuthority ? (
         <UX.Button
           styleType={'primary'}
           title="1-TX Transfer"
           onClick={() => navigate('/transfer-authority')}
         />
+      ) : (
+        <UX.Box
+          layout="box_border"
+          style={{cursor: 'pointer'}}
+          onClick={() => {
+            if (orderNeedTap) {
+              navigate('/authority-detail', {
+                state: {
+                  inscriptionId: orderNeedTap.files[0].inscriptionId,
+                  order: orderNeedTap,
+                },
+              });
+            } else if (orderAuthorityPending) {
+              // if authority is tapping, navigate to authority detail
+              if (
+                orderAuthorityPending.tappingStatus === TappingStatus.TAPPING
+              ) {
+                navigate('/authority-detail', {
+                  state: {
+                    inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+                    order: orderAuthorityPending,
+                  },
+                });
+              } else {
+                // if authority is not tapping, navigate to authority warning
+                navigate('/authority-warning');
+              }
+            } else if (isGettingAuthorityStatus) {
+              // disable button
+              return;
+            } else {
+              navigate('/handle-create-authority');
+            }
+          }}>
+          <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />
+          <SVG.ArrowIconRight width={23} height={18} />
+        </UX.Box>
       )}
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>

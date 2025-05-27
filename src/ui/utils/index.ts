@@ -49,7 +49,7 @@ export function convertTimestampToDeviceTime(timestamp: number) {
   return date;
 }
 
-export function getTxIdUrl(txid: string,network: Network) {
+export function getTxIdUrl(txid: string, network: Network) {
   if (network === Network.MAINNET) {
     return `https://mempool.space/tx/${txid}`;
   } else {
@@ -57,7 +57,7 @@ export function getTxIdUrl(txid: string,network: Network) {
   }
 }
 
-export function getInsUrl(insId: string,network: Network) {
+export function getInsUrl(insId: string, network: Network) {
   if (network === Network.MAINNET) {
     return `https://ordiscan.com/inscription/${insId}`;
   } else {
@@ -94,6 +94,27 @@ export const validateAmountInput = (value: string, type: AmountInput) => {
     default:
       return /^\d*\.?\d{0,8}$/.test(value);
   }
+};
+
+export const isValidAmount = (value: string): boolean => {
+  if (typeof value !== 'string') return false;
+
+  const trimmed = value.trim();
+
+  // Reject empty string
+  if (trimmed === '') return false;
+
+  // Use a strict regex to allow only valid number formats (optional decimal)
+  const validNumberPattern = /^\d+(\.\d+)?$/;
+
+  return validNumberPattern.test(trimmed) && isFinite(Number(trimmed));
+};
+
+export const validateTapTokenAmount = (value: string, decimals?: number) => {
+  const validateAmount = isValidAmount(value);
+  if (!validateAmount) return false;
+  const parts = value.toString().split('.');
+  return parts.length === 1 || parts[1].length <= decimals;
 };
 
 export async function sleep(timeSec: number) {

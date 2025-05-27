@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 
@@ -19,6 +19,16 @@ const DrawerCustom = (props: IDrawerProps) => {
     style,
     className,
   } = props;
+
+  useEffect(() => {
+    if (!open) {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
 
   return (
     <Drawer

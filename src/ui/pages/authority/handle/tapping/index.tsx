@@ -7,6 +7,7 @@ import {InscribeOrder} from '@/src/wallet-instance/types';
 import {useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
+import { useCustomToast } from '@/src/ui/component/toast-custom';
 
 const HandleTappingAuthority = () => {
   //! State
@@ -14,7 +15,7 @@ const HandleTappingAuthority = () => {
   const location = useLocation();
   const prepareSendOrdinalsInscription =
     usePrepareSendOrdinalsInscriptionCallback();
-
+  const {showToast} = useCustomToast();
   type LocationState = {
     inscriptionId: string;
     order?: InscribeOrder;
@@ -46,6 +47,10 @@ const HandleTappingAuthority = () => {
         state: {rawTxInfo, order},
       });
     } catch (error) {
+      showToast({
+        title: error.message || 'Failed to tap authority',
+        type: 'error',
+      });
       console.log('error :>> ', error);
     }
     setLoading(false);

@@ -73,7 +73,7 @@ const LazyIframe = forwardRef<HTMLIFrameElement, IframeProps>(
     }, []);
 
     return (
-      <div ref={containerRef} style={{ minHeight: style?.height || '300px' }}>
+      <div ref={containerRef}>
         {isVisible && (
           <iframe
             ref={ref}

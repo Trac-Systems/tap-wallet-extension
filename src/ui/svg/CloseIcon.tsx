@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 
 interface CloseIconProps {
   width?: number;
   height?: number;
   color?: string;
+  style?: CSSProperties
+  onClick?: () => void
 }
 
 const CloseIcon: React.FC<CloseIconProps> = ({
   width = 20,
   height = 20,
   color = '#ffffff',
+  style,
+  onClick
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +21,10 @@ const CloseIcon: React.FC<CloseIconProps> = ({
     y="0px"
     width={width}
     height={height}
-    viewBox="0 0 256 256">
+    viewBox="0 0 256 256"
+    style={style}
+    onClick={onClick}
+    >
     <g
       fill={color}
       fillRule="nonzero"

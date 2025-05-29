@@ -1,27 +1,28 @@
-import {useEffect, useState} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
-import {UX} from '../../component';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { UX } from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
-import {SVG} from '../../svg';
-import {colors} from '../../themes/color';
-import {FeeRateBar} from '../send-receive/component/fee-rate-bar';
-import {useAppSelector, validateBtcAddress} from '../../utils';
-import {InscriptionSelector} from '../../redux/reducer/inscription/selector';
+import { SVG } from '../../svg';
+import { colors } from '../../themes/color';
+import { FeeRateBar } from '../send-receive/component/fee-rate-bar';
+import { useAppSelector, validateBtcAddress } from '../../utils';
+import { InscriptionSelector } from '../../redux/reducer/inscription/selector';
 import Text from '../../component/text-custom';
-import {GlobalSelector} from '../../redux/reducer/global/selector';
-import {useWalletProvider} from '../../gateway/wallet-provider';
-import {AccountSelector} from '../../redux/reducer/account/selector';
-import {usePrepareSendBTCCallback} from '../send-receive/hook';
-import {useCustomToast} from '../../component/toast-custom';
-import {OrderType} from '@/src/wallet-instance/types';
+import { GlobalSelector } from '../../redux/reducer/global/selector';
+import { useWalletProvider } from '../../gateway/wallet-provider';
+import { AccountSelector } from '../../redux/reducer/account/selector';
+import { usePrepareSendBTCCallback } from '../send-receive/hook';
+import { useCustomToast } from '../../component/toast-custom';
+import { InscribeOrder, InscriptionOrdClient, OrderType, TappingStatus } from '@/src/wallet-instance/types';
+import CloseIcon from '../../svg/CloseIcon';
 
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
   const location = useLocation();
   const walletProvider = useWalletProvider();
-  const {showToast} = useCustomToast();
-  const {state} = location;
+  const { showToast } = useCustomToast();
+  const { state } = location;
   const ticker = state?.ticker;
   const [feeRate, setFeeRate] = useState('');
   const [tokenSections, setTokenSections] = useState([
@@ -36,13 +37,73 @@ const TransferAuthority = () => {
   ]);
   const [listTapList, setListTapList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isWaitingCancel, setIsWaitingCancel] = useState(false);
+  const [inscriptionInfo, setInscriptionInfo] =
+    useState<InscriptionOrdClient | null>(null);
+
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const networkType = useAppSelector(GlobalSelector.networkType);
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
-  const auth = currentAuthority.ins;
+  const auth = currentAuthority?.ins;
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const prepareSendBTC = usePrepareSendBTCCallback();
   const tokens = currentAuthority?.auth || [];
+  const order = state?.order as InscribeOrder;
+
+
+  const inscriptionId = state?.inscriptionId || currentAuthority?.ins;
+  const inscriptionStatus = useMemo(() => {
+    if (
+      Array.isArray(auth) ||
+      currentAuthority?.ins === inscriptionId ||
+      inscriptionInfo?.id === currentAuthority?.ins
+    ) {
+      return 'TAPPED';
+    }
+
+    if (order?.tappingStatus === TappingStatus.TAPPING) {
+      return 'TAPPING';
+    }
+    const satpointTxid = inscriptionInfo?.satpoint?.split(':')[0];
+    const inscriptionTxid = inscriptionId?.split('i')[0];
+
+    if (inscriptionInfo?.height === 0) {
+      return satpointTxid === inscriptionTxid ? 'UNCONFIRMED' : 'TAPPING';
+    } else {
+      return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
+    }
+  }, [auth, inscriptionInfo]);
+
+   // get token info
+   useEffect(() => {
+    const getTokenInfo = async () => {
+      const ins = await walletProvider.getInscriptionInfoOrdClient(inscriptionId);
+      setInscriptionInfo(ins);
+    };
+    if (inscriptionId) {
+      try {
+        setLoading(true);
+        getTokenInfo();
+      } catch (error) {
+        console.log('error :>> ', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [inscriptionId]);
+
+  // get cancel authority order
+  useEffect(() => {
+    if (inscriptionStatus === 'TAPPED') {
+      const getCancelAuthority = async () => {
+        const order = await walletProvider.getCancelAuthority(inscriptionId);
+        if (order) {
+          setIsWaitingCancel(true);
+        }
+      };
+      getCancelAuthority();
+    }
+  }, [inscriptionId, inscriptionStatus]);
 
   useEffect(() => {
     const listTapList = tapList.map(item => ({
@@ -89,7 +150,7 @@ const TransferAuthority = () => {
         546,
       );
       const rawTxInfo = await prepareSendBTC({
-        toAddressInfo: {address: order?.payAddress, domain: ''},
+        toAddressInfo: { address: order?.payAddress, domain: '' },
         toAmount: order?.totalFee,
         feeRate: order?.feeRate || Number(feeRate),
         enableRBF: false,
@@ -163,7 +224,7 @@ const TransferAuthority = () => {
 
     const newSections = tokenSections.map(item => {
       if (item.id === section.id) {
-        return {...item, amount, errorAmount};
+        return { ...item, amount, errorAmount };
       }
       return item;
     });
@@ -188,7 +249,7 @@ const TransferAuthority = () => {
       const newSections = [...prev];
       return newSections.map(section => {
         if (section.id === id) {
-          return {...section, address, errorAddress};
+          return { ...section, address, errorAddress };
         }
         return section;
       });
@@ -212,7 +273,7 @@ const TransferAuthority = () => {
       } else {
         errorAddress = '';
       }
-      return {...section, errorAmount, errorAddress};
+      return { ...section, errorAmount, errorAddress };
     });
     const isValid = newSections.every(section => {
       return !section.errorAmount && !section.errorAddress;
@@ -232,12 +293,12 @@ const TransferAuthority = () => {
     const amount = selectedOption?.amount || 0;
 
     return (
-      <UX.Box spacing="xl" style={{width: '100%'}} key={section.id}>
+      <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
         <UX.Box spacing="xss">
           <UX.Text
             title="Token name"
             styleType="body_16_extra_bold"
-            customStyles={{color: 'white'}}
+            customStyles={{ color: 'white' }}
           />
           <UX.Dropdown
             options={listTapList}
@@ -267,7 +328,7 @@ const TransferAuthority = () => {
               <UX.Text
                 title={`${amount} ${section.selected}`}
                 styleType="body_14_bold"
-                customStyles={{color: colors.green_500}}
+                customStyles={{ color: colors.green_500 }}
               />
             </UX.Box>
           )}
@@ -276,7 +337,7 @@ const TransferAuthority = () => {
           <UX.Text
             title="Amount"
             styleType="body_16_extra_bold"
-            customStyles={{color: 'white'}}
+            customStyles={{ color: 'white' }}
           />
           <UX.AmountInput
             style={{
@@ -291,13 +352,13 @@ const TransferAuthority = () => {
               onAmountChange(section, cleanText);
             }}
             value={section?.amount?.toString()}
-            onAmountInputChange={amount => {}}
+            onAmountInputChange={amount => { }}
           />
           {section.errorAmount && (
             <Text
               title={section.errorAmount}
               styleType="body_14_bold"
-              customStyles={{color: colors.red_500, marginTop: '4px'}}
+              customStyles={{ color: colors.red_500, marginTop: '4px' }}
             />
           )}
         </UX.Box>
@@ -305,7 +366,7 @@ const TransferAuthority = () => {
           <UX.Text
             title="Receiver"
             styleType="body_16_extra_bold"
-            customStyles={{color: 'white'}}
+            customStyles={{ color: 'white' }}
           />
           <UX.Input
             placeholder="Receiver address"
@@ -324,7 +385,7 @@ const TransferAuthority = () => {
             <Text
               title={section.errorAddress}
               styleType="body_14_bold"
-              customStyles={{color: colors.red_500, marginTop: '4px'}}
+              customStyles={{ color: colors.red_500, marginTop: '4px' }}
             />
           )}
         </UX.Box>
@@ -337,7 +398,7 @@ const TransferAuthority = () => {
     <LayoutSendReceive
       header={<UX.TextHeader text="1-TX Transfer" onBackClick={handleGoBack} />}
       body={
-        <UX.Box style={{width: '100%'}} spacing="xl">
+        <UX.Box style={{ width: '100%', paddingBottom: isWaitingCancel ? '80px' : 0 }} spacing="xl">
           {tokenSections.map((section, index) =>
             renderTokenSection(section, index),
           )}
@@ -345,19 +406,19 @@ const TransferAuthority = () => {
           <UX.Box
             layout="row"
             spacing="xss"
-            style={{cursor: 'pointer'}}
+            style={{ cursor: 'pointer' }}
             onClick={handleAddTokenSection}>
             <SVG.AddIcon color="#D16B7C" width={20} height={20} />
             <UX.Text
               styleType="body_14_bold"
               title="Transfer more token"
-              customStyles={{color: colors.main_500}}
+              customStyles={{ color: colors.main_500 }}
             />
           </UX.Box>
           <UX.Box spacing="xss">
             <UX.Text
               styleType="body_16_extra_bold"
-              customStyles={{color: 'white'}}
+              customStyles={{ color: 'white' }}
               title="Fee rate"
             />
             <FeeRateBar
@@ -376,9 +437,35 @@ const TransferAuthority = () => {
           style={{
             padding: '10px 0',
           }}>
+          {isWaitingCancel && (
+            <UX.Box
+              layout="box_border"
+              spacing="sm"
+              style={{
+                background: colors.red_700,
+                position: 'absolute',
+                bottom: 80,
+                left: 0,
+                right: 0,
+                zIndex: 2,
+              }}>
+                <CloseIcon style={{position: 'absolute', top: 5, right: 5, cursor: 'pointer', width: 16, height: 16}}
+                onClick={() => setIsWaitingCancel(false)}
+                />
+              <SVG.WaringIcon />
+              <UX.Text
+                styleType="body_14_bold"
+                customStyles={{ color: colors.white, maxWidth: '90%' }}
+                title={
+                  'To complete the cancellation of the authority, perform tapping with the inscription in the pending cancellation list.'
+                }
+              />
+            </UX.Box>
+          )}
           <UX.Button
             styleType="primary"
             title={'Next'}
+            customStyles={{zIndex: 2}}
             onClick={handleConfirm}
             isDisable={isDisabledForm || loading}
           />

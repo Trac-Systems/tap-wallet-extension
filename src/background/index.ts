@@ -13,7 +13,7 @@ import {internalProvide} from './internal';
 import {loadApi} from './requests';
 import {createTabs} from './browser-api/browser';
 import browser from 'webextension-polyfill';
-
+import {accountConfig} from './service/singleton';
 // Set Buffer globally
 globalThis.Buffer = Buffer;
 
@@ -40,6 +40,24 @@ browser.runtime.onConnect.addListener(port => {
     port.name === 'notification' ||
     port.name === 'tab'
   ) {
+    // check if popup closed
+    port.onDisconnect.addListener(async () => {
+      // check list pending orders
+      const account = accountConfig.getActiveAccount();
+      if (account) {
+        const pendingOrders = walletProvider.getAccountPendingOrders();
+        console.log('pendingOrders', pendingOrders);
+        // cancel pending orders
+        for (const orderId of pendingOrders) {
+          try {
+            await walletProvider.cancelOrder(orderId);
+          } catch (error) {
+            console.log('cancel order error', error);
+          }
+        }
+      }
+    });
+
     const pm = new PortMessage(port);
     pm.listen(data => {
       if (data?.type) {

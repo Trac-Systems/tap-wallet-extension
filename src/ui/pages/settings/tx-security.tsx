@@ -93,11 +93,17 @@ const TxSecurity = () => {
                 },
               });
             } else {
+              if (order?.id) {
+                await wallet.cancelOrder(order.id);
+              }
               navigate('/home/inscribe-result', {
                 state: {error},
               });
             }
           } catch (e: any) {
+            if (order?.id) {
+              await wallet.cancelOrder(order.id);
+            }
             showToast({
               title: e?.message || 'Unknown error',
               type: 'error',

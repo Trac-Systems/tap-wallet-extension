@@ -17,6 +17,7 @@ interface IMemStore {
   activeAccount?: IDisplayAccount;
   contactMap: {[key: string]: string};
   spendableInscriptions: {[key: string]: InscriptionMap};
+  pendingOrders: string[];
 }
 export class AccountConfigService {
   store!: IMemStore;
@@ -33,6 +34,7 @@ export class AccountConfigService {
       template: {
         contactMap: {},
         spendableInscriptions: {},
+        pendingOrders: [],
       },
     });
   }
@@ -100,14 +102,18 @@ export class AccountConfigService {
       return [];
     }
 
-    const accountInscriptions = this.store.spendableInscriptions[accountSpendableKey];
+    const accountInscriptions =
+      this.store.spendableInscriptions[accountSpendableKey];
     if (!accountInscriptions) {
       return [];
     }
     return Object.values(accountInscriptions);
   }
 
-  deleteAccountSpendableInscription(accountSpendableKey: string, inscriptionId: string) {
+  deleteAccountSpendableInscription(
+    accountSpendableKey: string,
+    inscriptionId: string,
+  ) {
     if (!this.store.spendableInscriptions) {
       return;
     }
@@ -116,7 +122,9 @@ export class AccountConfigService {
       return;
     }
 
-    if (!this.store.spendableInscriptions[accountSpendableKey]?.[inscriptionId]) {
+    if (
+      !this.store.spendableInscriptions[accountSpendableKey]?.[inscriptionId]
+    ) {
       return;
     }
 
@@ -131,7 +139,10 @@ export class AccountConfigService {
     };
   }
 
-  deleteSpendableUtxos(accountSpendableKey: string, spendUtxos: UnspentOutput[]) {
+  deleteSpendableUtxos(
+    accountSpendableKey: string,
+    spendUtxos: UnspentOutput[],
+  ) {
     if (!this.store.spendableInscriptions) {
       return;
     }
@@ -160,5 +171,36 @@ export class AccountConfigService {
       ...this.store.spendableInscriptions,
       [accountSpendableKey]: updatedInscriptions,
     };
+  }
+
+  getAccountPendingOrders() {
+    return this.store?.pendingOrders || [];
+  }
+
+  addAccountPendingOrder(orderId: string) {
+    if (!this.store?.pendingOrders) {
+      this.store.pendingOrders = [orderId];
+      return;
+    }
+    if (this.store.pendingOrders.includes(orderId)) {
+      return;
+    }
+    this.store.pendingOrders.push(orderId);
+  }
+
+  removeAccountPendingOrder(orderId: string) {
+    if (!this.store?.pendingOrders) {
+      return;
+    }
+    this.store.pendingOrders = this.store.pendingOrders.filter(
+      id => id !== orderId,
+    );
+  }
+
+  resetAccountPendingOrders() {
+    if (!this.store?.pendingOrders) {
+      return;
+    }
+    this.store.pendingOrders = [];
   }
 }

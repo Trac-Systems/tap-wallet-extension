@@ -188,6 +188,7 @@ export interface IWalletProvider {
   getAuthorityOrders(address: string): Promise<InscribeOrder[]>;
   paidOrder(orderId: string): Promise<void>;
   tappingOrder(orderId: string): Promise<void>;
+  cancelOrder(orderId: string): Promise<void>;
   getOrderReadyToTap(
     address: string,
     orderType: OrderType,

@@ -1,5 +1,6 @@
 import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
 import {
@@ -23,6 +24,7 @@ const InscribeConfirmScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {state} = location;
+  const walletProvider = useWalletProvider();
 
   const contextDataParam: ContextDataParam = state?.contextDataParam || {};
 
@@ -73,7 +75,10 @@ const InscribeConfirmScreen = () => {
   );
 
   const handleGoBack = () => {
-    navigate(-1);
+    // cancel order then go back
+    walletProvider.cancelOrder(contextDataParam?.order.id).then(() => {
+      navigate(-1);
+    });
   };
 
   const handleInscribeSign = () => {
@@ -85,6 +90,16 @@ const InscribeConfirmScreen = () => {
       },
     });
   };
+
+  const isFormDirty = true;
+  // this function only work for expand view, but not for popup view
+  // please do that for popup extension
+  window.addEventListener('beforeunload', function (e) {
+    if (isFormDirty) {
+      e.preventDefault();
+      e.returnValue = ''; // Trigger the popup
+    }
+  });
 
   return (
     <LayoutTap

@@ -40,6 +40,7 @@ import {
   ExtractPsbt,
   Inscription,
   OrderType,
+  InscribeOrder,
 } from '../wallet-instance';
 import {toXOnly} from 'bitcoinjs-lib/src/psbt/bip371';
 import {convertScriptToAddress} from '../shared/utils/btc-helper';
@@ -1056,15 +1057,15 @@ export class Provider {
     }
   };
 
-  createOrderTransfer = (
+  createOrderTransfer = async (
     address: string,
     tick: string,
     amount: string,
     feeRate: number,
     outputValue: number,
-  ) => {
+  ): Promise<InscribeOrder> => {
     const connectedAddress = this.getActiveAccount()?.address;
-    return this.inscribeApi.createOrderTapTransfer(
+    const order = await this.inscribeApi.createOrderTapTransfer(
       feeRate,
       outputValue,
       connectedAddress,
@@ -1072,31 +1073,39 @@ export class Provider {
       tick,
       amount,
     );
+
+    // add pending order
+    this.addAccountPendingOrder(order.id);
+    return order;
   };
 
-  createOrderAuthority = (
+  createOrderAuthority = async (
     address: string,
     content: string,
     feeRate: number,
     outputValue: number,
-  ) => {
-    return this.inscribeApi.createOrderText(
+  ): Promise<InscribeOrder> => {
+    const order = await this.inscribeApi.createOrderText(
       content,
       OrderType.AUTHORITY,
       address,
       feeRate,
       outputValue,
     );
+
+    // add pending order
+    this.addAccountPendingOrder(order.id);
+    return order;
   };
 
-  createOrderCancelAuthority = (
+  createOrderCancelAuthority = async (
     address: string,
     content: string,
     feeRate: number,
     outputValue: number,
     inscriptionAuthority?: string,
-  ) => {
-    return this.inscribeApi.createOrderText(
+  ): Promise<InscribeOrder> => {
+    const order = await this.inscribeApi.createOrderText(
       content,
       OrderType.CANCEL_AUTHORITY,
       address,
@@ -1104,21 +1113,29 @@ export class Provider {
       outputValue,
       inscriptionAuthority,
     );
+
+    // add pending order
+    this.addAccountPendingOrder(order.id);
+    return order;
   };
 
-  createOrderRedeem = (
+  createOrderRedeem = async (
     address: string,
     content: string,
     feeRate: number,
     outputValue: number,
-  ) => {
-    return this.inscribeApi.createOrderText(
+  ): Promise<InscribeOrder> => {
+    const order = await this.inscribeApi.createOrderText(
       content,
       OrderType.REDEEM,
       address,
       feeRate,
       outputValue,
     );
+
+    // add pending order
+    this.addAccountPendingOrder(order.id);
+    return order;
   };
 
   getAuthorityOrders = async (address: string) => {
@@ -1130,6 +1147,8 @@ export class Provider {
   };
 
   paidOrder = async (orderId: string) => {
+    // remove pending order
+    this.removeAccountPendingOrder(orderId);
     const headers = await this._generateHeaders();
     await this.inscribeApi.paidOrder(orderId, headers);
   };
@@ -1139,12 +1158,34 @@ export class Provider {
     await this.inscribeApi.tappingOrder(orderId, headers);
   };
 
+  cancelOrder = async (orderId: string) => {
+    this.removeAccountPendingOrder(orderId);
+    const headers = await this._generateHeaders();
+    await this.inscribeApi.cancelOrder(orderId, headers);
+  };
+
   getCancelAuthority = async (authorityInscriptionId: string) => {
     return await this.inscribeApi.getCancelAuthority(authorityInscriptionId);
   };
 
   getInscribeTapResult = (orderId: string) => {
     return this.paidApi.getInscribeTapResult(orderId);
+  };
+
+  getAccountPendingOrders = () => {
+    return accountConfig.getAccountPendingOrders();
+  };
+
+  addAccountPendingOrder = (orderId: string) => {
+    accountConfig.addAccountPendingOrder(orderId);
+  };
+
+  removeAccountPendingOrder = (orderId: string) => {
+    accountConfig.removeAccountPendingOrder(orderId);
+  };
+
+  resetAccountPendingOrders = () => {
+    accountConfig.resetAccountPendingOrders();
   };
 
   getApproval = notificationService.getApproval;

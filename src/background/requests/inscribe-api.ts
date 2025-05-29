@@ -128,6 +128,11 @@ export class InscribeApi {
     }
   }
 
+  // mark order as  cancel
+  async cancelOrder(orderId: string, headers?: any) {
+    await this.api.post(`/v1/inscribe/order/cancel/${orderId}`, {}, headers);
+  }
+
   // get cancel authority by authority inscription id
   async getCancelAuthority(authorityInscriptionId: string) {
     const res = await this.api.get(

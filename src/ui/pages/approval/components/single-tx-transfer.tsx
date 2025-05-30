@@ -911,7 +911,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         );
       case TabKey.STEP3:
         return (
-          <UX.Box layout="row" spacing="sm">
+          <UX.Box layout="row" spacing="sm" style={{paddingBottom: '10px'}}>
             <UX.Button
               title="Back"
               styleType="dark"

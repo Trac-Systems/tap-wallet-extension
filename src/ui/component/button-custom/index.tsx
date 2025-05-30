@@ -1,7 +1,8 @@
-import React, {CSSProperties} from 'react';
+import React, {CSSProperties, useState} from 'react';
 import Text from '../text-custom';
 import {colors} from '../../themes/color';
 import {SVG} from '../../svg';
+import { Loading } from '../loading-custom';
 
 const type: Record<string, CSSProperties> = {
   primary: {
@@ -98,6 +99,7 @@ const Button: React.FC<ButtonProps> = ({
   copy,
   withIcon,
 }) => {
+  const [loading, setLoading] = useState(false);
   const currentStyle = isDisable ? type.disabled : type[styleType];
   const withIconStyle = withIcon ? {...type[styleType], ...type.withIcon} : {};
   // Combine the styles
@@ -106,27 +108,44 @@ const Button: React.FC<ButtonProps> = ({
     ...customStyles,
     ...withIconStyle,
   };
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      await onClick();
+      setLoading(false);
+    } catch (error) {
+      setLoading(false)
+      throw error;
+    }
+  }
+
   if (isIcon) {
     return (
-      <div style={combinedStyles} onClick={onClick}>
+      <div style={combinedStyles} onClick={handleClick}>
         {svgIcon}
+        {loading && <Loading />}
       </div>
     );
   }
   if (withIcon) {
     return (
-      <div style={combinedStyles} onClick={onClick}>
+      <div style={combinedStyles} onClick={handleClick}>
         <Text
           styleType="body_16_bold"
           title={title ?? ''}
           customStyles={{color: copy ? colors.main_500 : colors.white}}
         />
         {svgIcon}
+        {loading && <Loading />}
       </div>
     );
   }
+
+  
+
   return (
-    <div style={combinedStyles} onClick={onClick}>
+    <div style={combinedStyles} onClick={handleClick}>
       <Text
         styleType="body_16_bold"
         title={title ?? ''}
@@ -135,6 +154,7 @@ const Button: React.FC<ButtonProps> = ({
         }}
       />
       {copy ? <SVG.CopyPink /> : null}
+      {loading && <Loading />}
     </div>
   );
 };

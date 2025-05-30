@@ -238,23 +238,6 @@ const SignConfirm = ({
               </UX.Box>
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
-              {/* <UX.Box>
-                <UX.Box layout="row_between">
-                  <UX.Text title="Spend amount" styleType="body_14_normal" />
-                  <UX.Text
-                    title={`${spendAmount} BTC`}
-                    styleType="body_14_normal"
-                    customStyles={{color: 'white'}}
-                  />
-                </UX.Box>
-                <UX.Box layout="row_end" spacing="xss_s">
-                  <UX.Text title="≈" styleType="body_14_normal" />
-                  <UX.Text
-                    title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
-                    styleType="body_14_normal"
-                  />
-                </UX.Box>
-              </UX.Box> */}
               <UX.Box layout="row_between">
                 <UX.Text title="Network fee" styleType="body_14_normal" />
                 <UX.Text

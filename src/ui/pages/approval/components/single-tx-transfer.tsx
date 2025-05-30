@@ -110,11 +110,9 @@ export const Step1 = ({
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
   const account = useAppSelector(AccountSelector.activeAccount);
-  const wallet = useAppSelector(WalletSelector.activeWallet);
   const network = useAppSelector(GlobalSelector.networkType);
   const walletProvider = useWalletProvider();
 
-  const fetchUtxos = useFetchUtxosCallback();
   const [, , rejectApproval] = useApproval();
 
   // const [inputDisabled, setInputDisabled] = useState(false);
@@ -507,7 +505,7 @@ export const Step3 = ({
 
   //! Render
   return (
-    <UX.Box layout="column" spacing="xl">
+    <UX.Box layout="column" spacing="xl" style={{width: '100%'}}>
       <UX.Box layout="column_center">
         <UX.Box
           style={{
@@ -550,7 +548,7 @@ export const Step3 = ({
           />
         </UX.Box>
       </UX.Box>
-      <UX.Box>
+      <UX.Box layout="box" spacing="xl">
         <UX.Box layout="row_between">
           <UX.Text title="Network fee" styleType="body_14_normal" />
           <UX.Text
@@ -575,8 +573,8 @@ export const Step3 = ({
       <UX.Box layout="box" spacing="xl">
         {!isEmpty(rawTxInfo?.inputs) &&
           rawTxInfo?.inputs.map((v, index) => {
-            const isToSign = rawTxInfo.inputs?.find(
-              inputForSign => inputForSign.data.index === index,
+            const isToSign = rawTxInfo.inputForSigns?.find(
+              input => input.index === index,
             )
               ? true
               : false;

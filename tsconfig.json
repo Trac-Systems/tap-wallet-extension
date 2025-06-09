@@ -10,7 +10,7 @@
     "strict": false, // Enables all strict type-checking options.
     "skipLibCheck": true, // Skips type checking of declaration files.
     "jsx": "react-jsx", // For React 17+ to use the new JSX transform.
-    "lib": ["esnext", "dom"], // Includes the latest ECMAScript features and DOM library.
+    "lib": ["es2015", "dom"], // Changed to es2015 for better compatibility
     "moduleResolution": "node", // Resolves modules using Node's resolution algorithm.
     "types": ["chrome", "node", "react", "react-dom"],
     "baseUrl": ".", // Base directory for non-relative module names.
@@ -19,7 +19,10 @@
     },
     "noEmit": true, // Prevents TypeScript from emitting files.
     "resolveJsonModule": true, // Allows importing JSON files.
-    "target": "esnext" // Compiles to the latest ECMAScript version.
+    "target": "es2015", // Changed to es2015 for better compatibility
+    "useDefineForClassFields": false, // Disable this to avoid WeakMap issues with private fields
+    "downlevelIteration": true, // Enable downlevel iteration for better ES5 compatibility
+    "importHelpers": false // Disable importing helpers to avoid dependency issues
   },
   "exclude": [
     "node_modules",

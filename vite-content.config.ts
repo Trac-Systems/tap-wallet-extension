@@ -11,6 +11,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: false,
+    target: 'es2015', // Changed to es2015 for better compatibility
     rollupOptions: {
       input: {
         // content: './src/content-script/index.ts',
@@ -18,6 +19,7 @@ export default defineConfig({
       },
       output: {
         entryFileNames: 'assets/[name].js',
+        format: 'iife', // Ensure IIFE format for content scripts
       },
     },
   },

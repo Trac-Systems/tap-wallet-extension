@@ -1,3 +1,54 @@
+// WeakMap polyfill to ensure compatibility
+if (
+  typeof WeakMap === 'undefined' ||
+  (typeof window !== 'undefined' && typeof window.WeakMap === 'undefined')
+) {
+  const WeakMapPolyfill = class WeakMap<K extends object, V> {
+    private _keys: K[] = [];
+    private _values: V[] = [];
+
+    has(key: K): boolean {
+      return this._keys.indexOf(key) !== -1;
+    }
+
+    get(key: K): V | undefined {
+      const index = this._keys.indexOf(key);
+      return index !== -1 ? this._values[index] : undefined;
+    }
+
+    set(key: K, value: V): this {
+      const index = this._keys.indexOf(key);
+      if (index !== -1) {
+        this._values[index] = value;
+      } else {
+        this._keys.push(key);
+        this._values.push(value);
+      }
+      return this;
+    }
+
+    delete(key: K): boolean {
+      const index = this._keys.indexOf(key);
+      if (index !== -1) {
+        this._keys.splice(index, 1);
+        this._values.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+  };
+
+  if (typeof global !== 'undefined') {
+    (global as any).WeakMap = WeakMapPolyfill;
+  }
+  if (typeof window !== 'undefined') {
+    (window as any).WeakMap = WeakMapPolyfill;
+  }
+  if (typeof globalThis !== 'undefined') {
+    (globalThis as any).WeakMap = WeakMapPolyfill;
+  }
+}
+
 // this script is injected into webpage's context
 import {ethErrors, serializeError} from 'eth-rpc-errors';
 import {EventEmitter} from 'events';

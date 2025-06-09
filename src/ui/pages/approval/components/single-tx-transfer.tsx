@@ -130,6 +130,7 @@ export const Step1 = ({
     new Map(),
   );
   const [validated, setValidated] = useState<boolean>(false);
+  const [showAllTokens, setShowAllTokens] = useState<boolean>(false);
 
   // fetch token info on transfer list
   useEffect(() => {
@@ -304,19 +305,171 @@ export const Step1 = ({
     validated,
   ]);
 
+  // Helper functions copied from test screen
+  const handleToggleTokens = () => {
+    setShowAllTokens(prev => !prev);
+  };
+
+  const truncateText = (text, maxLength = 10) => {
+    if (!text) return '';
+    const textStr = text.toString();
+    return textStr.length > maxLength
+      ? textStr.slice(0, maxLength) + '...'
+      : textStr;
+  };
+
+  const renderTokenRow = (item, index) => {
+    return (
+      <UX.Box key={index} style={{width: '100%'}}>
+        <UX.Box
+          layout="row"
+          spacing="sm"
+          style={{alignItems: 'center', gap: '6px'}}>
+          {/* Token Name Column */}
+          <UX.Box style={{flex: 1.2, minWidth: '80px'}}>
+            <UX.Box
+              style={{
+                padding: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                minHeight: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}>
+              <UX.Text
+                title={truncateText(item.tick, 8)}
+                styleType="body_14_bold"
+                customStyles={{color: 'white'}}
+              />
+            </UX.Box>
+          </UX.Box>
+
+          {/* Amount Column */}
+          <UX.Box style={{flex: 1.3, minWidth: '90px'}}>
+            <UX.Box
+              style={{
+                padding: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                minHeight: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}>
+              <UX.Text
+                title={truncateText(item?.amt?.toString(), 12)}
+                styleType="body_14_bold"
+                customStyles={{color: 'white'}}
+              />
+            </UX.Box>
+          </UX.Box>
+
+          {/* Receiver Column */}
+          <UX.Box style={{flex: 1.5, minWidth: '100px'}}>
+            <UX.Box
+              style={{
+                padding: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                minHeight: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}>
+              <UX.Text
+                title={shortAddress(item?.address, 6)}
+                styleType="body_14_bold"
+                customStyles={{color: 'white'}}
+              />
+            </UX.Box>
+          </UX.Box>
+        </UX.Box>
+      </UX.Box>
+    );
+  };
+
   return (
     <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
-      <UX.Box layout="column" spacing="xss">
-        <UX.Text styleType="body_16_bold" title={'Preview'} />
-        <UX.TextArea
-          className="textareaWidth"
-          placeholder={contextData.redeemContent?.proto}
-          height="200px"
-          disabled={true}
-          customStyles={{width: '100%'}}
-          style={{display: 'flex', width: '100%'}}
-        />
+      {/* Table Header */}
+      <UX.Box
+        layout="row"
+        spacing="sm"
+        style={{
+          alignItems: 'center',
+          gap: '6px',
+          paddingBottom: '8px',
+          borderBottom: `1px solid ${colors.gray}`,
+        }}>
+        <UX.Box style={{flex: 1.2, minWidth: '80px'}}>
+          <UX.Box
+            style={{
+              padding: '8px',
+              minHeight: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}>
+            <UX.Text
+              title="Token"
+              styleType="body_14_bold"
+              customStyles={{color: 'white'}}
+            />
+          </UX.Box>
+        </UX.Box>
+        <UX.Box style={{flex: 1.3, minWidth: '90px'}}>
+          <UX.Box
+            style={{
+              padding: '8px',
+              minHeight: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}>
+            <UX.Text
+              title="Amount"
+              styleType="body_14_bold"
+              customStyles={{color: 'white'}}
+            />
+          </UX.Box>
+        </UX.Box>
+        <UX.Box style={{flex: 1.5, minWidth: '100px'}}>
+          <UX.Box
+            style={{
+              padding: '8px',
+              minHeight: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}>
+            <UX.Text
+              title="Receiver"
+              styleType="body_14_bold"
+              customStyles={{color: 'white'}}
+            />
+          </UX.Box>
+        </UX.Box>
       </UX.Box>
+
+      {/* Table Rows */}
+      {(showAllTokens ? contextData.items : contextData.items.slice(0, 3)).map(
+        (item, index) => renderTokenRow(item, index),
+      )}
+
+      {contextData.items.length > 3 && (
+        <UX.Box
+          layout="row"
+          spacing="xss"
+          style={{cursor: 'pointer'}}
+          onClick={handleToggleTokens}>
+          <UX.Text
+            styleType="body_14_bold"
+            title={showAllTokens ? 'Show less' : 'Show all'}
+            customStyles={{color: colors.main_500}}
+          />
+        </UX.Box>
+      )}
+
       <UX.Box layout="column" spacing="xss">
         <UX.Text
           styleType="heading_16"
@@ -339,25 +492,32 @@ export const Step2 = ({
   contextData: ContextData;
   updateContextData: (params: UpdateContextDataParams) => void;
 }) => {
-  const {order, rawTxInfo} = contextData;
-  const fee = rawTxInfo?.fee || 0;
+  // const {order, rawTxInfo} = contextData;
+  const fee = contextData.rawTxInfo?.fee || 0;
 
   const networkFee = useMemo(() => satoshisToAmount(fee), [fee]);
   const outputValue = useMemo(
-    () => satoshisToAmount(order.postage),
-    [order.postage],
+    () => satoshisToAmount(contextData?.order?.postage || 0),
+    [contextData.order.postage],
   );
   const minerFee = useMemo(
-    () => satoshisToAmount(order.networkFee + order.sizeToFee),
-    [order.networkFee, order.sizeToFee],
+    () => {
+      const orderNetworkFee = contextData?.order?.networkFee || 0;
+      const sizeToFee = contextData?.order?.sizeToFee || 0;
+      return satoshisToAmount(orderNetworkFee + sizeToFee);
+    },
+    [contextData?.order],
   );
   const serviceFee = useMemo(
-    () => satoshisToAmount(order.serviceFee),
-    [order.serviceFee],
+    () => satoshisToAmount(contextData?.order?.serviceFee || 0),
+    [contextData?.order?.serviceFee],
   );
   const totalFee = useMemo(
-    () => satoshisToAmount(order.totalFee + fee),
-    [order.totalFee],
+    () => {
+      const orderTotalFee = contextData?.order?.totalFee || 0;
+      return satoshisToAmount(orderTotalFee + fee);
+    },
+    [contextData?.order, fee],
   );
   return (
     <UX.Box spacing="xxl">
@@ -868,7 +1028,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
     switch (contextData.tabKey) {
       case TabKey.STEP1:
         return (
-          <UX.Box layout="row" spacing="sm">
+          <UX.Box layout="row" spacing="sm" style={{padding: '10px 0'}}>
             <UX.Button
               title="Cancel"
               styleType="dark"
@@ -890,7 +1050,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         );
       case TabKey.STEP2:
         return (
-          <UX.Box layout="row" spacing="sm">
+          <UX.Box layout="row" spacing="sm" style={{padding: '10px 0'}}>
             <UX.Button
               title="Back"
               styleType="dark"
@@ -911,7 +1071,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         );
       case TabKey.STEP3:
         return (
-          <UX.Box layout="row" spacing="sm" style={{paddingBottom: '10px'}}>
+          <UX.Box layout="row" spacing="sm" style={{padding: '10px 0'}}>
             <UX.Button
               title="Back"
               styleType="dark"
@@ -932,12 +1092,14 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         );
       case TabKey.STEP4:
         return (
-          <UX.Button
-            title="Confirm"
-            styleType="primary"
-            onClick={contextData.handleSubmitTx}
-            customStyles={{flex: 1}}
-          />
+          <UX.Box style={{padding: '10px 0'}}>
+            <UX.Button
+              title="Confirm"
+              styleType="primary"
+              onClick={contextData.handleSubmitTx}
+              customStyles={{flex: 1}}
+            />
+          </UX.Box>
         );
     }
   }, [

@@ -317,6 +317,7 @@ export interface InscribeOrder {
   totalFee: number;
   networkFee: number;
   serviceFee: number;
+  discountServiceFee: number;
   sizeToFee: number;
   connectedAddress: string;
   rebar: boolean;

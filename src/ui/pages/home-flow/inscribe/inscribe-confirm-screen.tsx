@@ -66,12 +66,16 @@ const InscribeConfirmScreen = () => {
     [order.networkFee, order.sizeToFee],
   );
   const serviceFee = useMemo(
-    () => satoshisToAmount(contextDataParam?.order.serviceFee),
-    [contextDataParam?.order.serviceFee],
+    () => satoshisToAmount(contextDataParam?.order?.serviceFee || 0),
+    [contextDataParam?.order?.serviceFee],
+  );
+  const discountServiceFee = useMemo(
+    () => satoshisToAmount(contextDataParam?.order?.discountServiceFee || 0),
+    [contextDataParam?.order?.discountServiceFee],
   );
   const totalFee = useMemo(
-    () => satoshisToAmount(contextDataParam?.order.totalFee + fee),
-    [contextDataParam?.order.totalFee],
+    () => satoshisToAmount(contextDataParam?.order?.totalFee + fee),
+    [contextDataParam?.order?.totalFee],
   );
 
   const handleGoBack = () => {
@@ -173,14 +177,22 @@ const InscribeConfirmScreen = () => {
               </UX.Box>
               <UX.Box layout="row_between">
                 <UX.Text title="Service Fee" styleType="body_16_normal" />
-                <UX.Text
-                  title={`${serviceFee} BTC`}
-                  styleType="body_16_normal"
-                  customStyles={{
-                    color: colors.smoke,
-                    textDecorationLine: 'line-through',
-                  }}
-                />
+                {Number(discountServiceFee) > 0 ? (
+                  <UX.Text
+                    title={`${discountServiceFee} BTC`}
+                    styleType="body_16_normal"
+                    customStyles={{
+                      color: colors.smoke,
+                      textDecorationLine: 'line-through',
+                    }}
+                  />
+                ) : (
+                  <UX.Text
+                    title={`${serviceFee} BTC`}
+                    styleType="body_16_normal"
+                    customStyles={{color: colors.white}}
+                  />
+                )}
               </UX.Box>
 
               <UX.Box layout="row_between">

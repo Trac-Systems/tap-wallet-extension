@@ -500,25 +500,23 @@ export const Step2 = ({
     () => satoshisToAmount(contextData?.order?.postage || 0),
     [contextData.order.postage],
   );
-  const minerFee = useMemo(
-    () => {
-      const orderNetworkFee = contextData?.order?.networkFee || 0;
-      const sizeToFee = contextData?.order?.sizeToFee || 0;
-      return satoshisToAmount(orderNetworkFee + sizeToFee);
-    },
-    [contextData?.order],
-  );
+  const minerFee = useMemo(() => {
+    const orderNetworkFee = contextData?.order?.networkFee || 0;
+    const sizeToFee = contextData?.order?.sizeToFee || 0;
+    return satoshisToAmount(orderNetworkFee + sizeToFee);
+  }, [contextData?.order]);
   const serviceFee = useMemo(
     () => satoshisToAmount(contextData?.order?.serviceFee || 0),
     [contextData?.order?.serviceFee],
   );
-  const totalFee = useMemo(
-    () => {
-      const orderTotalFee = contextData?.order?.totalFee || 0;
-      return satoshisToAmount(orderTotalFee + fee);
-    },
-    [contextData?.order, fee],
+  const discountServiceFee = useMemo(
+    () => satoshisToAmount(contextData?.order?.discountServiceFee || 0),
+    [contextData?.order?.discountServiceFee],
   );
+  const totalFee = useMemo(() => {
+    const orderTotalFee = contextData?.order?.totalFee || 0;
+    return satoshisToAmount(orderTotalFee + fee);
+  }, [contextData?.order, fee]);
   return (
     <UX.Box spacing="xxl">
       {/* <UX.Box layout="row_center" spacing="xs">
@@ -589,11 +587,24 @@ export const Step2 = ({
         </UX.Box>
         <UX.Box layout="row_between">
           <UX.Text title="Service fee" styleType="body_16_normal" />
-          <UX.Text
-            title={`${serviceFee} BTC`}
-            styleType="body_16_normal"
-            customStyles={{color: colors.white}}
-          />
+          {Number(discountServiceFee) > 0 ? (
+            <UX.Box layout="row_between">
+              <UX.Text
+                title={`${discountServiceFee} BTC`}
+                styleType="body_16_normal"
+                customStyles={{
+                  color: colors.white,
+                  textDecorationLine: 'line-through',
+                }}
+              />
+            </UX.Box>
+          ) : (
+            <UX.Text
+              title={`${serviceFee} BTC`}
+              styleType="body_16_normal"
+              customStyles={{color: colors.white}}
+            />
+          )}
         </UX.Box>
         <UX.Box layout="row_between">
           <UX.Text title="Total" styleType="body_16_normal" />

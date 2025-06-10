@@ -37,7 +37,7 @@ export class AxiosRequest {
     );
   }
   get = async (endpoint: string, params: any) => {
-   const response = await this.api.get(endpoint, {params});
+    const response = await this.api.get(endpoint, {params});
     return await Promise.resolve({
       success: true,
       message: response?.statusText,
@@ -46,8 +46,13 @@ export class AxiosRequest {
     });
   };
 
-  post = async (endpoint: string, bodyData: any, headers?: any) => {
+  post = async (endpoint: string, bodyData: any, reqHeaders?: any) => {
     try {
+      const headers = {
+        ...reqHeaders,
+        'X-Tapwallet-Agent': 'tap-wallet',
+      };
+      console.log('headers', headers);
       const response = await this.api.post(endpoint, bodyData, {
         headers,
       });

@@ -3,11 +3,11 @@ import {
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
+import TransferPreviewTable from '@/src/ui/components/transfer-preview-table';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {
@@ -130,7 +130,7 @@ export const Step1 = ({
     new Map(),
   );
   const [validated, setValidated] = useState<boolean>(false);
-  const [showAllTokens, setShowAllTokens] = useState<boolean>(false);
+
 
   // fetch token info on transfer list
   useEffect(() => {
@@ -305,170 +305,20 @@ export const Step1 = ({
     validated,
   ]);
 
-  // Helper functions copied from test screen
-  const handleToggleTokens = () => {
-    setShowAllTokens(prev => !prev);
-  };
-
-  const truncateText = (text, maxLength = 10) => {
-    if (!text) return '';
-    const textStr = text.toString();
-    return textStr.length > maxLength
-      ? textStr.slice(0, maxLength) + '...'
-      : textStr;
-  };
-
-  const renderTokenRow = (item, index) => {
-    return (
-      <UX.Box key={index} style={{width: '100%'}}>
-        <UX.Box
-          layout="row"
-          spacing="sm"
-          style={{alignItems: 'center', gap: '6px'}}>
-          {/* Token Name Column */}
-          <UX.Box style={{flex: 1.2, minWidth: '80px'}}>
-            <UX.Box
-              style={{
-                padding: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '8px',
-                minHeight: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-              }}>
-              <UX.Text
-                title={truncateText(item.tick, 8)}
-                styleType="body_14_bold"
-                customStyles={{color: 'white'}}
-              />
-            </UX.Box>
-          </UX.Box>
-
-          {/* Amount Column */}
-          <UX.Box style={{flex: 1.3, minWidth: '90px'}}>
-            <UX.Box
-              style={{
-                padding: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '8px',
-                minHeight: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-              }}>
-              <UX.Text
-                title={truncateText(item?.amt?.toString(), 12)}
-                styleType="body_14_bold"
-                customStyles={{color: 'white'}}
-              />
-            </UX.Box>
-          </UX.Box>
-
-          {/* Receiver Column */}
-          <UX.Box style={{flex: 1.5, minWidth: '100px'}}>
-            <UX.Box
-              style={{
-                padding: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '8px',
-                minHeight: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-              }}>
-              <UX.Text
-                title={shortAddress(item?.address, 6)}
-                styleType="body_14_bold"
-                customStyles={{color: 'white'}}
-              />
-            </UX.Box>
-          </UX.Box>
-        </UX.Box>
-      </UX.Box>
-    );
-  };
-
   return (
     <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
-      {/* Table Header */}
-      <UX.Box
-        layout="row"
-        spacing="sm"
-        style={{
-          alignItems: 'center',
-          gap: '6px',
-          paddingBottom: '8px',
-          borderBottom: `1px solid ${colors.gray}`,
-        }}>
-        <UX.Box style={{flex: 1.2, minWidth: '80px'}}>
-          <UX.Box
-            style={{
-              padding: '8px',
-              minHeight: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}>
-            <UX.Text
-              title="Token"
-              styleType="body_14_bold"
-              customStyles={{color: 'white'}}
-            />
-          </UX.Box>
-        </UX.Box>
-        <UX.Box style={{flex: 1.3, minWidth: '90px'}}>
-          <UX.Box
-            style={{
-              padding: '8px',
-              minHeight: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}>
-            <UX.Text
-              title="Amount"
-              styleType="body_14_bold"
-              customStyles={{color: 'white'}}
-            />
-          </UX.Box>
-        </UX.Box>
-        <UX.Box style={{flex: 1.5, minWidth: '100px'}}>
-          <UX.Box
-            style={{
-              padding: '8px',
-              minHeight: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}>
-            <UX.Text
-              title="Receiver"
-              styleType="body_14_bold"
-              customStyles={{color: 'white'}}
-            />
-          </UX.Box>
-        </UX.Box>
-      </UX.Box>
-
-      {/* Table Rows */}
-      {(showAllTokens ? contextData.items : contextData.items.slice(0, 3)).map(
-        (item, index) => renderTokenRow(item, index),
-      )}
-
-      {contextData.items.length > 3 && (
-        <UX.Box
-          layout="row"
-          spacing="xss"
-          style={{cursor: 'pointer'}}
-          onClick={handleToggleTokens}>
-          <UX.Text
-            styleType="body_14_bold"
-            title={showAllTokens ? 'Show less' : 'Show all'}
-            customStyles={{color: colors.main_500}}
-          />
-        </UX.Box>
-      )}
+      <TransferPreviewTable
+        items={contextData.items}
+        showHeaders={true}
+        maxVisibleItems={3}
+        customHeaders={{
+          token: 'Token',
+          amount: 'Amount',
+          receiver: 'Receiver',
+        }}
+        compact={false}
+        enableToggle={true}
+      />
 
       <UX.Box layout="column" spacing="xss">
         <UX.Text

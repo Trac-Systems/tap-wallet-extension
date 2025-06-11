@@ -161,6 +161,11 @@ const TransferAuthority = () => {
             rawTxInfo,
             order,
             type: OrderType.REDEEM,
+            singleTxTransfer: tokenSections.map(item => ({
+              tick: item.selected,
+              amt: item.amount?.toString(),
+              address: item.address,
+            })),
           },
         },
       });

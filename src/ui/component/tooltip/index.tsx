@@ -9,11 +9,19 @@ interface TooltipProps {
 }
 
 const Tooltip: React.FC<TooltipProps> = ({text, children, isText}) => {
+  // Determine if content is long and needs wrapping
+  // Lowered threshold to handle Bitcoin addresses (typically 34-62 chars)
+  const isLongContent = text.length > 35;
+  
+  const tooltipClassName = isText 
+    ? `tooltip-text-normal${isLongContent ? ' long-content' : ''}`
+    : `tooltip-text${isLongContent ? ' long-content' : ''}`;
+
   return (
     <div className="tooltip-container">
       {children}
       <Text
-        className={isText ? 'tooltip-text-normal' : 'tooltip-text'}
+        className={tooltipClassName}
         title={text}
         styleType="body_12_bold"
       />

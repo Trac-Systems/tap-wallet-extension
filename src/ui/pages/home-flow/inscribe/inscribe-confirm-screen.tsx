@@ -1,5 +1,6 @@
 import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
+import TransferPreviewTable from '@/src/ui/components/transfer-preview-table';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
@@ -12,12 +13,19 @@ import {
 import {useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 
+interface RedeemItem {
+  tick: string;
+  amt: string;
+  address: string;
+}
+
 // set style for contextDataParam.order interface
 interface ContextDataParam {
   order: InscribeOrder;
   tokenBalance?: TokenBalance;
   transferAmount?: string;
   rawTxInfo: RawTxInfo;
+  singleTxTransfer?: RedeemItem[];
 }
 
 const InscribeConfirmScreen = () => {
@@ -105,6 +113,55 @@ const InscribeConfirmScreen = () => {
     }
   });
 
+  const previewJsonData = useMemo(() => {
+    return (
+      <UX.Box spacing="xs" style={{margin: '16px 0'}}>
+        <UX.Text
+          title="Preview"
+          styleType="body_16_normal"
+          customStyles={{color: colors.smoke}}
+        />
+        <UX.Box layout="box">
+          <UX.Text
+            title={`${order?.files[0]?.filename}`}
+            styleType="body_10_normal"
+            customStyles={{wordBreak: 'break-all'}}
+          />
+        </UX.Box>
+      </UX.Box>
+    );
+  }, [order?.files]);
+
+  const previewTransferData = useMemo(() => {
+    // Transform order files data to match TransferPreviewTable format
+    const transferItems = contextDataParam?.singleTxTransfer || [];
+
+    return (
+      // <UX.Box spacing="xs" style={{margin: '16px 0'}}>
+      //   <UX.Text
+      //     title="Preview"
+      //     styleType="body_16_normal"
+      //     customStyles={{color: colors.smoke}}
+      //   />
+      <TransferPreviewTable
+        items={transferItems}
+        showHeaders={true}
+        compact={true}
+        customHeaders={{
+          token: 'File',
+          amount: 'Amount',
+          receiver: 'Receiver',
+        }}
+        enableToggle={true}
+      />
+      // </UX.Box>
+    );
+  }, [
+    order?.files,
+    contextDataParam?.tokenBalance?.ticker,
+    contextDataParam?.transferAmount,
+  ]);
+
   return (
     <LayoutTap
       header={<UX.TextHeader text={title} onBackClick={handleGoBack} />}
@@ -125,21 +182,11 @@ const InscribeConfirmScreen = () => {
                 />
               </UX.Box>
             )}
+            {/* show if order type is redeem, show transfer data */}
+            {contextDataParam?.order.type === OrderType.REDEEM
+              ? previewTransferData
+              : previewJsonData}
 
-            <UX.Box spacing="xs" style={{margin: '16px 0'}}>
-              <UX.Text
-                title="Preview"
-                styleType="body_16_normal"
-                customStyles={{color: colors.smoke}}
-              />
-              <UX.Box layout="box">
-                <UX.Text
-                  title={`${order?.files[0]?.filename}`}
-                  styleType="body_10_normal"
-                  customStyles={{wordBreak: 'break-all'}}
-                />
-              </UX.Box>
-            </UX.Box>
             <UX.Box spacing="xs">
               <UX.Box layout="row_between">
                 <UX.Text

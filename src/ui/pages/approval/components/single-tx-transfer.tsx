@@ -3,7 +3,7 @@ import {
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
-import TransferPreviewTable from '@/src/ui/components/transfer-preview-table';
+import TransferPreviewTable from '@/src/ui/component/redeem-table/transfer-preview-table';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
 import LayoutTap from '@/src/ui/layouts/tap';
@@ -312,7 +312,7 @@ export const Step1 = ({
         showHeaders={true}
         maxVisibleItems={3}
         customHeaders={{
-          token: 'Token',
+          token: 'Token name',
           amount: 'Amount',
           receiver: 'Receiver',
         }}

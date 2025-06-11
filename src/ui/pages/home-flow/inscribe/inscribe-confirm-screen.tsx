@@ -1,6 +1,6 @@
 import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
-import TransferPreviewTable from '@/src/ui/components/transfer-preview-table';
+import TransferPreviewTable from '@/src/ui/component/redeem-table/transfer-preview-table';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
@@ -148,7 +148,7 @@ const InscribeConfirmScreen = () => {
         showHeaders={true}
         compact={true}
         customHeaders={{
-          token: 'File',
+          token: 'Token',
           amount: 'Amount',
           receiver: 'Receiver',
         }}

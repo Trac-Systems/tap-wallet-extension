@@ -1,8 +1,9 @@
 import AddIcon from './Add';
 import ArrowBackIcon from './ArrowBack';
 import ArrowDownIcon from './ArrowDown';
+import ArrowUpIcon from './ArrowUp';
 import ArrowReceiveIcon from './ArrowReceive';
-import ArrowIconRight from './ArrowRight';
+import ArrowIconRight, { ArrowRightIcon } from './ArrowRight';
 import ArrowSendIcon from './ArrowSend';
 import ArrowUpRight from './ArrowUpRight';
 import BitcoinIcon from './BtcCoin';
@@ -56,6 +57,8 @@ export const SVG = {
   SettingNavBar,
   DotIcon,
   ArrowDownIcon,
+  ArrowUpIcon,
+  ArrowRightIcon,
   ArrowSendIcon,
   ArrowReceiveIcon,
   LoadingIcon,

@@ -1,4 +1,5 @@
 import {UX} from '@/src/ui/component';
+import { SVG } from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {shortAddress} from '@/src/ui/utils';
 import React, {useState} from 'react';
@@ -216,9 +217,24 @@ const TransferPreviewTable: React.FC<TransferPreviewTableProps> = ({
           spacing="xss"
           style={{cursor: 'pointer'}}
           onClick={handleToggleShowAll}>
+          <UX.Box layout="row" spacing="xss">
+            {showAllItems ? (
+              <SVG.ArrowUpIcon
+                width={16}
+                height={16}
+              />
+            ) : (
+              <SVG.ArrowRightIcon
+                width={16}
+                height={16}
+              />
+            )}
+          </UX.Box>
           <UX.Text
-            styleType={compact ? 'body_12_bold' : 'body_14_bold'}
-            title={showAllItems ? 'Show less' : 'Show all'}
+            styleType={'body_14_bold'}
+            title={
+              showAllItems ? 'Show less' : `Show all ${items.length} items`
+            }
             customStyles={{color: colors.main_500}}
           />
         </UX.Box>

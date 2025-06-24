@@ -89,6 +89,11 @@ const Home = () => {
     setOpenDrawerInscription(bool);
   };
 
+  const [paginationInscription, setPaginationInscription] = useState({
+    currentPage: 1,
+    pageSize: PAGE_SIZE,
+  });
+
   const tabItems = [
     {label: 'Tokens', content: <TapList />, parentIndex: 0},
     {
@@ -99,6 +104,8 @@ const Home = () => {
           setSpendableInscriptionMap={setSpendableMaps}
           spendableInscriptionsMap={spendableMaps}
           allInscriptions={allInscriptions}
+          pagination={paginationInscription}
+          setPagination={setPaginationInscription}
         />
       ),
       parentIndex: 1,

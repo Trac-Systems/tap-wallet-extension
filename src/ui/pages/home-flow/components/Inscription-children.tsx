@@ -16,9 +16,11 @@ interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
   setSpendableInscriptionMap: (data: {[key: string]: Inscription}) => void;
+  setPagination: (data: {currentPage: number; pageSize: number}) => void;
+  pagination: {currentPage: number; pageSize: number};
 }
 export function InscriptionListChildren(props: IProps) {
-  const {setOpenDrawer, setSpendableInscriptionMap, spendableInscriptionsMap} =
+  const {setOpenDrawer, setSpendableInscriptionMap, spendableInscriptionsMap, setPagination, pagination} =
     props;
   const navigate = useNavigate();
   const {getInscriptionList} = useInscriptionHook();
@@ -30,10 +32,10 @@ export function InscriptionListChildren(props: IProps) {
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
 
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    pageSize: PAGE_SIZE,
-  });
+  // const [pagination, setPagination] = useState({
+  //   currentPage: 1,
+  //   pageSize: PAGE_SIZE,
+  // });
   const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
 
   const fetchSpendableInscriptions = async () => {

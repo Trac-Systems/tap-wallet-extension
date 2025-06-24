@@ -4,7 +4,7 @@ import {InscriptionListChildren} from './Inscription-children';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
+import {PAGE_SIZE, useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {
   AccountActions,
   DmtCollectible,
@@ -19,6 +19,8 @@ interface IProps {
   spendableInscriptionsMap: {[key: string]: Inscription};
   setSpendableInscriptionMap: (data: {[key: string]: Inscription}) => void;
   allInscriptions?: Inscription[];
+  pagination: {currentPage: number; pageSize: number};
+  setPagination: (data: {currentPage: number; pageSize: number}) => void;
 }
 
 const InscriptionList = (props: IProps) => {

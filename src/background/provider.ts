@@ -1046,7 +1046,7 @@ export class Provider {
         scriptInsId =
           'fd7f252b5f4eb07eced6232134509cd21b897d96168478f3b84b3d8dceef88d7i0';
       } else {
-        scriptInsId = await this.tapApi.getInscriptionScriptByTicker(ticker);
+        scriptInsId = await this.inscribeApi.getUnatScriptByTicker(ticker);
       }
 
       const unat = Boolean(scriptInsId);

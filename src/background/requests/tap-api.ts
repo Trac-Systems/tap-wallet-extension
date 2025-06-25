@@ -349,17 +349,17 @@ export class TapApi {
     return allResults;
   }
 
-  async getInscriptionScriptByTicker(ticker: string) {
-    if (!this.tapalyticApi) {
-      return;
-    }
+  // async getInscriptionScriptByTicker(ticker: string) {
+  //   if (!this.tapalyticApi) {
+  //     return;
+  //   }
 
-    const response = await this.tapalyticApi.get(
-      `/v1/unats/${encodeURIComponent(ticker)}`,
-      {},
-    );
-    return response?.data?.unats[0]?.script_inscription;
-  }
+  //   const response = await this.tapalyticApi.get(
+  //     `/v1/unats/${encodeURIComponent(ticker)}`,
+  //     {},
+  //   );
+  //   return response?.data?.unats[0]?.script_inscription;
+  // }
 
   // get total token authority
   async getTotalTokenAuthority(address: string) {

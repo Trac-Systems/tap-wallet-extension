@@ -144,4 +144,17 @@ export class InscribeApi {
     }
     return res?.data?.data as InscribeOrder;
   }
+
+  // get Unat script by ticker
+  async getUnatScriptByTicker(ticker: string) {
+    const encodedTicker = encodeURIComponent(ticker);
+    const res = await this.api.get(
+      `/v1/inscribe/order/unats/${encodedTicker}`,
+      {},
+    );
+    if (!res.data) {
+      throw new Error('Get unat script failed');
+    }
+    return res?.data?.data?.scriptInscription || null;
+  }
 }

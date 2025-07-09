@@ -188,6 +188,7 @@ export class TapApi {
   async getTapTokenSummary(
     address: string,
     ticker: string,
+    allInscriptions?: any[],
   ): Promise<AddressTokenSummary> {
     const response = await this.api.get(
       `/getAccountTokenDetail/${address}/${encodeURIComponent(ticker)}`,
@@ -199,25 +200,36 @@ export class TapApi {
         `Token ${encodeURIComponent(ticker)} don't have in your account`,
       );
     }
-    const getUtxoResult = await mempoolApi.getUtxoData(address);
-    const utxoMap = this.getUtxoMap(getUtxoResult);
-    let list = [];
-    if (utxoMap) {
-      list = response?.data?.data?.transferList?.filter(v => {
-        return !v.fail && !isEmpty(utxoMap[v.tx]);
-      });
+    
+    let totalMinted = '0';
+    try {
+      totalMinted = await this.getTokenTotalMinted(ticker);
+    } catch (error) {
+      console.log('Error getting total minted:', error);
     }
+    
+    let list = response?.data?.data?.transferList?.filter(v => !v.fail) || [];
+
+    let transferableList = convertTapTokenTransferList(
+      list,
+      response?.data?.data?.tokenInfo?.dec,
+    );
+
+    if (allInscriptions && allInscriptions.length > 0) {
+      const allInscriptionIdSet = new Set(allInscriptions.map(ins => ins.inscriptionId));
+      transferableList = transferableList.filter(
+        item => allInscriptionIdSet.has(item.inscriptionId)
+      );
+    }
+
     const result = {
-      tokenInfo: convertTapTokenInfo(response?.data?.data?.tokenInfo),
+      tokenInfo: convertTapTokenInfo(response?.data?.data?.tokenInfo, totalMinted),
       tokenBalance: convertTapTokenBalance(
         response?.data?.data?.tokenBalance,
         response?.data?.data?.tokenInfo?.dec,
       ),
       historyList: [],
-      transferableList: convertTapTokenTransferList(
-        list,
-        response?.data?.data?.tokenInfo?.dec,
-      ),
+      transferableList: transferableList,
     };
     return result;
   }
@@ -422,5 +434,22 @@ export class TapApi {
       return null;
     }
     return allAuthorityList[allAuthorityList.length - 1];
+  }
+
+  async getTokenTotalMinted(ticker: string): Promise<string> {
+    try {
+      
+      const response = await this.api.get(`/getMintTokensLeft/${encodeURIComponent(ticker)}`, {});
+      const tokensLeft = response?.data?.result || '0';
+      
+      const deploymentInfo = await this.getDeployment(ticker);
+      const totalSupply = deploymentInfo?.max || '0';
+      
+      const totalMinted = (BigInt(totalSupply) - BigInt(tokensLeft)).toString();
+      
+      return totalMinted;
+    } catch (error) {
+      return '0';
+    }
   }
 }

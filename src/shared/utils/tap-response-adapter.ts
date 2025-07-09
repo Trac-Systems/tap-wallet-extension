@@ -43,7 +43,8 @@ export interface TapTokenTransfer {
   int: boolean;
 }
 
-export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo): TokenInfo => {
+export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo, totalMinted?: string): TokenInfo => {
+  
   if (!tapTokenInfo) {
     return {
       totalSupply: '0',
@@ -54,14 +55,16 @@ export const convertTapTokenInfo = (tapTokenInfo: TapTokenInfo): TokenInfo => {
       dmt: false,
     };
   }
-  return {
+  
+  const result = {
     totalSupply: calculateAmount(tapTokenInfo.max, tapTokenInfo.dec),
-    totalMinted: '0',
+    totalMinted: totalMinted ? calculateAmount(totalMinted, tapTokenInfo.dec) : '0',
     decimal: tapTokenInfo?.dec,
     holder: '',
     inscriptionId: tapTokenInfo.ins,
     dmt: tapTokenInfo.dmt,
   };
+  return result;
 };
 
 export const convertTapTokenBalance = (

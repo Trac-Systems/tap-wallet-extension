@@ -981,8 +981,8 @@ export class Provider {
     return await this.tapApi.getAllAddressTapTokens(address);
   };
 
-  getTapSummary = async (address: string, ticker: string) => {
-    const tokenSummary = await this.tapApi.getTapTokenSummary(address, ticker);
+  getTapSummary = async (address: string, ticker: string, allInscriptions?: any[]) => {
+    const tokenSummary = await this.tapApi.getTapTokenSummary(address, ticker, allInscriptions);
 
     if (tokenSummary?.tokenInfo?.inscriptionId) {
       const inscriptions = await this.getInscriptionInfo(
@@ -1027,6 +1027,10 @@ export class Provider {
 
   getAccountAllMintsListByTicker = async (address: string, ticker: string) => {
     return await this.tapApi.getAccountAllMintsListByTicker(address, ticker);
+  };
+
+  getTokenTotalMinted = async (ticker: string) => {
+    return await this.tapApi.getTokenTotalMinted(ticker);
   };
 
   getDmtScriptId = async (

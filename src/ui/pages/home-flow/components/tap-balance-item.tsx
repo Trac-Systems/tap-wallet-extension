@@ -36,9 +36,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
     } catch (error) {
       console.log('Failed to get tap summary: ', error);
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 1000);
+      setLoading(false);
     }
   }, []);
 

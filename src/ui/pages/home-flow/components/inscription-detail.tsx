@@ -29,6 +29,7 @@ const InscriptionDetail = () => {
 
   const network = useAppSelector(GlobalSelector.networkType);
   const dmtCollectibleMap = useAppSelector(AccountSelector.dmtCollectibleMap);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
 
   const inscriptionInfo = useMemo(() => {
     if (!inscriptions?.length) {
@@ -40,6 +41,11 @@ const InscriptionDetail = () => {
   }, [inscriptions]);
 
   const isUnconfirmed = inscriptionInfo?.timestamp === 0;
+  
+  const isOwnedByCurrentUser = useMemo(() => {
+    return inscriptionInfo?.address === activeAccount?.address;
+  }, [inscriptionInfo?.address, activeAccount?.address]);
+  
   const getInscriptionInfo = async () => {
     try {
       setLoading(true);
@@ -162,28 +168,30 @@ const InscriptionDetail = () => {
         </UX.Box>
       </UX.Box>
 
-      <footer className="footer_sr">
-        <UX.Box
-          layout="column"
-          spacing="xl"
-          className="footer_sr"
-          style={{
-            padding: '10px 0',
-          }}>
-          <UX.Button
-            styleType="primary"
-            customStyles={{
-              margin: '0 24px',
-            }}
-            title={'Send'}
-            onClick={() =>
-              navigate('/home/send-inscription', {
-                state: {inscriptions: inscriptions},
-              })
-            }
-          />
-        </UX.Box>
-      </footer>
+      {isOwnedByCurrentUser && (
+        <footer className="footer_sr">
+          <UX.Box
+            layout="column"
+            spacing="xl"
+            className="footer_sr"
+            style={{
+              padding: '10px 0',
+            }}>
+            <UX.Button
+              styleType="primary"
+              customStyles={{
+                margin: '0 24px',
+              }}
+              title={'Send'}
+              onClick={() =>
+                navigate('/home/send-inscription', {
+                  state: {inscriptions: inscriptions},
+                })
+              }
+            />
+          </UX.Box>
+        </footer>
+      )}
     </UX.Box>
   );
 };

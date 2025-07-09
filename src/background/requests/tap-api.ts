@@ -16,6 +16,7 @@ import {
   convertTapTokenTransferList,
 } from '../../shared/utils/tap-response-adapter';
 import {calculateAmount} from '../../shared/utils/btc-helper';
+import { PaidApi } from './paid-api';
 
 const TAP_API_TESTNET = 'http://31.204.118.7:55005';
 const TAP_API_MAINNET = 'https://tap-reader-tw.tap-hosting.xyz';
@@ -208,6 +209,12 @@ export class TapApi {
       console.log('Error getting total minted:', error);
     }
     
+    let _allInscriptions = allInscriptions;
+    if (!allInscriptions || allInscriptions.length === 0) {
+      const paidApi = new PaidApi();
+      _allInscriptions = await paidApi.getAllInscriptions(address);
+    }
+
     let list = response?.data?.data?.transferList?.filter(v => !v.fail) || [];
 
     let transferableList = convertTapTokenTransferList(
@@ -215,8 +222,8 @@ export class TapApi {
       response?.data?.data?.tokenInfo?.dec,
     );
 
-    if (allInscriptions && allInscriptions.length > 0) {
-      const allInscriptionIdSet = new Set(allInscriptions.map(ins => ins.inscriptionId));
+    if (_allInscriptions && _allInscriptions.length > 0) {
+      const allInscriptionIdSet = new Set(_allInscriptions.map(ins => ins.inscriptionId));
       transferableList = transferableList.filter(
         item => allInscriptionIdSet.has(item.inscriptionId)
       );

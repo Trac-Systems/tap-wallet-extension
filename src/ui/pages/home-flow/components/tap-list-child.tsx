@@ -53,6 +53,10 @@ const TapListChild = () => {
     useState(false);
 
   const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
+  const [hasLoadedAllTokens, setHasLoadedAllTokens] = useState(false);
+  const [isLoadingAllTokens, setIsLoadingAllTokens] = useState(false);
+
+  const currentAccountRef = useRef<string>('');
 
   const fetchAuthorityOrders = async () => {
     const orders = await walletProvider.getAuthorityOrders(
@@ -149,14 +153,36 @@ const TapListChild = () => {
   };
 
   const debouncedFetch = useCallback(
-    debounce((value: string) => {
-      const tokenList = allTapToken.length > 0 ? allTapToken : tapList;
-      const filteredData = tokenList?.filter(data =>
-        data.ticker.toLowerCase().includes(value.toLowerCase()),
-      );
-      setTapItem(filteredData);
+    debounce(async (value: string) => {
+      if (value.length > 0 && !hasLoadedAllTokens && !isLoadingAllTokens) {
+        setIsLoadingAllTokens(true);
+        try {
+          const allTokens = await walletProvider.getAllTapToken(activeAccount.address);
+          setAllTapToken(allTokens);
+          setHasLoadedAllTokens(true);
+          
+          const filteredData = allTokens?.filter(data =>
+            data.ticker.toLowerCase().includes(value.toLowerCase()),
+          );
+          setTapItem(filteredData);
+        } catch (error) {
+          const filteredData = tapList?.filter(data =>
+            data.ticker.toLowerCase().includes(value.toLowerCase()),
+          );
+          setTapItem(filteredData);
+        } finally {
+          setIsLoadingAllTokens(false);
+        }
+      } else if (value.length > 0 && hasLoadedAllTokens) {
+        const filteredData = allTapToken?.filter(data =>
+          data.ticker.toLowerCase().includes(value.toLowerCase()),
+        );
+        setTapItem(filteredData);
+      } else if (value.length === 0) {
+        setTapItem([]); // Clear search results
+      }
     }, 400),
-    [tapList, allTapToken],
+    [tapList, allTapToken, hasLoadedAllTokens, isLoadingAllTokens, activeAccount.address],
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,11 +200,21 @@ const TapListChild = () => {
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => {
-      getTapList(pagination.currentPage);
-      setLoading(false);
-    }, 200);
-    return () => clearTimeout(timer);
+    const timer = async () => {
+      currentAccountRef.current = activeAccount.address;
+      
+      try {
+        await getTapList(pagination.currentPage);
+        if (currentAccountRef.current === activeAccount.address) {
+          setLoading(false);
+        }
+      } catch (error) {
+        if (currentAccountRef.current === activeAccount.address) {
+          setLoading(false);
+        }
+      }
+    };
+    timer()
   }, [pagination.currentPage, activeAccount.address]);
 
   useEffect(() => {
@@ -186,10 +222,6 @@ const TapListChild = () => {
       debouncedFetch.cancel();
     };
   }, []);
-
-  useEffect(() => {
-    setTapItem(tapList);
-  }, [tapList.length]);
 
   const mangeAuthorityTitle = useMemo(() => {
     if (isGettingAuthorityStatus) {
@@ -209,23 +241,16 @@ const TapListChild = () => {
     isGettingAuthorityStatus,
   ]);
 
-  // fetch all tap token
-  useEffect(() => {
-    setLoading(true);
-    walletProvider
-      .getAllTapToken(activeAccount.address)
-      .then(res => {
-        setAllTapToken(res);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, [activeAccount.address]);
-
   const hidePagination = useMemo(() => {
     return tokenValue.length > 0 || !tapList?.length;
   }, [tokenValue, tapList]);
+
+  const displayData = useMemo(() => {
+    if (tokenValue.length > 0) {
+      return tapItem; 
+    }
+    return tapList; 
+  }, [tokenValue, tapItem, tapList]);
 
   //! Render
   if (loading) {
@@ -315,7 +340,7 @@ const TapListChild = () => {
           />
         </UX.Box>
       </UX.Box>
-      {tapItem.map((tokenBalance: TokenBalance, index: number) => {
+      {displayData.map((tokenBalance: TokenBalance, index: number) => {
         const indexCheck = index < 20 ? index : index % 20;
         const tagColor = listRandomColor[indexCheck];
         return (
@@ -332,7 +357,7 @@ const TapListChild = () => {
         <UX.Box layout="row_center">
           <UX.Pagination
             pagination={pagination}
-            total={totalTapToken || tapItem.length}
+            total={totalTapToken || displayData.length}
             onChange={pagination => {
               setPagination(pagination);
             }}

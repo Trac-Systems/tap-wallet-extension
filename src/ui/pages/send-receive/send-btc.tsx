@@ -22,6 +22,7 @@ import {
   useSafeBalance,
   useUpdateTxStateInfo,
 } from './hook';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 const SendBTC = () => {
   //! State
@@ -41,6 +42,9 @@ const SendBTC = () => {
   const [feeRate, setFeeRate] = useState(5);
   const {showToast} = useCustomToast();
   const [btcSendNumberValue, setBTCSendNumberValue] = useState('');
+  // USD states
+  const [usdAvailable, setUsdAvailable] = useState('');
+  const [usdTotal, setUsdTotal] = useState('');
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -146,6 +150,33 @@ const SendBTC = () => {
       });
   }, [toInfo, inputAmount, feeRate, enableRBF, toSatoshis]);
 
+  const wallet = useWalletProvider();
+
+  // Update USD for available
+  useEffect(() => {
+    let ignore = false;
+    if (Number(availableAmount) > 0) {
+      wallet.getUSDPrice(Number(availableAmount)).then(val => {
+        if (!ignore) setUsdAvailable(val);
+      });
+    } else {
+      setUsdAvailable('0.00');
+    }
+    return () => { ignore = true; };
+  }, [availableAmount]);
+  // Update USD for total
+  useEffect(() => {
+    let ignore = false;
+    if (Number(totalAmount) > 0) {
+      wallet.getUSDPrice(Number(totalAmount)).then(val => {
+        if (!ignore) setUsdTotal(val);
+      });
+    } else {
+      setUsdTotal('0.00');
+    }
+    return () => { ignore = true; };
+  }, [totalAmount]);
+
   //! Function
   const handleGoBack = () => {
     navigate(-1);
@@ -175,18 +206,25 @@ const SendBTC = () => {
       body={
         <UX.Box spacing="xxl" style={{width: '100%'}}>
           <UX.Box layout="column" style={{width: '100%'}} spacing="xss">
-            <UX.Box layout="row_between">
+            <UX.Box layout="row_between" style={{alignItems: 'flex-start'}}>
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
                 title="Send"
               />
-              <UX.Box layout="row" spacing="xs">
-                <UX.Text title="Available:" styleType="body_14_bold" />
-                <UX.Text
-                  title={`${availableAmount} BTC`}
-                  styleType="body_14_bold"
-                  customStyles={{color: colors.green_500}}
+              <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+                <UX.Box layout="row" spacing="xs">
+                  <UX.Text title="Available:" styleType="body_14_bold" />
+                  <UX.Text
+                    title={`${availableAmount} BTC`}
+                    styleType="body_14_bold"
+                    customStyles={{color: colors.green_500}}
+                  />
+                </UX.Box>
+                <Text
+                  title={`≈ ${Number(usdAvailable).toLocaleString()} USD`}
+                  styleType="body_12_normal"
+                  customStyles={{color: colors.smoke, marginTop: 2}}
                 />
               </UX.Box>
             </UX.Box>
@@ -221,11 +259,18 @@ const SendBTC = () => {
                   <UX.Text title="BTC" styleType="body_14_bold" />
                 </UX.Box>
               </UX.Box>
-              <UX.Box layout="row_between" style={{width: '100%'}}>
+              <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
                 <UX.Text styleType="body_14_bold" title="Total" />
-                <UX.Box layout="row" spacing="xss_s">
-                  <UX.Text title={totalAmount} styleType="body_14_bold" />
-                  <UX.Text title="BTC" styleType="body_14_bold" />
+                <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+                  <UX.Box layout="row" spacing="xss_s">
+                    <UX.Text title={totalAmount} styleType="body_14_bold" />
+                    <UX.Text title="BTC" styleType="body_14_bold" />
+                  </UX.Box>
+                  <Text
+                    title={`≈ ${Number(usdTotal).toLocaleString()} USD`}
+                    styleType="body_12_normal"
+                    customStyles={{color: colors.smoke, marginTop: 2}}
+                  />
                 </UX.Box>
               </UX.Box>
             </UX.Box>

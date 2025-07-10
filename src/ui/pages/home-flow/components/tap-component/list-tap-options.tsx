@@ -51,6 +51,8 @@ const ListTapOptions = () => {
     historyList: [],
     transferableList: [],
   });
+  const walletProvider = useWalletProvider();
+  const [allInscriptions, setAllInscriptions] = useState([]);
 
   //! Function
   const handleNavigate = () => {
@@ -73,12 +75,24 @@ const ListTapOptions = () => {
 
   useEffect(() => {
     fetchData();
+  }, [activeAccount?.address]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
+
+  useEffect(() => {
+    if (activeAccount?.address) {
+      walletProvider.getAllInscriptions(activeAccount.address).then(inscriptions => {
+        setAllInscriptions(inscriptions);
+      });
+    }
+  }, [activeAccount?.address]);
 
   const fetchData = () => {
     setLoading(true);
     wallet
-      .getTapSummary(activeAccount.address, id)
+      .getTapSummary(activeAccount.address, id, allInscriptions)
       .then((tokenSummaryData: AddressTokenSummary) => {
         if (tokenSummaryData.tokenInfo.holder === activeAccount.address) {
           wallet
@@ -172,144 +186,181 @@ const ListTapOptions = () => {
         </UX.Box>
       }
       body={
-        <UX.Box>
-          <UX.Text
-            title="Total balance"
-            styleType="body_16_normal"
-            customStyles={{marginBottom: 8, textAlign: 'center'}}
-          />
-          <UX.Box layout="row_center" style={{marginBottom: 20}}>
+        <UX.Box layout="column" style={{height: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column'}}>
+          <UX.Box style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
             <UX.Text
-              title={balance}
-              styleType="body_20_extra_bold"
-              customStyles={{color: colors.white, marginRight: '8px'}}
+              title="Total balance"
+              styleType="body_16_normal"
+              customStyles={{marginBottom: 8, textAlign: 'center'}}
             />
-            <UX.Text
-              title={formatTicker(id)}
-              styleType="body_20_extra_bold"
-              customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
-            />
-          </UX.Box>
-          {isValidToken && (
-            <>
+            <UX.Box layout="row_center" style={{marginBottom: 20}}>
+              <UX.Text
+                title={balance}
+                styleType="body_20_extra_bold"
+                customStyles={{color: colors.white, marginRight: '8px'}}
+              />
+              <UX.Text
+                title={formatTicker(id)}
+                styleType="body_20_extra_bold"
+                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+              />
+            </UX.Box>
+            {isValidToken && (
+              <>
+                <UX.Box layout="row" spacing="xl">
+                  <UX.Button
+                    title={'1-TX Transfer'}
+                    isDisable={!enableTransfer}
+                    onClick={() => {
+                      navigate('/transfer-authority', {
+                        state: {ticker: id},
+                      });
+                    }}
+                    svgIcon={
+                      <SVG.TransferIcon color="white" width={20} height={20} />
+                    }
+                    styleType="primary"
+                    withIcon
+                    customStyles={{flex: 1, flexDirection: 'row-reverse'}}
+                  />
+                </UX.Box>
+                <UX.Text
+                  onClick={handleNavigate}
+                  title="Use Native Transfer"
+                  styleType="body_16_bold"
+                  customStyles={{
+                    margin: '20px 0',
+                    color: 'white',
+                    textDecoration: 'underline',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                  }}
+                />
+              </>
+            )}
+            {!isValidToken && (
               <UX.Box layout="row" spacing="xl">
                 <UX.Button
-                  title={'1-TX Transfer'}
+                  title={'Transfer'}
                   isDisable={!enableTransfer}
                   onClick={() => {
-                    navigate('/transfer-authority', {
-                      state: {ticker: id},
-                    });
+                    handleNavigate();
                   }}
                   svgIcon={
                     <SVG.TransferIcon color="white" width={20} height={20} />
                   }
                   styleType="primary"
                   withIcon
-                  customStyles={{flex: 1, flexDirection: 'row-reverse'}}
+                  customStyles={{
+                    flex: 1,
+                    flexDirection: 'row-reverse',
+                    marginBottom: 20,
+                  }}
                 />
               </UX.Box>
+            )}
+            
+            <UX.Divider color="#fff" />
+            {/* Transferable */}
+            <UX.Box layout="row_between">
               <UX.Text
-                onClick={handleNavigate}
-                title="Use Native Transfer"
-                styleType="body_16_bold"
-                customStyles={{
-                  margin: '20px 0',
-                  color: 'white',
-                  textDecoration: 'underline',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                }}
-              />
-            </>
-          )}
-          {!isValidToken && (
-            <UX.Box layout="row" spacing="xl">
-              <UX.Button
-                title={'Transfer'}
-                isDisable={!enableTransfer}
-                onClick={() => {
-                  handleNavigate();
-                  // navigate('/transfer-authority', {
-                  //   state: { ticker: id },
-                  // });
-                }}
-                svgIcon={
-                  <SVG.TransferIcon color="white" width={20} height={20} />
-                }
-                styleType="primary"
-                withIcon
-                customStyles={{
-                  flex: 1,
-                  flexDirection: 'row-reverse',
-                  marginBottom: 20,
-                }}
-              />
-            </UX.Box>
-          )}
-
-          <UX.Divider color="#fff" />
-          {/* Transferable */}
-          <UX.Box layout="row_between">
-            <UX.Text
-              title="Transferable"
-              styleType="body_14_normal"
-              customStyles={{color: colors.white}}
-            />
-            <UX.Box layout="row" spacing="xs">
-              <UX.Text
-                title={`${transferableBalance}`}
-                styleType="body_12_bold"
+                title="Transferable"
+                styleType="body_14_normal"
                 customStyles={{color: colors.white}}
               />
+              <UX.Box layout="row" spacing="xs">
+                <UX.Text
+                  title={`${transferableBalance}`}
+                  styleType="body_12_bold"
+                  customStyles={{color: colors.white}}
+                />
+                <UX.Text
+                  title={formatTicker(id)}
+                  styleType="body_12_bold"
+                  customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                />
+              </UX.Box>
+            </UX.Box>
+            {!isEmpty(dataForList) ? (
               <UX.Text
-                title={formatTicker(id)}
-                styleType="body_12_bold"
-                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                title="Click on the inscription for details. To transfer, click on the Transfer button above."
+                styleType="body_14_normal"
+                customStyles={{marginTop: '16px'}}
               />
+            ) : (
+              <></>
+            )}
+            <UX.Box
+              layout="row"
+              spacing="xs"
+              style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
+              {loading ? (
+                <UX.Loading />
+              ) : (
+                dataForList.map((item, index) => {
+                  if(deployInscriptionState && index === 0) return null;
+                  return (
+                  <UX.Box key={index}>
+                        <CoinCount
+                          type="TRANSFER"
+                          ticker={formatTicker(id)}
+                          balance={item?.amount}
+                          inscriptionNumber={item?.inscriptionNumber}
+                          onClick={() => tapPreviewItemOnPress(item)}
+                        />
+                    </UX.Box>
+                  );
+                })
+              )}
             </UX.Box>
           </UX.Box>
-          <UX.Box
-            layout="row"
-            spacing="xs"
-            style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
-            {loading ? (
-              <UX.Loading />
-            ) : (
-              dataForList.map((item, index) => {
-                return (
-                  <UX.Box key={index}>
-                    {deployInscriptionState && index === 0 ? (
-                      <CoinCount
-                        type="DEPLOY"
-                        ticker={formatTicker(id)}
-                        balance={item?.amount}
-                        inscriptionNumber={item?.inscriptionNumber}
-                        onClick={() => tapPreviewItemOnPress(item)}
-                      />
-                    ) : (
-                      <CoinCount
-                        type="TRANSFER"
-                        ticker={formatTicker(id)}
-                        balance={item?.amount}
-                        inscriptionNumber={item?.inscriptionNumber}
-                        onClick={() => tapPreviewItemOnPress(item)}
-                      />
-                    )}
-                  </UX.Box>
-                );
-              })
-            )}
+          {/* Token details dưới cùng */}
+          <UX.Box  style={{marginTop: 0, marginBottom: 16}}>
+            <UX.Box>
+              <UX.Divider color="#fff" />
+            </UX.Box>
+            <UX.Text title="Token details" styleType="body_14_normal" customStyles={{color: colors.white, marginBottom: 16, textAlign: 'left'}} />
+            <UX.Box style={{background: colors.black_2, borderRadius: 16, padding: 16}}>
+              <UX.Box layout="row_between" style={{marginBottom: 16}}>
+                <UX.Text title="Deploy Inscription" styleType="body_14_normal" />
+                <UX.Text 
+                  title={tokenSummary.tokenInfo.inscriptionId ? `${tokenSummary.tokenInfo.inscriptionId.slice(0,6)}...${tokenSummary.tokenInfo.inscriptionId.slice(-6)}` : '—'} 
+                  styleType="body_14_normal" 
+                  customStyles={{
+                    color: colors.white, 
+                    textAlign: 'right', 
+                    fontWeight: 500, 
+                    fontFamily: 'Exo', 
+                    fontSize: 14, 
+                    lineHeight: '22px', 
+                    letterSpacing: 0,
+                    cursor: tokenSummary.tokenInfo.inscriptionId ? 'pointer' : 'default'
+                  }}
+                  onClick={() => {
+                    if (tokenSummary.tokenInfo.inscriptionId) {
+                      tapPreviewItemOnPress({inscriptionId: tokenSummary.tokenInfo.inscriptionId} as TokenTransfer);
+                    }
+                  }}
+                />
+              </UX.Box>
+              <UX.Box layout="row_between" style={{marginBottom: 16}}>
+                <UX.Text title="Ticker" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenBalance.ticker || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+              </UX.Box>
+              <UX.Box layout="row_between" style={{marginBottom: 16}}>
+                <UX.Text title="Minted" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenInfo.totalMinted ? formatNumberValue(tokenSummary.tokenInfo.totalMinted) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+              </UX.Box>
+              <UX.Box layout="row_between" style={{marginBottom: 16}}>
+                <UX.Text title="Supply" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenInfo.totalSupply ? formatNumberValue(tokenSummary.tokenInfo.totalSupply) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+              </UX.Box>
+              <UX.Box layout="row_between">
+                <UX.Text title="Decimal" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenInfo.decimal?.toString() || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+              </UX.Box>
+            </UX.Box>
           </UX.Box>
-          {!isEmpty(dataForList) ? (
-            <UX.Text
-              title="Click on the inscription for details. To transfer, click on the Transfer button above."
-              styleType="body_14_normal"
-              customStyles={{textAlign: 'center'}}
-            />
-          ) : (
-            <></>
-          )}
         </UX.Box>
       }
     />

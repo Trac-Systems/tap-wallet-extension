@@ -256,3 +256,9 @@ export const getInscriptionContentLink = (network: Network) => {
   }
   return link;
 };
+
+export const truncateMiddle = (str: string, frontLen = 3, backLen = 3) => {
+  if (!str) return str;
+  if (str.length <= frontLen + backLen + 3) return str;
+  return `${str.slice(0, frontLen)}...${str.slice(-backLen)}`;
+};

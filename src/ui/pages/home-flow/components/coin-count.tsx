@@ -1,4 +1,5 @@
 import {UX} from '@/src/ui/component';
+import { truncateMiddle } from '@/src/ui/utils';
 
 interface ICoinCountProps {
   ticker: string;
@@ -26,33 +27,18 @@ const CoinCount = (props: ICoinCountProps) => {
         position: 'relative',
         borderRadius: '7px',
         overflow: 'hidden',
-        border: selected ? '1px solid white' : '1px solid black',
+        border: selected ? '1px solid white' : '1px solid #545454',
       }}>
-      <UX.Text
-        title={ticker}
-        styleType="body_14_bold"
-        customStyles={{
-          whiteSpace: 'pre',
-          color: '#D16B7C',
-          padding: '2px',
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          background: '#545454',
-          width: '70px',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      />
+
       <UX.Box
         layout="column_center"
         style={{
           height: '80px',
           width: '100%',
-          background: '#D16B7C',
+          // background: '#D16B7C',
         }}>
         <UX.Text
-          title={type === 'DEPLOY' ? 'Deploy' : balance}
+          title={type === 'DEPLOY' ? 'Deploy' : truncateMiddle(balance || '')}
           styleType="body_14_bold"
           customStyles={{color: 'white'}}
         />

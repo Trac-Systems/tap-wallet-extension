@@ -115,7 +115,17 @@ const ListWallets = () => {
         })}
       </Swipe>
         <div className="groupAction">
-          <div className="groupBox" onClick={() => navigate('/home/send')}>
+          <div
+            className="groupBox"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate('/home/send')}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                navigate('/home/send');
+              }
+            }}
+          >
             <SVG.ArrowSendIcon />
             <UX.Text
               title="Send"
@@ -123,7 +133,17 @@ const ListWallets = () => {
               customStyles={{color: 'white'}}
             />
           </div>
-          <div className="groupBox" onClick={() => navigate('/home/receive')}>
+          <div
+            className="groupBox"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate('/home/receive')}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                navigate('/home/receive');
+              }
+            }}
+          >
             <SVG.ArrowReceiveIcon />
             <UX.Text
               title="Receive"
@@ -138,7 +158,14 @@ const ListWallets = () => {
           <span
             key={idx}
             className={`custom-pagination-bullet${currentIndex === idx ? ' active' : ''}`}
+            role="button"
+            tabIndex={0}
             onClick={() => handleBulletClick(idx)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleBulletClick(idx);
+              }
+            }}
           />
         ))}
       </div>

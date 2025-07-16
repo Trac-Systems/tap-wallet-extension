@@ -981,8 +981,16 @@ export class Provider {
     return await this.tapApi.getAllAddressTapTokens(address);
   };
 
-  getTapSummary = async (address: string, ticker: string, allInscriptions?: any[]) => {
-    const tokenSummary = await this.tapApi.getTapTokenSummary(address, ticker, allInscriptions);
+  getTapSummary = async (
+    address: string,
+    ticker: string,
+    allInscriptions?: any[],
+  ) => {
+    const tokenSummary = await this.tapApi.getTapTokenSummary(
+      address,
+      ticker,
+      allInscriptions,
+    );
 
     if (tokenSummary?.tokenInfo?.inscriptionId) {
       const inscriptions = await this.getInscriptionInfo(
@@ -1375,15 +1383,78 @@ export class Provider {
   };
 
   getAllAuthorityList = async (address: string) => {
-    return await this.tapApi.getAllAuthorityList(address);
+    const authorityList = await this.tapApi.getAllAuthorityList(address);
+    const validAuthorityList = [];
+    for (const authority of authorityList) {
+      const property = await this.paidApi.getInscriptionContent(authority.ins);
+      const isValid = await this.validateSignature(property);
+      if (isValid) {
+        validAuthorityList.push(authority);
+      }
+    }
+    return validAuthorityList;
   };
 
   getCurrentAuthority = async (address: string) => {
-    return await this.tapApi.getCurrentAuthority(address);
+    const allAuthorityList = await this.getAllAuthorityList(address);
+    if (allAuthorityList.length === 0) {
+      return null;
+    }
+    return allAuthorityList[allAuthorityList.length - 1];
   };
 
   getAuthorityCanceled = async (ins: string) => {
     return await this.tapApi.getAuthorityCanceled(ins);
+  };
+
+  validateSignature = async (resultJson: string | object) => {
+    try {
+      const pubKeyHex = this.getActiveAccount()?.pubkey;
+      if (!pubKeyHex) {
+        return false;
+      }
+      const proto =
+        typeof resultJson === 'string' ? JSON.parse(resultJson) : resultJson;
+      if (!proto || typeof proto !== 'object') return false;
+      if (!proto.sig || typeof proto.sig !== 'object') return false;
+      const {r, s, v} = proto.sig;
+      if (r === undefined || s === undefined || v === undefined) return false;
+      if (!proto.salt) return false;
+      if (proto.auth === undefined) return false;
+      if (!pubKeyHex || typeof pubKeyHex !== 'string') return false;
+      const messageString = JSON.stringify(proto.auth) + proto.salt;
+      const msgHash = createHash('sha256').update(messageString).digest();
+      let rBigInt, sBigInt, recovery;
+      try {
+        rBigInt = BigInt(r);
+        sBigInt = BigInt(s);
+        recovery = parseInt(v);
+        if (isNaN(recovery)) return false;
+      } catch {
+        return false;
+      }
+      let pubKeyBuffer;
+      try {
+        pubKeyBuffer = Buffer.from(pubKeyHex, 'hex');
+      } catch {
+        return false;
+      }
+      let signature;
+      try {
+        signature = new secp.Signature(rBigInt, sBigInt, recovery);
+      } catch (e) {
+        return false;
+      }
+      let isValid = false;
+      try {
+        isValid = secp.verify(signature, msgHash, pubKeyBuffer);
+      } catch (e) {
+        return false;
+      }
+      return isValid;
+    } catch (error) {
+      return false;
+    }
   };
 
   _generateHeaders = async (): Promise<{

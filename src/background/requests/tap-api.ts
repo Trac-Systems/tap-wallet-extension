@@ -16,7 +16,7 @@ import {
   convertTapTokenTransferList,
 } from '../../shared/utils/tap-response-adapter';
 import {calculateAmount} from '../../shared/utils/btc-helper';
-import { PaidApi } from './paid-api';
+import {PaidApi} from './paid-api';
 
 const TAP_API_TESTNET = 'http://31.204.118.7:55005';
 const TAP_API_MAINNET = 'https://tap-reader-tw.tap-hosting.xyz';
@@ -201,14 +201,14 @@ export class TapApi {
         `Token ${encodeURIComponent(ticker)} don't have in your account`,
       );
     }
-    
+
     let totalMinted = '0';
     try {
       totalMinted = await this.getTokenTotalMinted(ticker);
     } catch (error) {
       console.log('Error getting total minted:', error);
     }
-    
+
     let _allInscriptions = allInscriptions;
     if (!allInscriptions || allInscriptions.length === 0) {
       const paidApi = new PaidApi();
@@ -223,14 +223,19 @@ export class TapApi {
     );
 
     if (_allInscriptions && _allInscriptions.length > 0) {
-      const allInscriptionIdSet = new Set(_allInscriptions.map(ins => ins.inscriptionId));
-      transferableList = transferableList.filter(
-        item => allInscriptionIdSet.has(item.inscriptionId)
+      const allInscriptionIdSet = new Set(
+        _allInscriptions.map(ins => ins.inscriptionId),
+      );
+      transferableList = transferableList.filter(item =>
+        allInscriptionIdSet.has(item.inscriptionId),
       );
     }
 
     const result = {
-      tokenInfo: convertTapTokenInfo(response?.data?.data?.tokenInfo, totalMinted),
+      tokenInfo: convertTapTokenInfo(
+        response?.data?.data?.tokenInfo,
+        totalMinted,
+      ),
       tokenBalance: convertTapTokenBalance(
         response?.data?.data?.tokenBalance,
         response?.data?.data?.tokenInfo?.dec,
@@ -434,26 +439,19 @@ export class TapApi {
     return filteredAuthorityList;
   }
 
-  // get current authority
-  async getCurrentAuthority(address: string): Promise<TokenAuthority | null> {
-    const allAuthorityList = await this.getAllAuthorityList(address);
-    if (allAuthorityList.length === 0) {
-      return null;
-    }
-    return allAuthorityList[allAuthorityList.length - 1];
-  }
-
   async getTokenTotalMinted(ticker: string): Promise<string> {
     try {
-      
-      const response = await this.api.get(`/getMintTokensLeft/${encodeURIComponent(ticker)}`, {});
+      const response = await this.api.get(
+        `/getMintTokensLeft/${encodeURIComponent(ticker)}`,
+        {},
+      );
       const tokensLeft = response?.data?.result || '0';
-      
+
       const deploymentInfo = await this.getDeployment(ticker);
       const totalSupply = deploymentInfo?.max || '0';
-      
+
       const totalMinted = (BigInt(totalSupply) - BigInt(tokensLeft)).toString();
-      
+
       return totalMinted;
     } catch (error) {
       return '0';

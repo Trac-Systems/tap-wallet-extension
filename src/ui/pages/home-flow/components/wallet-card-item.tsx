@@ -16,7 +16,7 @@ import {useNavigate} from 'react-router-dom';
 import {useAccountBalance} from '../hook';
 import './index.css';
 import {debounce} from 'lodash';
-import {useFetchUtxosCallback, useSafeBalance} from '@/src/ui/pages/send-receive/hook';
+import {useSafeBalance} from '@/src/ui/pages/send-receive/hook';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -41,11 +41,8 @@ const WalletCard = (props: IWalletCardProps) => {
   const [usdPrice, setUsdPrice] = useState(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const safeBalance = useSafeBalance();
-  const fetchUtxos = useFetchUtxosCallback();
 
   const [usdAvailable, setUsdAvailable] = useState(0);
-  const [safeBalanceLoading, setSafeBalanceLoading] = useState(false);
-  const debounceTimeoutRef = useRef(null);
 
 
   const checkIsSingleWallet = useMemo(() => {
@@ -202,36 +199,28 @@ const WalletCard = (props: IWalletCardProps) => {
           <UX.Text styleType="body_12_normal" title="Available balance:"  />
           <UX.Box layout="row_between">
             <UX.Box layout="row" spacing="xss_s">
-              {safeBalanceLoading ? (
-                <UX.Text styleType="body_14_normal" title="..." customStyles={{color: 'white'}} />
-              ) : (
-                <>
-                  <UX.Tooltip text={`${safeBalance}`} isText  >
-                    <UX.Text
-                      styleType="body_14_normal"
-                      title={`${safeBalance}`}
-                      className="textBalance"
-                      customStyles={{color: 'white'}} 
-                    />
-                  </UX.Tooltip>
-                  <UX.Text styleType="body_14_normal" title={'BTC'} customStyles={{color: 'white'}} />
-                </>
-              )}
+              <>
+                <UX.Tooltip text={`${safeBalance}`} isText  >
+                  <UX.Text
+                    styleType="body_14_normal"
+                    title={`${safeBalance}`}
+                    className="textBalance"
+                    customStyles={{color: 'white'}} 
+                  />
+                </UX.Tooltip>
+                <UX.Text styleType="body_14_normal" title={'BTC'} customStyles={{color: 'white'}} />
+              </>
             </UX.Box>
             <UX.Box layout="row" spacing="xss_s">
-              {!safeBalanceLoading && (
-                <>
-                  <UX.Text title="≈" styleType="body_16_normal" />
-                  <UX.Tooltip text={`${usdAvailable}`} isText>
-                    <UX.Text
-                      title={`${usdAvailable}`}
-                      styleType="body_16_normal"
-                      className="textBalance"
-                    />
-                  </UX.Tooltip>
-                  <UX.Text title="USD" styleType="body_16_normal" />
-                </>
-              )}
+              <UX.Text title="≈" styleType="body_16_normal" />
+              <UX.Tooltip text={`${usdAvailable}`} isText>
+                <UX.Text
+                  title={`${usdAvailable}`}
+                  styleType="body_16_normal"
+                  className="textBalance"
+                />
+              </UX.Tooltip>
+              <UX.Text title="USD" styleType="body_16_normal" />
             </UX.Box>
           </UX.Box>
         </UX.Box>

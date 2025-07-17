@@ -27,19 +27,6 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    try {
-      setLoading(true);
-      wallet
-        .getTapSummary(activeAccount.address, ticker)
-        .then(data => setTokenSummary(data));
-    } catch (error) {
-      console.log('Failed to get tap summary: ', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   const transferableBalanceSafe = useMemo(() => {
     return (
       tokenSummary?.transferableList?.reduce(
@@ -95,29 +82,26 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   _names = _names.splice(0, 4);
 
   //! Function
-  const handleShowDetailList = (
+  const handleShowDetailList = async (
     ticker: string,
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     e.stopPropagation();
-    setExpandView(!isExpandView);
-    if (!tokenSummary) {
+    if (!isExpandView && !tokenSummary) {
+      setExpandView(true);
+      setLoading(true);
       try {
-        wallet
-          .getTapSummary(activeAccount.address, ticker)
-          .then(data => setTokenSummary(data));
+        const data = await wallet.getTapSummary(activeAccount.address, ticker);
+        setTokenSummary(data);
       } catch (error) {
         console.log('Failed to get tap summary: ', error);
+      } finally {
+        setLoading(false);
       }
+    } else {
+      setExpandView(!isExpandView);
     }
   };
-  if (loading) {
-    return (
-      <UX.Box layout="row_center">
-        <SVG.LoadingIcon />
-      </UX.Box>
-    );
-  }
 
   return (
     <UX.Box
@@ -189,84 +173,68 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           </UX.Box>
         </UX.Tooltip>
       </UX.Box>
-      {isExpandView ? (
+      {isExpandView && (
         <>
           <UX.Divider />
-          {/* TransferAble of Items */}
           <UX.Box layout="row_between" style={{width: '100%', marginBottom: 8}}>
             <UX.Text
               title={'Transferable'}
               styleType="body_14_normal"
-              customStyles={{
-                color: '#FFFFFFB0',
-                width: 'fit-content',
-              }}
+              customStyles={{ color: 'white' }}
             />
-            <UX.Text
-              title={`${_transferAble}`}
-              styleType="body_14_normal"
-              customStyles={{
-                color: '#FFFFFFB0',
-                width: 'fit-content',
-              }}
-            />
+            {loading ? (
+              <SVG.LoadingIcon />
+            ) : (
+              <UX.Text
+                title={String(transferableBalanceSafe)}
+                styleType="body_14_normal"
+                customStyles={{ color: 'white' }}
+              />
+            )}
           </UX.Box>
           <UX.Box
             layout="row"
             spacing="xss_s"
-            style={{
-              flex: 1,
-            }}>
-            {_names.slice(0, 3).map((item, index) => {
-              return (
-                <UX.Box
-                  layout="column_center"
-                  key={index}
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '7px',
-                    overflow: 'hidden',
-                    background: '#D16B7C',
-                    position: 'relative',
-                  }}>
-                  {index === 2 ? (
+            style={{ flex: 1 }}>
+            {_names.slice(0, 3).map((item, index) => (
+              <UX.Box
+                layout="column_center"
+                key={index}
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '7px',
+                  overflow: 'hidden',
+                  background: '#D16B7C',
+                  position: 'relative',
+                }}>
+                {index === 2 ? (
+                  <UX.Text
+                    title={_amounts.length - 2 + '+'}
+                    styleType="body_14_bold"
+                    customStyles={{ color: 'white', width: 'fit-content' }}
+                  />
+                ) : (
+                  <>
                     <UX.Text
-                      title={_amounts.length - 2 + '+'}
+                      title={item}
                       styleType="body_14_bold"
-                      customStyles={{
-                        color: 'white',
-                        width: 'fit-content',
-                      }}
+                      customStyles={{ color: 'white', width: 'fit-content' }}
                     />
-                  ) : (
-                    <>
+                    {item === 'Transfer' && (
                       <UX.Text
-                        title={item}
+                        title={_amounts[index]}
                         styleType="body_14_bold"
-                        customStyles={{
-                          color: 'white',
-                          width: 'fit-content',
-                        }}
+                        customStyles={{ color: 'white', width: 'fit-content' }}
                       />
-                      {item === 'Transfer' && (
-                        <UX.Text
-                          title={_amounts[index]}
-                          styleType="body_14_bold"
-                          customStyles={{
-                            color: 'white',
-                            width: 'fit-content',
-                          }}
-                        />
-                      )}
-                    </>
-                  )}
-                </UX.Box>
-              );
-            })}
+                    )}
+                  </>
+                )}
+              </UX.Box>
+            ))}
           </UX.Box>
         </>
-      ) : null}
+      )}
     </UX.Box>
   );
 };

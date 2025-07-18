@@ -22,6 +22,8 @@ import WalletCard from './wallet-card-item';
 import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 import {useNavigate} from 'react-router-dom';
 import {SVG} from '@/src/ui/svg';
+import { debounce } from 'lodash';
+import { useRef } from 'react';
 
 const ListWallets = () => {
   //! State
@@ -46,11 +48,21 @@ const ListWallets = () => {
     return 0;
   }, [listWallets.length, activeWallet.key]);
 
+  const debouncedFetchUtxos = useRef(
+    debounce(() => {
+      fetchUtxos();
+    }, 1000)
+  ).current;
+
   useEffect(() => {
     if (!listWallets.length) return;
-    fetchUtxos();
+    debouncedFetchUtxos();
     setCurrentIndex(positionSlider ?? 0);
-  }, [listWallets, fetchUtxos, positionSlider]);
+
+    return () => {
+      debouncedFetchUtxos.cancel();
+    };
+  }, [listWallets, debouncedFetchUtxos, positionSlider]);
   
   //! Function
   const handleOpenDrawerEdit = () => setOpenDrawerEditWallet(true);

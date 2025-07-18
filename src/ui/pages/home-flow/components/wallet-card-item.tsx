@@ -16,7 +16,7 @@ import {useNavigate} from 'react-router-dom';
 import {useAccountBalance} from '../hook';
 import './index.css';
 import {debounce} from 'lodash';
-import {useFetchUtxosCallback, useSafeBalance} from '@/src/ui/pages/send-receive/hook';
+import {useSafeBalance} from '@/src/ui/pages/send-receive/hook';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -41,11 +41,8 @@ const WalletCard = (props: IWalletCardProps) => {
   const [usdPrice, setUsdPrice] = useState(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const safeBalance = useSafeBalance();
-  const fetchUtxos = useFetchUtxosCallback();
 
   const [usdAvailable, setUsdAvailable] = useState(0);
-  const [safeBalanceLoading, setSafeBalanceLoading] = useState(false);
-  const debounceTimeoutRef = useRef(null);
 
 
   const checkIsSingleWallet = useMemo(() => {
@@ -53,6 +50,7 @@ const WalletCard = (props: IWalletCardProps) => {
   }, [activeWallet]);
 
   const {address} = activeAccount;
+  const isActive = keyring.key === activeWallet.key;
 
   const balanceValue = useMemo(() => {
     return satoshisToAmount(Number(accountBalance.amount ?? 0));
@@ -77,8 +75,9 @@ const WalletCard = (props: IWalletCardProps) => {
   );
 
   useEffect(() => {
+    if (!isActive) return;
     debouncedFetchDataUSD(balanceValue, setUsdPrice);
-  }, [balanceValue, debouncedFetchDataUSD]);
+  }, [balanceValue, debouncedFetchDataUSD, isActive]);
 
   useEffect(() => {
     return () => {
@@ -105,31 +104,9 @@ const WalletCard = (props: IWalletCardProps) => {
   }, [menuOpen]);
 
   useEffect(() => {
+    if (!isActive) return;
     wallet.getUSDPrice(Number(safeBalance)).then(setUsdAvailable);
-  }, [safeBalance]);
-
-  useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    
-    debounceTimeoutRef.current = setTimeout(async () => {
-      if (activeAccount?.address) {
-        setSafeBalanceLoading(true);
-        try {
-          await fetchUtxos();
-        } finally {
-          setSafeBalanceLoading(false);
-        }
-      }
-    }, 200);
-
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [activeAccount?.address, fetchUtxos]);
+  }, [safeBalance, isActive]);
 
   
   //! Render
@@ -169,12 +146,13 @@ const WalletCard = (props: IWalletCardProps) => {
             )}
           </UX.Box>
         </div>
+        <div>
         {checkIsSingleWallet ? null : (
           <UX.Box
             layout="row"
             spacing="xl"
             onClick={handleOpenDrawerAccount}
-            style={{cursor: 'pointer'}}>
+            style={{cursor: 'pointer', marginBottom: 4}}>
             <UX.Text
               styleType="heading_16"
               customStyles={{
@@ -192,16 +170,18 @@ const WalletCard = (props: IWalletCardProps) => {
         )}
 
         <UX.AddressBar address={address} />
+        </div>
         <UX.Box layout="row_between">
           <UX.Box layout="row" spacing="xss_s">
             <UX.Tooltip text={balanceValue} isText>
               <UX.Text
                 styleType="heading_20"
-                title={balanceValue}
+                title={Number(balanceValue).toFixed(8)}
                 className="textBalance"
+                customStyles={{lineHeight: '32px', fontSize: 24}}
               />
             </UX.Tooltip>
-            <UX.Text styleType="heading_20" title={'BTC'} />
+            <UX.Text styleType="heading_20" customStyles={{lineHeight: '32px', fontSize: 24}} title={'BTC'} />
           </UX.Box>
           <UX.Box layout="row" spacing="xss_s">
             <UX.Text title="≈" styleType="body_16_normal" />
@@ -216,62 +196,36 @@ const WalletCard = (props: IWalletCardProps) => {
           </UX.Box>
         </UX.Box>
         <UX.Box>
-          <UX.Text styleType="body_14_normal" title="Available balance:"  />
+          <UX.Text styleType="body_12_normal" title="Available balance:"  />
           <UX.Box layout="row_between">
             <UX.Box layout="row" spacing="xss_s">
-              {safeBalanceLoading ? (
-                <UX.Text styleType="body_14_normal" title="..." customStyles={{color: 'white'}} />
-              ) : (
-                <>
-                  <UX.Tooltip text={`${safeBalance}`} isText  >
-                    <UX.Text
-                      styleType="body_14_normal"
-                      title={`${safeBalance}`}
-                      className="textBalance"
-                      customStyles={{color: 'white'}} 
-                    />
-                  </UX.Tooltip>
-                  <UX.Text styleType="body_14_normal" title={'BTC'} customStyles={{color: 'white'}} />
-                </>
-              )}
+              <>
+                <UX.Tooltip text={`${safeBalance}`} isText  >
+                  <UX.Text
+                    styleType="body_14_normal"
+                    title={`${safeBalance}`}
+                    className="textBalance"
+                    customStyles={{color: 'white'}} 
+                  />
+                </UX.Tooltip>
+                <UX.Text styleType="body_14_normal" title={'BTC'} customStyles={{color: 'white'}} />
+              </>
             </UX.Box>
             <UX.Box layout="row" spacing="xss_s">
-              {!safeBalanceLoading && (
-                <>
-                  <UX.Text title="≈" styleType="body_16_normal" />
-                  <UX.Tooltip text={`${usdAvailable}`} isText>
-                    <UX.Text
-                      title={`${usdAvailable}`}
-                      styleType="body_16_normal"
-                      className="textBalance"
-                    />
-                  </UX.Tooltip>
-                  <UX.Text title="USD" styleType="body_16_normal" />
-                </>
-              )}
+              <UX.Text title="≈" styleType="body_16_normal" />
+              <UX.Tooltip text={`${usdAvailable}`} isText>
+                <UX.Text
+                  title={`${usdAvailable}`}
+                  styleType="body_16_normal"
+                  className="textBalance"
+                />
+              </UX.Tooltip>
+              <UX.Text title="USD" styleType="body_16_normal" />
             </UX.Box>
           </UX.Box>
         </UX.Box>
       </div>
 
-      <div className="groupAction">
-          <div className="groupBox" onClick={() => navigate('/home/send')}>
-            <SVG.ArrowSendIcon />
-            <UX.Text
-              title="Send"
-              styleType="body_14_bold"
-              customStyles={{color: 'white'}}
-            />
-          </div>
-          <div className="groupBox" onClick={() => navigate('/home/receive')}>
-            <SVG.ArrowReceiveIcon />
-            <UX.Text
-              title="Receive"
-              styleType="body_14_bold"
-              customStyles={{color: 'white'}}
-            />
-          </div>
-        </div>
     </>
   );
 };

@@ -22,11 +22,14 @@ interface IWalletCardProps {
   keyring: WalletDisplay;
   handleOpenDrawerEdit?: () => void;
   handleOpenDrawerAccount?: () => void;
+  isLoadingUtxo?: boolean;
+  fetchUtxoError?: string | null;
+  onRetryFetchUtxos?: () => void;
 }
 
 const WalletCard = (props: IWalletCardProps) => {
   //! State
-  const {keyring, handleOpenDrawerEdit, handleOpenDrawerAccount} = props;
+  const {keyring, handleOpenDrawerEdit, handleOpenDrawerAccount, isLoadingUtxo, fetchUtxoError, onRetryFetchUtxos} = props;
   const navigate = useNavigate();
   const wallet = useWalletProvider();
   const networkType = useAppSelector(GlobalSelector.networkType);
@@ -43,6 +46,7 @@ const WalletCard = (props: IWalletCardProps) => {
   const safeBalance = useSafeBalance();
 
   const [usdAvailable, setUsdAvailable] = useState(0);
+  const [isLoadingUsd, setIsLoadingUsd] = useState(false);
 
 
   const checkIsSingleWallet = useMemo(() => {
@@ -104,8 +108,38 @@ const WalletCard = (props: IWalletCardProps) => {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (!isActive) return;
-    wallet.getUSDPrice(Number(safeBalance)).then(setUsdAvailable);
+    let cancelled = false;
+    if (!isActive) {
+      setIsLoadingUsd(false);
+      setUsdAvailable(0);
+      return;
+    }
+    if (!safeBalance || Number(safeBalance) === 0) {
+      setUsdAvailable(0);
+      setIsLoadingUsd(false);
+      return;
+    }
+    setIsLoadingUsd(true);
+    wallet.getUSDPrice(Number(safeBalance))
+      .then(val => {
+        if (!cancelled) {
+          setUsdAvailable(val);
+        } 
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setUsdAvailable(0);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingUsd(false);
+        }
+      });
+      
+    return () => { 
+      cancelled = true; 
+    };
   }, [safeBalance, isActive]);
 
   
@@ -198,30 +232,43 @@ const WalletCard = (props: IWalletCardProps) => {
         <UX.Box>
           <UX.Text styleType="body_12_normal" title="Available balance:"  />
           <UX.Box layout="row_between">
-            <UX.Box layout="row" spacing="xss_s">
+            {fetchUtxoError ? (
+              <UX.Box layout="column_center" style={{ width: '100%' }}>
+                <UX.Box layout="row_between" style={{ width: '100%', alignItems: 'center', marginBottom: 4 }}>
+                  <UX.Text styleType="body_14_bold" title={'Failed to fetch. Please try again.'} customStyles={{ color: 'red', textAlign: 'center' }} />
+                  <UX.Button styleType="mini" title="Retry" onClick={onRetryFetchUtxos} customStyles={{cursor: 'pointer'}} />
+                </UX.Box>
+              </UX.Box>
+            ) : (isLoadingUtxo || isLoadingUsd) ? (
+              <UX.Box layout="row_center" style={{ width: '100%'}}>
+                <SVG.LoadingIcon />
+              </UX.Box>
+            ) : (
               <>
-                <UX.Tooltip text={`${safeBalance}`} isText  >
-                  <UX.Text
-                    styleType="body_14_normal"
-                    title={`${safeBalance}`}
-                    className="textBalance"
-                    customStyles={{color: 'white'}} 
-                  />
-                </UX.Tooltip>
-                <UX.Text styleType="body_14_normal" title={'BTC'} customStyles={{color: 'white'}} />
+                <UX.Box layout="row" spacing="xss_s">
+                  <UX.Tooltip text={`${safeBalance}`} isText>
+                    <UX.Text
+                      styleType="body_14_normal"
+                      title={`${safeBalance}`}
+                      className="textBalance"
+                      customStyles={{ color: 'white' }}
+                    />
+                  </UX.Tooltip>
+                  <UX.Text styleType="body_14_normal" title={'BTC'} customStyles={{ color: 'white' }} />
+                </UX.Box>
+                <UX.Box layout="row" spacing="xss_s">
+                  <UX.Text title="≈" styleType="body_16_normal" />
+                  <UX.Tooltip text={`${usdAvailable}`} isText>
+                    <UX.Text
+                      title={`${usdAvailable}`}
+                      styleType="body_16_normal"
+                      className="textBalance"
+                    />
+                  </UX.Tooltip>
+                  <UX.Text title="USD" styleType="body_16_normal" />
+                </UX.Box>
               </>
-            </UX.Box>
-            <UX.Box layout="row" spacing="xss_s">
-              <UX.Text title="≈" styleType="body_16_normal" />
-              <UX.Tooltip text={`${usdAvailable}`} isText>
-                <UX.Text
-                  title={`${usdAvailable}`}
-                  styleType="body_16_normal"
-                  className="textBalance"
-                />
-              </UX.Tooltip>
-              <UX.Text title="USD" styleType="body_16_normal" />
-            </UX.Box>
+            )}
           </UX.Box>
         </UX.Box>
       </div>

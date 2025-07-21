@@ -41,6 +41,8 @@ const ListWallets = () => {
   const {showToast} = useCustomToast();
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
+  const [fetchUtxoError, setFetchUtxoError] = useState<string | null>(null);
 
   const positionSlider = useMemo(() => {
     if (!isEmpty(listWallets) || !activeWallet.key)
@@ -50,8 +52,16 @@ const ListWallets = () => {
 
   const debouncedFetchUtxos = useRef(
     debounce(() => {
-      fetchUtxos();
-    }, 1000)
+      setIsLoadingUtxo(true);
+      setFetchUtxoError(null);
+      fetchUtxos()
+        .catch((err) => {
+          setFetchUtxoError(err?.message || 'Failed to fetch UTXOs. Please try again.');
+        })
+        .finally(() => {
+          setIsLoadingUtxo(false);
+        });
+    }, 100)
   ).current;
 
   useEffect(() => {
@@ -77,7 +87,6 @@ const ListWallets = () => {
           dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
-          await fetchUtxos(); 
         } catch {
           showToast({title: 'Oops something go wrong!!!', type: 'error'});
         }
@@ -121,6 +130,9 @@ const ListWallets = () => {
                 keyring={wallet}
                 handleOpenDrawerEdit={handleOpenDrawerEdit}
                 handleOpenDrawerAccount={handleOpenDrawerAccount}
+                isLoadingUtxo={isLoadingUtxo}
+                fetchUtxoError={fetchUtxoError}
+                onRetryFetchUtxos={() => debouncedFetchUtxos()}
               />
             </SwipeSlide>
           );

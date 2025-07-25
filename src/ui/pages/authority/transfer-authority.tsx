@@ -15,6 +15,8 @@ import { usePrepareSendBTCCallback } from '../send-receive/hook';
 import { useCustomToast } from '../../component/toast-custom';
 import { InscribeOrder, InscriptionOrdClient, OrderType, TappingStatus } from '@/src/wallet-instance/types';
 import CloseIcon from '../../svg/CloseIcon';
+import { calculateAmount } from '@/src/shared/utils/btc-helper';
+import { useTokenInfo } from '../home-flow/hook';
 
 const TransferAuthority = () => {
   //! State
@@ -42,6 +44,8 @@ const TransferAuthority = () => {
     useState<InscriptionOrdClient | null>(null);
 
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
+  const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
+  const { getTokenInfoAndStore } = useTokenInfo();
   const networkType = useAppSelector(GlobalSelector.networkType);
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
   const auth = currentAuthority?.ins;
@@ -106,12 +110,26 @@ const TransferAuthority = () => {
   }, [inscriptionId, inscriptionStatus]);
 
   useEffect(() => {
-    const listTapList = tapList.map(item => ({
-      label: item.ticker,
-      value: item.ticker,
-      amount:
-        Number(item.overallBalance || 0) - Number(item.transferableBalance),
-    }));
+    if(tapList?.length === 0) {
+      return;
+    }
+    const listTapList = tapList.map(item => {
+      const tokenInfo = tokenInfoMap[item.ticker];
+      if(!tokenInfo) {
+        return {
+          label: item.ticker,
+          value: item.ticker,
+          amount: null,
+        };
+      }
+      const overallBalance = calculateAmount(item.overallBalance, tokenInfo.dec);
+      const transferableBalance = calculateAmount(item.transferableBalance, tokenInfo.dec);
+      return {
+        label: item.ticker,
+        value: item.ticker,
+        amount: Number(overallBalance || 0) - Number(transferableBalance || 0),
+      };
+    });
 
     if (!tokens.length) {
       setListTapList(listTapList);
@@ -121,7 +139,7 @@ const TransferAuthority = () => {
       );
       setListTapList(filteredTapList);
     }
-  }, [tapList, tokens]);
+  }, [tapList, tokens, tokenInfoMap]);
 
   const handleConfirm = async () => {
     const isValid = isValidForm();
@@ -296,6 +314,11 @@ const TransferAuthority = () => {
       option => option.value === section.selected,
     );
     const amount = selectedOption?.amount || 0;
+    useEffect(() => {
+      if (section.selected) {
+        getTokenInfoAndStore(section.selected);
+      }
+    }, [section.selected]);
 
     return (
       <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>

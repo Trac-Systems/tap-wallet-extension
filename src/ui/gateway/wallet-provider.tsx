@@ -248,7 +248,7 @@ export interface IWalletProvider {
   getAccountSpendableInscriptions(
     account: IDisplayAccount,
   ): Promise<Inscription[]>;
-
+  getDeployment(ticker: string): Promise<any>;
   getAllRuneUtxos(address: string): Promise<UnspentOutput[]>;
   signMessage(message: string): Promise<string>;
   generateTokenAuth(

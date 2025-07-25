@@ -131,3 +131,32 @@ export const useInscriptionHook = () => {
     getInscriptionList,
   };
 };
+
+export const useTokenInfo = () => {
+
+  const dispatch = useAppDispatch();
+  const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
+  const wallet = useWalletProvider();
+
+  const getTokenInfoAndStore = useCallback(async (ticker: string) => {
+    if (!ticker || tokenInfoMap[ticker]) return;
+    try {
+      const tokenInfoRaw = await wallet.getDeployment(ticker);
+      dispatch(InscriptionActions.setTokenInfo({
+        ticker,
+        tokenInfo: tokenInfoRaw,
+      }));
+    } catch (e) {
+      console.log('getTokenInfoAndStore error', e);
+    }
+  }, [dispatch, tokenInfoMap, wallet]);
+
+  const getTokenInfo = useCallback((ticker: string) => {
+    return tokenInfoMap[ticker];
+  }, [tokenInfoMap]);
+
+  return {
+    getTokenInfo,
+    getTokenInfoAndStore,
+  };
+};

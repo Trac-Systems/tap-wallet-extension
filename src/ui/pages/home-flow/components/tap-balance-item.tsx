@@ -26,18 +26,23 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const fetchBalance = () => {
+    setLoading(true);
+    setError(false);
+    wallet
+      .getTapSummary(activeAccount.address, ticker)
+      .then(data => {
+        setTokenSummary(data);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    try {
-      setLoading(true);
-      wallet
-        .getTapSummary(activeAccount.address, ticker)
-        .then(data => setTokenSummary(data));
-    } catch (error) {
-      console.log('Failed to get tap summary: ', error);
-    } finally {
-      setLoading(false);
-    }
+    fetchBalance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const transferableBalanceSafe = useMemo(() => {
@@ -50,14 +55,12 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   }, [tokenSummary?.transferableList.length, activeAccount.address]);
 
   const balance = useMemo(() => {
-    if (!tokenSummary) {
-      return overallBalance.toString();
-    }
+    if (!tokenSummary) return null;
     const balanceNumber =
       Number(tokenSummary?.tokenBalance.availableBalance) +
       transferableBalanceSafe;
     return formatNumberValue(balanceNumber.toString());
-  }, [tokenSummary, activeAccount.address, overallBalance]);
+  }, [tokenSummary]);
 
   const deploy_count = tokenSummary
     ? tokenSummary.tokenInfo.holder === activeAccount.address
@@ -111,13 +114,6 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
       }
     }
   };
-  if (loading) {
-    return (
-      <UX.Box layout="row_center">
-        <SVG.LoadingIcon />
-      </UX.Box>
-    );
-  }
 
   return (
     <UX.Box
@@ -166,25 +162,35 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           </UX.Tooltip>
         </UX.Box>
 
-        <UX.Tooltip text={balance} isText>
+        <UX.Tooltip text={balance ?? ''} isText>
           <UX.Box
             layout="row"
             style={{cursor: 'pointer', overflow: 'hidden'}}
             onClick={(e: React.ChangeEvent<HTMLInputElement>) =>
               handleShowDetailList(ticker, e)
             }>
-            <UX.Text
-              title={`${balance}`}
-              styleType="body_16_normal"
-              customStyles={{
-                color: 'white',
-                maxWidth: '100px',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                flex: 1,
-              }}
-            />
+            {loading ? (
+              <span style={{width: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}>
+                <SVG.LoadingIcon   />
+              </span>
+            ) : error ? (
+              <span onClick={fetchBalance}>
+                <SVG.RefreshIcon width={16} height={16} />
+              </span>
+            ) : balance !== null ? (
+              <UX.Text
+                title={`${balance}`}
+                styleType="body_16_normal"
+                customStyles={{
+                  color: 'white',
+                  maxWidth: '100px',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                }}
+              />
+            ) : null}
             <SVG.ArrowDownIcon />
           </UX.Box>
         </UX.Tooltip>

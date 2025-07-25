@@ -1041,6 +1041,10 @@ export class Provider {
     return await this.tapApi.getTokenTotalMinted(ticker);
   };
 
+  getDeployment = async (ticker: string) => {
+    return await this.tapApi.getDeployment(ticker);
+  };
+
   getDmtScriptId = async (
     depInscriptionId: string,
   ): Promise<{scriptInsId: string; ticker: string; unat: boolean}> => {

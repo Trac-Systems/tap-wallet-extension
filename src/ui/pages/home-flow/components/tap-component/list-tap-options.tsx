@@ -3,6 +3,7 @@ import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {useAppSelector} from '@/src/ui/utils';
@@ -51,8 +52,7 @@ const ListTapOptions = () => {
     historyList: [],
     transferableList: [],
   });
-  const walletProvider = useWalletProvider();
-  const [allInscriptions, setAllInscriptions] = useState([]);
+  const allInscriptions = useAppSelector(InscriptionSelector.allInscriptions);
 
   //! Function
   const handleNavigate = () => {
@@ -75,19 +75,11 @@ const ListTapOptions = () => {
 
   useEffect(() => {
     fetchData();
-  }, [activeAccount?.address]);
+  }, [activeAccount?.address, allInscriptions]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
-
-  useEffect(() => {
-    if (activeAccount?.address) {
-      walletProvider.getAllInscriptions(activeAccount.address).then(inscriptions => {
-        setAllInscriptions(inscriptions);
-      });
-    }
-  }, [activeAccount?.address]);
 
   const fetchData = () => {
     setLoading(true);

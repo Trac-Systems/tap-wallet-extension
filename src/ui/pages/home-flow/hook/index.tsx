@@ -10,7 +10,8 @@ import {
   useAppSelector,
   TOKEN_PAGE_SIZE,
 } from '@/src/ui/utils';
-import {useCallback} from 'react';
+import {useCallback, useEffect, useState} from 'react';
+import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 
 export function useAccountBalance() {
   const accountBalanceMap = useAppSelector(AccountSelector.accountBalanceMap);
@@ -138,8 +139,13 @@ export const useTokenInfo = () => {
   const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
   const wallet = useWalletProvider();
 
+  const [loadingTicker, setLoadingTicker] = useState<string | null>(null);
+  const [errorTicker, setErrorTicker] = useState<string | null>(null);
+
   const getTokenInfoAndStore = useCallback(async (ticker: string) => {
-    if (!ticker || tokenInfoMap[ticker]) return;
+    if (!ticker || tokenInfoMap[ticker] || loadingTicker === ticker) return;
+    setLoadingTicker(ticker);
+    setErrorTicker(null);
     try {
       const tokenInfoRaw = await wallet.getDeployment(ticker);
       dispatch(InscriptionActions.setTokenInfo({
@@ -147,9 +153,11 @@ export const useTokenInfo = () => {
         tokenInfo: tokenInfoRaw,
       }));
     } catch (e) {
-      console.log('getTokenInfoAndStore error', e);
+      setErrorTicker(ticker);
+    } finally {
+      setLoadingTicker(null);
     }
-  }, [dispatch, tokenInfoMap, wallet]);
+  }, [dispatch, tokenInfoMap, wallet, loadingTicker]);
 
   const getTokenInfo = useCallback((ticker: string) => {
     return tokenInfoMap[ticker];
@@ -158,5 +166,54 @@ export const useTokenInfo = () => {
   return {
     getTokenInfo,
     getTokenInfoAndStore,
+    loadingTicker,
+    errorTicker,
+    tokenInfoMap,
+  };
+};
+
+export const useAllInscriptions = () => {
+  const wallet = useWalletProvider();
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const dispatch = useAppDispatch();
+  
+  const allInscriptions = useAppSelector(InscriptionSelector.allInscriptions);
+  const loading = useAppSelector(InscriptionSelector.allInscriptionsLoading);
+  const error = useAppSelector(InscriptionSelector.allInscriptionsError);
+
+  const fetchAllInscriptions = useCallback(async () => {
+    if (!activeAccount?.address) {
+      return;
+    }
+    
+    dispatch(InscriptionActions.setAllInscriptionsLoading(true));
+    dispatch(InscriptionActions.setAllInscriptionsError(null));
+    
+    try {
+      const inscriptions = await wallet.getAllInscriptions(activeAccount.address);
+      dispatch(InscriptionActions.setAllInscriptions(inscriptions || []));
+    } catch (err) {
+      dispatch(InscriptionActions.setAllInscriptionsError((err as Error).message));
+      dispatch(InscriptionActions.setAllInscriptions([]));
+    } finally {
+      dispatch(InscriptionActions.setAllInscriptionsLoading(false));
+    }
+  }, [wallet, activeAccount?.address, dispatch]);
+
+  const refreshAllInscriptions = useCallback(async () => {
+    await fetchAllInscriptions();
+  }, [fetchAllInscriptions]);
+
+  useEffect(() => {
+    dispatch(InscriptionActions.setAllInscriptions([]));
+    dispatch(InscriptionActions.setAllInscriptionsError(null));
+  }, [activeAccount?.address, dispatch]);
+
+  return {
+    allInscriptions,
+    loading,
+    error,
+    fetchAllInscriptions,
+    refreshAllInscriptions,
   };
 };

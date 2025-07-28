@@ -20,13 +20,16 @@ import {
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useAccountBalance, useInscriptionHook} from '../hook';
+import {useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions} from '../hook';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 
 const TapListChild = () => {
   const navigate = useNavigate();
   const {getTapList} = useInscriptionHook();
+  const { getTokenInfoAndStore, loadingTicker } = useTokenInfo();
+  const { fetchAllInscriptions } = useAllInscriptions();
+  const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
 
   //! State
   const accountBalance = useAccountBalance();
@@ -223,6 +226,10 @@ const TapListChild = () => {
     };
   }, []);
 
+  useEffect(() => {
+      fetchAllInscriptions();
+  }, []);
+
   const mangeAuthorityTitle = useMemo(() => {
     if (isGettingAuthorityStatus) {
       return 'Loading...';
@@ -251,6 +258,22 @@ const TapListChild = () => {
     }
     return tapList; 
   }, [tokenValue, tapItem, tapList]);
+
+  useEffect(() => {
+    const fetchSequentially = async () => {
+      for (const tokenBalance of displayData) {
+        const ticker = tokenBalance.ticker;
+        if (ticker && !tokenInfoMap[ticker]) {
+          if (!loadingTicker) {
+             getTokenInfoAndStore(ticker);
+          } else {
+            break;
+          }
+        }
+      }
+    };
+    fetchSequentially();
+  }, [displayData, tokenInfoMap, loadingTicker]);
 
   //! Render
   if (loading) {

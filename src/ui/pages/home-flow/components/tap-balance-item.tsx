@@ -1,4 +1,4 @@
-import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
+import {formatNumberValue, formatTicker, calculateAmount} from '@/src/shared/utils/btc-helper';
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
@@ -6,7 +6,7 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {SVG} from '@/src/ui/svg';
 import {useAppSelector} from '@/src/ui/utils';
 import {AddressTokenSummary} from '@/src/wallet-instance';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -25,39 +25,24 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const [isExpandView, setExpandView] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>();
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    try {
-      setLoading(true);
-      wallet
-        .getTapSummary(activeAccount.address, ticker)
-        .then(data => setTokenSummary(data));
-    } catch (error) {
-      console.log('Failed to get tap summary: ', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const transferableBalanceSafe = useMemo(() => {
-    return (
-      tokenSummary?.transferableList?.reduce(
-        (sum, item) => sum + parseFloat(item.amount),
-        0,
-      ) ?? 0
-    );
-  }, [tokenSummary?.transferableList.length, activeAccount.address]);
-
+  const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
+  const tokenInfo = tokenInfoMap[ticker];
+  const decimal = tokenInfo?.dec;
   const balance = useMemo(() => {
-    if (!tokenSummary) {
-      return overallBalance.toString();
+    if (!tokenInfo || !overallBalance || decimal === undefined) {
+      return null;
     }
-    const balanceNumber =
-      Number(tokenSummary?.tokenBalance.availableBalance) +
-      transferableBalanceSafe;
-    return formatNumberValue(balanceNumber.toString());
-  }, [tokenSummary, activeAccount.address, overallBalance]);
+    
+    const balanceNumber = parseFloat(overallBalance);
+    if (isNaN(balanceNumber)) {
+      return null;
+    }
+    
+    return formatNumberValue(calculateAmount(overallBalance, decimal));
+  }, [overallBalance, decimal]);
+
+ 
+
 
   const deploy_count = tokenSummary
     ? tokenSummary.tokenInfo.holder === activeAccount.address
@@ -111,13 +96,6 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
       }
     }
   };
-  if (loading) {
-    return (
-      <UX.Box layout="row_center">
-        <SVG.LoadingIcon />
-      </UX.Box>
-    );
-  }
 
   return (
     <UX.Box
@@ -166,25 +144,31 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           </UX.Tooltip>
         </UX.Box>
 
-        <UX.Tooltip text={balance} isText>
+        <UX.Tooltip text={balance ?? ''} isText>
           <UX.Box
             layout="row"
             style={{cursor: 'pointer', overflow: 'hidden'}}
             onClick={(e: React.ChangeEvent<HTMLInputElement>) =>
               handleShowDetailList(ticker, e)
             }>
-            <UX.Text
-              title={`${balance}`}
-              styleType="body_16_normal"
-              customStyles={{
-                color: 'white',
-                maxWidth: '100px',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                flex: 1,
-              }}
-            />
+            {!balance ? (
+              <span style={{width: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}>
+                <SVG.LoadingIcon   />
+              </span>
+            ): (
+              <UX.Text
+                title={`${balance}`}
+                styleType="body_16_normal"
+                customStyles={{
+                  color: 'white',
+                  maxWidth: '100px',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                }}
+              />
+            )}
             <SVG.ArrowDownIcon />
           </UX.Box>
         </UX.Tooltip>

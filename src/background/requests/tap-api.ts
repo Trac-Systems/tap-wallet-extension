@@ -114,35 +114,18 @@ export class TapApi {
       offset,
       max,
     });
-    const list: TokenBalance[] = [];
-    // Ensure response data is valid before accessing
+    // Đảm bảo dữ liệu hợp lệ
     if (
       !response?.data ||
       !response.data?.data ||
       !Array.isArray(response.data.data?.list)
     ) {
-      return {list: [], total: 0}; // Safe fallback return
+      return {list: [], total: 0};
     }
-
-    // eslint-disable-next-line no-unsafe-optional-chaining
-    for (const tokenBalance of response.data?.data?.list) {
-      const tokenInfo = await this.getDeployment(tokenBalance.ticker);
-      list.push({
-        ...tokenBalance,
-        overallBalance: calculateAmount(
-          tokenBalance.overallBalance,
-          tokenInfo?.dec,
-        ),
-        transferableBalance: calculateAmount(
-          tokenBalance.transferableBalance,
-          tokenInfo?.dec,
-        ),
-        tokenInfo: tokenInfo,
-      });
-    }
+    // Trả về list như backend trả về, không fetch token info từng cái
     return {
-      list,
-      total: response.data?.data?.total ?? 0,
+      list: response.data.data.list,
+      total: response.data.data.total ?? 0,
     };
   }
 
@@ -271,17 +254,14 @@ export class TapApi {
         offset,
       },
     );
-    const getUtxoResult = await mempoolApi.getUtxoData(address);
-    const utxoMap = this.getUtxoMap(getUtxoResult);
-    let list = [];
-    if (utxoMap) {
-      list = response?.data?.result.filter(v => {
-        if (!v.fail && !isEmpty(utxoMap[v.tx])) {
-          return true;
-        } else {
-          total--;
-        }
-      });
+    let list = response?.data?.result || [];
+    const paidApi = new PaidApi();
+    const allIns = await paidApi.getAllInscriptions(address);
+    const allInscriptions = allIns.map(ins => ins.inscriptionId);
+    if (allInscriptions && allInscriptions.length > 0) {
+      const setAll = new Set(allInscriptions);
+      list = list.filter(item => setAll.has(item.ins));
+      total = list.length;
     }
     const tokenInfo = await this.getDeployment(ticker);
     return {

@@ -8,4 +8,7 @@ export const InscriptionSelector = {
   listTapToken: (state: AppState) => state.inscriptionReducer.listTapToken,
   totalTap: (state: AppState) => state.inscriptionReducer.totalTap,
   spendableInscriptionsMap: (state: AppState) => state.inscriptionReducer.spendableInscriptionsMap,
+  allInscriptions: (state: AppState) => state.inscriptionReducer.allInscriptions,
+  allInscriptionsLoading: (state: AppState) => state.inscriptionReducer.allInscriptionsLoading,
+  allInscriptionsError: (state: AppState) => state.inscriptionReducer.allInscriptionsError,
 };

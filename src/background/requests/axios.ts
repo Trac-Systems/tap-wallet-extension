@@ -129,7 +129,7 @@ export class AxiosRequest {
       if (error.response) {
         // Server responded with a status code that falls out of the range of 2xx
         if (!error.response?.data) {
-          throw Error(error);
+          throw Error(`[ELECTRS API] ${error}`);
         }
         const extractFeeError = errorMessage => {
           try {
@@ -138,20 +138,21 @@ export class AxiosRequest {
             if (jsonPart) {
               const errorObj = JSON.parse(jsonPart[0]);
               const errorMsg = errorObj.message;
-              if (errorMsg) return errorMsg;
+              const errorCode = errorObj.code || errorObj.status || 'unknown';
+              if (errorMsg) return `[ELECTRS API] [Code: ${errorCode}] ${errorMsg}`;
             }
-            return 'An error occurred, but no specific fee information was found.';
+            return `[ELECTRS API] An error occurred, but no specific information was found.`;
           } catch (err) {
-            return 'Error parsing the error message.';
+            return `[ELECTRS API] Error parsing the error message.`;
           }
         };
         throw Error(extractFeeError(error.response?.data));
       } else if (error.request) {
         // The request was made but no response was received
-        throw Error('No response received from server');
+        throw Error(`[ELECTRS API] No response received from server`);
       } else {
         // Something else happened in setting up the request
-        throw Error(error);
+        throw Error(`[ELECTRS API] ${error}`);
       }
     }
   };

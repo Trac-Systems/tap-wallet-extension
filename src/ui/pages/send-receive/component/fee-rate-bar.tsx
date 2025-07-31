@@ -86,7 +86,7 @@ export function FeeRateBar({
 
     let val = defaultVal;
     if (feeOptionIndex === FeeRateType.CUSTOM) {
-      val = parseInt(feeRateInputVal) || 0;
+      val = parseFloat(feeRateInputVal) || 0;
     } else if (feeOptions.length > 0) {
       val = feeOptions[feeOptionIndex].feeRate;
     }
@@ -161,18 +161,26 @@ export function FeeRateBar({
           <UX.AmountInput
             placeholder={'sat/vB'}
             disableCoinSvg
-            value={formatNumberValue(feeRateInputVal)}
+            value={feeRateInputVal}
             onAmountInputChange={amount => {
-              if (amount.length > 10) {
+              let cleanText = amount.replace(/[^0-9.]/g, '');
+              if (cleanText.startsWith('.')) return;
+              const dotCount = (cleanText.match(/\./g) || []).length;
+              if (dotCount > 1) return;
+              if (
+                cleanText.length > 1 &&
+                cleanText.startsWith('0') &&
+                cleanText[1] !== '.'
+              ) {
                 return;
               }
-              const cleanText = amount.replace(/[^0-9.]/g, '');
-              adjustFeeRateInput(cleanText);
+              if (cleanText === '0') return;
+              setFeeRateInputVal(cleanText);
             }}
             style={{fontSize: '14px', lineHeight: '22px', backgroundColor: 'transparent'}}
             autoFocus={true}
           />
-          {feeRateInputVal.length > 9 && (
+          {feeRateInputVal.split('.')[0].length > 9 && (
             <UX.Text
               styleType="body_12_bold"
               customStyles={{color: colors.red_700}}

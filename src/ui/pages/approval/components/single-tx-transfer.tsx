@@ -364,7 +364,7 @@ export const Step2 = ({
     [contextData?.order?.discountServiceFee],
   );
   const totalFee = useMemo(() => {
-    const orderTotalFee = contextData?.order?.totalFee || 0;
+    const orderTotalFee = Math.round(contextData?.order?.totalFee || 0);
     return satoshisToAmount(orderTotalFee + fee);
   }, [contextData?.order, fee]);
   return (
@@ -504,7 +504,7 @@ export const Step3 = ({
   //   [order.serviceFee],
   // );
   const totalFee = useMemo(
-    () => satoshisToAmount(order.totalFee + rawTxInfo.fee),
+    () => satoshisToAmount(Math.round(order.totalFee) + rawTxInfo.fee),
     [order.totalFee],
   );
 
@@ -862,7 +862,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
 
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order.payAddress, domain: ''},
-        toAmount: order.totalFee,
+        toAmount: Math.round(order.totalFee),
         feeRate: contextData.feeRate,
         enableRBF: false,
       });

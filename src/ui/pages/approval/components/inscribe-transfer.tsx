@@ -301,7 +301,7 @@ export const Step2 = ({
     [order.serviceFee],
   );
   const totalFee = useMemo(
-    () => satoshisToAmount(order.totalFee + rawTxInfo.fee),
+    () => satoshisToAmount(Math.round(order.totalFee) + rawTxInfo.fee),
     [order.totalFee],
   );
   return (
@@ -412,7 +412,7 @@ export const Step3 = ({
   //   [order.serviceFee],
   // );
   const totalFee = useMemo(
-    () => satoshisToAmount(order.totalFee + rawTxInfo.fee),
+    () => satoshisToAmount(Math.round(order.totalFee) + rawTxInfo.fee),
     [order.totalFee],
   );
 
@@ -775,7 +775,7 @@ export default function InscriptionTransfer({params: {data, session}}: Props) {
 
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order.payAddress, domain: ''},
-        toAmount: order.totalFee,
+        toAmount: Math.round(order.totalFee),
         feeRate: contextData.feeRate,
         enableRBF: false,
       });

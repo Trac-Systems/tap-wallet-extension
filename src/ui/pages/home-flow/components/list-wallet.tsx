@@ -22,6 +22,8 @@ import WalletCard from './wallet-card-item';
 import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 import {useNavigate} from 'react-router-dom';
 import {SVG} from '@/src/ui/svg';
+import { debounce } from 'lodash';
+import { useRef } from 'react';
 
 const ListWallets = () => {
   //! State
@@ -39,6 +41,8 @@ const ListWallets = () => {
   const {showToast} = useCustomToast();
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
+  const [fetchUtxoError, setFetchUtxoError] = useState<string | null>(null);
 
   const positionSlider = useMemo(() => {
     if (!isEmpty(listWallets) || !activeWallet.key)
@@ -46,11 +50,29 @@ const ListWallets = () => {
     return 0;
   }, [listWallets.length, activeWallet.key]);
 
+  const debouncedFetchUtxos = useRef(
+    debounce(() => {
+      setIsLoadingUtxo(true);
+      setFetchUtxoError(null);
+      fetchUtxos()
+        .catch((err) => {
+          setFetchUtxoError(err?.message || 'Failed to fetch UTXOs. Please try again.');
+        })
+        .finally(() => {
+          setIsLoadingUtxo(false);
+        });
+    }, 100)
+  ).current;
+
   useEffect(() => {
     if (!listWallets.length) return;
-    fetchUtxos();
+    debouncedFetchUtxos();
     setCurrentIndex(positionSlider ?? 0);
-  }, [listWallets, fetchUtxos, positionSlider]);
+
+    return () => {
+      debouncedFetchUtxos.cancel();
+    };
+  }, [listWallets, debouncedFetchUtxos, positionSlider]);
   
   //! Function
   const handleOpenDrawerEdit = () => setOpenDrawerEditWallet(true);
@@ -65,7 +87,6 @@ const ListWallets = () => {
           dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
-          await fetchUtxos(); 
         } catch {
           showToast({title: 'Oops something go wrong!!!', type: 'error'});
         }
@@ -109,6 +130,9 @@ const ListWallets = () => {
                 keyring={wallet}
                 handleOpenDrawerEdit={handleOpenDrawerEdit}
                 handleOpenDrawerAccount={handleOpenDrawerAccount}
+                isLoadingUtxo={isLoadingUtxo}
+                fetchUtxoError={fetchUtxoError}
+                onRetryFetchUtxos={() => debouncedFetchUtxos()}
               />
             </SwipeSlide>
           );

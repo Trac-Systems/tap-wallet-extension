@@ -175,6 +175,14 @@ export function FeeRateBar({
                 return;
               }
               if (cleanText === '0') return;
+              
+              if (cleanText.includes('.')) {
+                const parts = cleanText.split('.');
+                if (parts[1] && parts[1].length > 2) {
+                  cleanText = parts[0] + '.' + parts[1].substring(0, 2);
+                }
+              }
+              
               setFeeRateInputVal(cleanText);
             }}
             style={{fontSize: '14px', lineHeight: '22px', backgroundColor: 'transparent'}}

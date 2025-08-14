@@ -82,7 +82,7 @@ const InscribeConfirmScreen = () => {
     [contextDataParam?.order?.discountServiceFee],
   );
   const totalFee = useMemo(
-    () => satoshisToAmount(contextDataParam?.order?.totalFee + fee),
+    () => satoshisToAmount(Math.round(contextDataParam?.order?.totalFee || 0) + fee),
     [contextDataParam?.order?.totalFee],
   );
 

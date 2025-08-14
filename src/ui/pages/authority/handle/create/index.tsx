@@ -45,7 +45,7 @@ const HandleCreateAuthority = () => {
       );
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order?.payAddress, domain: ''},
-        toAmount: order?.totalFee,
+        toAmount: Math.round(order?.totalFee || 0),
         feeRate: order?.feeRate || feeRate,
         enableRBF: false,
       });

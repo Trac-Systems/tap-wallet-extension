@@ -205,7 +205,7 @@ const InscribeTransferTapScreen = () => {
       );
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order.payAddress, domain: ''},
-        toAmount: order.totalFee,
+        toAmount: Math.round(order.totalFee),
         feeRate: feeRate,
         enableRBF: enableRBF,
       });
@@ -278,6 +278,7 @@ const InscribeTransferTapScreen = () => {
                 style={{
                   fontSize: '24px',
                   lineHeight: '32px',
+                  backgroundColor: 'transparent',
                 }}
                 disableCoinSvg={true}
                 disabled={inputDisabled}

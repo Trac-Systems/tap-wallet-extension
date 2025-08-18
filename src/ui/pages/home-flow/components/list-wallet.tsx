@@ -22,6 +22,8 @@ import WalletCard from './wallet-card-item';
 import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 import {useNavigate} from 'react-router-dom';
 import {SVG} from '@/src/ui/svg';
+import { debounce } from 'lodash';
+import { useRef } from 'react';
 
 const ListWallets = () => {
   //! State
@@ -39,6 +41,9 @@ const ListWallets = () => {
   const {showToast} = useCustomToast();
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const positionSlider = useMemo(() => {
     if (!isEmpty(listWallets) || !activeWallet.key)
@@ -46,13 +51,59 @@ const ListWallets = () => {
     return 0;
   }, [listWallets.length, activeWallet.key]);
 
+  const handleFetchUtxos = useCallback(async () => {
+    setIsLoadingUtxo(true);
+    try {
+      const utxos = await fetchUtxos();
+      if (utxos && Array.isArray(utxos) && utxos.length === 0) {
+        if (retryCount < 2) {
+          const delay = retryCount === 0 ? 100 : 200;
+          timeoutRef.current = setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+            handleFetchUtxos();
+          }, delay);
+          return; 
+        }
+      }
+      setRetryCount(0);
+      setIsLoadingUtxo(false);
+    } catch (err) {
+      if (retryCount < 2) {
+        const delay = retryCount === 0 ? 100 : 200;
+        timeoutRef.current = setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          handleFetchUtxos();
+        }, delay);
+      } else {
+        setIsLoadingUtxo(false);
+      }
+    }
+  }, [fetchUtxos, retryCount]);
+
+  const debouncedFetchUtxos = useRef(
+    debounce(handleFetchUtxos, 50)
+  ).current;
+
   useEffect(() => {
     if (!listWallets.length) return;
-    fetchUtxos();
+    debouncedFetchUtxos();
     setCurrentIndex(positionSlider ?? 0);
-  }, [listWallets, fetchUtxos, positionSlider]);
+
+    return () => {
+      debouncedFetchUtxos.cancel();
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [listWallets, debouncedFetchUtxos, positionSlider]);
+
+  useEffect(() => {
+    setRetryCount(0);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  }, [activeWallet.key]);
   
-  //! Function
   const handleOpenDrawerEdit = () => setOpenDrawerEditWallet(true);
   const handleOpenDrawerAccount = () => setDrawerAccount(true);
 
@@ -61,11 +112,14 @@ const ListWallets = () => {
       setCurrentIndex(el.activeIndex);
       if (activeWallet.key !== listWallets[el.activeIndex].key) {
         try {
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
           await wallet.setActiveWallet(listWallets[el.activeIndex], 0);
           dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
-          await fetchUtxos(); 
+          setRetryCount(0);
         } catch {
           showToast({title: 'Oops something go wrong!!!', type: 'error'});
         }
@@ -109,6 +163,7 @@ const ListWallets = () => {
                 keyring={wallet}
                 handleOpenDrawerEdit={handleOpenDrawerEdit}
                 handleOpenDrawerAccount={handleOpenDrawerAccount}
+                isLoadingUtxo={isLoadingUtxo}
               />
             </SwipeSlide>
           );

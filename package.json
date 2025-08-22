@@ -38,7 +38,7 @@
     "lodash": "^4.17.21",
     "lru-cache": "^5.1.1",
     "moment": "^2.30.1",
-    "nanoid": "^5.0.7",
+    "nanoid": "^5.0.9",
     "p-queue": "^8.0.1",
     "patch-package": "^8.0.0",
     "path": "^0.12.7",
@@ -84,29 +84,35 @@
     "terser": "^5.41.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.4.0",
-    "vite": "^5.4.0",
+    "vite": "^5.4.19",
     "vite-plugin-svgr": "^4.2.0"
   },
   "overrides": {
-    "base-x": "^4.0.0",
+    "base-x": "^4.0.1",
     "secp256k1": "^5.0.0",
     "rollup": "^4.20.0",
-    "@babel/runtime": "^7.25.0",
-    "@babel/helpers": "^7.25.0",
+    "@babel/runtime": "^7.26.10",
+    "@babel/helpers": "^7.26.10",
     "undici": "^6.20.1",
     "micromatch": "^4.0.8",
     "esbuild": "^0.25.0",
-    "tmp": "^0.2.4"
+    "tmp": "^0.2.4",
+    "vite": "^5.4.19",
+    "nanoid": "^5.0.9",
+    "brace-expansion": "^2.0.2"
   },
   "resolutions": {
-    "base-x": "^4.0.0",
+    "base-x": "^4.0.1",
     "secp256k1": "^5.0.0",
     "rollup": "^4.20.0",
-    "@babel/runtime": "^7.25.0",
-    "@babel/helpers": "^7.25.0",
+    "@babel/runtime": "^7.26.10",
+    "@babel/helpers": "^7.26.10",
     "undici": "^6.20.1",
     "micromatch": "^4.0.8",
     "esbuild": "^0.25.0",
-    "tmp": "^0.2.4"
+    "tmp": "^0.2.4",
+    "vite": "^5.4.19",
+    "nanoid": "^5.0.9",
+    "brace-expansion": "^2.0.2"
   }
 }

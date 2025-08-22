@@ -16,7 +16,7 @@
     "@metamask/browser-passworder": "^5.0.1",
     "@metamask/obs-store": "^9.0.0",
     "@metamask/post-message-stream": "^8.1.1",
-    "@noble/secp256k1": "^2.2.3",
+    "@noble/secp256k1": "^2.3.0",
     "@reduxjs/toolkit": "^2.2.7",
     "@svgr/webpack": "^8.1.0",
     "@types/events": "^3.0.3",
@@ -89,7 +89,6 @@
   },
   "overrides": {
     "base-x": "^4.0.1",
-    "secp256k1": "^5.0.0",
     "rollup": "^4.20.0",
     "@babel/runtime": "^7.26.10",
     "@babel/helpers": "^7.26.10",
@@ -103,7 +102,6 @@
   },
   "resolutions": {
     "base-x": "^4.0.1",
-    "secp256k1": "^5.0.0",
     "rollup": "^4.20.0",
     "@babel/runtime": "^7.26.10",
     "@babel/helpers": "^7.26.10",
@@ -114,5 +112,6 @@
     "vite": "^5.4.19",
     "nanoid": "^5.0.9",
     "brace-expansion": "^2.0.2"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

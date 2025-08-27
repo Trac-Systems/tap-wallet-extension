@@ -277,9 +277,9 @@ const Home = () => {
     );
   };
 
-  if (isLoading) {
-    return <UX.Loading />;
-  }
+  // if (isLoading) {
+  //   return <UX.Loading />;
+  // }
 
   //! Render
   return (

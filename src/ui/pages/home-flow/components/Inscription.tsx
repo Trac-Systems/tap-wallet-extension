@@ -51,47 +51,49 @@ const InscriptionList = (props: IProps) => {
 
   // fetch inscription list at page 1
   useEffect(() => {
-    if (prevAddressRef.current !== activeAccount.address) {
-      getInscriptionList(0);
-      prevAddressRef.current = activeAccount.address;
-    }
-  }, [activeAccount.address]);
+    // if (prevAddressRef.current !== activeAccount.address) {
+    //   getInscriptionList(0);
+    //   prevAddressRef.current = activeAccount.address;
+    // }
+  }, [activeAccount.address, getInscriptionList]);
 
-  // fetch all inscriptions
-  const fetchAllInscriptions = useCallback(async () => {
-    if (!activeAccount?.address) return; // Exit if no address
+  // Remove duplicate fetchAllInscriptions - use data from props instead
+  // const fetchAllInscriptions = useCallback(async () => {
+  //   if (!activeAccount?.address) return;
+  //   setLoading(true);
+  //   try {
+  //     const inscriptions = await walletProvider.getAllInscriptions(activeAccount.address);
+  //     setAllInscriptions(prev => {
+  //       return JSON.stringify(prev) !== JSON.stringify(inscriptions)
+  //         ? inscriptions
+  //         : prev;
+  //     });
+  //   } catch (error) {
+  //     console.error('Failed to fetch all inscriptions:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [activeAccount.address]);
 
-    setLoading(true);
-
-    try {
-      const inscriptions = await walletProvider.getAllInscriptions(
-        activeAccount.address,
-      );
-
-      // Only update state if new data is different
-      setAllInscriptions(prev => {
-        return JSON.stringify(prev) !== JSON.stringify(inscriptions)
-          ? inscriptions
-          : prev;
-      });
-    } catch (error) {
-      console.error('Failed to fetch all inscriptions:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeAccount.address]); // Depend only on `activeAccount.address`
-
+  // Use data from props (Home component) instead of fetching again
   useEffect(() => {
-    if (inscriptions.length && inscriptions.length < totalInscription) {
-      fetchAllInscriptions();
-    } else if (inscriptions.length >= totalInscription) {
-      setAllInscriptions(prev => {
-        return JSON.stringify(prev) !== JSON.stringify(inscriptions)
-          ? inscriptions
-          : prev;
-      });
+    if (props.allInscriptions && props.allInscriptions.length > 0) {
+      setAllInscriptions(props.allInscriptions);
     }
-  }, [inscriptions, totalInscription, fetchAllInscriptions]);
+  }, [props.allInscriptions]);
+
+  // Remove the complex logic that was causing duplicate API calls
+  // useEffect(() => {
+  //   if (inscriptions.length && inscriptions.length < totalInscription) {
+  //     fetchAllInscriptions();
+  //   } else if (inscriptions.length >= totalInscription) {
+  //     setAllInscriptions(prev => {
+  //       return JSON.stringify(prev) !== JSON.stringify(inscriptions)
+  //         ? inscriptions
+  //         : prev;
+  //     });
+  //   }
+  // }, [inscriptions, totalInscription, fetchAllInscriptions]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -162,12 +164,17 @@ const InscriptionList = (props: IProps) => {
       }
     };
     fetch();
-  }, [activeAccount.address, allInscriptions]);
+  }, [activeAccount.address, allInscriptions, dmtCollectibleMap, walletProvider, dispatch]);
 
   useEffect(() => {
     const fetchDmtRenderContent = async () => {
+      if (!dmtDeployMap || Object.keys(dmtDeployMap).length === 0) {
+        return;
+      }
+      
       const dmtColMapsByTicker: {[key: string]: DmtCollectible} = {};
       const dmtGroupMaps: {[key: string]: DmtDeployInfo} = {};
+      
       for (const [k, v] of Object.entries(dmtDeployMap)) {
         const {scriptInsId, ticker, unat} =
           await walletProvider.getDmtScriptId(k);
@@ -194,10 +201,10 @@ const InscriptionList = (props: IProps) => {
       dispatch(AccountActions.setDmtGroupMap(dmtGroupMaps));
     };
     fetchDmtRenderContent();
-  }, [dmtDeployMap]);
+  }, [dmtDeployMap, walletProvider, dispatch]);
 
   if (loading) {
-    return <UX.Loading />;
+    return <></>;
   }
 
   const tabItems = [

@@ -99,6 +99,10 @@ export class PaidApi {
         : null;
     // Fetch BTC UTXOs
     let response = await this.getBtcUtxo(address, cursor, size);
+
+    if (response === undefined) {
+      throw new Error('[getInscriptionList] Invalid API response structure');
+    }
     const total = response?.total || 0;
 
     const filterUtxos = utxoList => {

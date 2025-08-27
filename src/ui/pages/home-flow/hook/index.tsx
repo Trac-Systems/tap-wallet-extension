@@ -10,7 +10,7 @@ import {
   useAppSelector,
   TOKEN_PAGE_SIZE,
 } from '@/src/ui/utils';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState, useRef} from 'react';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 
 export function useAccountBalance() {
@@ -89,24 +89,48 @@ export const useInscriptionHook = () => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
+  const retryCountRef = useRef(0);
 
   const getInscriptionList = async (currentCursor: number) => {
     if (!activeAccount.address) {
       return;
     }
+    
     try {
-      const {list, total} = await wallet.getInscriptions(
-        activeAccount.address,
-        currentCursor,
-        PAGE_SIZE,
-      );
+      let result;
+      try {
+        result = await wallet.getInscriptions(
+          activeAccount.address,
+          currentCursor,
+          PAGE_SIZE,
+        );
+      } catch (apiError) {
+        throw apiError;
+      }
+      if (result?.total === undefined) {
+        throw new Error('[getInscriptionList] Invalid API response structure');
+      }
+      const {list, total} = result;
+      retryCountRef.current = 0;
       dispatch(InscriptionActions.setTotalInscription(total));
       dispatch(InscriptionActions.setListInscription({list}));
+      
     } catch (err) {
-      showToast({
-        title: `${(err as Error).message}`,
-        type: 'error',
-      });
+      if (retryCountRef.current < 10) {
+        setTimeout(() => {
+          retryCountRef.current += 1;
+          getInscriptionList(currentCursor);
+        }, 100);
+        
+      } else {
+        dispatch(InscriptionActions.setTotalInscription(0));
+        dispatch(InscriptionActions.setListInscription({list: []}));
+        retryCountRef.current = 0;
+        showToast({
+          title: `${(err as Error).message}`,
+          type: 'error',
+        });
+      }
     }
   };
 

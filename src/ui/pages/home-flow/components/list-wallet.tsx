@@ -42,7 +42,7 @@ const ListWallets = () => {
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
+  const retryCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const positionSlider = useMemo(() => {
@@ -56,29 +56,26 @@ const ListWallets = () => {
     try {
       const utxos = await fetchUtxos();
       if (utxos && Array.isArray(utxos) && utxos.length === 0) {
-        if (retryCount < 2) {
-          const delay = retryCount === 0 ? 100 : 200;
-          timeoutRef.current = setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-            handleFetchUtxos();
-          }, delay);
-          return; 
-        }
+        retryCountRef.current = 0;
+        setIsLoadingUtxo(false);
+        return;
       }
-      setRetryCount(0);
+      retryCountRef.current = 0;
       setIsLoadingUtxo(false);
     } catch (err) {
-      if (retryCount < 2) {
-        const delay = retryCount === 0 ? 100 : 200;
-        timeoutRef.current = setTimeout(() => {
-          setRetryCount(prev => prev + 1);
+      console.log('retryCountRef.current', retryCountRef.current);
+      if (retryCountRef.current < 10) {
+        setTimeout(() => {
+          retryCountRef.current += 1;
           handleFetchUtxos();
-        }, delay);
+        }, 100);
       } else {
+        retryCountRef.current = 0;
         setIsLoadingUtxo(false);
+        console.error('Failed to fetch UTXOs after retries:', err);
       }
     }
-  }, [fetchUtxos, retryCount]);
+  }, [fetchUtxos]);
 
   const debouncedFetchUtxos = useRef(
     debounce(handleFetchUtxos, 50)
@@ -98,7 +95,7 @@ const ListWallets = () => {
   }, [listWallets, debouncedFetchUtxos, positionSlider]);
 
   useEffect(() => {
-    setRetryCount(0);
+    retryCountRef.current = 0;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -119,7 +116,7 @@ const ListWallets = () => {
           dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
-          setRetryCount(0);
+          retryCountRef.current = 0;
         } catch {
           showToast({title: 'Oops something go wrong!!!', type: 'error'});
         }

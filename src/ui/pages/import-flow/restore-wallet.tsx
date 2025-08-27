@@ -95,6 +95,26 @@ const RestoreWallet = () => {
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
+          <style>
+            {`
+              .textareaWidth {
+                color: #FFFFFFB0 !important;
+                font-size: 16px !important;
+                font-weight: 400 !important;
+                text-align: center !important;
+                font-family: Exo !important;
+                line-height: 24px !important;
+              }
+              .textareaWidth::placeholder {
+                color: #FFFFFFB0 !important;
+                font-size: 16px !important;
+                font-weight: 400 !important;
+                text-align: center !important;
+                font-family: Exo !important;
+                line-height: 24px !important;
+              }
+            `}
+          </style>
           <UX.TextArea
             className="textareaWidth"
             onChange={e => handleOnChange(e.target.value)}

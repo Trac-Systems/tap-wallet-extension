@@ -18,6 +18,119 @@ import CloseIcon from '../../svg/CloseIcon';
 import { calculateAmount } from '@/src/shared/utils/btc-helper';
 import { useTokenInfo } from '../home-flow/hook';
 
+const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSections, onAmountChange, onAddressChange }) => {
+  const selectedOption = listTapList.find(
+    option => option.value === section.selected,
+  );
+  const amount = selectedOption?.amount || 0;
+
+  useEffect(() => {
+    if (section.selected) {
+      getTokenInfoAndStore(section.selected);
+    }
+  }, [section.selected, getTokenInfoAndStore]);
+
+  return (
+    <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
+      <UX.Box spacing="xss">
+        <UX.Text
+          title="Token name"
+          styleType="body_16_extra_bold"
+          customStyles={{ color: 'white' }}
+        />
+        <UX.Dropdown
+          options={listTapList}
+          value={section.selected}
+          onChange={val => {
+            setTokenSections(prev => {
+              const newSections = [...prev];
+              return newSections.map(item => {
+                if (item.id === section.id) {
+                  return {
+                    ...section,
+                    selected: val,
+                    amount: '',
+                    errorAmount: '',
+                    errorAddress: '',
+                    address: '',
+                  };
+                }
+                return item;
+              });
+            });
+          }}
+        />
+        {section.selected && (
+          <UX.Box layout="row_between">
+            <UX.Text title="Available:" styleType="body_14_bold" />
+            <UX.Text
+              title={`${amount} ${section.selected}`}
+              styleType="body_14_bold"
+              customStyles={{ color: colors.green_500 }}
+            />
+          </UX.Box>
+        )}
+      </UX.Box>
+      <UX.Box spacing="xss">
+        <UX.Text
+          title="Amount"
+          styleType="body_16_extra_bold"
+          customStyles={{ color: 'white' }}
+        />
+        <UX.AmountInput
+          style={{
+            fontSize: '20px',
+            lineHeight: '28px',
+            background: 'transparent',
+          }}
+          disableCoinSvg
+          onChange={e => {
+            const val = e?.target?.value;
+            const cleanText = val?.toString()?.replace(/[,a-zA-Z]/g, '');
+            onAmountChange(section, cleanText);
+          }}
+          value={section?.amount?.toString()}
+          onAmountInputChange={() => {}}
+        />
+        {section.errorAmount && (
+          <Text
+            title={section.errorAmount}
+            styleType="body_14_bold"
+            customStyles={{ color: colors.red_500, marginTop: '4px' }}
+          />
+        )}
+      </UX.Box>
+      <UX.Box spacing="xss">
+        <UX.Text
+          title="Receiver"
+          styleType="body_16_extra_bold"
+          customStyles={{ color: 'white' }}
+        />
+        <UX.Input
+          placeholder="Receiver address"
+          style={{
+            fontSize: '16px',
+            border: 'none',
+            padding: '9px 16px',
+            background: 'transparent',
+          }}
+          value={section?.address}
+          onChange={e => {
+            onAddressChange(section.id, e?.target?.value);
+          }}
+        />
+        {section.errorAddress && (
+          <Text
+            title={section.errorAddress}
+            styleType="body_14_bold"
+            customStyles={{ color: colors.red_500, marginTop: '4px' }}
+          />
+        )}
+      </UX.Box>
+    </UX.Box>
+  );
+};
+
 const TransferAuthority = () => {
   //! State
   const navigate = useNavigate();
@@ -54,7 +167,6 @@ const TransferAuthority = () => {
   const tokens = currentAuthority?.auth || [];
   const order = state?.order as InscribeOrder;
 
-
   const inscriptionId = state?.inscriptionId || currentAuthority?.ins;
   const inscriptionStatus = useMemo(() => {
     if (
@@ -78,8 +190,8 @@ const TransferAuthority = () => {
     }
   }, [auth, inscriptionInfo]);
 
-   // get token info
-   useEffect(() => {
+  // get token info
+  useEffect(() => {
     const getTokenInfo = async () => {
       const ins = await walletProvider.getInscriptionInfoOrdClient(inscriptionId);
       setInscriptionInfo(ins);
@@ -205,19 +317,15 @@ const TransferAuthority = () => {
   };
 
   const handleAddTokenSection = () => {
-    const latestToken = tokenSections.filter(item => !!item.selected);
-    console.log('latestToken :>> ', latestToken);
-    setTokenSections(prev => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        selected: latestToken[latestToken.length - 1]?.selected,
-        amount: '',
-        address: '',
-        errorAmount: '',
-        errorAddress: '',
-      },
-    ]);
+    const newToken = {
+      id: tokenSections.length + 1,
+      selected: '',
+      amount: '',
+      address: '',
+      errorAmount: '',
+      errorAddress: '',
+    };
+    setTokenSections([...tokenSections, newToken]);
   };
 
   const onAmountChange = (section, amount: string) => {
@@ -309,127 +417,23 @@ const TransferAuthority = () => {
     return section.errorAmount || section.errorAddress;
   });
 
-  const renderTokenSection = (section, index) => {
-    const selectedOption = listTapList.find(
-      option => option.value === section.selected,
-    );
-    const amount = selectedOption?.amount || 0;
-    useEffect(() => {
-      if (section.selected) {
-        getTokenInfoAndStore(section.selected);
-      }
-    }, [section.selected]);
-
-    return (
-      <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
-        <UX.Box spacing="xss">
-          <UX.Text
-            title="Token name"
-            styleType="body_16_extra_bold"
-            customStyles={{ color: 'white' }}
-          />
-          <UX.Dropdown
-            options={listTapList}
-            value={section.selected}
-            onChange={val => {
-              setTokenSections(prev => {
-                const newSections = [...prev];
-                return newSections.map(item => {
-                  if (item.id === section.id) {
-                    return {
-                      ...section,
-                      selected: val,
-                      amount: '',
-                      errorAmount: '',
-                      errorAddress: '',
-                      address: '',
-                    };
-                  }
-                  return item;
-                });
-              });
-            }}
-          />
-          {section.selected && (
-            <UX.Box layout="row_between">
-              <UX.Text title="Available:" styleType="body_14_bold" />
-              <UX.Text
-                title={`${amount} ${section.selected}`}
-                styleType="body_14_bold"
-                customStyles={{ color: colors.green_500 }}
-              />
-            </UX.Box>
-          )}
-        </UX.Box>
-        <UX.Box spacing="xss">
-          <UX.Text
-            title="Amount"
-            styleType="body_16_extra_bold"
-            customStyles={{ color: 'white' }}
-          />
-          <UX.AmountInput
-            style={{
-              fontSize: '20px',
-              lineHeight: '28px',
-              background: 'transparent',
-            }}
-            disableCoinSvg
-            onChange={e => {
-              const val = e?.target?.value;
-              const cleanText = val?.toString()?.replace(/[,a-zA-Z]/g, '');
-              onAmountChange(section, cleanText);
-            }}
-            value={section?.amount?.toString()}
-            onAmountInputChange={amount => { }}
-          />
-          {section.errorAmount && (
-            <Text
-              title={section.errorAmount}
-              styleType="body_14_bold"
-              customStyles={{ color: colors.red_500, marginTop: '4px' }}
-            />
-          )}
-        </UX.Box>
-        <UX.Box spacing="xss">
-          <UX.Text
-            title="Receiver"
-            styleType="body_16_extra_bold"
-            customStyles={{ color: 'white' }}
-          />
-          <UX.Input
-            placeholder="Receiver address"
-            style={{
-              fontSize: '16px',
-              border: 'none',
-              padding: '9px 16px',
-              background: 'transparent',
-            }}
-            value={section?.address}
-            onChange={e => {
-              onAddressChange(section.id, e?.target?.value);
-            }}
-          />
-          {section.errorAddress && (
-            <Text
-              title={section.errorAddress}
-              styleType="body_14_bold"
-              customStyles={{ color: colors.red_500, marginTop: '4px' }}
-            />
-          )}
-        </UX.Box>
-      </UX.Box>
-    );
-  };
-
   //! Render
   return (
     <LayoutSendReceive
       header={<UX.TextHeader text="1-TX Transfer" onBackClick={handleGoBack} />}
       body={
         <UX.Box style={{ width: '100%', paddingBottom: isWaitingCancel ? '80px' : 0 }} spacing="xl">
-          {tokenSections.map((section, index) =>
-            renderTokenSection(section, index),
-          )}
+          {tokenSections.map(section => (
+            <TokenSection
+              key={section.id}
+              section={section}
+              listTapList={listTapList}
+              getTokenInfoAndStore={getTokenInfoAndStore}
+              setTokenSections={setTokenSections}
+              onAmountChange={onAmountChange}
+              onAddressChange={onAddressChange}
+            />
+          ))}
 
           <UX.Box
             layout="row"
@@ -445,9 +449,9 @@ const TransferAuthority = () => {
           </UX.Box>
           <UX.Box spacing="xss">
             <UX.Text
+              title="Fee rate"
               styleType="body_16_extra_bold"
               customStyles={{ color: 'white' }}
-              title="Fee rate"
             />
             <FeeRateBar
               onChange={val => {

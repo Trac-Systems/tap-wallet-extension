@@ -11,7 +11,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: false,
-    target: 'es2015', // Changed to es2015 for better compatibility
+    target: 'es2020', // Updated to support BigInt literals
     rollupOptions: {
       input: {
         // content: './src/content-script/index.ts',

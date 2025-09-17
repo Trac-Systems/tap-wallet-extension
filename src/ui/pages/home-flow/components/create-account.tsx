@@ -8,6 +8,7 @@ import {WalletActions} from '@/src/ui/redux/reducer/wallet/slice';
 import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import trac from 'trac-crypto-api';
 
 const CreateAccount = () => {
   //! State
@@ -38,6 +39,39 @@ const CreateAccount = () => {
     const _activeWallet = await wallet.getActiveWallet();
     dispatch(WalletActions.setActiveWallet(_activeWallet));
     dispatch(AccountActions.setActiveAccount(activeAccount));
+
+    // Generate and persist TRAC address for the new account (keyed by stable account.key)
+    try {
+      const toHardenedPath = (path: string): string => {
+        try {
+          const cleaned = (path || '').trim();
+          if (!cleaned) return "m/44'";
+          const parts = cleaned.split('/');
+          const prefix = parts.shift();
+          const hardenedParts = parts
+            .filter(Boolean)
+            .map(seg => (seg.endsWith("'") ? seg : `${seg}'`));
+          return `${prefix}/${hardenedParts.join('/')}`;
+        } catch {
+          return "m/44'";
+        }
+      };
+
+      // Derive TRAC using the wallet derivationPath to keep alignment
+      const basePath = _activeWallet?.derivationPath || "m/44'";
+      const hardenedBase = toHardenedPath(basePath);
+      const tracPath = `${hardenedBase}/0'/${activeAccount?.index ?? 0}'`;
+      let tracAddr: string;
+      try {
+        ({ address: tracAddr } = await trac.address.generate('trac', undefined, tracPath));
+      } catch (_) {
+        ({ address: tracAddr } = await trac.address.generate('trac'));
+      }
+      if (activeAccount?.key && tracAddr) {
+        await wallet.setTracAddress(tracAddr, activeAccount.key);
+        // no need to dispatch to Redux; listWallets will include tracAddress after background enrich
+      }
+    } catch {}
     showToast({
       title: 'Create account successfully',
       type: 'success',

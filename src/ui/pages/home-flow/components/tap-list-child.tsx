@@ -20,11 +20,18 @@ import {
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions} from '../hook';
+import {useAccountBalance, useTracBalance, useFetchTracBalanceCallback, useInscriptionHook, useTokenInfo, useAllInscriptions} from '../hook';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
+import ModalNetworkFilter from './modal-network-filter';
 
-const TapListChild = () => {
+interface TapListChildProps {
+  onOpenFilter?: () => void;
+  networkFilters?: {bitcoin: boolean; trac: boolean};
+}
+
+const TapListChild = (props: TapListChildProps) => {
+  const { onOpenFilter, networkFilters = {bitcoin: true, trac: true} } = props;
   const navigate = useNavigate();
   const {getTapList} = useInscriptionHook();
   const { getTokenInfoAndStore, loadingTicker } = useTokenInfo();
@@ -33,6 +40,8 @@ const TapListChild = () => {
 
   //! State
   const accountBalance = useAccountBalance();
+  const tracBalance = useTracBalance();
+  const fetchTracBalance = useFetchTracBalanceCallback();
   const walletProvider = useWalletProvider();
   const dispatch = useAppDispatch();
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
@@ -230,6 +239,11 @@ const TapListChild = () => {
       fetchAllInscriptions();
   }, []);
 
+  // Fetch TRAC balance when component mounts or when active account changes
+  useEffect(() => {
+    fetchTracBalance();
+  }, [fetchTracBalance]);
+
   const mangeAuthorityTitle = useMemo(() => {
     if (isGettingAuthorityStatus) {
       return 'Loading...';
@@ -285,16 +299,24 @@ const TapListChild = () => {
   }
 
   return (
-    <UX.Box spacing="xl">
-      <UX.Box layout="row" spacing="xs" className="search-box-token">
-        <SVG.SearchIcon />
-        <input
-          placeholder="Search for token"
-          className="search-box-token-input"
-          onChange={handleChange}
-          value={tokenValue}
-        />
-      </UX.Box>
+    <>
+      <UX.Box spacing="xl">
+        <UX.Box layout="row_between" spacing="xs" style={{alignItems: 'center'}}>
+          <UX.Box layout="row" spacing="xs" className="search-box-token" style={{flex: 1}}>
+            <SVG.SearchIcon />
+            <input
+              placeholder="Search for token"
+              className="search-box-token-input"
+              onChange={handleChange}
+              value={tokenValue}
+            />
+          </UX.Box>
+          <UX.Box
+            onClick={onOpenFilter}
+            style={{cursor: 'pointer', padding: '8px', marginLeft: '8px'}}>
+            <SVG.FilterIcon />
+          </UX.Box>
+        </UX.Box>
 
       {currentAuthority ? (
         <UX.Button
@@ -340,6 +362,7 @@ const TapListChild = () => {
           <SVG.ArrowIconRight width={23} height={18} />
         </UX.Box>
       )}
+      { networkFilters.bitcoin && (
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>
           <UX.Box
@@ -363,7 +386,35 @@ const TapListChild = () => {
           />
         </UX.Box>
       </UX.Box>
-      {displayData.map((tokenBalance: TokenBalance, index: number) => {
+      )}
+      {/* Fixed NTK row - chỉ hiện khi có Bitcoin được chọn */}
+{networkFilters.trac && !!activeAccount?.tracAddress && (
+        <UX.Box layout="box">
+          <UX.Box layout="row_between" style={{width: '100%'}}>
+            <UX.Box
+              layout="row"
+              style={{
+                justifyItems: 'center',
+                alignItems: 'center',
+              }}>
+              <SVG.TracIcon width={32} height={32} />
+              <UX.Text
+                title={'TNK'}
+                styleType="body_16_normal"
+                customStyles={{color: 'white', marginLeft: '8px'}}
+              />
+            </UX.Box>
+
+          <UX.Text
+            title={tracBalance}
+            styleType="body_16_normal"
+            customStyles={{color: 'white'}}
+          />
+          </UX.Box>
+        </UX.Box>
+      )}
+      {/* Chỉ hiện token list khi có Trac được chọn */}
+      {networkFilters.bitcoin && displayData.map((tokenBalance: TokenBalance, index: number) => {
         const indexCheck = index < 20 ? index : index % 20;
         const tagColor = listRandomColor[indexCheck];
         return (
@@ -387,8 +438,9 @@ const TapListChild = () => {
           />
         </UX.Box>
       )}
-    </UX.Box>
+      </UX.Box>
+    </>
   );
 };
-
 export default TapListChild;
+

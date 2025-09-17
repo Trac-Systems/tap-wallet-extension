@@ -42,4 +42,8 @@ export default defineManifest(async env => ({
     '48': 'images/logo.png',
     '128': 'images/logo.png',
   },
+  content_security_policy: {
+    extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; base-uri 'self'",
+    sandbox: "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'wasm-unsafe-eval'"
+  }
 }));

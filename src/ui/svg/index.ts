@@ -36,10 +36,11 @@ import WaringIcon from './Warning';
 import DappIcon from './DappIcon';
 import FilterIcon from './FilterIcon';
 import SearchIcon from './Search';
+import TracIcon from './Trac';
 
 export const SVG = {
   ArrowBackIcon,
-  QuestionMark,
+  QuestionMark, 
   RefreshIcon,
   CloseIcon,
   TransferIcon,
@@ -77,4 +78,5 @@ export const SVG = {
   DappIcon,
   SearchIcon,
   FilterIcon,
+  TracIcon,
 };

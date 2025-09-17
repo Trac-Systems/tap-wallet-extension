@@ -57,6 +57,8 @@ import HandleCreateAuthority from './pages/authority/handle/create';
 import HandleTappingAuthority from './pages/authority/handle/tapping';
 import CancelAuthorityDetail from '@/src/ui/pages/authority/cancel-authority-detail';
 import {AuthorityWarning} from '@/src/ui/pages/authority/authority-warning';
+import trac from 'trac-crypto-api'
+
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -76,7 +78,81 @@ function App() {
     const uniqueColors = generateUniqueColors(20);
     dispatch(GlobalActions.setListRandomColor({listColor: uniqueColors}));
   }, []);
+  // Comprehensive smoke test for trac-crypto-api integration
+  useEffect(() => {
+    (async () => {
+      try {
+        const hrp = 'trac';
 
+        // address
+        const keypair = await trac.address.generate(hrp);
+        const encodedAddress = trac.address.encode(hrp, keypair.publicKey);
+        const decodedPubKey = trac.address.decode(encodedAddress);
+
+        // signature & sign alias
+        const message = Buffer.from('hello world');
+        const signature = trac.signature.sign(message, keypair.secretKey);
+        const verifyOk = trac.signature.verify(signature, message, keypair.publicKey);
+        const signature2 = trac.sign(message, keypair.secretKey);
+
+        // hash
+        const sha256Hash = trac.hash.sha256(message);
+        const sha256HashSafe = trac.hash.sha256Safe(message);
+        const blake3Hash = await trac.hash.blake3(message);
+        const blake3HashSafe = await trac.hash.blake3Safe(message);
+
+        // mnemonic
+        const mnemonic = trac.mnemonic.generate();
+        const mnemonicValid = trac.mnemonic.validate(mnemonic);
+        const mnemonicSanitized = trac.mnemonic.sanitize(mnemonic);
+        const mnemonicSeed = await trac.mnemonic.toSeed(mnemonic);
+
+        // nonce
+        const nonce = trac.nonce.generate();
+
+        // data (may be unsupported on RN/browser due to crypto_pwhash)
+        let encrypted: any = null;
+        let decrypted: any = null;
+        try {
+          const password = Buffer.from('password');
+          encrypted = trac.data.encrypt(message, password);
+          decrypted = trac.data.decrypt(encrypted, password);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('[trac-crypto-api] data.encrypt/decrypt not supported in this env:', e?.message || e);
+        }
+
+        // utils
+        const tmp = Buffer.from([1, 2, 3, 4]);
+        trac.utils.memzero(tmp);
+
+        // Logs
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] address.generate =>', {
+          address: keypair.address,
+          pubKeyLen: keypair.publicKey?.length,
+          secKeyLen: keypair.secretKey?.length,
+        });
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] address.encode/decode ok =>', encodedAddress === keypair.address && decodedPubKey?.length === keypair.publicKey?.length);
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] signature.verify =>', verifyOk, 'sign2 eq =>', Buffer.compare(signature, signature2) === 0);
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] hash.sha256 =>', sha256Hash?.length, 'sha256Safe =>', sha256HashSafe?.length, 'blake3 =>', blake3Hash?.length, 'blake3Safe =>', blake3HashSafe?.length);
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] mnemonic =>', {mnemonicValid, sanitizedEqual: mnemonic === mnemonicSanitized, seedLen: mnemonicSeed?.length});
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] nonce =>', nonce?.length);
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] data =>', { hasEncrypted: Boolean(encrypted), decryptedOk: decrypted ? Buffer.compare(decrypted, message) === 0 : false });
+        // eslint-disable-next-line no-console
+        console.log('[trac-crypto-api] utils.memzero =>', tmp.every(v => v === 0));
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[trac-crypto-api] test error:', err);
+      }
+    })();
+  }, []);
   const initRedux = useCallback(async () => {
     try {
       if (!self.accountLoaded) {
@@ -101,6 +177,7 @@ function App() {
         );
         self.settingsLoaded = true;
       }
+      // no need to preload TRAC addresses here; they are enriched in listWallets from background
       dispatch(GlobalActions.update({isReady: true}));
     } catch (e) {
       console.log('init error', e);

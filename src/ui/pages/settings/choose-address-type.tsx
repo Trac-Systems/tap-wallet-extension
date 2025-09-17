@@ -148,7 +148,7 @@ const ChooseAddressType = () => {
       header={
         <UX.Box style={{padding: '0 24px'}}>
           <UX.TextHeader
-            text="Choose Address"
+            text="Choose your Bitcoin Address"
             onBackClick={() => navigate('/setting')}
           />
         </UX.Box>

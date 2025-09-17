@@ -99,6 +99,9 @@ export interface IDisplayAccount {
   index?: number;
   balance?: number;
   key: string;
+  // Enriched TRAC fields
+  tracAddress?: string;
+  tracBalance?: string;
 }
 
 export type WalletDisplay = {

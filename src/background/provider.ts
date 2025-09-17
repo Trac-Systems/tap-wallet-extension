@@ -124,6 +124,8 @@ export class Provider {
       const accountKey = key + '#' + j;
       const defaultName = this._genDefaultAccountName(type, j);
       const name = accountConfig.getAccountName(accountKey, defaultName);
+      // enrich with TRAC address (if any)
+      const tracAddress = accountConfig.getTracAddress(accountKey);
       accounts.push({
         type,
         pubkey,
@@ -131,6 +133,7 @@ export class Provider {
         name,
         index: j,
         key: accountKey,
+        tracAddress,
       });
     }
     const derivationPath =
@@ -266,7 +269,13 @@ export class Provider {
   };
 
   removeWallet = async (wallet: WalletDisplay) => {
+    // collect all account keys for the wallet being removed
+    const keysToRemove = (wallet?.accounts || []).map(acc => acc.key).filter(Boolean);
     await walletService.removeWallet(wallet.index);
+    // cleanup any persisted TRAC addresses bound to these accounts
+    try {
+      accountConfig.removeTracAddressesByKeys(keysToRemove);
+    } catch {}
     const wallets = this.getWallets();
     const nextWallet = wallets[wallets.length - 1];
     if (nextWallet && nextWallet.accounts[0]) {
@@ -278,6 +287,51 @@ export class Provider {
   setActiveWallet = (wallet: WalletDisplay, accountIndex = 0) => {
     walletConfig.setActiveWalletIndex(wallet.index);
     accountConfig.setActiveAccount(wallet.accounts[accountIndex]);
+  };
+
+  setTracAddress = (address: string, key?: string) => {
+    accountConfig.setTracAddress(address, key);
+    try {
+      const active = accountConfig.getActiveAccount();
+      const targetKey = key || active?.key;
+      if (active && targetKey === active.key) {
+        // Refresh active account in store so UI receives updated tracAddress immediately
+        const refreshed = Object.assign({}, active, {tracAddress: address});
+        accountConfig.setActiveAccount(refreshed);
+      }
+    } catch {}
+  };
+
+  getTracAddress = (key?: string) => {
+    return accountConfig.getTracAddress(key);
+  };
+
+  getAllTracAddresses = () => {
+    return accountConfig.getAllTracAddresses();
+  };
+
+  removeTracAddressesByKeys = (keys: string[]) => {
+    return accountConfig.removeTracAddressesByKeys(keys);
+  };
+
+  getTracBalance = async (tracAddress: string) => {
+    try {
+      const response = await fetch(`https://trac-kqdy.onrender.com/balance/${tracAddress}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return {
+        address: data.address,
+        balance: data.balance || '0'
+      };
+    } catch (error) {
+      console.error('Error fetching TRAC balance:', error);
+      return {
+        address: tracAddress,
+        balance: '0'
+      };
+    }
   };
 
   getActiveWallet = () => {

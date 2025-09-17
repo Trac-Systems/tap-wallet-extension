@@ -25,6 +25,8 @@ export interface DmtDeployInfo {
 export interface AccountsState {
   accounts: IDisplayAccount[];
   activeAccount: IDisplayAccount;
+  tracAddressMap?: {[key: string]: string};
+  tracBalanceMap?: {[key: string]: string};
   loading: boolean;
   balanceMap: {
     [key: string]: {
@@ -85,6 +87,8 @@ const initialAccount = {
 export const initialState: AccountsState = {
   accounts: [],
   activeAccount: initialAccount,
+  tracAddressMap: {},
+  tracBalanceMap: {},
   loading: false,
   balanceMap: {},
   historyMap: {},
@@ -114,6 +118,30 @@ const AccountSlice = createSlice({
     setActiveAccount(state, action: {payload: IDisplayAccount}) {
       const {payload} = action;
       state.activeAccount = payload || initialAccount;
+    },
+    setTracAddressForKey(
+      state,
+      action: {payload: {key: string; address: string}},
+    ) {
+      const {key, address} = action.payload || ({} as any);
+      if (!key) return;
+      state.tracAddressMap[key] = address || '';
+    },
+    setManyTracAddressMap(
+      state,
+      action: {payload: {[key: string]: string}},
+    ) {
+      const {payload} = action;
+      state.tracAddressMap = {...state.tracAddressMap, ...payload};
+    },
+    setTracBalanceForKey(state, action: {payload: {key: string; balance: string}}) {
+      const {key, balance} = action.payload;
+      if (!state.tracBalanceMap) state.tracBalanceMap = {};
+      state.tracBalanceMap[key] = balance || '0';
+    },
+    setManyTracBalanceMap(state, action: {payload: {[key: string]: string}}) {
+      const {payload} = action;
+      state.tracBalanceMap = {...state.tracBalanceMap, ...payload};
     },
     setAccounts(state, action: {payload: IDisplayAccount[]}) {
       const {payload} = action;

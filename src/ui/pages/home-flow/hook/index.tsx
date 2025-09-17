@@ -28,6 +28,37 @@ export function useAccountBalance() {
   );
 }
 
+export function useTracBalance() {
+  const tracBalanceMap = useAppSelector(AccountSelector.tracBalanceMap);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
+
+  return tracBalanceMap?.[activeAccount.key] || '0';
+}
+
+export function useFetchTracBalanceCallback() {
+  const dispatch = useAppDispatch();
+  const wallet = useWalletProvider();
+  const currentAccount = useAppSelector(AccountSelector.activeAccount);
+  const tracAddress = currentAccount?.tracAddress;
+  
+  return useCallback(async () => {
+    if (!tracAddress || !currentAccount.key) {
+      return;
+    }
+    try {
+      const tracBalance = await wallet.getTracBalance(tracAddress);
+      dispatch(
+        AccountActions.setTracBalanceForKey({
+          key: currentAccount.key,
+          balance: tracBalance.balance,
+        }),
+      );
+    } catch (error) {
+      console.error('Error fetching TRAC balance:', error);
+    }
+  }, [dispatch, wallet, currentAccount.key, tracAddress]);
+}
+
 export function useFetchBalanceCallback() {
   const dispatch = useAppDispatch();
   const wallet = useWalletProvider();

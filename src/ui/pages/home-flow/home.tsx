@@ -17,6 +17,7 @@ import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/sp
 import {colors} from '../../themes/color';
 import SpendableContainRuneAttentionModal from '@/src/ui/pages/home-flow/components/spendable-cotain-rune-attention-modal';
 import InscriptionList from './components/Inscription';
+import ModalNetworkFilter from './components/modal-network-filter';
 
 const Home = () => {
   //! Hooks
@@ -52,6 +53,11 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [inscriptionContainRune, setInscriptionContainRune] = useState('');
+  const [openNetworkFilter, setOpenNetworkFilter] = useState(false);
+  const [networkFilters, setNetworkFilters] = useState({
+    bitcoin: true,
+    trac: true,
+  });
 
   const runeUtxosSet = useMemo(() => {
     return runeUtxos?.length > 0
@@ -95,7 +101,7 @@ const Home = () => {
   });
 
   const tabItems = [
-    {label: 'Tokens', content: <TapList />, parentIndex: 0},
+    {label: 'Tokens', content: <TapList onOpenFilter={() => setOpenNetworkFilter(true)} networkFilters={networkFilters} />, parentIndex: 0},
     {
       label: 'Inscriptions',
       content: (
@@ -368,6 +374,17 @@ const Home = () => {
                 onCancel={() => setInscriptionContainRune('')}
               />
             </UX.Box>
+          </UX.DrawerCustom>
+          
+          {/* Network Filter Modal */}
+          <UX.DrawerCustom
+            className="drawer-receive"
+            open={openNetworkFilter}
+            onClose={() => setOpenNetworkFilter(false)}>
+            <ModalNetworkFilter 
+              handleClose={() => setOpenNetworkFilter(false)} 
+              onFilterChange={setNetworkFilters}
+            />
           </UX.DrawerCustom>
         </>
       }

@@ -258,6 +258,11 @@ export interface IWalletProvider {
   getAllAuthorityList(address: string): Promise<TokenAuthority[]>;
   getCurrentAuthority(address: string): Promise<TokenAuthority>;
   getAuthorityCanceled(ins: string): Promise<boolean>;
+  setTracAddress(address: string, key?: string): Promise<void>;
+  getTracAddress(key?: string): Promise<string>;
+  getAllTracAddresses(): Promise<{[key: string]: string}>;
+  getTracBalance(tracAddress: string): Promise<{address: string; balance: string}>;
+  removeTracAddressesByKeys(keys: string[]): Promise<void>;
 }
 
 const WalletContext = createContext<{

@@ -18,6 +18,7 @@ import './index.css';
 import ModalDeleteWallet from './modal-delete-wallet';
 import ModalEditWallet from './modal-edit-wallet';
 import ModalListAccountWallet from './modal-list-account-wallet';
+import ModalReceive from './modal-receive';
 import WalletCard from './wallet-card-item';
 import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 import {useNavigate} from 'react-router-dom';
@@ -31,6 +32,7 @@ const ListWallets = () => {
   const [openDrawerEditWallet, setOpenDrawerEditWallet] = useState(false);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [drawerAccount, setDrawerAccount] = useState<boolean>(false);
+  const [openReceive, setOpenReceive] = useState<boolean>(false);
   const listWallets = useAppSelector(WalletSelector.wallets);
   const pagination = {
     clickable: true,
@@ -95,6 +97,12 @@ const ListWallets = () => {
   }, [listWallets, debouncedFetchUtxos, positionSlider]);
 
   useEffect(() => {
+    // Debug log for listWallets
+    // eslint-disable-next-line no-console
+    console.log('listWallets =>', listWallets);
+  }, [listWallets]);
+
+  useEffect(() => {
     retryCountRef.current = 0;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -116,6 +124,23 @@ const ListWallets = () => {
           dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
+          
+                 // Fetch TRAC balance only for the active account using enriched tracAddress
+                 try {
+                   if (_activeAccount?.tracAddress) {
+                     const tracBalance = await wallet.getTracBalance(_activeAccount.tracAddress);
+                     dispatch(AccountActions.setTracBalanceForKey({
+                       key: _activeAccount.key,
+                       balance: tracBalance.balance,
+                     }));
+                   } else {
+                     dispatch(AccountActions.setTracBalanceForKey({
+                       key: _activeAccount.key,
+                       balance: '0',
+                     }));
+                   }
+                 } catch {}
+          
           retryCountRef.current = 0;
         } catch {
           showToast({title: 'Oops something go wrong!!!', type: 'error'});
@@ -189,10 +214,10 @@ const ListWallets = () => {
             className="groupBox"
             role="button"
             tabIndex={0}
-            onClick={() => navigate('/home/receive')}
+            onClick={() => setOpenReceive(true)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
-                navigate('/home/receive');
+                setOpenReceive(true);
               }
             }}
           >
@@ -245,6 +270,12 @@ const ListWallets = () => {
         open={drawerAccount}
         onClose={() => setDrawerAccount(false)}>
         <ModalListAccountWallet handleClose={() => setDrawerAccount(false)} />
+      </UX.DrawerCustom>
+      <UX.DrawerCustom
+        className="drawer-receive"
+        open={openReceive}
+        onClose={() => setOpenReceive(false)}>
+        <ModalReceive handleClose={() => setOpenReceive(false)} />
       </UX.DrawerCustom>
     </>
   );

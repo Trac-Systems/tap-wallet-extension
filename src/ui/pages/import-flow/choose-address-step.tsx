@@ -14,6 +14,8 @@ import {colors} from '../../themes/color';
 import {useAppDispatch} from '../../utils';
 import {CreateWalletContext} from './services/wallet-service-create';
 import {IResponseAddressBalance} from '../../../background/requests/paid-api';
+import trac from 'trac-crypto-api';
+import {AccountActions} from '../../redux/reducer/account/slice';
 
 interface IUpdateContextDataParams {
   mnemonics?: string;
@@ -127,6 +129,66 @@ const ChooseAddress = () => {
   const [previewAddresses, setPreviewAddresses] = useState<string[]>(
     derivationPathOptions.map(_v => ''),
   );
+  const [tracAddress, setTracAddress] = useState<string>('');
+  const [tracBalance, setTracBalance] = useState<string>('0');
+  const showTracBalance = useMemo(() => {
+    const n = Number(tracBalance);
+    return Number.isFinite(n) && n > 0;
+  }, [tracBalance]);
+
+  const toHardenedPath = (path: string): string => {
+    try {
+      const cleaned = (path || '').trim();
+      if (!cleaned) return "m/44'";
+      const parts = cleaned.split('/');
+      const prefix = parts.shift();
+      const hardenedParts = parts
+        .filter(Boolean)
+        .map(seg => (seg.endsWith("'") ? seg : `${seg}'`));
+      return `${prefix}/${hardenedParts.join('/')}`;
+    } catch {
+      return "m/44'";
+    }
+  };
+
+  const mnemonicWordCount = useMemo(() => {
+    try {
+      const phrase = (contextData.mnemonics || '').trim();
+      return phrase ? phrase.split(/\s+/).length : 0;
+    } catch {
+      return 0;
+    }
+  }, [contextData.mnemonics]);
+  const is12Words = mnemonicWordCount === 12;
+
+  const generateTracAddress = async () => {
+    // If seed phrase is exactly 12 words, skip generating TRAC address on this screen
+    if (is12Words) return;
+    try {
+      const option = derivationPathOptions[contextData.addressTypeIndex];
+      const basePath = contextData.customDerivationPath || option?.derivationPath || "m/44'";
+      const hardenedBase = toHardenedPath(basePath);
+      const tracDerivationPath = `${hardenedBase}/0'`;
+      let address: string;
+      try {
+        ({ address } = await trac.address.generate('trac', contextData.mnemonics, tracDerivationPath));
+      } catch (e) {
+        // Fallback when SLIP-10 lib is unavailable in runtime
+        ({ address } = await trac.address.generate('trac', contextData.mnemonics));
+      }
+      setTracAddress(address);
+      // fetch balance for preview
+      try {
+        const { balance } = await walletProvider.getTracBalance(address);
+        setTracBalance(balance || '0');
+      } catch {}
+      // Persist to background for the future active account. We cannot know the actual
+      // account address until wallet creation completes; so we only stage it here.
+      // no need to set here; TRAC will be persisted after wallet/account creation with a stable account.key
+    } catch (error) {
+      console.log('Error generating Trac address:', error);
+    }
+  };
 
   const generateAddress = async () => {
     const addresses: string[] = [];
@@ -217,6 +279,14 @@ const ChooseAddress = () => {
         contextData.addressType,
         1,
       );
+      try {
+        const active = await walletProvider.getActiveAccount();
+        if (active?.key && tracAddress) {
+          // Save TRAC address bound to this newly created active account (stable key)
+          await walletProvider.setTracAddress(tracAddress, active.key);
+          dispatch(AccountActions.setTracAddressForKey({key: active.key, address: tracAddress}));
+        }
+      } catch {}
       dispatch(GlobalActions.update({isUnlocked: true}));
       if (isImport) {
         navigate(`/success?isImport=${isImport}`);
@@ -244,11 +314,15 @@ const ChooseAddress = () => {
   useEffect(() => {
     setTimeout(() => {
       generateAddress();
+      if (!is12Words) {
+        generateTracAddress();
+      }
     }, 100);
   }, [
     contextData.passphrase,
     contextData.customDerivationPath,
     contextData.mnemonics,
+    is12Words,
   ]);
 
   useEffect(() => {
@@ -303,15 +377,46 @@ const ChooseAddress = () => {
           <UX.Box layout="column_center" spacing="xxl">
             <SVG.WalletIcon />
             <UX.Text
-              title="Choose your Address"
+              title="Choose your address type"
               styleType="heading_24"
               customStyles={{
                 textAlign: 'center',
                 marginTop: '8px',
               }}
             />
+            
+            {/* Trac Network Section: hide when mnemonic is exactly 12 words */}
+            {(!is12Words) && (
+                <UX.Box spacing="xs" style={{width: '100%'}}>
+                  <UX.CardAddress
+                    isActive={true}
+                    nameCardAddress="Trac Network (TRAC)"
+                    path={
+                      (() => {
+                        // Show SLIP-10 ed25519 hardened path aligned with selected BTC type (index 0)
+                        const opt = derivationPathOptions[contextData.addressTypeIndex] || derivationPathOptions[0];
+                        const base = (contextData.customDerivationPath || opt?.derivationPath || "m/44'");
+                        return `${base}/0'`;
+                      })()
+                    }
+                    address={tracAddress}
+                    hasVault={showTracBalance}
+                    assets={showTracBalance ? { totalBtc: tracBalance, satoshis: 0, totalInscription: 0 } : undefined}
+                    assetUnit="TRAC"
+                    assetIcon={<SVG.TracIcon width={20} height={20} />}
+                    onClick={() => {}}
+                  />
+                </UX.Box>
+            )}
+
+            {/* Bitcoin Addresses Section */}
             <UX.Box spacing="xs" style={{width: '100%'}}>
-              {derivationPathOptions.map((item, index) => {
+              <UX.Text
+                title="Bitcoin addresses:"
+                styleType="body_16_bold"
+                customStyles={{color: 'white', marginBottom: '8px'}}
+              />
+              {derivationPathOptions.filter(item => !item.label.includes('Trac')).map((item, index) => {
                 const derivationPath =
                   (contextData.customDerivationPath || item.derivationPath) +
                   '/0';

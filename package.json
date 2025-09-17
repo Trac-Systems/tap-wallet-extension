@@ -54,6 +54,7 @@
     "redux-saga": "^1.3.0",
     "reflect-metadata": "^0.2.2",
     "swiper": "^11.1.10",
+    "trac-crypto-api": "file:/Users/phamvantai/Documents/FETCH/TEST/trac-crypto-api",
     "vite-plugin-node-polyfills": "^0.22.0",
     "web3-validator": "^2.0.6",
     "webextension-polyfill": "^0.12.0",

@@ -52,7 +52,6 @@ const ListTapOptions = () => {
     historyList: [],
     transferableList: [],
   });
-  const allInscriptions = useAppSelector(InscriptionSelector.allInscriptions);
 
   //! Function
   const handleNavigate = () => {
@@ -74,17 +73,13 @@ const ListTapOptions = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [activeAccount?.address, allInscriptions]);
-
-  useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
   const fetchData = () => {
     setLoading(true);
     wallet
-      .getTapSummary(activeAccount.address, id, allInscriptions)
+      .getTapSummary(activeAccount.address, id)
       .then((tokenSummaryData: AddressTokenSummary) => {
         if (tokenSummaryData.tokenInfo.holder === activeAccount.address) {
           wallet
@@ -104,6 +99,11 @@ const ListTapOptions = () => {
         }
       });
   };
+
+  useEffect(() => {
+    if (!activeAccount?.address || !id) return;
+    fetchData();
+  }, [activeAccount?.address, id]);
 
   const transferableBalance = useMemo(() => {
     return (

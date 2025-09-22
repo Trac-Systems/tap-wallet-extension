@@ -174,59 +174,62 @@ export class TapApi {
     ticker: string,
     allInscriptions?: any[],
   ): Promise<AddressTokenSummary> {
-    const response = await this.api.get(
-      `/getAccountTokenDetail/${address}/${encodeURIComponent(ticker)}`,
-      {},
-    );
+    let deployment: TapTokenInfo | null = null;
+    let totalMinted = '0';
+    try {
+      const [dep, minted] = await Promise.all([
+        this.getDeployment(ticker),
+        this.getTokenTotalMinted(ticker).catch(() => '0'),
+      ]);
+      deployment = dep as any;
+      totalMinted = minted || '0';
+    } catch (error) {}
 
-    if (isEmpty(response.data)) {
+    const allTokens = await this.getAllAddressTapTokens(address);
+    const targetBalance = allTokens.find(t => t.ticker === ticker);
+    if (!targetBalance) {
       throw new Error(
         `Token ${encodeURIComponent(ticker)} don't have in your account`,
       );
     }
 
-    let totalMinted = '0';
-    try {
-      totalMinted = await this.getTokenTotalMinted(ticker);
-    } catch (error) {
-      console.log('Error getting total minted:', error);
+    const totalTransfers = await this.getTapTransferAbleLength(address, ticker);
+    let rawList: any[] = [];
+    if (totalTransfers > 0) {
+      const resp = await this.api.get(
+        `/getAccountTransferList/${address}/${encodeURIComponent(ticker)}`,
+        {max: totalTransfers, offset: 0},
+      );
+      rawList = (resp?.data?.result || []).filter((v: any) => !v.fail);
+      try {
+        const utxos = await mempoolApi.getUtxoData(address);
+        const utxoKeySet = new Set(
+          (utxos || []).map((u: any) => `${u.txid}:${u.vout}`),
+        );
+        rawList = rawList.filter((item: any) =>
+          utxoKeySet.has(`${item.tx}:${item.vo}`),
+        );
+      } catch (e) {}
     }
+    const decimal = (deployment?.dec as number) || 0;
+    const transferableList = convertTapTokenTransferList(rawList, decimal);
 
-    let _allInscriptions = allInscriptions;
-    if (!allInscriptions || allInscriptions.length === 0) {
-      const paidApi = new PaidApi();
-      _allInscriptions = await paidApi.getAllInscriptions(address);
-    }
-
-    let list = response?.data?.data?.transferList?.filter(v => !v.fail) || [];
-
-    let transferableList = convertTapTokenTransferList(
-      list,
-      response?.data?.data?.tokenInfo?.dec,
+    const tokenInfo = convertTapTokenInfo(deployment as any, totalMinted);
+    const tokenBalance = convertTapTokenBalance(
+      {
+        ticker: (targetBalance as any).ticker,
+        overallBalance: (targetBalance as any).overallBalance,
+        transferableBalance: (targetBalance as any).transferableBalance,
+      } as any,
+      decimal,
     );
 
-    if (_allInscriptions && _allInscriptions.length > 0) {
-      const allInscriptionIdSet = new Set(
-        _allInscriptions.map(ins => ins.inscriptionId),
-      );
-      transferableList = transferableList.filter(item =>
-        allInscriptionIdSet.has(item.inscriptionId),
-      );
-    }
-
-    const result = {
-      tokenInfo: convertTapTokenInfo(
-        response?.data?.data?.tokenInfo,
-        totalMinted,
-      ),
-      tokenBalance: convertTapTokenBalance(
-        response?.data?.data?.tokenBalance,
-        response?.data?.data?.tokenInfo?.dec,
-      ),
+    return {
+      tokenInfo,
+      tokenBalance,
       historyList: [],
-      transferableList: transferableList,
-    };
-    return result;
+      transferableList,
+    } as AddressTokenSummary;
   }
 
   async getTapTransferAbleLength(
@@ -255,14 +258,14 @@ export class TapApi {
       },
     );
     let list = response?.data?.result || [];
-    const paidApi = new PaidApi();
-    const allIns = await paidApi.getAllInscriptions(address);
-    const allInscriptions = allIns.map(ins => ins.inscriptionId);
-    if (allInscriptions && allInscriptions.length > 0) {
-      const setAll = new Set(allInscriptions);
-      list = list.filter(item => setAll.has(item.ins));
+    try {
+      const utxos = await mempoolApi.getUtxoData(address);
+      const utxoKeySet = new Set(
+        (utxos || []).map((u: any) => `${u.txid}:${u.vout}`),
+      );
+      list = list.filter((item: any) => utxoKeySet.has(`${item.tx}:${item.vo}`));
       total = list.length;
-    }
+    } catch (e) {}
     const tokenInfo = await this.getDeployment(ticker);
     return {
       total,

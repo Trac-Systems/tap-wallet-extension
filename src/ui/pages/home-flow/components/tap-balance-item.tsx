@@ -92,7 +92,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           .getTapSummary(activeAccount.address, ticker)
           .then(data => setTokenSummary(data));
       } catch (error) {
-        console.log('Failed to get tap summary: ', error);
+        setTokenSummary(undefined);
       }
     }
   };

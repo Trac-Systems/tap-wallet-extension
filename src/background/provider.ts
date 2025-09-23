@@ -984,13 +984,8 @@ export class Provider {
   getTapSummary = async (
     address: string,
     ticker: string,
-    allInscriptions?: any[],
   ) => {
-    const tokenSummary = await this.tapApi.getTapTokenSummary(
-      address,
-      ticker,
-      allInscriptions,
-    );
+    const tokenSummary = await this.tapApi.getTapTokenSummary(address, ticker);
 
     if (tokenSummary?.tokenInfo?.inscriptionId) {
       const inscriptions = await this.getInscriptionInfo(

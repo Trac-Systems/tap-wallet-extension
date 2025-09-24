@@ -214,6 +214,7 @@ export class TapApi {
     const decimal = (deployment?.dec as number) || 0;
     const transferableList = convertTapTokenTransferList(rawList, decimal);
 
+    // 4) Assemble
     const tokenInfo = convertTapTokenInfo(deployment as any, totalMinted);
     const tokenBalance = convertTapTokenBalance(
       {
@@ -257,7 +258,7 @@ export class TapApi {
         offset,
       },
     );
-    let list = response?.data?.result || [];
+    let list = (response?.data?.result || []).filter((v: any) => !v.fail);
     try {
       const utxos = await mempoolApi.getUtxoData(address);
       const utxoKeySet = new Set(

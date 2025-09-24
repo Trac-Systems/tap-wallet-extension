@@ -128,7 +128,7 @@ export class WalletService {
   };
 
   generateMnemonic() {
-    return bip39.generateMnemonic(128);
+    return bip39.generateMnemonic(256);
   }
 
   async createTempWallet(type: string, options: unknown) {

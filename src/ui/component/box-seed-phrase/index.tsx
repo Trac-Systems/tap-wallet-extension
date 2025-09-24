@@ -10,19 +10,23 @@ const BoxShowSeedPhrase = (props: IBoxShowSeedPhraseProps) => {
   const {mnemonics} = props;
 
   const words = mnemonics?.split(' ');
+  const wordsPerColumn = words.length === 24 ? 8 : words.length / 2;
   const wordsGrid = [
-    words?.slice(0, words.length / 2),
-    words?.slice(words.length / 2),
-  ];
+    words?.slice(0, wordsPerColumn),
+    words?.slice(wordsPerColumn, wordsPerColumn * 2),
+    words?.slice(wordsPerColumn * 2),
+  ].filter(column => column && column.length > 0);
 
   return (
     <Box
       layout="row_center"
-      spacing="xxl_xxl"
       style={{
         width: '100%',
         borderRadius: 16,
         backgroundColor: colors.black_3,
+        padding: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
       }}>
       {wordsGrid.map((item, i) => {
         return (
@@ -30,7 +34,7 @@ const BoxShowSeedPhrase = (props: IBoxShowSeedPhraseProps) => {
             layout="column_center"
             spacing="xs"
             key={i}
-            style={{padding: '24px', alignItems: 'start'}}>
+            style={{padding: '0px', alignItems: 'center', flex: 1}}>
             {item.map((text, index) => {
               return (
                 <Box
@@ -39,7 +43,7 @@ const BoxShowSeedPhrase = (props: IBoxShowSeedPhraseProps) => {
                   style={{width: '100px'}}
                   spacing="sm">
                   <Text
-                    title={String(index + 1 + i * (words.length / 2))}
+                    title={String(index + 1 + i * wordsPerColumn)}
                     styleType="body_14_normal"
                     customStyles={{color: colors.white, width: '15px'}}
                   />

@@ -11,7 +11,8 @@ import {useCustomToast} from '../../component/toast-custom';
 const CheckSeedPhrase = () => {
   //! State
   const navigate = useNavigate();
-  const checkIndexArray: number[] = Array.from({length: 12}, (_, i) => i + 1);
+  // Validate against 24-word seed phrase
+  const checkIndexArray: number[] = Array.from({length: 24}, (_, i) => i + 1);
   const [focusIndex, setFocusIndex] = useState<number | undefined>(0);
   const [seedPhraseCheck, setSeedPhraseCheck] = useState({});
   const [isDisabled, setIsDisabled] = useState(true);

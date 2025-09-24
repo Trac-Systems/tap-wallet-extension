@@ -266,6 +266,8 @@ export class Provider {
   };
 
   removeWallet = async (wallet: WalletDisplay) => {
+    this.removeWalletTracAddresses(wallet.index);
+    
     await walletService.removeWallet(wallet.index);
     const wallets = this.getWallets();
     const nextWallet = wallets[wallets.length - 1];
@@ -332,6 +334,21 @@ export class Provider {
     await authService.verifyPassword(pin);
     const originWallet = walletService.wallets[wallet.index];
     const serialized = await originWallet.serialize();
+    return {
+      mnemonic: serialized.mnemonic,
+      derivationPath: serialized.derivationPath,
+      passphrase: serialized.passphrase,
+    };
+  };
+
+  getMnemonicsUnlocked = async (wallet: WalletDisplay) => {
+    if (!this.isUnlocked()) {
+      throw new Error('Wallet must be unlocked to access mnemonic');
+    }
+    
+    const originWallet = walletService.wallets[wallet.index];
+    const serialized = await originWallet.serialize();
+    
     return {
       mnemonic: serialized.mnemonic,
       derivationPath: serialized.derivationPath,
@@ -1468,6 +1485,39 @@ export class Provider {
     const message = 'wallet-auth';
     const signature = await this.signMessage(message);
     return {message, signature, address};
+  };
+
+  // TRAC Address Management Methods
+  getTracAddressMap = () => {
+    return accountConfig.getTracAddressMap();
+  };
+
+  getTracAddress = (walletIndex: number, accountIndex: number): string | null => {
+    return accountConfig.getTracAddress(walletIndex, accountIndex);
+  };
+
+  setTracAddress = (walletIndex: number, accountIndex: number, address: string) => {
+    accountConfig.setTracAddress(walletIndex, accountIndex, address);
+  };
+
+  getWalletTracAddresses = (walletIndex: number): {[accountIndex: string]: string} => {
+    return accountConfig.getWalletTracAddresses(walletIndex);
+  };
+
+  removeTracAddress = (walletIndex: number, accountIndex: number) => {
+    accountConfig.removeTracAddress(walletIndex, accountIndex);
+  };
+
+  removeWalletTracAddresses = (walletIndex: number) => {
+    return accountConfig.removeWalletTracAddresses(walletIndex);
+  };
+
+  clearAllTracAddresses = () => {
+    return accountConfig.clearAllTracAddresses();
+  };
+
+  logAllTracAddresses = () => {
+    accountConfig.logAllTracAddresses();
   };
 }
 

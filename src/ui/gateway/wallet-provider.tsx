@@ -90,6 +90,7 @@ export interface IWalletProvider {
   ): Promise<UnspentOutput[]>;
 
   getMnemonics(pin: string, wallet: WalletDisplay): Promise<any>;
+  getMnemonicsUnlocked(wallet: WalletDisplay): Promise<any>;
   getPrivateKey(
     pin: string,
     {pubkey, type}: {pubkey: string; type: string},
@@ -258,6 +259,16 @@ export interface IWalletProvider {
   getAllAuthorityList(address: string): Promise<TokenAuthority[]>;
   getCurrentAuthority(address: string): Promise<TokenAuthority>;
   getAuthorityCanceled(ins: string): Promise<boolean>;
+  
+  // TRAC Address Management Methods
+  getTracAddressMap(): {[key: string]: string};
+  getTracAddress(walletIndex: number, accountIndex: number): string | null;
+  setTracAddress(walletIndex: number, accountIndex: number, address: string): void;
+  getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string};
+  removeTracAddress(walletIndex: number, accountIndex: number): void;
+  removeWalletTracAddresses(walletIndex: number): number;
+  clearAllTracAddresses(): number;
+  logAllTracAddresses(): void;
 }
 
 const WalletContext = createContext<{

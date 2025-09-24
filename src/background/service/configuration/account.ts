@@ -18,6 +18,7 @@ interface IMemStore {
   contactMap: {[key: string]: string};
   spendableInscriptions: {[key: string]: InscriptionMap};
   pendingOrders: string[];
+  tracAddressMap?: {[key: string]: string};
 }
 export class AccountConfigService {
   store!: IMemStore;
@@ -35,6 +36,7 @@ export class AccountConfigService {
         contactMap: {},
         spendableInscriptions: {},
         pendingOrders: [],
+        tracAddressMap: {},
       },
     });
   }
@@ -202,5 +204,94 @@ export class AccountConfigService {
       return;
     }
     this.store.pendingOrders = [];
+  }
+
+  // TRAC Address Management Methods
+  getTracAddressMap() {
+    return this.store?.tracAddressMap || {};
+  }
+
+  getTracAddress(walletIndex: number, accountIndex: number): string | null {
+    const tracMap = this.getTracAddressMap();
+    const key = `wallet_${walletIndex}#${accountIndex}`;
+    return tracMap[key] || null;
+  }
+
+  setTracAddress(walletIndex: number, accountIndex: number, address: string) {
+    if (!this.store?.tracAddressMap) {
+      this.store.tracAddressMap = {};
+    }
+    
+    const key = `wallet_${walletIndex}#${accountIndex}`;
+    this.store.tracAddressMap = Object.assign({}, this.store.tracAddressMap, {
+      [key]: address,
+    });
+    
+  }
+
+  getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string} {
+    const tracMap = this.getTracAddressMap();
+    const result: {[accountIndex: string]: string} = {};
+    
+    Object.keys(tracMap).forEach(key => {
+      if (key.startsWith(`wallet_${walletIndex}#`)) {
+        const accountIndex = key.split('#')[1];
+        result[accountIndex] = tracMap[key];
+      }
+    });
+    
+    return result;
+  }
+
+  removeTracAddress(walletIndex: number, accountIndex: number) {
+    if (!this.store?.tracAddressMap) {
+      return;
+    }
+    
+    const key = `wallet_${walletIndex}#${accountIndex}`;
+    const updatedTracMap = {...this.store.tracAddressMap};
+    delete updatedTracMap[key];
+    
+    this.store.tracAddressMap = updatedTracMap;
+  }
+
+  // Remove all TRAC addresses for a specific wallet
+  removeWalletTracAddresses(walletIndex: number) {
+    if (!this.store?.tracAddressMap) {
+      return;
+    }
+    
+    const tracMap = this.getTracAddressMap();
+    const updatedTracMap = {...tracMap};
+    let removedCount = 0;
+    
+    // Find and remove all keys that start with wallet_X#
+    Object.keys(tracMap).forEach(key => {
+      if (key.startsWith(`wallet_${walletIndex}#`)) {
+        delete updatedTracMap[key];
+        removedCount++;
+      }
+    });
+    
+    this.store.tracAddressMap = updatedTracMap;    
+    return removedCount;
+  }
+
+  // Clear all TRAC addresses (useful for reset/debugging)
+  clearAllTracAddresses() {
+    if (!this.store?.tracAddressMap) {
+      return;
+    }
+    
+    const count = Object.keys(this.store.tracAddressMap).length;
+    this.store.tracAddressMap = {};
+    return count;
+  }
+
+  logAllTracAddresses() {
+    const tracMap = this.getTracAddressMap();
+    console.log('=== ALL TRAC ADDRESSES ===');
+    console.log(tracMap);
+    console.log('==========================');
   }
 }

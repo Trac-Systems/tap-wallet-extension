@@ -19,6 +19,7 @@ import ModalDeleteWallet from './modal-delete-wallet';
 import ModalEditWallet from './modal-edit-wallet';
 import ModalListAccountWallet from './modal-list-account-wallet';
 import ModalReceive from './modal-receive';
+import ModalSelectToken from './modal-select-token';
 import WalletCard from './wallet-card-item';
 import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 import {useNavigate} from 'react-router-dom';
@@ -33,6 +34,7 @@ const ListWallets = () => {
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [drawerAccount, setDrawerAccount] = useState<boolean>(false);
   const [openReceive, setOpenReceive] = useState<boolean>(false);
+  const [openSelectToken, setOpenSelectToken] = useState<boolean>(false);
   const listWallets = useAppSelector(WalletSelector.wallets);
   const pagination = {
     clickable: true,
@@ -179,10 +181,10 @@ const ListWallets = () => {
             className="groupBox"
             role="button"
             tabIndex={0}
-            onClick={() => navigate('/home/send')}
+            onClick={() => setOpenSelectToken(true)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
-                navigate('/home/send');
+                setOpenSelectToken(true);
               }
             }}
           >
@@ -259,6 +261,16 @@ const ListWallets = () => {
         open={openReceive}
         onClose={() => setOpenReceive(false)}>
         <ModalReceive handleClose={() => setOpenReceive(false)} />
+      </UX.DrawerCustom>
+      <UX.DrawerCustom
+        className="drawer-receive"
+        open={openSelectToken}
+        onClose={() => setOpenSelectToken(false)}>
+        <ModalSelectToken 
+          handleClose={() => setOpenSelectToken(false)}
+          onSelectBTC={() => navigate('/home/send')}
+          onSelectTNK={() => navigate('/home/send-trac')}
+        />
       </UX.DrawerCustom>
     </>
   );

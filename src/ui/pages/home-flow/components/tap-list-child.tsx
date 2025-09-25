@@ -20,11 +20,17 @@ import {
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions} from '../hook';
+import {useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions, useActiveTracAddress, useTracBalanceByAddress} from '../hook';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 
-const TapListChild = () => {
+interface TapListChildProps {
+  onOpenFilter?: () => void;
+  networkFilters?: {bitcoin: boolean; trac: boolean};
+}
+
+const TapListChild = (props: TapListChildProps) => {
+  const { onOpenFilter, networkFilters = {bitcoin: true, trac: true} } = props;
   const navigate = useNavigate();
   const {getTapList} = useInscriptionHook();
   const { getTokenInfoAndStore, loadingTicker } = useTokenInfo();
@@ -39,6 +45,8 @@ const TapListChild = () => {
   const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
+  const tracAddress = useActiveTracAddress();
+  const { balance: tracBalance } = useTracBalanceByAddress(tracAddress || undefined);
   const [loading, setLoading] = useState(false);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const [tokenValue, setTokenValue] = useState('');
@@ -285,16 +293,24 @@ const TapListChild = () => {
   }
 
   return (
-    <UX.Box spacing="xl">
-      <UX.Box layout="row" spacing="xs" className="search-box-token">
-        <SVG.SearchIcon />
-        <input
-          placeholder="Search for token"
-          className="search-box-token-input"
-          onChange={handleChange}
-          value={tokenValue}
-        />
-      </UX.Box>
+    <>
+      <UX.Box spacing="xl">
+        <UX.Box layout="row_between" spacing="xs" style={{alignItems: 'center'}}>
+          <UX.Box layout="row" spacing="xs" className="search-box-token" style={{flex: 1}}>
+            <SVG.SearchIcon />
+            <input
+              placeholder="Search for token"
+              className="search-box-token-input"
+              onChange={handleChange}
+              value={tokenValue}
+            />
+          </UX.Box>
+          <UX.Box
+            onClick={onOpenFilter}
+            style={{cursor: 'pointer', padding: '8px', marginLeft: '8px'}}>
+            <SVG.FilterIcon />
+          </UX.Box>
+        </UX.Box>
 
       {currentAuthority ? (
         <UX.Button
@@ -340,6 +356,34 @@ const TapListChild = () => {
           <SVG.ArrowIconRight width={23} height={18} />
         </UX.Box>
       )}
+
+          {/* TRAC row - visible when TRAC filter is on and we have an address */}
+          {networkFilters.trac && !!tracAddress && (
+        <UX.Box layout="box">
+          <UX.Box layout="row_between" style={{width: '100%'}}>
+            <UX.Box
+              layout="row"
+              style={{
+                justifyItems: 'center',
+                alignItems: 'center',
+              }}>
+              <SVG.TracIcon width={32} height={32} />
+              <UX.Text
+                title={'TNK'}
+                styleType="body_16_normal"
+                customStyles={{color: 'white', marginLeft: '8px'}}
+              />
+            </UX.Box>
+
+            <UX.Text
+              title={tracBalance}
+              styleType="body_16_normal"
+              customStyles={{color: 'white'}}
+            />
+          </UX.Box>
+        </UX.Box>
+      )}
+      { networkFilters.bitcoin && (
       <UX.Box layout="box">
         <UX.Box layout="row_between" style={{width: '100%'}}>
           <UX.Box
@@ -363,7 +407,9 @@ const TapListChild = () => {
           />
         </UX.Box>
       </UX.Box>
-      {displayData.map((tokenBalance: TokenBalance, index: number) => {
+      )}
+      
+      {networkFilters.bitcoin && displayData.map((tokenBalance: TokenBalance, index: number) => {
         const indexCheck = index < 20 ? index : index % 20;
         const tagColor = listRandomColor[indexCheck];
         return (
@@ -387,7 +433,8 @@ const TapListChild = () => {
           />
         </UX.Box>
       )}
-    </UX.Box>
+      </UX.Box>
+    </>
   );
 };
 

@@ -68,7 +68,7 @@ const SettingPage = () => {
 
     const functions = [
       {
-        title: 'Address Type',
+        title: 'Bitcoin Address Type',
         desc: descAddress,
         link: '/setting/choose-address',
       },

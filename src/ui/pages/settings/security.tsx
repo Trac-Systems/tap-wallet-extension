@@ -11,6 +11,27 @@ import {AccountSelector} from '../../redux/reducer/account/selector';
 import {WalletSelector} from '../../redux/reducer/wallet/selector';
 import { RestoreTypes } from '@/src/wallet-instance';
 
+// Function to derive TRAC private key from mnemonic
+const deriveTracPrivateKeyFromMnemonic = async (mnemonic: string, accountIndex: number): Promise<string> => {
+  try {
+    const api = (window as any).TracCryptoApi;
+    if (!api) {
+      throw new Error('TracCryptoApi not loaded');
+    }
+    
+    const derivationPath = `m/0'/0'/${accountIndex}'`;
+    const { secretKey } = await api.address.generate("trac", mnemonic, derivationPath);
+    
+    if (!secretKey) {
+      throw new Error('No secretKey returned from TracCryptoApi');
+    }
+    
+    return secretKey;
+  } catch (error) {
+    throw new Error('Failed to derive TRAC private key: ' + (error as Error).message);
+  }
+};
+
 const SecuritySetting = () => {
   //! State
   const navigate = useNavigate();
@@ -38,7 +59,16 @@ const SecuritySetting = () => {
     if (type === RestoreTypes.MNEMONIC) {
       _res = await wallet.getMnemonics(pinString, activeWallet);
     } else {
-      _res = await wallet.getPrivateKey(pinString, activeAccount);
+      // Get both Bitcoin and TRAC private keys
+      const btc = await wallet.getPrivateKey(pinString, activeAccount);
+      const mnemonicData = await wallet.getMnemonics(pinString, activeWallet);
+      const tracPrivateKey = await deriveTracPrivateKeyFromMnemonic(mnemonicData.mnemonic, activeAccount.index);
+      _res = {
+        btcHex: btc.hex,
+        btcWif: btc.wif,
+        tracHex: tracPrivateKey,
+        type: 'private'
+      };
     }
     return _res;
   };

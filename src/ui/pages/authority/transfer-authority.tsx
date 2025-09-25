@@ -17,8 +17,12 @@ import { InscribeOrder, InscriptionOrdClient, OrderType, TappingStatus } from '@
 import CloseIcon from '../../svg/CloseIcon';
 import { calculateAmount } from '@/src/shared/utils/btc-helper';
 import { useTokenInfo } from '../home-flow/hook';
+import TransferApps from './component/trac-apps'
+import { useTracAppsLogic } from './hook/use-trac-apps-logic'
 
 const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSections, onAmountChange, onAddressChange }) => {
+  const {onUpdateState, getComponentState} = useTracAppsLogic();
+
   const selectedOption = listTapList.find(
     option => option.value === section.selected,
   );
@@ -29,6 +33,8 @@ const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSect
       getTokenInfoAndStore(section.selected);
     }
   }, [section.selected, getTokenInfoAndStore]);
+
+  const {isExpanded, selectedApp} = getComponentState(section.id);
 
   return (
     <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
@@ -127,6 +133,13 @@ const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSect
           />
         )}
       </UX.Box>
+
+      <TransferApps 
+        id={section.id} isExpanded={isExpanded} 
+        isTap={true} 
+        onUpdateState={onUpdateState} 
+        selectedApp={selectedApp} 
+        token={section.title}  />
     </UX.Box>
   );
 };

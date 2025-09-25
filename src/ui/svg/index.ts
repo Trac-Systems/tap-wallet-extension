@@ -36,6 +36,8 @@ import WaringIcon from './Warning';
 import DappIcon from './DappIcon';
 import FilterIcon from './FilterIcon';
 import SearchIcon from './Search';
+import HyperfunIcon from './Hyperfun';
+import HypermallIcon from './Hypermall';
 
 export const SVG = {
   ArrowBackIcon,
@@ -77,4 +79,6 @@ export const SVG = {
   DappIcon,
   SearchIcon,
   FilterIcon,
+  HyperfunIcon,
+  HypermallIcon
 };

@@ -9,7 +9,7 @@ import { UX } from '@/src/ui/component';
 import { SVG } from '@/src/ui/svg';
 // import ConfirmTracAppsModal from './confirm-trac-apps-modal';
 import CollapsibleList from './collapsible-list'; // Import the converted component
-import ConfirmTracAppsModal from './confirm-trac-apps-modal'
+import ConfirmTracAppsModal, { TRAC_APPS_PERMITTED_TOKENS } from './confirm-trac-apps-modal'
 
 export type TracApp = {
   title: string;
@@ -19,7 +19,6 @@ export type TracApp = {
 
 interface TransferAppsProps {
   id: number;
-  isTap: boolean;
   onUpdateState: (id: number, newState: Partial<ComponentState>) => void;
   selectedApp: SelectedApp;
   isExpanded: boolean;
@@ -41,7 +40,6 @@ const apps: TracApp[] = [
 
 const TransferApps = ({
   id,
-  isTap,
   onUpdateState,
   selectedApp,
   isExpanded,
@@ -106,8 +104,11 @@ const TransferApps = ({
 
   const renderAppItem = useCallback(
     ({ item }: { item: TracApp }) => {
-      // const isDisabled = !token || (token && item.title === 'Hyperfun' && !isTap);
-      const isDisabled = false;
+
+      const isDisabled = !token || 
+        (token && item.title === 'Hyperfun' && !TRAC_APPS_PERMITTED_TOKENS.hyperfun.includes(token)) || 
+        (token && item.title === 'Hypermall' && !TRAC_APPS_PERMITTED_TOKENS.hypermall.includes(token));
+
       return (
         <UX.Box
           key={item.title}
@@ -121,17 +122,18 @@ const TransferApps = ({
             borderRadius: '12px',
             marginRight: '8px',
             width: '120px',
-            height: '120px',
+            height: '60px',
             border:
               selectedApp?.name === item.title
                 ? `1px solid ${item.color}`
                 : '1px solid transparent',
             opacity: isDisabled ? 0.5 : 1,
             cursor: isDisabled ? 'not-allowed' : 'pointer',
+            gap: 3
           }}
           onClick={() => !isDisabled && handleAppSelection(item)}
         >
-          <item.icon width={400} height={200} />
+          <item.icon />
           <UX.Text
             title={item.title}
             styleType="body_16_extra_bold"
@@ -140,7 +142,7 @@ const TransferApps = ({
         </UX.Box>
       );
     },
-    [handleAppSelection, isTap, selectedApp, token],
+    [handleAppSelection, selectedApp, token],
   );
 
   useEffect(() => {

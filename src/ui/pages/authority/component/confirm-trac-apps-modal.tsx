@@ -5,6 +5,9 @@ import {colors} from '@/src/ui/themes/color';
 import {isEmpty} from 'lodash';
 import {useTracAppsData} from '../hook/use-trac-apps-data';
 import {SelectedApp} from '../hook/use-trac-apps-logic';
+import { validateTracAppsAddress } from '@/src/ui/utils'
+import Text from '@/src/ui/component/text-custom'
+
 
 interface ConfirmDeleteWalletModalProps {
   visible: boolean;
@@ -171,12 +174,9 @@ const ConfirmTracAppsModal = ({
               alignItems: 'center',
               margin: '16px auto',
             }}>
-            {selectedApp?.name.toLocaleLowerCase() === 'hyperfun' ? (
-              <SVG.HyperfunIcon width={48} height={48} />
-            ) : (
-              // <SVG.HypermallIcon width={36} height={36} />
-              <SVG.HypermallIcon width={48} height={48} />
-            )}
+            {selectedApp?.name.toLocaleLowerCase() === 'hyperfun' ? 
+              <SVG.HyperfunIcon /> : 
+              <SVG.HypermallIcon />}
           </UX.Box>
 
           )}
@@ -184,6 +184,12 @@ const ConfirmTracAppsModal = ({
             value={modalInputValue}
             onChange={e => setModalInputValue(e.target.value)}
             placeholder="Enter address"
+          />
+          
+          <Text
+              title="Invalid address"
+              styleType="body_14_bold"
+              customStyles={{ color: colors.red_500, marginTop: '4px', visibility: modalInputValue !== "" && !validateTracAppsAddress(modalInputValue) ? "visible" : "hidden"  }}
           />
           {(selectedApp?.name === 'Hyperfun' && !isEmpty(tracApps.hyperfunAddress)) ||
           (selectedApp?.name === 'Hypermall' && !isEmpty(tracApps.hypermallAddress)) ? (
@@ -198,8 +204,7 @@ const ConfirmTracAppsModal = ({
                 }
                 style={{
                   cursor: 'pointer',
-                  borderBottom: `1px solid ${colors.white}`,
-                  display: 'inline-block',
+                  textDecoration: "underline",
                 }}>
                 <UX.Text
                   styleType="body_14_bold"
@@ -213,7 +218,7 @@ const ConfirmTracAppsModal = ({
             styleType="primary"
             title="Confirm"
             onClick={handleMainAction}
-            isDisable={!modalInputValue}
+            isDisable={!validateTracAppsAddress(modalInputValue)}
             customStyles={{marginTop: '12px'}}
           />
         </UX.Box>

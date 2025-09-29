@@ -106,40 +106,42 @@ const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSect
           />
         )}
       </UX.Box>
-      <UX.Box spacing="xss">
-        <UX.Text
-          title="Receiver"
-          styleType="body_16_extra_bold"
-          customStyles={{ color: 'white' }}
-        />
-        <UX.Input
-          placeholder="Receiver address"
-          style={{
-            fontSize: '16px',
-            border: 'none',
-            padding: '9px 16px',
-            background: 'transparent',
-          }}
-          value={section?.address}
-          onChange={e => {
-            onAddressChange(section.id, e?.target?.value);
-          }}
-        />
-        {section.errorAddress && (
-          <Text
-            title={section.errorAddress}
-            styleType="body_14_bold"
-            customStyles={{ color: colors.red_500, marginTop: '4px' }}
+
+      {!isExpanded && (
+        <UX.Box spacing="xss">
+          <UX.Text
+            title="Receiver"
+            styleType="body_16_extra_bold"
+            customStyles={{ color: 'white' }}
           />
-        )}
-      </UX.Box>
+          <UX.Input
+            placeholder="Receiver address"
+            style={{
+              fontSize: '16px',
+              border: 'none',
+              padding: '9px 16px',
+              background: 'transparent',
+            }}
+            value={section?.address}
+            onChange={e => {
+              onAddressChange(section.id, e?.target?.value);
+            }}
+          />
+          {section.errorAddress && (
+            <Text
+              title={section.errorAddress}
+              styleType="body_14_bold"
+              customStyles={{ color: colors.red_500, marginTop: '4px' }}
+            />
+          )}
+        </UX.Box>
+      )}
 
       <TransferApps 
         id={section.id} isExpanded={isExpanded} 
-        isTap={true} 
         onUpdateState={onUpdateState} 
         selectedApp={selectedApp} 
-        token={section.title}  />
+        token={section.selected}  />
     </UX.Box>
   );
 };
@@ -410,12 +412,15 @@ const TransferAuthority = () => {
         errorAmount = '';
       }
 
+      const {getComponentState} = useTracAppsLogic();
       // address error
       let errorAddress = '';
-      if (!section.address) {
+      const {isExpanded, selectedApp} = getComponentState(section.id);
+      if (!isExpanded && !section.address) {
         errorAddress = 'Receiver address is required';
-      } else {
-        errorAddress = '';
+      }
+      if (isExpanded && !selectedApp?.address) {
+        errorAddress = 'Receiver address is required';
       }
       return { ...section, errorAmount, errorAddress };
     });

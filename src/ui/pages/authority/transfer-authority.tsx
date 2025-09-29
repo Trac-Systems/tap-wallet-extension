@@ -570,6 +570,13 @@ const TransferAuthority = () => {
               }}
             />
           </UX.Box>
+          <UX.Button
+            styleType="primary"
+            title={'Next'}
+            customStyles={{zIndex: 2}}
+            onClick={handleConfirm}
+            isDisable={isDisabledForm || loading}
+          />
         </UX.Box>
       }
       footer={
@@ -604,13 +611,6 @@ const TransferAuthority = () => {
               />
             </UX.Box>
           )}
-          <UX.Button
-            styleType="primary"
-            title={'Next'}
-            customStyles={{zIndex: 2}}
-            onClick={handleConfirm}
-            isDisable={isDisabledForm || loading}
-          />
         </UX.Box>
       }
     />

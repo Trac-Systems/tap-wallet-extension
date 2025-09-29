@@ -6,12 +6,12 @@ interface HypermallIconProps {
 }
 
 const HypermallIcon: React.FC<HypermallIconProps> = ({
-  width = 24,
-  height = 24,
+  width = 36,
+  height = 36,
 }) => (
 
-<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
-<rect width="36" height="36" fill="url(#pattern0_37_4)"/>
+<svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
+<rect width={width} height={height} fill="url(#pattern0_37_4)"/>
 <defs>
 <pattern id="pattern0_37_4" patternContentUnits="objectBoundingBox" width="1" height="1">
 <use xlinkHref="#image0_37_4" transform="matrix(0.00168067 0 0 0.00242017 0 -0.00702521)"/>

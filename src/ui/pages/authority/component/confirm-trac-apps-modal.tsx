@@ -20,11 +20,6 @@ interface ConfirmDeleteWalletModalProps {
   token: string;
 }
 
-export const TRAC_APPS_BITCOIN_ADDRESSES = {
-  hyperfun: 'bc1pg0raefujxhtzac9hnkvmextu023tntgu0ldduj9crsaf3s3vtyhsc2ht9r',
-  hypermall: 'bc1p5s46uu63wllwe0vr7um3k23kgak2lgc0np42fh4pn9j8vtwqseqs7ddg5e',
-};
-
 export const TRAC_APPS_PERMITTED_TOKENS = {
   hyperfun: ['tap'],
   hypermall: ['tap', 'dmt-nat', 'tap-usdt', 'gib'],

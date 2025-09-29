@@ -262,3 +262,11 @@ export const truncateMiddle = (str: string, frontLen = 3, backLen = 3) => {
   if (str.length <= frontLen + backLen + 3) return str;
   return `${str.slice(0, frontLen)}...${str.slice(-backLen)}`;
 };
+
+export const validateTracAppsAddress = (address: string): boolean => {
+  if (typeof address !== 'string' || address.length === 0) {
+    return false;
+  }
+
+  return /^[0-9a-fA-F]{64}$/.test(address);
+};

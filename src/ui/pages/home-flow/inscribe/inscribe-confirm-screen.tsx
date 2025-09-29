@@ -17,6 +17,8 @@ interface RedeemItem {
   tick: string;
   amt: string;
   address: string;
+  dta?: string;       // for trac app deposits
+  appName?: string;   // which app was chosen
 }
 
 // set style for contextDataParam.order interface
@@ -151,6 +153,7 @@ const InscribeConfirmScreen = () => {
           token: 'Token',
           amount: 'Amount',
           receiver: 'Receiver',
+          appName: 'App'
         }}
         enableToggle={true}
       />

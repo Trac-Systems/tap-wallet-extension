@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UX } from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
@@ -17,8 +17,27 @@ import { InscribeOrder, InscriptionOrdClient, OrderType, TappingStatus } from '@
 import CloseIcon from '../../svg/CloseIcon';
 import { calculateAmount } from '@/src/shared/utils/btc-helper';
 import { useTokenInfo } from '../home-flow/hook';
+import TransferApps from './component/trac-apps'
+import { useTracAppsLogic } from './hook/use-trac-apps-logic'
 
-const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSections, onAmountChange, onAddressChange }) => {
+export const TRAC_APPS_BITCOIN_ADDRESSES = {
+  hyperfun: 'bc1pg0raefujxhtzac9hnkvmextu023tntgu0ldduj9crsaf3s3vtyhsc2ht9r',
+  hypermall: 'bc1p5s46uu63wllwe0vr7um3k23kgak2lgc0np42fh4pn9j8vtwqseqs7ddg5e',
+};
+
+const TokenSection = ({ 
+  section, 
+  listTapList, 
+  getTokenInfoAndStore, 
+  setTokenSections, 
+  onAmountChange, 
+  onAddressChange, 
+  onUpdateState, 
+  getComponentState,
+  validateSection,
+  updateTokenSectionErrors,
+  isSubmitted, // <--- NEW PROP
+}) => {
   const selectedOption = listTapList.find(
     option => option.value === section.selected,
   );
@@ -29,6 +48,15 @@ const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSect
       getTokenInfoAndStore(section.selected);
     }
   }, [section.selected, getTokenInfoAndStore]);
+
+  const {isExpanded, selectedApp} = getComponentState(section.id);
+  
+  // Effect to 'listen' to TransferApp state changes and run validation
+  useEffect(() => {
+    const errors = validateSection(section);
+    updateTokenSectionErrors(section.id, errors);
+  }, [isExpanded, selectedApp, validateSection, updateTokenSectionErrors, section]);
+  
 
   return (
     <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
@@ -92,7 +120,8 @@ const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSect
           value={section?.amount?.toString()}
           onAmountInputChange={() => {}}
         />
-        {section.errorAmount && (
+        {/* ONLY DISPLAY ERROR IF THE FORM HAS BEEN SUBMITTED */}
+        {section.errorAmount && isSubmitted && (
           <Text
             title={section.errorAmount}
             styleType="body_14_bold"
@@ -100,33 +129,44 @@ const TokenSection = ({ section, listTapList, getTokenInfoAndStore, setTokenSect
           />
         )}
       </UX.Box>
-      <UX.Box spacing="xss">
-        <UX.Text
-          title="Receiver"
-          styleType="body_16_extra_bold"
-          customStyles={{ color: 'white' }}
-        />
-        <UX.Input
-          placeholder="Receiver address"
-          style={{
-            fontSize: '16px',
-            border: 'none',
-            padding: '9px 16px',
-            background: 'transparent',
-          }}
-          value={section?.address}
-          onChange={e => {
-            onAddressChange(section.id, e?.target?.value);
-          }}
-        />
-        {section.errorAddress && (
-          <Text
-            title={section.errorAddress}
-            styleType="body_14_bold"
-            customStyles={{ color: colors.red_500, marginTop: '4px' }}
+
+      {!isExpanded && (
+        <UX.Box spacing="xss">
+          <UX.Text
+            title="Receiver"
+            styleType="body_16_extra_bold"
+            customStyles={{ color: 'white' }}
           />
-        )}
-      </UX.Box>
+          <UX.Input
+            placeholder="Receiver address"
+            style={{
+              fontSize: '16px',
+              border: 'none',
+              padding: '9px 16px',
+              background: 'transparent',
+            }}
+            value={section?.address}
+            onChange={e => {
+              onAddressChange(section.id, e?.target?.value);
+            }}
+          />
+        </UX.Box>
+      )}
+
+      <TransferApps 
+        id={section.id} isExpanded={isExpanded} 
+        onUpdateState={onUpdateState} 
+        selectedApp={selectedApp} 
+        token={section.selected}  />
+
+      {/* ONLY DISPLAY ERROR IF THE FORM HAS BEEN SUBMITTED */}
+      {section.errorAddress && isSubmitted && (
+        <Text
+          title={section.errorAddress}
+          styleType="body_14_bold"
+          customStyles={{ color: colors.red_500, marginTop: '4px' }}
+        />
+      )}
     </UX.Box>
   );
 };
@@ -155,6 +195,8 @@ const TransferAuthority = () => {
   const [isWaitingCancel, setIsWaitingCancel] = useState(false);
   const [inscriptionInfo, setInscriptionInfo] =
     useState<InscriptionOrdClient | null>(null);
+
+  const [isSubmitted, setIsSubmitted] = useState(false); // <--- NEW STATE
 
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
@@ -189,6 +231,8 @@ const TransferAuthority = () => {
       return satpointTxid === inscriptionTxid ? 'CONFIRMED' : 'TAPPING';
     }
   }, [auth, inscriptionInfo]);
+
+  const {onUpdateState, getComponentState} = useTracAppsLogic()
 
   // get token info
   useEffect(() => {
@@ -253,54 +297,155 @@ const TransferAuthority = () => {
     }
   }, [tapList, tokens, tokenInfoMap]);
 
+  // Validation logic extracted and memoized
+  const validateSection = useCallback((sectionToValidate) => {
+    // 1. Amount error
+    let errorAmount = '';
+    
+    // Check if a token is selected
+    if (!sectionToValidate.selected) {
+        errorAmount = 'Token name is required';
+    } else if (!sectionToValidate.amount) {
+      errorAmount = 'Amount is required';
+    } else {
+      // Check if amount exceeds available balance
+      const selectedOption = listTapList.find(
+        option => option.value === sectionToValidate.selected,
+      );
+      const optionAmount = selectedOption?.amount || 0;
+      
+      // Calculate amount used in other sections for the same token
+      const selectedAmount = tokenSections.reduce((acc, item) => {
+        if (item.id !== sectionToValidate.id && item.selected === sectionToValidate.selected && !isNaN(Number(item.amount))) {
+          return acc + Number(item.amount || 0);
+        }
+        return acc;
+      }, 0);
+      
+      const availableAmount = Number(optionAmount || 0) - Number(selectedAmount || 0);
+
+      if (Number(sectionToValidate.amount) > Number(availableAmount)) {
+        errorAmount = 'Amount exceeds your available balance';
+      } else {
+        errorAmount = ''; // Clear if checks pass
+      }
+    }
+
+    // 2. Address error
+    let errorAddress = '';
+    const { isExpanded, selectedApp } = getComponentState(sectionToValidate.id);
+
+    // A. Transfer App is selected (isExpanded is true)
+    if (isExpanded) {
+      if (!selectedApp?.address) {
+        errorAddress = 'Transfer app is required';
+      } else {
+        errorAddress = ''; // CLEAR error
+      }
+    }
+    // B. Manual Address is used (isExpanded is false)
+    else {
+      if (!sectionToValidate.address) {
+        errorAddress = 'Receiver address is required';
+      } else {
+        const isValid = validateBtcAddress(sectionToValidate.address, networkType);
+        if (!isValid) {
+          errorAddress = 'Receiver address is invalid';
+        } else {
+          errorAddress = ''; // CLEAR error
+        }
+      }
+    }
+    
+    return { errorAmount, errorAddress };
+  }, [getComponentState, listTapList, networkType, tokenSections]); 
+  
+  // Function to update section errors from child component (memoized)
+  const updateTokenSectionErrors = useCallback((id: number, newErrors: {errorAmount: string, errorAddress: string}) => {
+     setTokenSections(prev => {
+        return prev.map(section => {
+            if (section.id === id) {
+                return { ...section, ...newErrors };
+            }
+            return section;
+        });
+    });
+  }, []); 
+
   const handleConfirm = async () => {
-    const isValid = isValidForm();
+    // 1. Set the submission flag to true to start displaying errors
+    setIsSubmitted(true);
+    
+    // 2. Run full validation. This updates the state with all final errors.
+    const isValid = isValidForm(); 
+    
     if (!isValid) {
       return;
     }
     setLoading(true);
-    const message = {
-      items: tokenSections.map(item => ({
-        tick: item.selected,
-        amt: item.amount?.toString(),
-        address: item.address,
-      })),
-      auth,
-      data: '',
-    };
+
     try {
+      const items = tokenSections.map((item, index) => {
+        const { isExpanded, selectedApp } = getComponentState(item.id);
+        const baseItem = {
+          tick: item.selected,
+          amt: item.amount?.toString(),
+        };
+
+        if (isExpanded && selectedApp?.address) {
+          // Hyperfun or Hypermall
+          const dtaValue = `{"op": "deposit","addr": "${selectedApp.address}"}`;
+          const hardcodedBitcoinAddress =
+            TRAC_APPS_BITCOIN_ADDRESSES[selectedApp.name.toLowerCase()];
+
+          return {
+            ...baseItem,
+            address: hardcodedBitcoinAddress,
+            dta: dtaValue,
+            appName: selectedApp.name,
+          };
+        } else {
+          // Common transfers
+          return {
+            ...baseItem,
+            address: item.address,
+          };
+        }
+      });
+
+      const message = { items, auth, data: '' };
+
       const _tokenAuth = await walletProvider.generateTokenAuth(
         message,
         'redeem',
       );
+
       const order = await walletProvider.createOrderRedeem(
         activeAccount.address,
         _tokenAuth.proto,
         Number(feeRate),
         546,
       );
+
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: { address: order?.payAddress, domain: '' },
         toAmount: Math.round(order?.totalFee || 0),
         feeRate: order?.feeRate || Number(feeRate),
         enableRBF: false,
       });
+
       navigate('/home/inscribe-confirm', {
         state: {
           contextDataParam: {
             rawTxInfo,
             order,
             type: OrderType.REDEEM,
-            singleTxTransfer: tokenSections.map(item => ({
-              tick: item.selected,
-              amt: item.amount?.toString(),
-              address: item.address,
-            })),
+            singleTxTransfer: items,
           },
         },
       });
-      console.log('order :>> ', order);
-    } catch (error) {
+
+    } catch (error: any) {
       console.log('error :>> ', error);
       showToast({
         title: error.message,
@@ -328,91 +473,51 @@ const TransferAuthority = () => {
     setTokenSections([...tokenSections, newToken]);
   };
 
+  // onAmountChange: Runs validation to update isDisabledForm
   const onAmountChange = (section, amount: string) => {
-    const selectedOption = listTapList.find(
-      option => option.value === section.selected,
-    );
-    const optionAmount = selectedOption?.amount || 0;
-    const filterTokenSections = tokenSections.filter(
-      item => item.id !== section.id,
-    );
-    const selectedAmount = filterTokenSections.reduce((acc, item) => {
-      if (item.selected === section.selected && !item.errorAmount) {
-        return acc + Number(item.amount || 0);
-      }
-      return acc;
-    }, 0);
-    const availableAmount =
-      Number(optionAmount || 0) - Number(selectedAmount || 0);
-    let errorAmount = '';
-    if (!amount) {
-      errorAmount = 'Amount is required';
-    } else if (Number(amount) > Number(availableAmount)) {
-      errorAmount = 'Amount exceeds your available balance';
-    } else {
-      errorAmount = '';
-    }
-
-    const newSections = tokenSections.map(item => {
-      if (item.id === section.id) {
-        return { ...item, amount, errorAmount };
-      }
-      return item;
-    });
-    setTokenSections(newSections as any);
-  };
-
-  const onAddressChange = (id: number, address: string) => {
-    let errorAddress = '';
-
-    if (!address) {
-      errorAddress = 'Receiver address is required';
-    } else {
-      const isValid = validateBtcAddress(address, networkType);
-      if (!isValid) {
-        errorAddress = 'Receiver address is invalid';
-      } else {
-        errorAddress = '';
-      }
-    }
-
     setTokenSections(prev => {
-      const newSections = [...prev];
-      return newSections.map(section => {
-        if (section.id === id) {
-          return { ...section, address, errorAddress };
+      return prev.map(item => {
+        if (item.id === section.id) {
+          const updatedSection = { ...item, amount };
+          const { errorAmount, errorAddress } = validateSection(updatedSection);
+          return { ...updatedSection, errorAmount, errorAddress };
         }
-        return section;
+        return item;
       });
     });
   };
 
-  const isValidForm = () => {
-    const newSections = tokenSections.map(section => {
-      // amount error
-      let errorAmount = '';
-      if (!section.amount) {
-        errorAmount = 'Amount is required';
-      } else {
-        errorAmount = '';
-      }
-
-      // address error
-      let errorAddress = '';
-      if (!section.address) {
-        errorAddress = 'Receiver address is required';
-      } else {
-        errorAddress = '';
-      }
-      return { ...section, errorAmount, errorAddress };
+  // onAddressChange: Runs validation to update isDisabledForm
+  const onAddressChange = (id: number, address: string) => {
+    setTokenSections(prev => {
+      const newSections = prev.map(section => {
+        if (section.id === id) {
+          const updatedSection = { ...section, address };
+          const { errorAddress } = validateSection(updatedSection);
+          return { ...updatedSection, errorAddress, errorAmount: section.errorAmount };
+        }
+        return section;
+      });
+      return newSections;
     });
+  };
+
+  const isValidForm = () => {
+    // Run full validation and update the state for all sections
+    const newSections = tokenSections.map(section => {
+      const errors = validateSection(section);
+      return { ...section, ...errors };
+    });
+    
+    setTokenSections(newSections as any);
+    
     const isValid = newSections.every(section => {
       return !section.errorAmount && !section.errorAddress;
     });
-    setTokenSections(newSections as any);
     return isValid;
   };
 
+  // This check controls the button's enabled/disabled state (runs on every render)
   const isDisabledForm = tokenSections.some(section => {
     return section.errorAmount || section.errorAddress;
   });
@@ -432,6 +537,11 @@ const TransferAuthority = () => {
               setTokenSections={setTokenSections}
               onAmountChange={onAmountChange}
               onAddressChange={onAddressChange}
+              onUpdateState={onUpdateState}
+              getComponentState={getComponentState}
+              validateSection={validateSection}
+              updateTokenSectionErrors={updateTokenSectionErrors}
+              isSubmitted={isSubmitted} // <--- PASS DOWN isSubmitted
             />
           ))}
 

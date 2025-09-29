@@ -47,3 +47,5 @@ export interface Inscription {
     decimal: string;
   };
 }
+
+

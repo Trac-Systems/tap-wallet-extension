@@ -20,6 +20,7 @@ interface TransferPreviewTableProps {
     token?: string;
     amount?: string;
     receiver?: string;
+    appName?: string;
   };
   compact?: boolean;
   enableToggle?: boolean;
@@ -33,6 +34,7 @@ const TransferPreviewTable: React.FC<TransferPreviewTableProps> = ({
     token: 'Token',
     amount: 'Amount',
     receiver: 'Receiver',
+    appName: 'App'
   },
   compact = false,
   enableToggle = true,
@@ -50,7 +52,21 @@ const TransferPreviewTable: React.FC<TransferPreviewTableProps> = ({
   const renderTokenRow = (item: TransferItem, index: number) => {
     const tokenName = item.tick || item.filename || '';
     const amount = item.amt || '';
-    const address = item.address || '';
+    let address = '';
+
+    if (item.dta) {
+      try {
+        const dtaObject = JSON.parse(item.dta);
+        address = dtaObject.addr || '';
+      } catch (e) {
+        address = 'Invalid DTA';
+      }
+    } else if (item.address) {
+      address = item.address;
+    }
+
+    const appName = item.appName;
+    
 
     return (
       <UX.Box key={index} style={{width: '100%'}}>
@@ -116,13 +132,31 @@ const TransferPreviewTable: React.FC<TransferPreviewTableProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  justifyItems: 'center',
                 }}>
                 <UX.Tooltip text={address || 'No address'} isText>
-                  <UX.Text
-                    title={shortAddress(address, 6)}
-                    styleType={compact ? 'body_12_bold' : 'body_14_bold'}
-                    customStyles={{color: 'white'}}
-                  />
+                  <UX.Box
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    {appName === "Hyperfun" && (
+                        <SVG.HyperfunIcon width={16} height={16} />
+                      )}
+
+                    {appName === "Hypermall" && (
+                      <SVG.HypermallIcon width={16} height={16} />
+                    )}
+                    <UX.Text
+                      title={shortAddress(address, 6)}
+                      styleType={compact ? 'body_12_bold' : 'body_14_bold'}
+                      customStyles={{color: 'white'}}
+                    />
+                  </UX.Box>
                 </UX.Tooltip>
               </UX.Box>
             </UX.Box>

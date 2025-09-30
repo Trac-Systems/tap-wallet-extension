@@ -38,6 +38,7 @@ import FilterIcon from './FilterIcon';
 import SearchIcon from './Search';
 import HyperfunIcon from './Hyperfun';
 import HypermallIcon from './Hypermall';
+import PasteIcon from './Paste';
 
 export const SVG = {
   ArrowBackIcon,
@@ -80,5 +81,6 @@ export const SVG = {
   SearchIcon,
   FilterIcon,
   HyperfunIcon,
-  HypermallIcon
+  HypermallIcon,
+  PasteIcon
 };

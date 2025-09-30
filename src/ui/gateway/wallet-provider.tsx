@@ -173,12 +173,13 @@ export interface IWalletProvider {
   getDmtScriptId(
     depInscriptionId: string,
   ): Promise<{scriptInsId: string; ticker: string; unat: boolean}>;
-  createOrderTransfer(
+    createOrderTransfer(
     address: string,
     tick: string,
     amount: string,
     feeRate: number,
     outputValue: number,
+    dtaValue?: string,
   ): Promise<InscribeOrder>;
   createOrderAuthority(
     address: string,

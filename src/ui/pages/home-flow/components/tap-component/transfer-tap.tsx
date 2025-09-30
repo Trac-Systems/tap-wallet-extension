@@ -18,6 +18,8 @@ import {
   usePrepareSendOrdinalsInscriptionsCallback,
   useUpdateTxStateInfo,
 } from '../../../send-receive/hook';
+import TransferApps from '../../../authority/component/trac-apps'
+import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
 
 interface IProps {
   ticker?: string;
@@ -50,36 +52,56 @@ const TransferTap = () => {
   const [enableRBF, setEnableRBF] = useState(false);
   const getAddressTypeReceiver = getAddressType(toInfo.address);
 
+  const {onUpdateState, getComponentState} = useTracAppsLogic()
+  const {isExpanded, selectedApp} = getComponentState(0);
+
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
-
+  
   const handleNavigate = async () => {
     try {
       setIsLoading(true);
       const inscriptionIds = Array.from(inscriptionIdSet);
+      
+      // 1. Determine the final receiver address and DTA payload
+      let finalAddress = toInfo.address;
+      let dtaValue: string | undefined = undefined;
+      
+      if (isExpanded && selectedApp) {
+          // A. Set the transaction's destination address to the hardcoded TRAC App address
+          const appNameKey = selectedApp.name.toLowerCase();
+          finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
+          
+          // B. Create the DTA payload using the user's deposit address
+          dtaValue = `{"op": "deposit","addr": "${selectedApp.address}"}`;
+      }
+      
+      // 2. Execute transaction preparation
       if (inscriptionIds.length === 1) {
         const rawTxInfo = await prepareSendOrdinalsInscription({
-          toAddressInfo: {address: toInfo.address},
+          toAddressInfo: {address: finalAddress}, // <-- Use finalAddress
           inscriptionId: inscriptionIds[0],
           feeRate: txStateInfo.feeRate,
           outputValue: outputValue,
           enableRBF,
           assetAmount: amount,
           ticker: ticker,
+          dta: dtaValue, // <-- Include DTA payload
         });
         navigate('/home/confirm-transaction', {
           state: {rawTxInfo},
         });
       } else {
         const rawTxInfo = await prepareSendOrdinalsInscriptions({
-          toAddressInfo: {address: toInfo.address},
+          toAddressInfo: {address: finalAddress}, // <-- Use finalAddress
           inscriptionIds,
           feeRate: txStateInfo.feeRate,
           enableRBF,
           assetAmount: amount,
           ticker: ticker,
+          dta: dtaValue, // <-- Include DTA payload
         });
         navigate('/home/confirm-transaction', {
           state: {rawTxInfo},
@@ -95,6 +117,7 @@ const TransferTap = () => {
       setIsLoading(false);
     }
   };
+
 
   const handleAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -114,9 +137,10 @@ const TransferTap = () => {
     setDisabled(true);
     setOutputValueError('');
 
-    if (!toInfo.address) {
+    if (!toInfo.address && !isExpanded || isExpanded && !selectedApp?.address) {
       return;
     }
+
     if (outputValue < getUtxoDustThreshold(getAddressTypeReceiver)) {
       setOutputValueError(
         `OutputValue must be at least ${getUtxoDustThreshold(getAddressTypeReceiver)}`,
@@ -124,7 +148,7 @@ const TransferTap = () => {
       return;
     }
     setDisabled(false);
-  }, [toInfo.address, outputValue]);
+  }, [toInfo.address, outputValue, isExpanded, selectedApp]);
 
   if (isLoading) {
     return <UX.Loading />;
@@ -144,7 +168,8 @@ const TransferTap = () => {
               disabled
             />
           </UX.Box>
-          <UX.Box spacing="xs">
+          {!isExpanded && (
+            <UX.Box spacing="xs">
             <UX.Text title="Receiver" styleType="heading_14" />
             <UX.AddressInput
               style={{
@@ -159,7 +184,13 @@ const TransferTap = () => {
               }}
               autoFocus={true}
             />
-          </UX.Box>
+          </UX.Box>)}
+          <TransferApps 
+            id={0} isExpanded={isExpanded} 
+            onUpdateState={onUpdateState} 
+            selectedApp={selectedApp} 
+            token={ticker}  />
+
           {isShowOutputValue && (
             <UX.Box spacing="xs">
               <UX.Text

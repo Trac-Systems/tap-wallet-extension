@@ -63,6 +63,12 @@ const ConfirmTracAppsModal = ({
     handleConfirmation();
   }, [handleConfirmation]);
 
+  const onPaste = async () => {
+    const text = await navigator.clipboard.readText();
+    console.log("text", text)
+    setModalInputValue(text)
+  }
+
   if (!visible) {
     return null;
   }
@@ -175,11 +181,21 @@ const ConfirmTracAppsModal = ({
           </UX.Box>
 
           )}
-          <UX.Input
-            value={modalInputValue}
-            onChange={e => setModalInputValue(e.target.value)}
-            placeholder="Enter address"
-          />
+
+          <UX.Box
+            style={{
+              position: "relative",
+            }}>
+            <UX.Input
+              value={modalInputValue}
+              onChange={e => setModalInputValue(e.target.value)}
+              placeholder="Enter address"
+            />
+
+            <button style={{position: 'absolute', top: 14, right: 14, width: 24, height: 24}} onClick={() => onPaste()}>
+              <SVG.PasteIcon width={24} height={24} />
+            </button>
+          </UX.Box>
           
           <Text
               title="Invalid address"

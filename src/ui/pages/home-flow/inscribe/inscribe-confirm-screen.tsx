@@ -37,6 +37,7 @@ const InscribeConfirmScreen = () => {
   const walletProvider = useWalletProvider();
 
   const contextDataParam: ContextDataParam = state?.contextDataParam || {};
+  console.log("all data", contextDataParam)
 
   // set contextDataParam.order fit with InscribeOrder
   const order = useMemo(() => {

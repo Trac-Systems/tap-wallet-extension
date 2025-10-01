@@ -155,7 +155,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
       feeRate,
       outputValue,
       enableRBF,
-      dta
+      data
     }: {
       toAddressInfo: ToAddressInfo;
       inscriptionId: string;
@@ -164,7 +164,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
       feeRate?: number;
       outputValue?: number;
       enableRBF?: boolean;
-      dta?: any;
+      data?: string;
     }) => {
       if (!feeRate) {
         const recommendFee = await wallet.getRecommendFee();
@@ -211,7 +211,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
         assetAmount,
         ticker,
         enableRBF,
-        dta
+        data
       };
       return rawTxInfo;
     },
@@ -235,7 +235,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
       ticker,
       feeRate,
       enableRBF,
-      dta,
+      data,
     }: {
       toAddressInfo: ToAddressInfo;
       inscriptionIds: string[];
@@ -243,7 +243,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
       ticker: string;
       feeRate?: number;
       enableRBF?: boolean;
-      dta?: any
+      data?: string
     }) => {
       if (!feeRate) {
         const summary = await wallet.getRecommendFee();
@@ -288,7 +288,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
         assetAmount,
         ticker,
         enableRBF,
-        dta
+        data
       };
       return rawTxInfo;
     },

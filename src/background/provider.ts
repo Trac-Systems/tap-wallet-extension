@@ -1152,7 +1152,7 @@ export class Provider {
     amount: string,
     feeRate: number,
     outputValue: number,
-    dtaValue?: string
+    data?: string
   ): Promise<InscribeOrder> => {
     const connectedAddress = this.getActiveAccount()?.address;
     const order = await this.inscribeApi.createOrderTapTransfer(
@@ -1162,7 +1162,7 @@ export class Provider {
       address,
       tick,
       amount,
-      dtaValue
+      data
     );
 
     // add pending order

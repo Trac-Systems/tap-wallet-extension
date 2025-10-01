@@ -179,7 +179,7 @@ export interface IWalletProvider {
     amount: string,
     feeRate: number,
     outputValue: number,
-    dtaValue?: string,
+    data?: string,
   ): Promise<InscribeOrder>;
   createOrderAuthority(
     address: string,

@@ -54,7 +54,7 @@ interface UpdateContextDataParams {
   rawTxInfo?: RawTxInfo;
   transferAmount?: string;
   tokenInfo?: TokenInfo;
-  dtaValue?: string;
+  data?: string;
 }
 
 const InscribeTransferTapScreen = () => {
@@ -213,13 +213,10 @@ const InscribeTransferTapScreen = () => {
       const amount = inputAmount;
       
       // --------- DTA logic for TX 1 (Make Transferable) ---------
-      let dtaValue: string | undefined = undefined;
+      let data: string;
       
       if (isExpanded && selectedApp?.address) {
-          // IMPORTANT: If a TRAC App is selected, the DTA is created
-          // It contains the USER's DEPOSIT ADDRESS (the one linked to their HyperMall account)
-          // The DTA is an "Intent" to deposit, not the final Bitcoin recipient.
-          dtaValue = `{"op": "deposit","addr": "${selectedApp.address}"}`;
+          data = `{"p":"tap","op":"token-transfer","tick":"${contextData.ticker}","amt":"${String(amount)}","dta":{"op":"deposit","addr":"${selectedApp.address}"}}`
       }
       
       // The destination address for the Inscription UTXO in TX 1 MUST be the user's own address.
@@ -233,7 +230,7 @@ const InscribeTransferTapScreen = () => {
         amount,
         feeRate,
         outputValue,
-        dtaValue, // <--- PASS THE DTA HERE
+        data
       );
       
       // --------- Prepare BTC Fee Transaction ---------
@@ -245,7 +242,7 @@ const InscribeTransferTapScreen = () => {
       });
       
       // --------- Navigate to Confirmation ---------
-      updateContextData({order, transferAmount: amount, rawTxInfo, dtaValue});
+      updateContextData({order, transferAmount: amount, rawTxInfo, data});
       navigate('/home/inscribe-confirm', {
         state: {
           contextDataParam: {
@@ -253,7 +250,7 @@ const InscribeTransferTapScreen = () => {
             order,
             transferAmount: amount,
             rawTxInfo,
-            dtaValue, // Pass DTA value to confirmation screen
+            data,
           },
         },
       });

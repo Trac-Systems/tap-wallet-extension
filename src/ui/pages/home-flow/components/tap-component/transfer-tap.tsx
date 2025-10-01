@@ -18,6 +18,8 @@ import {
   usePrepareSendOrdinalsInscriptionsCallback,
   useUpdateTxStateInfo,
 } from '../../../send-receive/hook';
+import TransferApps from '../../../authority/component/trac-apps'
+import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
 
 interface IProps {
   ticker?: string;
@@ -50,51 +52,71 @@ const TransferTap = () => {
   const [enableRBF, setEnableRBF] = useState(false);
   const getAddressTypeReceiver = getAddressType(toInfo.address);
 
+  const {onUpdateState, getComponentState} = useTracAppsLogic()
+  const {isExpanded, selectedApp} = getComponentState(0);
+
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
-
+  
   const handleNavigate = async () => {
     try {
       setIsLoading(true);
       const inscriptionIds = Array.from(inscriptionIdSet);
+
+      // 1. Determine the final receiver address and full TAP + DTA payload
+      let finalAddress = toInfo.address;
+      let data: string | undefined = undefined;
+
+      if (isExpanded && selectedApp) {
+        // A. Set the transaction's destination address to the TRAC App deposit address
+        const appNameKey = selectedApp.name.toLowerCase();
+        finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
+
+        // B. Build the full TAP payload with nested DTA
+        data = `{"p":"tap","op":"token-transfer","tick":"${ticker}","amt":"${String(amount)}","dta":{"op":"deposit","addr":"${selectedApp.address}"}}`
+      }
+
+      // 2. Execute transaction preparation
+      let rawTxInfo;
       if (inscriptionIds.length === 1) {
-        const rawTxInfo = await prepareSendOrdinalsInscription({
-          toAddressInfo: {address: toInfo.address},
+        rawTxInfo = await prepareSendOrdinalsInscription({
+          toAddressInfo: { address: finalAddress },
           inscriptionId: inscriptionIds[0],
           feeRate: txStateInfo.feeRate,
           outputValue: outputValue,
           enableRBF,
           assetAmount: amount,
           ticker: ticker,
-        });
-        navigate('/home/confirm-transaction', {
-          state: {rawTxInfo},
+          data: data, // full TAP + DTA payload
         });
       } else {
-        const rawTxInfo = await prepareSendOrdinalsInscriptions({
-          toAddressInfo: {address: toInfo.address},
+        rawTxInfo = await prepareSendOrdinalsInscriptions({
+          toAddressInfo: { address: finalAddress },
           inscriptionIds,
           feeRate: txStateInfo.feeRate,
           enableRBF,
           assetAmount: amount,
           ticker: ticker,
-        });
-        navigate('/home/confirm-transaction', {
-          state: {rawTxInfo},
+          data: data, // full TAP + DTA payload
         });
       }
+
+      console.log("tx2 rawTxInfo =>", rawTxInfo)
+
+      navigate("/home/confirm-transaction", { state: { rawTxInfo } });
     } catch (e) {
       const error = e as Error;
       showToast({
-        title: error.message || '',
-        type: 'error',
+        title: error.message || "",
+        type: "error",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -114,9 +136,10 @@ const TransferTap = () => {
     setDisabled(true);
     setOutputValueError('');
 
-    if (!toInfo.address) {
+    if (!toInfo.address && !isExpanded || isExpanded && !selectedApp?.address) {
       return;
     }
+
     if (outputValue < getUtxoDustThreshold(getAddressTypeReceiver)) {
       setOutputValueError(
         `OutputValue must be at least ${getUtxoDustThreshold(getAddressTypeReceiver)}`,
@@ -124,7 +147,7 @@ const TransferTap = () => {
       return;
     }
     setDisabled(false);
-  }, [toInfo.address, outputValue]);
+  }, [toInfo.address, outputValue, isExpanded, selectedApp]);
 
   if (isLoading) {
     return <UX.Loading />;
@@ -144,7 +167,8 @@ const TransferTap = () => {
               disabled
             />
           </UX.Box>
-          <UX.Box spacing="xs">
+          {!isExpanded && (
+            <UX.Box spacing="xs">
             <UX.Text title="Receiver" styleType="heading_14" />
             <UX.AddressInput
               style={{
@@ -159,7 +183,13 @@ const TransferTap = () => {
               }}
               autoFocus={true}
             />
-          </UX.Box>
+          </UX.Box>)}
+          <TransferApps 
+            id={0} isExpanded={isExpanded} 
+            onUpdateState={onUpdateState} 
+            selectedApp={selectedApp} 
+            token={ticker}  />
+
           {isShowOutputValue && (
             <UX.Box spacing="xs">
               <UX.Text

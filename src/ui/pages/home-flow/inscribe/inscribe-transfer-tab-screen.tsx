@@ -29,6 +29,10 @@ import {
   formatTicker,
 } from '@/src/shared/utils/btc-helper';
 
+import TransferApps from '../../authority/component/trac-apps'
+// NOTE: TRAC_APPS_BITCOIN_ADDRESSES is not used in TX 1, but we keep the import
+import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../authority/hook/use-trac-apps-logic'
+
 interface ContextData {
   ticker: string;
   session?: any;
@@ -38,6 +42,8 @@ interface ContextData {
   transferAmount?: string;
   isApproval: boolean;
   tokenInfo?: TokenInfo;
+  // Added dtaValue to context for clarity, especially for the confirmation screen
+  dtaValue?: string; 
 }
 
 interface UpdateContextDataParams {
@@ -48,6 +54,7 @@ interface UpdateContextDataParams {
   rawTxInfo?: RawTxInfo;
   transferAmount?: string;
   tokenInfo?: TokenInfo;
+  data?: string;
 }
 
 const InscribeTransferTapScreen = () => {
@@ -80,6 +87,9 @@ const InscribeTransferTapScreen = () => {
     ticker: ticker,
     isApproval: false,
   });
+
+  const {onUpdateState, getComponentState} = useTracAppsLogic()
+  const {isExpanded, selectedApp} = getComponentState(0);
 
   const updateContextData = useCallback(
     (params: UpdateContextDataParams) => {
@@ -150,6 +160,9 @@ const InscribeTransferTapScreen = () => {
       return;
     }
 
+    if (isExpanded && !selectedApp?.address) return;
+    
+    
     if (feeRate <= 0) {
       return;
     }
@@ -165,7 +178,7 @@ const InscribeTransferTapScreen = () => {
     }
 
     setDisabled(false);
-  }, [inputAmount, feeRate, outputValue, contextData.tokenBalance]);
+  }, [inputAmount, feeRate, outputValue, contextData.tokenBalance, isExpanded, selectedApp]);
 
   //! Function
   const handleGoBack = () => {
@@ -192,24 +205,44 @@ const InscribeTransferTapScreen = () => {
     setInputAmount(cleanText);
   };
 
+
+  // NEEDS TO COMPLETE THE RAW TX INFO YET
   const inscribeOnPressed = async () => {
     try {
       setLoading(true);
       const amount = inputAmount;
+      
+      // --------- DTA logic for TX 1 (Make Transferable) ---------
+      let data: string;
+      
+      if (isExpanded && selectedApp?.address) {
+          data = `{"p":"tap","op":"token-transfer","tick":"${contextData.ticker}","amt":"${String(amount)}","dta":{"op":"deposit","addr":"${selectedApp.address}"}}`
+      }
+      
+      // The destination address for the Inscription UTXO in TX 1 MUST be the user's own address.
+      const inscriptionDestinationAddress = activeAccount.address;
+
+      // --------- Call the Wallet API (Crucial Change) ---------
+      // NOTE: This assumes your wallet.createOrderTransfer now accepts dtaValue
       const order = await wallet.createOrderTransfer(
-        activeAccount.address,
+        inscriptionDestinationAddress, // Send the new inscription UTXO back to the user
         contextData.ticker,
         amount,
         feeRate,
         outputValue,
+        data
       );
+      
+      // --------- Prepare BTC Fee Transaction ---------
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order.payAddress, domain: ''},
         toAmount: Math.round(order.totalFee),
         feeRate: feeRate,
         enableRBF: enableRBF,
       });
-      updateContextData({order, transferAmount: amount, rawTxInfo});
+      
+      // --------- Navigate to Confirmation ---------
+      updateContextData({order, transferAmount: amount, rawTxInfo, data});
       navigate('/home/inscribe-confirm', {
         state: {
           contextDataParam: {
@@ -217,6 +250,7 @@ const InscribeTransferTapScreen = () => {
             order,
             transferAmount: amount,
             rawTxInfo,
+            data,
           },
         },
       });
@@ -294,6 +328,13 @@ const InscribeTransferTapScreen = () => {
                 />
               )}
             </UX.Box>
+
+            {/* TRAC APPS SELECTION */}
+            <TransferApps 
+              id={0} isExpanded={isExpanded} 
+              onUpdateState={onUpdateState} 
+              selectedApp={selectedApp} 
+              token={ticker}  />
 
             <UX.Box spacing="xss">
               <UX.Text

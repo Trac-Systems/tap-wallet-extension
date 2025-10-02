@@ -1,12 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
-import {PinInputRef} from '../../component/pin-input';
+import type {AuthInputRef} from '../../component/auth-input';
 import LayoutSendReceive from '../../layouts/send-receive';
 import {SVG} from '../../svg';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useCustomToast} from '../../component/toast-custom';
-import {useAppSelector} from '../../utils';
+import {useAppSelector, isValidAuthInput} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {WalletSelector} from '../../redux/reducer/wallet/selector';
 import { RestoreTypes } from '@/src/wallet-instance';
@@ -18,7 +18,7 @@ const SecuritySetting = () => {
   const queryParams = new URLSearchParams(location.search);
   const type = queryParams.get('type');
   const wallet = useWalletProvider();
-  const pinInputRef = useRef<PinInputRef>(null);
+  const pinInputRef = useRef<AuthInputRef>(null);
   const [valueInput, setValueInput] = useState('');
   const [disabled, setDisabled] = useState(true);
   const {showToast} = useCustomToast();
@@ -51,7 +51,7 @@ const SecuritySetting = () => {
         });
       });
     } catch (e) {
-      pinInputRef.current?.clearPin();
+      pinInputRef.current?.clear?.();
       setValueInput('')
       showToast({
         title: e.message,
@@ -68,10 +68,7 @@ const SecuritySetting = () => {
 
   //! Effect
   useEffect(() => {
-    setDisabled(true);
-    if (valueInput?.length === 4) {
-      setDisabled(false);
-    }
+    setDisabled(!isValidAuthInput(valueInput));
   }, [valueInput]);
 
   //! Render
@@ -79,21 +76,21 @@ const SecuritySetting = () => {
     <LayoutSendReceive
       header={<UX.TextHeader onBackClick={handleGoBack} />}
       body={
-        <UX.Box layout="column_center" style={{marginTop: '5rem'}} spacing="xl">
+        <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title="PIN"
+            title="Password"
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title="Enter your PIN code to confirm the transaction"
+            title="Enter your password"
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
-          <UX.PinInput
+          <UX.AuthInput
             onChange={handleOnChange}
             onKeyUp={e => handleOnKeyUp(e)}
             ref={pinInputRef}

@@ -62,7 +62,7 @@ export class AuthService {
         console.error(error);
       }
       if (!result) {
-        return reject(new Error('Wrong PIN'));
+        return reject(new Error('Wrong Password'));
       }
       this.pin = pin;
       this.setUnlocked();
@@ -82,8 +82,15 @@ export class AuthService {
 
   async encodeData(data: any) {
     if (isEmpty(this.pin)) {
-      throw new Error('PIN must be create before!');
+      throw new Error('Password must be create before!');
     }
     return passworder.encrypt(this.pin, data);
+  }
+
+  async updateRegistered(newPin: string) {
+    const encryptedData = await passworder.encrypt(newPin, 'isRegistered');
+    this.store.registered = encryptedData;
+    this.pin = newPin;
+    this.setUnlocked();
   }
 }

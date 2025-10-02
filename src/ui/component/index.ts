@@ -24,6 +24,8 @@ import CustomModal from './modal-custom';
 import {Pagination} from './pagination';
 import PinInput from './pin-input';
 import RefreshButton from './refresh-button';
+import AuthInput from './auth-input';
+import PasswordUpdateModal from './password-update-modal';
 import {Section} from './section-custom';
 import SwitchCustom from './switch-button';
 import Tabs from './tab-bar';
@@ -65,5 +67,7 @@ export const UX = {
   Pagination,
   Empty,
   Dropdown,
-  Badge
+  Badge,
+  AuthInput,
+  PasswordUpdateModal
 };

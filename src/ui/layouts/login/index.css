@@ -34,7 +34,8 @@
       width: 500px;
     }
     .body {
-      width: 500px;
+      width: 100%;
+      max-width: 500px;
     }
     .footer {
       width: 500px;

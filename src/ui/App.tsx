@@ -42,6 +42,7 @@ import SecuritySetting from './pages/settings/security';
 import SettingAdvanced from './pages/settings/setting-advance';
 import ShowKey from './pages/settings/show-key';
 import TxSecurity from './pages/settings/tx-security';
+import ChangePassword from './pages/settings/change-password';
 import {AccountActions} from './redux/reducer/account/slice';
 import {GlobalSelector} from './redux/reducer/global/selector';
 import {GlobalActions} from './redux/reducer/global/slice';
@@ -130,6 +131,7 @@ function App() {
       <Routes>
         {/* Login */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/change-password" element={<ChangePassword />} />
 
         <Route path="/" element={<StartScreen />} />
         <Route path="/create-password" element={<CreatePassWord />} />

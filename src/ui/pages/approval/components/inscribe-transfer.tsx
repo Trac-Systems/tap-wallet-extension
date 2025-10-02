@@ -27,7 +27,8 @@ import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import InscriptionPreview from '../../../component/inscription-preview';
-import {PinInputRef} from '../../../component/pin-input';
+import type {AuthInputRef} from '../../../component/auth-input';
+import {isValidAuthInput} from '@/src/ui/utils';
 import {useCustomToast} from '../../../component/toast-custom';
 import WebsiteBar from '../../../component/website-bar';
 import {FeeRateBar} from '../../send-receive/component/fee-rate-bar';
@@ -615,9 +616,9 @@ export const Step4 = ({
   const pushBitcoinTx = usePushBitcoinTxCallback();
   const [, resolveApproval, rejectApproval] = useApproval();
   const [valueInput, setValueInput] = useState('');
-  const checkValue = valueInput.length !== 4;
+  const checkValue = !isValidAuthInput(valueInput);
   const wallet = useWalletProvider();
-  const pinInputRef = useRef<PinInputRef>(null);
+  const pinInputRef = useRef<AuthInputRef>(null);
   const {showToast} = useCustomToast();
 
   const spendUtxos = useMemo(() => {
@@ -642,9 +643,9 @@ export const Step4 = ({
         );
       })
       .catch(() => {
-        showToast({type: 'error', title: 'wrong pin'});
+        showToast({type: 'error', title: 'wrong password'});
         setValueInput('');
-        pinInputRef.current?.clearPin();
+        pinInputRef.current?.clear?.();
       });
   }, [contextData.rawTxInfo, valueInput]);
 
@@ -661,21 +662,21 @@ export const Step4 = ({
     }
   };
   return (
-    <UX.Box layout="column_center" style={{marginTop: '5rem'}} spacing="xl">
+    <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
       <SVG.UnlockIcon />
       <UX.Text
-        title="PIN"
+        title="Password"
         styleType="heading_24"
         customStyles={{
           marginTop: '16px',
         }}
       />
       <UX.Text
-        title="Enter your PIN code to confirm the transaction"
+        title="Enter your password to confirm the transaction"
         styleType="body_16_normal"
         customStyles={{textAlign: 'center'}}
       />
-      <UX.PinInput
+      <UX.AuthInput
         onChange={handleOnChange}
         onKeyUp={e => handleOnKeyUp(e)}
         ref={pinInputRef}

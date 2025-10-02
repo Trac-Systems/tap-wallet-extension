@@ -10,6 +10,8 @@ export interface GlobalState {
   showSpendableList: boolean;
   isAuthority: boolean;
   auth: string;
+  showPasswordUpdateModal: boolean;
+  currentPassword: string;
 }
 
 export const initialState: GlobalState = {
@@ -21,7 +23,9 @@ export const initialState: GlobalState = {
   randomColors: [],
   showSpendableList: false,
   isAuthority: true,
-  auth: ''
+  auth: '',
+  showPasswordUpdateModal: false,
+  currentPassword: ''
 };
 
 const GlobalSlice = createSlice({
@@ -35,6 +39,8 @@ const GlobalSlice = createSlice({
           isUnlocked?: boolean;
           isReady?: boolean;
           isBooted?: boolean;
+          showPasswordUpdateModal?: boolean;
+          currentPassword?: string;
         };
       },
     ) {

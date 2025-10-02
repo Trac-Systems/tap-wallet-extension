@@ -1,10 +1,10 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useState, useRef} from 'react';
 import {UX} from '../../component';
 import LayoutScreenHome from '../../layouts/home';
 import {SVG} from '../../svg';
 import ListWallets from './components/list-wallet';
 import Navbar from './components/navbar-navigate';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useLocation} from 'react-router-dom';
 import TapList from './components/tap-list';
 import {PAGE_SIZE, useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
@@ -13,6 +13,9 @@ import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {Inscription} from '@/src/wallet-instance';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {AppDispatch} from '../../redux/store';
+import {useDispatch} from 'react-redux';
+import {GlobalActions} from '../../redux/reducer/global/slice';
 import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/spendable-attention-modal';
 import {colors} from '../../themes/color';
 import SpendableContainRuneAttentionModal from '@/src/ui/pages/home-flow/components/spendable-cotain-rune-attention-modal';
@@ -21,6 +24,8 @@ import InscriptionList from './components/Inscription';
 const Home = () => {
   //! Hooks
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   const {getTapList, getInscriptionList} = useInscriptionHook();
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
@@ -28,6 +33,8 @@ const Home = () => {
   const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
   const runeUtxos = useAppSelector(AccountSelector.runeUtxos);
   const walletProvider = useWalletProvider();
+  const showPasswordUpdateModal = useAppSelector(GlobalSelector.showPasswordUpdateModal);
+  const currentPassword = useAppSelector(GlobalSelector.currentPassword);
 
   //! State
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -141,7 +148,21 @@ const Home = () => {
     getInscriptionList(0);
   }, [activeAccount.key, activeAccount.address]);
 
+  // Debug modal state
+
+
   //! Function
+  const handleUpdatePassword = () => {
+    // Clear modal state immediately
+    dispatch(GlobalActions.update({showPasswordUpdateModal: false, currentPassword: ''}));
+    // Navigate to change password screen
+    navigate('/change-password', {state: {current: currentPassword}, replace: true});
+  };
+
+  const handleCloseModal = () => {
+    dispatch(GlobalActions.update({showPasswordUpdateModal: false, currentPassword: ''}));
+    // Clear modal state
+  };
   const handleCreateWallet = (check: string) => {
     if (check === 'isImport') {
       navigate('/restore-wallet-option');
@@ -283,7 +304,8 @@ const Home = () => {
 
   //! Render
   return (
-    <LayoutScreenHome
+    <>
+      <LayoutScreenHome
       body={
         <>
           <UX.Box layout="row_between" style={{padding: '18px 24px'}}>
@@ -373,6 +395,13 @@ const Home = () => {
       }
       navbar={<Navbar isActive="home" />}
     />
+    
+      <UX.PasswordUpdateModal
+        visible={showPasswordUpdateModal}
+        onClose={handleCloseModal}
+        onUpdatePassword={handleUpdatePassword}
+      />
+    </>
   );
 };
 

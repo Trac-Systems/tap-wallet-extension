@@ -69,6 +69,10 @@ export class Provider {
     await walletService.unlockWallet(pin);
   };
 
+  changePassword = async (oldPin: string, newPin: string) => {
+    await walletService.changePassword(oldPin, newPin);
+  };
+
   lockWallet = async () => {
     await walletService.setLockedWallet();
     authService.lockWallet();

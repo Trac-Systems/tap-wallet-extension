@@ -89,6 +89,11 @@ const SettingPage = () => {
         link: '/setting/network-type',
       },
       {
+        title: 'Change Password',
+        desc: 'Change your lockscreen password',
+        link: '/change-password',
+      },
+      {
         title: 'Show recovery phrase',
         type: 'recovery',
         link: '/setting/security',

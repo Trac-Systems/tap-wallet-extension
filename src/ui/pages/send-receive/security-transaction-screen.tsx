@@ -47,14 +47,14 @@ const Security = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title="PIN"
+            title="Password"
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title="Enter your PIN code to confirm the transaction"
+            title="Enter your password to confirm the transaction"
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />

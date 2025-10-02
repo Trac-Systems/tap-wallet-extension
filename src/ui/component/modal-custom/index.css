@@ -14,8 +14,8 @@
 .modal-container {
   background: transparent;
   border-radius: 10px;
-  width: auto;
-  max-width: 90%;
+  max-width: 500px;
+  width: 100%;
   box-shadow: none;
   animation: slide-down 0.3s ease-out forwards;
 }
@@ -39,5 +39,8 @@
 }
 
 .modal-body {
-  padding: 0;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

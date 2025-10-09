@@ -9,6 +9,7 @@ import {isEmpty} from 'lodash';
 import {RestoreTypes} from '@/src/wallet-instance';
 import {useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
+import {useIsTracSingleWallet} from '../home-flow/hook';
 
 const ShowKey = () => {
   //! State
@@ -19,6 +20,7 @@ const ShowKey = () => {
   const type = queryParams.get('type');
   const isMnemonics = type === 'recovery';
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const isTracSingleWallet = useIsTracSingleWallet();
 
   const toHexString = (val: any): string => {
     if (!val) return '';
@@ -137,14 +139,18 @@ const ShowKey = () => {
             </>
           ) : (
             <>
-              {/* Bitcoin Private Key */}
-              <UX.Text title="Bitcoin Private Key" styleType="body_16_bold" />
-              <UX.TextArea className="textareaWidth" disabled placeholder={String(state?.btcHex ?? '')} />
-              <UX.Button styleType="copy" title="Copy BTC key" copy onClick={() => copyToClipboard(String(state?.btcHex ?? '')).then(() => showToast({type: 'copied', title: 'Copied'}))} />
+              {/* Show Bitcoin Private Key if not TRAC single wallet */}
+              {!isTracSingleWallet && (
+                <>
+                  <UX.Text title="Bitcoin Private Key" styleType="body_16_bold" />
+                  <UX.TextArea className="textareaWidth" disabled placeholder={String(state?.btcHex ?? '')} />
+                  <UX.Button styleType="copy" title="Copy BTC key" copy onClick={() => copyToClipboard(String(state?.btcHex ?? '')).then(() => showToast({type: 'copied', title: 'Copied'}))} />
+                  
+                  <UX.Box style={{height: '20px'}} />
+                </>
+              )}
               
-              <UX.Box style={{height: '20px'}} />
-              
-              {/* TRAC Private Key */}
+              {/* Show TRAC Private Key */}
               <UX.Text title="TRAC Private Key" styleType="body_16_bold" />
               <UX.TextArea className="textareaWidth" disabled placeholder={toHexString(state?.tracHex ?? '')} />
               <UX.Button styleType="copy" title="Copy TRAC key" copy onClick={() => copyToClipboard(toHexString(state?.tracHex ?? '')).then(() => showToast({type: 'copied', title: 'Copied'}))} />

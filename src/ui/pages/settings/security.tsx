@@ -9,6 +9,7 @@ import {useCustomToast} from '../../component/toast-custom';
 import {useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {WalletSelector} from '../../redux/reducer/wallet/selector';
+import {useIsTracSingleWallet} from '../home-flow/hook';
 import { RestoreTypes } from '@/src/wallet-instance';
 
 // Function to derive TRAC private key from mnemonic
@@ -45,6 +46,7 @@ const SecuritySetting = () => {
   const {showToast} = useCustomToast();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isTracSingleWallet = useIsTracSingleWallet();
   //! Function
   const handleGoBack = () => {
     return navigate('/setting');
@@ -61,8 +63,17 @@ const SecuritySetting = () => {
     } else {
       // Get both Bitcoin and TRAC private keys
       const btc = await wallet.getPrivateKey(pinString, activeAccount);
-      const mnemonicData = await wallet.getMnemonics(pinString, activeWallet);
-      const tracPrivateKey = await deriveTracPrivateKeyFromMnemonic(mnemonicData.mnemonic, activeAccount.index);
+      
+      let tracPrivateKey: string;
+      if (isTracSingleWallet) {
+        // For TRAC Single wallet, get private key from stored data
+        tracPrivateKey = await (wallet as any).getTracPrivateKey(pinString, activeWallet.index, activeAccount.index);
+      } else {
+        // For TRAC HD wallet, derive from mnemonic
+        const mnemonicData = await wallet.getMnemonics(pinString, activeWallet);
+        tracPrivateKey = await deriveTracPrivateKeyFromMnemonic(mnemonicData.mnemonic, activeAccount.index);
+      }
+      
       _res = {
         btcHex: btc.hex,
         btcWif: btc.wif,

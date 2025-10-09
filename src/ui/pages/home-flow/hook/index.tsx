@@ -5,14 +5,55 @@ import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {InscriptionActions} from '@/src/ui/redux/reducer/inscription/slice';
 import {WalletActions} from '@/src/ui/redux/reducer/wallet/slice';
+import {TracApiService} from '@/src/background/service/trac-api.service';
 import {
   PAGE_SIZE,
   useAppDispatch,
   useAppSelector,
   TOKEN_PAGE_SIZE,
 } from '@/src/ui/utils';
-import {useCallback, useEffect, useState, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {TracBalanceActions} from '@/src/ui/redux/reducer/trac-balance/slice';
+import {TracBalanceSelector} from '@/src/ui/redux/reducer/trac-balance/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+// TRAC balance service (shared)
+export const TRAC_BASE_URL = 'http://trac.intern.ungueltig.com:1337';
+
+export async function getTracBalances(address: string): Promise<{
+  total: string;
+  confirmed: string;
+  unconfirmed: string;
+}> {
+  if (!address) return {total: '', confirmed: '', unconfirmed: ''};
+  const urlTotal = `${TRAC_BASE_URL}/balance/${address}`;
+  const urlConfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=true`;
+  const urlUnconfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=false`;
+  const [rTotal, rConfirmed, rUnconfirmed] = await Promise.all([
+    fetch(urlTotal),
+    fetch(urlConfirmed),
+    fetch(urlUnconfirmed),
+  ]);
+  const [jTotal, jConfirmed, jUnconfirmed] = await Promise.all([
+    rTotal.ok ? rTotal.json().catch(() => ({} as any)) : ({} as any),
+    rConfirmed.ok ? rConfirmed.json().catch(() => ({} as any)) : ({} as any),
+    rUnconfirmed.ok ? rUnconfirmed.json().catch(() => ({} as any)) : ({} as any),
+  ]);
+  return {
+    total: jTotal?.balance ? TracApiService.balanceToDisplay(jTotal.balance) : '',
+    confirmed: jConfirmed?.balance ? TracApiService.balanceToDisplay(jConfirmed.balance) : '',
+    unconfirmed: jUnconfirmed?.balance ? TracApiService.balanceToDisplay(jUnconfirmed.balance) : '',
+  };
+}
+
+export async function getTracTotal(address: string): Promise<string> {
+  if (!address) return '';
+  const url = `${TRAC_BASE_URL}/balance/${address}`;
+  const resp = await fetch(url);
+  if (!resp.ok) return '';
+  const data = await resp.json().catch(() => ({} as any));
+  const rawBalance = (data?.balance ?? '') as string;
+  return rawBalance ? TracApiService.balanceToDisplay(rawBalance) : '';
+}
 
 export function useAccountBalance() {
   const accountBalanceMap = useAppSelector(AccountSelector.accountBalanceMap);
@@ -66,41 +107,133 @@ export function useActiveTracAddress() {
   return tracAddress;
 }
 
+// Check if current active wallet is a Single wallet that has TRAC mapped
+export function useIsTracSingleWallet() {
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const tracAddress = useActiveTracAddress();
+  const isSingle = !!activeWallet?.type?.includes('Single');
+  return !!(isSingle && tracAddress);
+}
+
 // Fetch TRAC balance for an arbitrary TRAC address (not tied to Redux map)
 export function useTracBalanceByAddress(address?: string) {
   const [balance, setBalance] = useState<string>('0');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const latestCallIdRef = useRef<number>(0);
 
   const fetchBalance = useCallback(async () => {
     if (!address) return;
     setLoading(true);
     setError(null);
+    const callId = ++latestCallIdRef.current;
     try {
-      const resp = await fetch(`http://trac.intern.ungueltig.com:1337/balance/${encodeURIComponent(address)}`);
-      let next = '0';
-      if (resp.ok) {
-        const data = await resp.json().catch(() => null);
-        if (data && typeof data.balance === 'string') {
-          next = data.balance;
-        } else if (typeof data === 'string') {
-          next = data;
-        }
+      const next = await getTracTotal(address);
+      if (callId === latestCallIdRef.current) {
+        setBalance(next || '');
       }
-      setBalance(next);
     } catch (e) {
-      setError((e as Error).message);
-      setBalance('0');
+      if (callId === latestCallIdRef.current) {
+        setError((e as Error).message);
+        setBalance('');
+      }
     } finally {
-      setLoading(false);
+      if (callId === latestCallIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [address]);
 
   useEffect(() => {
+    // Clear value immediately when address changes to avoid showing previous address total
+    setBalance('0');
     fetchBalance();
   }, [fetchBalance]);
 
   return {balance, loading, error, refetch: fetchBalance};
+}
+
+// Reusable TRAC balances hook: total, confirmed, unconfirmed
+export function useTracBalances(address?: string) {
+  const dispatch = useAppDispatch();
+  const reduxBalances = useAppSelector(state => TracBalanceSelector.byAddress(state, address));
+  
+  // Use useMemo to automatically sync with Redux state changes
+  const total = useMemo(() => reduxBalances.total || '', [reduxBalances.total]);
+  const confirmed = useMemo(() => reduxBalances.confirmed || '', [reduxBalances.confirmed]);
+  const unconfirmed = useMemo(() => reduxBalances.unconfirmed || '', [reduxBalances.unconfirmed]);
+  
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const latestCallIdRef = useRef<number>(0);
+
+  const fetchBalances = useCallback(async () => {
+    if (!address) return;
+    setLoading(true);
+    setError(null);
+
+    const callId = ++latestCallIdRef.current;
+    const urlTotal = `${TRAC_BASE_URL}/balance/${address}`;
+    const urlConfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=true`;
+    const urlUnconfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=false`;
+
+    try {
+      // Fetch all three in parallel for maximum responsiveness
+      const [rTotal, rConfirmed, rUnconfirmed] = await Promise.all([
+        fetch(urlTotal),
+        fetch(urlConfirmed),
+        fetch(urlUnconfirmed),
+      ]);
+
+      const [jTotal, jConfirmed, jUnconfirmed] = await Promise.all([
+        rTotal.ok ? rTotal.json().catch(() => ({} as any)) : ({} as any),
+        rConfirmed.ok ? rConfirmed.json().catch(() => ({} as any)) : ({} as any),
+        rUnconfirmed.ok ? rUnconfirmed.json().catch(() => ({} as any)) : ({} as any),
+      ]);
+
+      const nextTotal = (jTotal?.balance ?? '') as string;
+      const nextConfirmed = (jConfirmed?.balance ?? '') as string;
+      const nextUnconfirmed = (jUnconfirmed?.balance ?? '') as string;
+
+      // ensure only latest request updates state
+      if (callId === latestCallIdRef.current) {
+        // Convert raw balances to display format (18 decimals)
+        const displayTotal = nextTotal ? TracApiService.balanceToDisplay(nextTotal) : '';
+        const displayConfirmed = nextConfirmed ? TracApiService.balanceToDisplay(nextConfirmed) : '';
+        const displayUnconfirmed = nextUnconfirmed ? TracApiService.balanceToDisplay(nextUnconfirmed) : '';
+        
+        // Update Redux store with converted values
+        if (address) {
+          dispatch(TracBalanceActions.setBalancesIfChanged({
+            address,
+            total: displayTotal, // Store converted values in Redux
+            confirmed: displayConfirmed,
+            unconfirmed: displayUnconfirmed,
+          }));
+        }
+      }
+    } catch (e) {
+      if (callId === latestCallIdRef.current) {
+        setError((e as Error).message);
+        // keep last values on error
+      }
+    } finally {
+      if (callId === latestCallIdRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [address]);
+
+  useEffect(() => {
+    // Revalidate when address changes
+    if (address) {
+      setLoading(true);
+      fetchBalances().finally(() => setLoading(false));
+    }
+  }, [address, fetchBalances]);
+
+  return {total, confirmed, unconfirmed, loading, error, refetch: fetchBalances};
 }
 
 export function useFetchBalanceCallback() {

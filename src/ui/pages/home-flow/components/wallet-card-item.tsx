@@ -179,7 +179,9 @@ const WalletCard = (props: IWalletCardProps) => {
           </UX.Box>
         </div>
         <div>
-        {checkIsSingleWallet ? null : (
+        {checkIsSingleWallet ? 
+        <UX.Box style={{height: '32px'}}/>
+        : (
           <UX.Box
             layout="row"
             spacing="xl"

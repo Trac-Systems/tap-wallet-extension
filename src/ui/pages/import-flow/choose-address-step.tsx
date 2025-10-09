@@ -7,7 +7,7 @@ import {UX} from '../../component/index';
 import {useCustomToast} from '../../component/toast-custom';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {satoshisToAmount} from '../../helper';
-import {useTracBalanceByAddress} from '../home-flow/hook';
+import {useTracBalances} from '../home-flow/hook';
 import LayoutScreenImport from '../../layouts/import-export';
 import {GlobalActions} from '../../redux/reducer/global/slice';
 import {SVG} from '../../svg';
@@ -133,7 +133,7 @@ const ChooseAddress = () => {
   const [tracAddress, setTracAddress] = useState<string>('');
   
   // Get TRAC balance for the address
-  const {balance: tracBalance} = useTracBalanceByAddress(tracAddress);
+  const {total: tracBalance} = useTracBalances(tracAddress);
 
   const generateTracAddress = async (mnemonic: string, derivationPath?: string) => {
     try {
@@ -365,6 +365,11 @@ const ChooseAddress = () => {
             
             {/* TRAC Network Section */}
             <UX.Box spacing="xs" style={{width: '100%'}}>
+              <UX.Text
+                title="Track network address:"
+                styleType="body_16_bold"
+                customStyles={{color: 'white', marginBottom: '8px'}}
+              />
               <UX.CardAddress
                 isActive={true}
                 nameCardAddress="TRAC Network (TRAC)"

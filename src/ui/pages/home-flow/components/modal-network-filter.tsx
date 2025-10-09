@@ -2,7 +2,7 @@ import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {useState} from 'react';
-import {useActiveTracAddress} from '@/src/ui/pages/home-flow/hook';
+import {useActiveTracAddress, useIsTracSingleWallet} from '@/src/ui/pages/home-flow/hook';
 
 interface ModalNetworkFilterProps {
   handleClose: () => void;
@@ -18,6 +18,7 @@ export default function ModalNetworkFilter(props: ModalNetworkFilterProps) {
   });
   const tracAddress = useActiveTracAddress();
   const hasTrac = !!tracAddress;
+  const isTracSingle = useIsTracSingleWallet();
 
   const handleFilterChange = (network: 'bitcoin' | 'trac') => {
     const newFilters = {
@@ -60,23 +61,25 @@ export default function ModalNetworkFilter(props: ModalNetworkFilterProps) {
       </UX.Box>
 
       <UX.Box spacing="xl">
-        <UX.Box
-          layout="box_border"
-          style={{cursor: 'pointer'}}
-          onClick={() => handleFilterChange('bitcoin')}
-        >
-          <UX.Box layout="row_center" spacing="xs">
-            <SVG.BitcoinIcon width={28} height={28} />
-            <UX.Text title="Bitcoin" styleType="body_16_bold" />
+        {isTracSingle ? null : (
+          <UX.Box
+            layout="box_border"
+            style={{cursor: 'pointer'}}
+            onClick={() => handleFilterChange('bitcoin')}
+          >
+            <UX.Box layout="row_center" spacing="xs">
+              <SVG.BitcoinIcon width={28} height={28} />
+              <UX.Text title="Bitcoin" styleType="body_16_bold" />
+            </UX.Box>
+            <UX.Box layout="row_center" spacing="xs">
+              <UX.Text title="Bitcoin Network" styleType="body_14_normal" />
+              <UX.CheckBox
+                checked={filters.bitcoin}
+                onChange={() => handleFilterChange('bitcoin')}
+              />
+            </UX.Box>
           </UX.Box>
-          <UX.Box layout="row_center" spacing="xs">
-            <UX.Text title="Bitcoin Network" styleType="body_14_normal" />
-            <UX.CheckBox
-              checked={filters.bitcoin}
-              onChange={() => handleFilterChange('bitcoin')}
-            />
-          </UX.Box>
-        </UX.Box>
+        )}
 
         {hasTrac && (
           <UX.Box

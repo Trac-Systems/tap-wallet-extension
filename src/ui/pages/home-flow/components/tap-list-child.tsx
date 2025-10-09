@@ -20,7 +20,7 @@ import {
 import { debounce, isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions, useActiveTracAddress, useTracBalanceByAddress } from '../hook';
+import { useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions, useActiveTracAddress, useTracBalances, useIsTracSingleWallet } from '../hook';
 import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
 
@@ -46,7 +46,8 @@ const TapListChild = (props: TapListChildProps) => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const tracAddress = useActiveTracAddress();
-  const { balance: tracBalance } = useTracBalanceByAddress(tracAddress || undefined);
+  const { total: tracBalance } = useTracBalances(tracAddress || undefined);
+  const isTracSingle = useIsTracSingleWallet();
   const [loading, setLoading] = useState(false);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const [tokenValue, setTokenValue] = useState('');
@@ -357,7 +358,7 @@ const TapListChild = (props: TapListChildProps) => {
         )}
 
 
-        {networkFilters.bitcoin && (
+        {networkFilters.bitcoin && !isTracSingle && (
           <UX.Box layout="box">
             <UX.Box layout="row_between" style={{ width: '100%' }}>
               <UX.Box

@@ -6,25 +6,28 @@ import {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import Text from '../../component/text-custom';
 import {useCustomToast} from '../../component/toast-custom';
-import {useActiveTracAddress, useTracBalanceByAddress} from '../home-flow/hook';
+import {useActiveTracAddress, useTracBalances, useIsTracSingleWallet} from '../home-flow/hook';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useAppSelector} from '../../utils';
 import {WalletSelector} from '../../redux/reducer/wallet/selector';
+import {AccountSelector} from '../../redux/reducer/account/selector';
 import {PinInputRef} from '../../component/pin-input';
+import {TracApi} from '../../../background/requests/trac-api';
+import {TracApiService} from '../../../background/service/trac-api.service';
 
 const SendTrac = () => {
   //! State
   const navigate = useNavigate();
   const tracAddress = useActiveTracAddress();
-  const {balance: tracBalance, loading: tracLoading} = useTracBalanceByAddress(tracAddress);
-  const [confirmedBalance, setConfirmedBalance] = useState<string>('0');
-  const [unconfirmedBalance, setUnconfirmedBalance] = useState<string>('0');
+  const {total, confirmed, unconfirmed, loading: balancesLoading} = useTracBalances(tracAddress);
   const [disabled, setDisabled] = useState(true);
   const [toInfo, setToInfo] = useState({address: ''});
   const {showToast} = useCustomToast();
   const [tracSendNumberValue, setTracSendNumberValue] = useState('');
   const wallet = useWalletProvider();
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const isTracSingleWallet = useIsTracSingleWallet();
   const [openPinModal, setOpenPinModal] = useState(false);
   const [pinValue, setPinValue] = useState('');
   const [sending, setSending] = useState(false);
@@ -45,95 +48,50 @@ const SendTrac = () => {
   };
 
   const isTracAddress = (addr: string) => {
-    const a = addr.trim();
-    if (!a) return false;
-    // Basic TRAC address check: must start with 'trac' and be bech32-like lowercase
-    return /^trac[0-9a-z]+$/.test(a);
+    return TracApiService.isValidTracAddress(addr);
   };
 
   // Check if form is valid
-  const isFormValid = isTracAddress(toInfo.address) && tracSendNumberValue.trim() !== '' && parseFloat(tracSendNumberValue) > 0;
+  const isFormValid = isTracAddress(toInfo.address) && 
+    tracSendNumberValue.trim() !== '' && 
+    parseFloat(tracSendNumberValue) > 0 &&
+    parseFloat(tracSendNumberValue) <= parseFloat(confirmed || '0');
 
   //! Function
   const handleGoBack = () => {
     navigate(-1);
   };
 
-  // Fetch TRAC balances (confirmed/unconfirmed/total)
-  const fetchTracBalance = async () => {
-    try {
-      if (!tracAddress) return;
-      const base = 'http://trac.intern.ungueltig.com:1337';
-      const get = async (confirmed: boolean) => {
-        const resp = await fetch(`${base}/balance/${tracAddress}?confirmed=${confirmed ? 'true' : 'false'}`);
-        if (!resp.ok) return '0';
-        const data = await resp.json().catch(() => ({} as any));
-        return (data?.balance ?? '0') as string;
-      };
-      const confirmedVal = await get(true);
-      const unconfirmedVal = await get(false);
-      setConfirmedBalance(confirmedVal);
-      setUnconfirmedBalance(unconfirmedVal);
-    } catch {}
-  };
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchTracBalance(); }, [tracAddress]);
-
-  // Helpers
-  const normalizeTxvHex = (txv: string): string => {
-    let clean = (txv || '').toLowerCase().trim();
-    if (clean.startsWith('0x')) clean = clean.slice(2);
-    clean = clean.replace(/[^0-9a-f]/g, '');
-    if (clean.length >= 64) clean = clean.slice(-64);
-    if (clean.length !== 64) {
-      throw new Error('Invalid "validity" format. Should be a 32-byte hex string');
-    }
-    return clean;
-  };
-
-  const fetchTxvValidityFrom = async (_url: string): Promise<string> => {
-    // restore fixed endpoint as before
-    const resp = await fetch('http://trac.intern.ungueltig.com:1337/txv');
-    if (!resp.ok) {
-      throw new Error(`Fetch /txv failed: ${resp.status}`);
-    }
-    const data = (await resp.json()) as {txv?: string};
-    if (!data?.txv) {
-      throw new Error('Missing txv in response');
-    }
-    return normalizeTxvHex(data.txv);
-  };
-
-  const decimalToHex = (value) => {
-    const n = BigInt(String(value || '0'));
-    return n.toString(16);
-  };
-
-  const toSecretBuffer = (secret: any) => {
-    if (!secret) return secret;
-    if (typeof secret === 'string') {
-      return Buffer.from(secret.replace(/^0x/, ''), 'hex');
-    }
-    return secret;
-  };
-
   const handleNavigate = async () => {
     try {
-      const w = window as any;
-      const tracCrypto: any = w.TracCryptoApi || w.tracCrypto;
-      if (!tracCrypto?.transaction?.preBuild) {
+      // Check if user has enough confirmed balance
+      const sendAmount = parseFloat(tracSendNumberValue);
+      const confirmedAmount = parseFloat(confirmed || '0');
+      
+      if (sendAmount > confirmedAmount) {
+        showToast({
+          title: `Insufficient confirmed balance. Available: ${confirmed || '0'} TNK`,
+          type: 'error'
+        });
+        return;
+      }
+
+      const tracCrypto = TracApiService.getTracCryptoInstance();
+      if (!tracCrypto) {
         showToast({title: 'TracCryptoApi not available', type: 'error'});
         return;
       }
-      const from = tracAddress;
-      const to = toInfo.address;
-      const validityHex = await fetchTxvValidityFrom('');
-      const amountHex = decimalToHex(tracSendNumberValue);
+      
+      const validityHex = await TracApi.fetchTransactionValidity();
+      
+      // Convert input amount to hex using service
+      const amountHex = TracApiService.amountToHex(sendAmount);
 
-      const txData = await tracCrypto.transaction.preBuild(from, to, amountHex, validityHex);
-      // Store txData and open PIN modal to derive secret from mnemonic
-      setPendingTxData(txData);
+      setPendingTxData({
+        to: toInfo.address,
+        amountHex,
+        validityHex
+      });
       setOpenPinModal(true);
     } catch (e) {
       const err = e as Error;
@@ -144,24 +102,46 @@ const SendTrac = () => {
   const onConfirmPin = async () => {
     try {
       setSending(true);
-      const w = window as any;
-      const tracCrypto: any = w.TracCryptoApi || w.tracCrypto;
-      const mnemonicData = await wallet.getMnemonics(pinValue, activeWallet);
-      console.log('[TNK] mnemonicData:', mnemonicData);
-      const generated = await tracCrypto.address.generate('trac', mnemonicData.mnemonic, null);
-      const secret = toSecretBuffer(generated.secretKey);
-      console.log('[TNK] secret:', secret);
-      const txData = pendingTxData;
-      console.log('[TNK] txData:', txData);
-      const txPayload = tracCrypto.transaction.build(txData, secret);
-      const resp = await fetch('http://trac.intern.ungueltig.com:1337/broadcast-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payload: txPayload }),
+      
+      let secret: Buffer;
+      
+      if (isTracSingleWallet) {
+        // For TRAC Single wallet: get TRAC private key directly (in original format)
+        const tracPrivateKey = await (wallet as any).getTracPrivateKey(pinValue, activeWallet.index, activeAccount.index);
+        secret = Buffer.from(tracPrivateKey, 'hex'); // Use original hex format
+      } else {
+        // For mnemonic wallet: generate keypair from mnemonic
+        const mnemonicData = await wallet.getMnemonics(pinValue, activeWallet);
+        if (!mnemonicData || !mnemonicData.mnemonic) {
+          throw new Error("Failed to get mnemonic from wallet. Please check your PIN.");
+        }
+        
+        const generated = await TracApiService.generateKeypairFromMnemonic(
+          mnemonicData.mnemonic,
+          activeAccount.index
+        );
+        
+        secret = TracApiService.toSecretBuffer(generated.secretKey);
+      }
+      
+      const txData = await TracApiService.preBuildTransaction({
+        from: tracAddress, // Use active TRAC address
+        to: pendingTxData.to,
+        amountHex: pendingTxData.amountHex,
+        validityHex: pendingTxData.validityHex
       });
-      const json = await resp.json().catch(() => ({}));
-      if (resp.ok) showToast({title: 'Broadcasted successfully', type: 'success'});
-      else showToast({title: json?.error || 'Broadcast failed', type: 'error'});
+      
+      const txPayload = TracApiService.buildTransaction(txData, secret);
+      
+      const result = await TracApi.broadcastTransaction(txPayload);
+      
+      if (result.success) {
+        showToast({title: 'Transaction sent successfully', type: 'success'});
+        navigate(-1); // Go back after successful transaction
+      } else {
+        showToast({title: result.error || 'Transaction failed', type: 'error'});
+      }
+      
       setOpenPinModal(false);
       setPinValue('');
       pinRef.current?.clearPin();
@@ -191,7 +171,7 @@ const SendTrac = () => {
                 <UX.Box layout="row" spacing="xs">
                     <UX.Text title="Confirmed:" styleType="body_14_bold" />
                     <UX.Text
-                    title={`${confirmedBalance} TNK`}
+                    title={`${confirmed || '0'} TNK`}
                     styleType="body_14_bold"
                     customStyles={{color: colors.green_500, marginLeft: 4}}
                     />
@@ -242,7 +222,7 @@ const SendTrac = () => {
                 <UX.Box layout="row" spacing="xs">
                     <UX.Text title="Unconfirmed:" styleType="body_14_bold" />
                     <UX.Text
-                    title={`${unconfirmedBalance} TNK`}
+                    title={`${unconfirmed || '0'} TNK`}
                     styleType="body_14_bold"
                     customStyles={{color: colors.green_500, marginLeft: 4}}
                     />
@@ -253,7 +233,7 @@ const SendTrac = () => {
             <UX.Box layout="row" spacing="xs">
                 <UX.Text title="Total:" styleType="body_14_bold" />
                 <UX.Text
-                  title={`${tracBalance} TNK`}
+                  title={`${total || '0'} TNK`}
                   styleType="body_14_bold"
                   customStyles={{color: colors.green_500}}
                 />

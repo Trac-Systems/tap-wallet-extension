@@ -184,11 +184,13 @@ export class WalletService {
   async createWalletFromPrivateKey(
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ): Promise<IWallet> {
     const wallet = await this._addNewWallet(
       'Single Wallet',
       {
         privateKeys: [privateKey],
+        tracPrivateKeys: options?.tracPrivateKeys || [],
       },
       addressType,
     );

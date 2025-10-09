@@ -55,6 +55,7 @@ export interface IWalletProvider {
   createWalletFromPrivateKey(
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ): Promise<void>;
   previewAddressFromPrivateKey(
     privateKey: string,
@@ -95,6 +96,11 @@ export interface IWalletProvider {
     pin: string,
     {pubkey, type}: {pubkey: string; type: string},
   ): Promise<any>;
+  getTracPrivateKey(
+    pin: string,
+    walletIndex: number,
+    accountIndex: number,
+  ): Promise<string>;
   verifyPassword(pin: string): Promise<any>;
   getEnableSignData(): Promise<boolean>;
   setEnableSignData(enable: boolean): Promise<void>;
@@ -261,7 +267,7 @@ export interface IWalletProvider {
   getAuthorityCanceled(ins: string): Promise<boolean>;
   
   // TRAC Address Management Methods
-  getTracAddressMap(): {[key: string]: string};
+  getTracAddressMap(): Promise<{[key: string]: string}>;
   getTracAddress(walletIndex: number, accountIndex: number): string | null;
   setTracAddress(walletIndex: number, accountIndex: number, address: string): void;
   getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string};

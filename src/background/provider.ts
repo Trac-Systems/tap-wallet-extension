@@ -232,10 +232,12 @@ export class Provider {
   createWalletFromPrivateKey = async (
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ) => {
     const originWallet = await walletService.createWalletFromPrivateKey(
       privateKey,
       addressType,
+      options,
     );
 
     const walletDataForUI = walletService.getWalletDataForUI(
@@ -379,6 +381,19 @@ export class Provider {
   };
 
   verifyPassword = async (pin: string) => await authService.verifyPassword(pin);
+
+  getTracPrivateKey = async (
+    pin: string,
+    walletIndex: number,
+    accountIndex: number = 0,
+  ) => {
+    await authService.verifyPassword(pin);
+    const wallet = walletService.wallets[walletIndex];
+    if (!wallet || wallet.type !== 'Single Wallet') {
+      throw new Error('Wallet not found or not a Single Wallet');
+    }
+    return (wallet as any).exportTracPrivateKey(accountIndex);
+  };
 
   setWalletName = (wallet: WalletDisplay, name: string) => {
     walletConfig.setWalletName(wallet.key, name);

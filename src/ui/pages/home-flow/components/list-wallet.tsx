@@ -21,6 +21,8 @@ import ModalListAccountWallet from './modal-list-account-wallet';
 import ModalReceive from './modal-receive';
 import ModalSelectToken from './modal-select-token';
 import WalletCard from './wallet-card-item';
+import WalletCardNew from './wallet-card-new';
+import { useActiveTracAddress, useIsTracSingleWallet } from '../hook';
 import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 import {useNavigate} from 'react-router-dom';
 import {SVG} from '@/src/ui/svg';
@@ -55,7 +57,13 @@ const ListWallets = () => {
     return 0;
   }, [listWallets.length, activeWallet.key]);
 
+  const isTracSingle = useIsTracSingleWallet();
+
   const handleFetchUtxos = useCallback(async () => {
+    if (isTracSingle) {
+      setIsLoadingUtxo(false);
+      return;
+    }
     setIsLoadingUtxo(true);
     try {
       const utxos = await fetchUtxos();
@@ -79,7 +87,7 @@ const ListWallets = () => {
         console.error('Failed to fetch UTXOs after retries:', err);
       }
     }
-  }, [fetchUtxos]);
+  }, [fetchUtxos, isTracSingle]);
 
   const debouncedFetchUtxos = useRef(
     debounce(handleFetchUtxos, 50)
@@ -87,7 +95,11 @@ const ListWallets = () => {
 
   useEffect(() => {
     if (!listWallets.length) return;
-    debouncedFetchUtxos();
+    if (isTracSingle) {
+      setIsLoadingUtxo(false);
+    } else {
+      debouncedFetchUtxos();
+    }
     setCurrentIndex(positionSlider ?? 0);
 
     return () => {
@@ -96,13 +108,9 @@ const ListWallets = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [listWallets, debouncedFetchUtxos, positionSlider]);
+  }, [listWallets, debouncedFetchUtxos, positionSlider, isTracSingle]);
 
-  useEffect(() => {
-    // Debug log for listWallets
-    // eslint-disable-next-line no-console
-    console.log('listWallets =>', listWallets);
-  }, [listWallets]);
+
  
   useEffect(() => {
     retryCountRef.current = 0;
@@ -122,8 +130,9 @@ const ListWallets = () => {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
           }
-          await wallet.setActiveWallet(listWallets[el.activeIndex], 0);
-          dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
+          const nextWallet = listWallets[el.activeIndex];
+          await wallet.setActiveWallet(nextWallet, 0);
+          dispatch(WalletActions.setActiveWallet(nextWallet));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
           retryCountRef.current = 0;
@@ -141,6 +150,9 @@ const ListWallets = () => {
       swiperInstance.slideTo(idx);
     }
   };
+
+  const tracAddress = useActiveTracAddress();
+  const hasTrac = !!tracAddress;
 
   //! Render
   if (listWallets.length === 0 || positionSlider === -1) {
@@ -166,12 +178,21 @@ const ListWallets = () => {
         {listWallets.map((wallet: WalletDisplay) => {
           return (
             <SwipeSlide key={wallet.key}>
-              <WalletCard
-                keyring={wallet}
-                handleOpenDrawerEdit={handleOpenDrawerEdit}
-                handleOpenDrawerAccount={handleOpenDrawerAccount}
-                isLoadingUtxo={isLoadingUtxo}
-              />
+              {hasTrac ? (
+                <WalletCardNew
+                  keyring={wallet}
+                  handleOpenDrawerEdit={handleOpenDrawerEdit}
+                  handleOpenDrawerAccount={handleOpenDrawerAccount}
+                  isLoadingUtxo={isLoadingUtxo}
+                />
+              ) : (
+                <WalletCard
+                  keyring={wallet}
+                  handleOpenDrawerEdit={handleOpenDrawerEdit}
+                  handleOpenDrawerAccount={handleOpenDrawerAccount}
+                  isLoadingUtxo={isLoadingUtxo}
+                />
+              )}
             </SwipeSlide>
           );
         })}

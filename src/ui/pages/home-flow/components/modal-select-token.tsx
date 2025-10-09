@@ -1,6 +1,6 @@
 import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
-import {useAccountBalance, useActiveTracAddress, useTracBalanceByAddress} from '../hook';
+import {useAccountBalance, useActiveTracAddress, useTracBalances, useIsTracSingleWallet} from '../hook';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
 
 interface ModalSelectTokenProps {
@@ -13,7 +13,8 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
   const {handleClose, onSelectBTC, onSelectTNK} = props;
   const accountBalance = useAccountBalance();
   const tracAddress = useActiveTracAddress();
-  const {balance: tracBalance, loading: tracLoading} = useTracBalanceByAddress(tracAddress);
+  const {total: tracBalance, loading: tracLoading} = useTracBalances(tracAddress);
+  const isTracSingle = useIsTracSingleWallet();
 
   // Format BTC balance using same method as tap-list-child
   const btcBalance = satoshisToAmount(accountBalance.amount);
@@ -29,39 +30,43 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
       <UX.Text title="Select Token" styleType="heading_20" />
 
       <UX.Box spacing="xl">
-        <UX.Box
-          layout="box_border"
-          style={{cursor: 'pointer'}}
-          onClick={() => {
-            onSelectBTC();
-            handleClose();
-          }}
-        >
-          <UX.Box layout="row_between" style={{width: '100%'}}>
-            <UX.Box layout="row_center" spacing="xs">
-              <SVG.BitcoinIcon width={28} height={28} />
-              <UX.Text title="Send BTC" styleType="body_16_bold" />
+        {isTracSingle ? null : (
+          <UX.Box
+            layout="box_border"
+            style={{cursor: 'pointer'}}
+            onClick={() => {
+              onSelectBTC();
+              handleClose();
+            }}
+          >
+            <UX.Box layout="row_between" style={{width: '100%'}}>
+              <UX.Box layout="row_center" spacing="xs">
+                <SVG.BitcoinIcon width={28} height={28} />
+                <UX.Text title="Send BTC" styleType="body_16_bold" />
+              </UX.Box>
+              <UX.Text title={btcBalance} styleType="body_16_bold" />
             </UX.Box>
-            <UX.Text title={btcBalance} styleType="body_16_bold" />
           </UX.Box>
-        </UX.Box>
+        )}
 
-        <UX.Box
-          layout="box_border"
-          style={{cursor: 'pointer'}}
-          onClick={() => {
-            onSelectTNK();
-            handleClose();
-          }}
-        >
-          <UX.Box layout="row_between" style={{width: '100%'}}>
-            <UX.Box layout="row_center" spacing="xs">
-              <SVG.TracIcon width={28} height={28} />
-              <UX.Text title="Send TNK" styleType="body_16_bold" />
+        {tracAddress ? (
+          <UX.Box
+            layout="box_border"
+            style={{cursor: 'pointer'}}
+            onClick={() => {
+              onSelectTNK();
+              handleClose();
+            }}
+          >
+            <UX.Box layout="row_between" style={{width: '100%'}}>
+              <UX.Box layout="row_center" spacing="xs">
+                <SVG.TracIcon width={28} height={28} />
+                <UX.Text title="Send TNK" styleType="body_16_bold" />
+              </UX.Box>
+              <UX.Text title={tnkBalance} styleType="body_16_bold" />
             </UX.Box>
-            <UX.Text title={tnkBalance} styleType="body_16_bold" />
           </UX.Box>
-        </UX.Box>
+        ) : null}
       </UX.Box>
 
       <UX.Button styleType="dark" title="Close" onClick={handleClose} />

@@ -282,3 +282,10 @@ export const isValidAuthInput = (value: string): boolean => {
   if (trimmed.length > 4) return true;
   return false;
 };
+
+// Check if input is legacy 4-digit PIN
+export const isLegacyPin = (value: string): boolean => {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  return /^\d{4}$/.test(trimmed);
+};

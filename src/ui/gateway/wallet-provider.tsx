@@ -97,6 +97,9 @@ export interface IWalletProvider {
   verifyPassword(pin: string): Promise<any>;
   getEnableSignData(): Promise<boolean>;
   setEnableSignData(enable: boolean): Promise<void>;
+  isPasswordUpgraded(): Promise<boolean>;
+  markPasswordUpgraded(): Promise<void>;
+  isLegacyUser(pin: string): Promise<boolean>;
   getNextAccountName(keyring: WalletDisplay): Promise<string>;
   createNewAccountFromMnemonic(
     wallet: WalletDisplay,

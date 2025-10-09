@@ -2,11 +2,14 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
 import type {AuthInputRef} from '../../component/auth-input';
+import type {PinInputRef} from '../../component/pin-input';
 import LayoutSendReceive from '../../layouts/send-receive';
 import {SVG} from '../../svg';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useCustomToast} from '../../component/toast-custom';
-import {isValidAuthInput} from '../../utils';
+import {isValidAuthInput, useAppSelector, useAppDispatch} from '../../utils';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {GlobalActions} from '../../redux/reducer/global/slice';
 import {
   usePushBitcoinTxCallback,
   usePushOrdinalsTxCallback,
@@ -35,11 +38,29 @@ const TxSecurity = () => {
   const pushBitcoinTx = usePushBitcoinTxCallback();
   const pushOrdinalsTx = usePushOrdinalsTxCallback();
   const pinInputRef = useRef<AuthInputRef>(null);
+  const legacyPinInputRef = useRef<PinInputRef>(null);
   const [valueInput, setValueInput] = useState('');
   const [disabled, setDisabled] = useState(true);
   const {showToast} = useCustomToast();
   const [loading, setLoading] = useState(false);
+  const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
+  const dispatch = useAppDispatch();
+
   //! Function
+  const checkUserType = async () => {
+    try {
+      const passwordUpgraded = await wallet.isPasswordUpgraded();
+      if (!passwordUpgraded) {
+        dispatch(GlobalActions.update({isLegacyUser: true}));
+      } else {
+        dispatch(GlobalActions.update({isLegacyUser: false}));
+      }
+    } catch (error) {
+      // Default to legacy user if we can't determine status
+      dispatch(GlobalActions.update({isLegacyUser: true}));
+    }
+  };
+
   const handleGoBack = () => {
     return navigate(-1);
   };
@@ -59,7 +80,7 @@ const TxSecurity = () => {
       await wallet.unlockApp(valueInput);
     } catch (e: any) {
       showToast({
-        title: e?.message || 'Wrong Password',
+        title: e?.message || (isLegacyUser ? 'Wrong PIN' : 'Wrong Password'),
         type: 'error',
       });
       setLoading(false);
@@ -155,8 +176,16 @@ const TxSecurity = () => {
 
   //! Effect
   useEffect(() => {
-    setDisabled(!isValidAuthInput(valueInput));
-  }, [valueInput]);
+    checkUserType();
+  }, []);
+
+  useEffect(() => {
+    if (isLegacyUser) {
+      setDisabled(!(valueInput?.length === 4));
+    } else {
+      setDisabled(!isValidAuthInput(valueInput));
+    }
+  }, [valueInput, isLegacyUser]);
 
   //! Render
   if (loading) {
@@ -170,22 +199,30 @@ const TxSecurity = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title="Password"
+            title={isLegacyUser ? "PIN" : "Password"}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title="Enter your password to confirm the transaction"
+            title={isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction"}
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
-          <UX.AuthInput
-            onChange={handleOnChange}
-            onKeyUp={e => handleOnKeyUp(e)}
-            ref={pinInputRef}
-          />
+          {isLegacyUser ? (
+            <UX.PinInput
+              onChange={handleOnChange}
+              onKeyUp={e => handleOnKeyUp(e)}
+              ref={legacyPinInputRef}
+            />
+          ) : (
+            <UX.AuthInput
+              onChange={handleOnChange}
+              onKeyUp={e => handleOnKeyUp(e)}
+              ref={pinInputRef}
+            />
+          )}
         </UX.Box>
       }
       footer={

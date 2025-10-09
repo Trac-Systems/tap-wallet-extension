@@ -16,17 +16,20 @@ const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
 }) => {
   
   return (
-    <UX.CustomModal isOpen={visible} onClose={() => {}}>
+    <UX.CustomModal 
+      isOpen={visible} 
+      onClose={() => {}}
+      containerStyle={{
+        backgroundColor: '#1A1A1A',
+        borderRadius: '16px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+        maxWidth: '453px',
+        width: '90%'
+      }}
+    >
       <UX.Box
         layout="column"
-        spacing="xl"
-        style={{
-          maxWidth: '400px',
-          backgroundColor: '#1A1A1A',
-          borderRadius: '16px',
-          padding: '16px 24px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-        }}>
+        spacing="xl">
         {/* Title */}
         <UX.Text
           title="Update your password"
@@ -54,7 +57,7 @@ const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
               lineHeight: '22px',
               textAlign: 'left',
             }}>
-            We're upgrading our password system for better security.{' '}
+            We are switching to passwords for better security.{' '}
             <span style={{color: '#FFF', fontWeight: 'bold'}}>4-digit PIN</span> are no longer secure enough.
           </div>
 

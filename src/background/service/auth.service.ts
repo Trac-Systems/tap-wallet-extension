@@ -6,6 +6,7 @@ import createPersistStore from '../storage/persistStore';
 interface IMemStore {
   isUnlocked: boolean;
   registered: string;
+  passwordUpgraded: boolean;
 }
 
 export class AuthService {
@@ -23,7 +24,7 @@ export class AuthService {
   async init() {
     this.store = await createPersistStore({
       name: 'auth',
-      template: {isUnlocked: false, registered: ''},
+      template: {isUnlocked: false, registered: '', passwordUpgraded: false},
     });
   }
 
@@ -62,7 +63,7 @@ export class AuthService {
         console.error(error);
       }
       if (!result) {
-        return reject(new Error('Wrong Password'));
+        return reject(new Error(this.isLegacyUser(pin) ? 'Wrong PIN' : 'Wrong Password'));
       }
       this.pin = pin;
       this.setUnlocked();
@@ -72,6 +73,19 @@ export class AuthService {
 
   setUnlocked = () => {
     this.memStore.updateState({isUnlocked: true});
+  }
+
+  async markPasswordUpgraded() {
+    this.store.passwordUpgraded = true;
+  }
+
+  isPasswordUpgraded() {
+    return this.store.passwordUpgraded;
+  }
+
+  // Check if user is using legacy 4-digit PIN
+  isLegacyUser(pin: string): boolean {
+    return /^\d{4}$/.test(pin) && !this.store.passwordUpgraded;
   };
 
   async decodeData(pin: string, encodeData: any) {

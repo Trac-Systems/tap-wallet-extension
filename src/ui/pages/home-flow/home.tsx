@@ -154,7 +154,7 @@ const Home = () => {
   //! Function
   const handleUpdatePassword = () => {
     // Clear modal state immediately
-    dispatch(GlobalActions.update({showPasswordUpdateModal: false, currentPassword: ''}));
+    dispatch(GlobalActions.update({showPasswordUpdateModal: false, currentPassword: '', isLegacyUser: false}));
     // Navigate to change password screen
     navigate('/change-password', {state: {current: currentPassword}, replace: true});
   };

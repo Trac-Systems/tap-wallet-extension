@@ -11,5 +11,6 @@ export const GlobalSelector = {
   showSpendableList: (state: AppState) => state.globalReducer.showSpendableList,
   auth: (state: AppState) => state.globalReducer.auth,
   showPasswordUpdateModal: (state: AppState) => state.globalReducer.showPasswordUpdateModal,
-  currentPassword: (state: AppState) => state.globalReducer.currentPassword
+  currentPassword: (state: AppState) => state.globalReducer.currentPassword,
+  isLegacyUser: (state: AppState) => state.globalReducer.isLegacyUser
 };

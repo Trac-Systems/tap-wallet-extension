@@ -2,12 +2,14 @@ import React, {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {UX} from '../component';
 import type {AuthInputRef} from '../component/auth-input';
+import type {PinInputRef} from '../component/pin-input';
 import {useCustomToast} from '../component/toast-custom';
 import {useWalletProvider} from '../gateway/wallet-provider';
 import LayoutLogin from '../layouts/login';
 import {GlobalActions} from '../redux/reducer/global/slice';
+import {GlobalSelector} from '../redux/reducer/global/selector';
 import {SVG} from '../svg';
-import {useAppDispatch, isValidAuthInput} from '../utils';
+import {useAppDispatch, isValidAuthInput, isLegacyPin, useAppSelector} from '../utils';
 import {useApproval} from './approval/hook';
 
 const LoginPage = () => {
@@ -19,13 +21,32 @@ const LoginPage = () => {
   const {showToast} = useCustomToast();
 
   const pinInputRef = useRef<AuthInputRef>(null);
+  const legacyPinInputRef = useRef<PinInputRef>(null);
   const [valueInput, setValueInput] = useState('');
   const [disabled, setDisabled] = useState(true);
   const [showPwd, setShowPwd] = useState(false);
+  const [isLegacyUser, setIsLegacyUser] = useState(false);
 
   //! Function
   const handleOnChange = (pwd: string) => {
     setValueInput(pwd);
+  };
+
+  const checkUserType = async () => {
+    try {
+      const passwordUpgraded = await wallet.isPasswordUpgraded();
+      if (!passwordUpgraded) {
+        setIsLegacyUser(true);
+        dispatch(GlobalActions.update({isLegacyUser: true}));
+      } else {
+        setIsLegacyUser(false);
+        dispatch(GlobalActions.update({isLegacyUser: false}));
+      }
+    } catch (error) {
+      // Default to legacy user if we can't determine status
+      setIsLegacyUser(true);
+      dispatch(GlobalActions.update({isLegacyUser: true}));
+    }
   };
 
   const handleNavigate = async () => {
@@ -44,7 +65,11 @@ const LoginPage = () => {
       return navigate('/');
     } catch (error) {
       setValueInput('');
-      pinInputRef.current?.clear?.();
+      if (isLegacyUser) {
+        legacyPinInputRef.current?.clearPin?.();
+      } else {
+        pinInputRef.current?.clear?.();
+      }
       showToast({
         title: error.message,
         type: 'error',
@@ -63,6 +88,10 @@ const LoginPage = () => {
     setDisabled(!isValidAuthInput(valueInput));
   }, [valueInput]);
 
+  useEffect(() => {
+    checkUserType();
+  }, []);
+
   //! Render
   return (
     <LayoutLogin
@@ -70,24 +99,32 @@ const LoginPage = () => {
         <UX.Box layout="column_center" spacing="xl" style={{width: '100%', maxWidth: '500px'}}>
           <SVG.UnlockIcon />
           <UX.Text
-            title="Password"
+            title={isLegacyUser ? "PIN" : "Password"}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title="Enter your password to login"
+            title={isLegacyUser ? "Enter your PIN to login" : "Enter your password to login"}
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
-          <UX.AuthInput
-            placeholder='Enter your password'
-            onChange={handleOnChange}
-            onKeyUp={e => handleOnKeyUp(e)}
-            ref={pinInputRef}
-            autoFocus={true}
-          />
+          {isLegacyUser ? (
+            <UX.PinInput
+              onChange={handleOnChange}
+              onKeyUp={e => handleOnKeyUp(e)}
+              ref={legacyPinInputRef}
+            />
+          ) : (
+            <UX.AuthInput
+              placeholder={isLegacyUser ? 'Enter your PIN' : 'Enter your password'}
+              onChange={handleOnChange}
+              onKeyUp={e => handleOnKeyUp(e)}
+              ref={pinInputRef}
+              autoFocus={true}
+            />
+          )}
         </UX.Box>
       }
       footer={

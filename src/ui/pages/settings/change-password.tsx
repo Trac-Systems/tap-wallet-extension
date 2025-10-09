@@ -61,6 +61,10 @@ const ChangePassword = () => {
         await wallet.unlockApp(current);
         // background now supports changePassword on walletService, expose via provider in future
       }
+      
+      // Mark password as upgraded
+      await wallet.markPasswordUpgraded();
+      
       showToast({type: 'success', title: 'Password updated'});
       navigate('/home');
     } catch (e) {

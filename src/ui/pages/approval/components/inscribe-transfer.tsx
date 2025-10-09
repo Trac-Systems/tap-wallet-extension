@@ -8,6 +8,8 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {GlobalActions} from '@/src/ui/redux/reducer/global/slice';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
@@ -15,6 +17,7 @@ import {
   formatAddressLongText,
   shortAddress,
   useAppSelector,
+  useAppDispatch,
 } from '@/src/ui/utils';
 import {
   InscribeOrder,
@@ -28,6 +31,7 @@ import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import InscriptionPreview from '../../../component/inscription-preview';
 import type {AuthInputRef} from '../../../component/auth-input';
+import type {PinInputRef} from '../../../component/pin-input';
 import {isValidAuthInput} from '@/src/ui/utils';
 import {useCustomToast} from '../../../component/toast-custom';
 import WebsiteBar from '../../../component/website-bar';
@@ -619,7 +623,28 @@ export const Step4 = ({
   const checkValue = !isValidAuthInput(valueInput);
   const wallet = useWalletProvider();
   const pinInputRef = useRef<AuthInputRef>(null);
+  const legacyPinInputRef = useRef<PinInputRef>(null);
   const {showToast} = useCustomToast();
+  const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
+  const dispatch = useAppDispatch();
+
+  const checkUserType = async () => {
+    try {
+      const passwordUpgraded = await wallet.isPasswordUpgraded();
+      if (!passwordUpgraded) {
+        dispatch(GlobalActions.update({isLegacyUser: true}));
+      } else {
+        dispatch(GlobalActions.update({isLegacyUser: false}));
+      }
+    } catch (error) {
+      // Default to legacy user if we can't determine status
+      dispatch(GlobalActions.update({isLegacyUser: true}));
+    }
+  };
+
+  useEffect(() => {
+    checkUserType();
+  }, []);
 
   const spendUtxos = useMemo(() => {
     return contextData.rawTxInfo?.inputs.map(input => input.utxo);
@@ -643,7 +668,7 @@ export const Step4 = ({
         );
       })
       .catch(() => {
-        showToast({type: 'error', title: 'wrong password'});
+        showToast({type: 'error', title: isLegacyUser ? 'wrong PIN' : 'wrong password'});
         setValueInput('');
         pinInputRef.current?.clear?.();
       });
@@ -665,22 +690,30 @@ export const Step4 = ({
     <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
       <SVG.UnlockIcon />
       <UX.Text
-        title="Password"
+        title={isLegacyUser ? "PIN" : "Password"}
         styleType="heading_24"
         customStyles={{
           marginTop: '16px',
         }}
       />
       <UX.Text
-        title="Enter your password to confirm the transaction"
+        title={isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction"}
         styleType="body_16_normal"
         customStyles={{textAlign: 'center'}}
       />
-      <UX.AuthInput
-        onChange={handleOnChange}
-        onKeyUp={e => handleOnKeyUp(e)}
-        ref={pinInputRef}
-      />
+      {isLegacyUser ? (
+        <UX.PinInput
+          onChange={handleOnChange}
+          onKeyUp={e => handleOnKeyUp(e)}
+          ref={legacyPinInputRef}
+        />
+      ) : (
+        <UX.AuthInput
+          onChange={handleOnChange}
+          onKeyUp={e => handleOnKeyUp(e)}
+          ref={pinInputRef}
+        />
+      )}
     </UX.Box>
   );
 };

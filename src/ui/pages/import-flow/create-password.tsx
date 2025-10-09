@@ -70,6 +70,8 @@ const CreatePassWord = () => {
       }
 
       await walletProvider.register(contextData.password);
+      // Mark password as upgraded for new users
+      await walletProvider.markPasswordUpgraded();
       if (check === 'isImport') {
         navigate('/restore-wallet-option');
         return;
@@ -115,17 +117,17 @@ const CreatePassWord = () => {
     <LayoutScreenImport
       header={<UX.TextHeader onBackClick={handleGoBack} />}
       body={
-        <UX.Box layout="column_center" spacing="xl">
+        <UX.Box layout="column_center" spacing="xl" style={{width: '100%', maxWidth: '500px'}}>
           <SVG.UnlockIcon />
           <UX.Text
-            title={contextData.isStepSetPin ? 'Set Password' : 'Confirm Password'}
+            title={contextData.isStepSetPin ? 'Create Password' : 'Confirm Password'}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title="Create a password to enter the application and perform operations."
+            title="Create a password for your wallet."
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />

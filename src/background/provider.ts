@@ -367,6 +367,12 @@ export class Provider {
 
   verifyPassword = async (pin: string) => await authService.verifyPassword(pin);
 
+  isPasswordUpgraded = async () => authService.isPasswordUpgraded();
+
+  markPasswordUpgraded = async () => authService.markPasswordUpgraded();
+
+  isLegacyUser = async (pin: string) => authService.isLegacyUser(pin);
+
   setWalletName = (wallet: WalletDisplay, name: string) => {
     walletConfig.setWalletName(wallet.key, name);
     return Object.assign({}, wallet, {name});

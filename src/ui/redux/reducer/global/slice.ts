@@ -12,6 +12,8 @@ export interface GlobalState {
   auth: string;
   showPasswordUpdateModal: boolean;
   currentPassword: string;
+  passwordUpgraded: boolean;
+  isLegacyUser: boolean;
 }
 
 export const initialState: GlobalState = {
@@ -25,7 +27,9 @@ export const initialState: GlobalState = {
   isAuthority: true,
   auth: '',
   showPasswordUpdateModal: false,
-  currentPassword: ''
+  currentPassword: '',
+  passwordUpgraded: false,
+  isLegacyUser: false
 };
 
 const GlobalSlice = createSlice({

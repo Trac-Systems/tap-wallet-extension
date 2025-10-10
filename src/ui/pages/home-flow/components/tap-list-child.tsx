@@ -397,7 +397,7 @@ const TapListChild = (props: TapListChildProps) => {
                 <UX.Text
                   title={'TNK'}
                   styleType="body_16_normal"
-                  customStyles={{ color: 'white', marginLeft: '8px' }}
+                  customStyles={{ color: 'white', marginLeft: '8px', marginRight: '4px' }}
                 />
               </UX.Box>
 

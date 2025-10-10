@@ -12,15 +12,19 @@ export interface ValidityResponse {
   validityHex: string;
 }
 
+export interface FeeResponse {
+  fee: string;
+}
+
 export class TracApi {
-  private static readonly BROADCAST_URL = 'http://trac.intern.ungueltig.com:1337/broadcast-transaction';
+  private static readonly BASE_URL = 'http://trac.intern.ungueltig.com:1337';
   
   /**
    * Broadcast transaction to TRAC network
    */
   static async broadcastTransaction(payload: string): Promise<BroadcastResponse> {
     try {
-      const response = await fetch(this.BROADCAST_URL, {
+      const response = await fetch(`${this.BASE_URL}/broadcast-transaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload }),
@@ -39,11 +43,31 @@ export class TracApi {
   }
   
   /**
+   * Fetch transaction fee from TRAC network
+   */
+  static async fetchTransactionFee(): Promise<string> {
+    try {
+      const resp = await fetch(`${this.BASE_URL}/fee`);
+      if (!resp.ok) {
+        throw new Error(`Fetch /fee failed: ${resp.status}`);
+      }
+      const data = (await resp.json()) as FeeResponse;
+      if (!data?.fee) {
+        throw new Error('Missing fee in response');
+      }
+      return data.fee;
+    } catch (error) {
+      console.error('Error fetching fee:', error);
+      throw error;
+    }
+  }
+  
+  /**
    * Fetch transaction validity from TRAC network
    */
   static async fetchTransactionValidity(): Promise<string> {
     try {
-      const resp = await fetch('http://trac.intern.ungueltig.com:1337/txv');
+      const resp = await fetch(`${this.BASE_URL}/txv`);
       if (!resp.ok) {
         throw new Error(`Fetch /txv failed: ${resp.status}`);
       }

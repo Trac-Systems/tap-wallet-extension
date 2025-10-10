@@ -63,7 +63,7 @@ export default function ModalReceive(props: ModalReceiveProps) {
             onClick={() => onCopy(tracAddress)}
           >
             <UX.Box layout="row_center" spacing="xs">
-              <SVG.WalletIcon width={28} height={28} />
+              <SVG.TracIcon width={28} height={28} />
               <UX.Text title="Trac Network" styleType="body_16_bold" />
             </UX.Box>
             <UX.Box layout="row_center" spacing="xs">

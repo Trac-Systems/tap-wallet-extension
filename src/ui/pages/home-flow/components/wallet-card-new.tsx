@@ -120,12 +120,11 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
             <UX.Tooltip text={tracTotal} isText>
               <UX.Text
                 styleType="heading_20"
-                title={tracTotal || '0'}
-                // className="textBalance"
-                customStyles={{lineHeight: '32px', fontSize: 24, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
+                title={tracTotal && tracTotal.length > 16 ? tracTotal.substring(0, 15) + '..' : (tracTotal || '0')}
+                customStyles={{lineHeight: '32px', fontSize: 24}}
               />
             </UX.Tooltip>
-            <UX.Text styleType="heading_20" customStyles={{lineHeight: '32px', fontSize: 24, flexShrink: 0}} title={'TNK'} />
+            <UX.Text styleType="heading_20" customStyles={{lineHeight: '32px', fontSize: 24}} title={'TNK'} />
           </UX.Box>
         </UX.Box>
 

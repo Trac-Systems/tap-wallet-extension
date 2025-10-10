@@ -32,6 +32,9 @@ import Security from './pages/send-receive/security-transaction-screen';
 import SendBTC from './pages/send-receive/send-btc';
 import SendBTCConfirm from './pages/send-receive/send-btc-confirm';
 import SendTrac from './pages/send-receive/send-trac';
+import SendTracSummary from './pages/send-receive/send-trac-summary';
+import SendTracPin from './pages/send-receive/send-trac-pin';
+import SendTracSuccess from './pages/send-receive/send-trac-success';
 import FailScreen from './pages/send-receive/transaction-fail';
 import SuccessScreen from './pages/send-receive/transaction-success-screen';
 import DappPage from './pages/dapp';
@@ -196,6 +199,9 @@ function App() {
         <Route path="/home/send" element={<SendBTC />} />
         <Route path="/home/send-btc-confirm" element={<SendBTCConfirm />} />
         <Route path="/home/send-trac" element={<SendTrac />} />
+        <Route path="/home/send-trac-summary" element={<SendTracSummary />} />
+        <Route path="/home/send-trac-pin" element={<SendTracPin />} />
+        <Route path="/home/send-trac-success" element={<SendTracSuccess />} />
 
         {/* Send inscriptions */}
         <Route path="/home/send-inscription" element={<SendInscription />} />

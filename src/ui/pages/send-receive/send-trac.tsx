@@ -2,16 +2,11 @@ import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {colors} from '@/src/ui/themes/color';
 import {SVG} from '@/src/ui/svg';
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import Text from '../../component/text-custom';
 import {useCustomToast} from '../../component/toast-custom';
-import {useActiveTracAddress, useTracBalances, useIsTracSingleWallet} from '../home-flow/hook';
+import {useActiveTracAddress, useTracBalances} from '../home-flow/hook';
 import {useWalletProvider} from '../../gateway/wallet-provider';
-import {useAppSelector} from '../../utils';
-import {WalletSelector} from '../../redux/reducer/wallet/selector';
-import {AccountSelector} from '../../redux/reducer/account/selector';
-import {PinInputRef} from '../../component/pin-input';
 import {TracApi} from '../../../background/requests/trac-api';
 import {TracApiService} from '../../../background/service/trac-api.service';
 
@@ -25,14 +20,6 @@ const SendTrac = () => {
   const {showToast} = useCustomToast();
   const [tracSendNumberValue, setTracSendNumberValue] = useState('');
   const wallet = useWalletProvider();
-  const activeWallet = useAppSelector(WalletSelector.activeWallet);
-  const activeAccount = useAppSelector(AccountSelector.activeAccount);
-  const isTracSingleWallet = useIsTracSingleWallet();
-  const [openPinModal, setOpenPinModal] = useState(false);
-  const [pinValue, setPinValue] = useState('');
-  const [sending, setSending] = useState(false);
-  const pinRef = useRef<PinInputRef>(null);
-  const [pendingTxData, setPendingTxData] = useState<any>(null);
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -82,77 +69,30 @@ const SendTrac = () => {
         return;
       }
       
-      const validityHex = await TracApi.fetchTransactionValidity();
+      // Fetch fee and validity
+      const [feeHex, validityHex] = await Promise.all([
+        TracApi.fetchTransactionFee(),
+        TracApi.fetchTransactionValidity()
+      ]);
       
       // Convert input amount to hex using service
       const amountHex = TracApiService.amountToHex(sendAmount);
 
-      setPendingTxData({
+      const summaryData = {
         to: toInfo.address,
         amountHex,
-        validityHex
-      });
-      setOpenPinModal(true);
+        validityHex,
+        amount: tracSendNumberValue,
+        fee: feeHex
+      };
+
+      navigate('/home/send-trac-summary', { state: { summaryData } });
     } catch (e) {
       const err = e as Error;
-      showToast({title: err.message || 'Failed to send TNK', type: 'error'});
+      showToast({title: err.message || 'Failed to prepare transaction', type: 'error'});
     }
   };
 
-  const onConfirmPin = async () => {
-    try {
-      setSending(true);
-      
-      let secret: Buffer;
-      
-      if (isTracSingleWallet) {
-        // For TRAC Single wallet: get TRAC private key directly (in original format)
-        const tracPrivateKey = await (wallet as any).getTracPrivateKey(pinValue, activeWallet.index, activeAccount.index);
-        secret = Buffer.from(tracPrivateKey, 'hex'); // Use original hex format
-      } else {
-        // For mnemonic wallet: generate keypair from mnemonic
-        const mnemonicData = await wallet.getMnemonics(pinValue, activeWallet);
-        if (!mnemonicData || !mnemonicData.mnemonic) {
-          throw new Error("Failed to get mnemonic from wallet. Please check your PIN.");
-        }
-        
-        const generated = await TracApiService.generateKeypairFromMnemonic(
-          mnemonicData.mnemonic,
-          activeAccount.index
-        );
-        
-        secret = TracApiService.toSecretBuffer(generated.secretKey);
-      }
-      
-      const txData = await TracApiService.preBuildTransaction({
-        from: tracAddress, // Use active TRAC address
-        to: pendingTxData.to,
-        amountHex: pendingTxData.amountHex,
-        validityHex: pendingTxData.validityHex
-      });
-      
-      const txPayload = TracApiService.buildTransaction(txData, secret);
-      
-      const result = await TracApi.broadcastTransaction(txPayload);
-      
-      if (result.success) {
-        showToast({title: 'Transaction sent successfully', type: 'success'});
-        navigate(-1); // Go back after successful transaction
-      } else {
-        showToast({title: result.error || 'Transaction failed', type: 'error'});
-      }
-      
-      setOpenPinModal(false);
-      setPinValue('');
-      pinRef.current?.clearPin();
-    } catch (e) {
-      pinRef.current?.clearPin();
-      const err = e as Error;
-      showToast({title: err.message || 'PIN invalid', type: 'error'});
-    } finally {
-      setSending(false);
-    }
-  };
 
   //! Render
   return (
@@ -161,19 +101,24 @@ const SendTrac = () => {
       body={
         <UX.Box spacing="xxl" style={{width: '100%'}}>
           <UX.Box layout="column" style={{width: '100%'}} spacing="xss">
-            <UX.Box layout="row_between" style={{alignItems: 'flex-start'}}>
+            <UX.Box layout="row_between" style={{alignItems: 'baseline'}}>
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
                 title="Send"
               />
-              <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
-                <UX.Box layout="row" spacing="xs">
+              <UX.Box layout="column" style={{alignItems: 'flex-end', marginLeft: '25px' }}>
+                <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
                     <UX.Text title="Confirmed:" styleType="body_14_bold" />
                     <UX.Text
                     title={`${confirmed || '0'} TNK`}
                     styleType="body_14_bold"
-                    customStyles={{color: colors.green_500, marginLeft: 4}}
+                    customStyles={{
+                      color: colors.green_500, 
+                      textAlign: 'right',
+                      wordBreak: 'break-all',
+                      maxWidth: '70%'
+                    }}
                     />
                 </UX.Box>
                 
@@ -219,23 +164,33 @@ const SendTrac = () => {
               </UX.Box>
             </UX.Box>
             <UX.Box layout="column" style={{width: '100%', alignItems: 'flex-end'}}>
-                <UX.Box layout="row" spacing="xs">
+                <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
                     <UX.Text title="Unconfirmed:" styleType="body_14_bold" />
                     <UX.Text
                     title={`${unconfirmed || '0'} TNK`}
                     styleType="body_14_bold"
-                    customStyles={{color: colors.green_500, marginLeft: 4}}
+                    customStyles={{
+                      color: colors.green_500, 
+                      textAlign: 'right',
+                      wordBreak: 'break-all',
+                      maxWidth: '60%'
+                    }}
                     />
                 </UX.Box>
                 
             </UX.Box>
             <UX.Box layout="column" style={{width: '100%', alignItems: 'flex-end'}}>
-            <UX.Box layout="row" spacing="xs">
+            <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
                 <UX.Text title="Total:" styleType="body_14_bold" />
                 <UX.Text
                   title={`${total || '0'} TNK`}
                   styleType="body_14_bold"
-                  customStyles={{color: colors.green_500}}
+                  customStyles={{
+                    color: colors.green_500,
+                    textAlign: 'right',
+                    wordBreak: 'break-all',
+                    maxWidth: '60%'
+                  }}
                 />
             </UX.Box>
             </UX.Box>
@@ -284,18 +239,9 @@ const SendTrac = () => {
           <UX.Button
             styleType="primary"
             isDisable={!isFormValid}
-            title="Send"
+            title="Confirm"
             onClick={handleNavigate}
           />
-          <UX.CustomModal isOpen={openPinModal} onClose={() => setOpenPinModal(false)}>
-            <UX.Box layout="column_center" spacing="xl" style={{padding: '16px'}}>
-              <SVG.UnlockIcon />
-              <UX.Text title="PIN" styleType="heading_24" />
-              <UX.Text title="Enter your PIN code to confirm the transaction" styleType="body_16_normal" />
-              <UX.PinInput ref={pinRef} onChange={setPinValue} />
-              <UX.Button styleType="primary" title={sending ? 'Sending...' : 'Confirm'} isDisable={!pinValue || sending} onClick={onConfirmPin} />
-            </UX.Box>
-          </UX.CustomModal>
         </UX.Box>
       }
     />

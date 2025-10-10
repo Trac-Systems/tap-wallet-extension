@@ -107,7 +107,6 @@ const Home = () => {
     pageSize: PAGE_SIZE,
   });
 
-  console.log('networkFilters', networkFilters);
   const tabItems = [
     {label: 'Tokens', content: <TapList networkFilters={networkFilters} onFilterChange={async (filters) => {
       setNetworkFilters(filters);

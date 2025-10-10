@@ -58,12 +58,20 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
               handleClose();
             }}
           >
-            <UX.Box layout="row_between" style={{width: '100%'}}>
+            <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
               <UX.Box layout="row_center" spacing="xs">
                 <SVG.TracIcon width={28} height={28} />
-                <UX.Text title="Send TNK" styleType="body_16_bold" />
+                <UX.Text title="Send TNK" styleType="body_16_bold"/>
               </UX.Box>
-              <UX.Text title={tnkBalance} styleType="body_16_bold" />
+              <UX.Text 
+                title={tnkBalance} 
+                styleType="body_16_bold" 
+                customStyles={{
+                  textAlign: 'right',
+                  wordBreak: 'break-all',
+                  maxWidth: '60%'
+                }}
+              />
             </UX.Box>
           </UX.Box>
         ) : null}

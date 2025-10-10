@@ -15,6 +15,7 @@ export class SingleWallet {
   type = WALLET_TYPE;
   network: bitcoin.Network = bitcoin.networks.bitcoin;
   accounts: ECPairInterface[] = [];
+  tracPrivateKeys: string[] = []; // Store TRAC private keys as hex strings
 
   constructor(options?: any) {
     if (options) {
@@ -29,13 +30,17 @@ export class SingleWallet {
         this.accounts.push(account);
       }
     }
+    if (options?.tracPrivateKeys) {
+      this.tracPrivateKeys = options.tracPrivateKeys;
+    }
   }
 
-  serialize(): {privateKeys: string[]} {
+  serialize(): {privateKeys: string[]; tracPrivateKeys: string[]} {
     return {
       privateKeys: this.accounts.map(account =>
         account.privateKey?.toString('hex'),
       ),
+      tracPrivateKeys: this.tracPrivateKeys,
     };
   }
 
@@ -71,6 +76,19 @@ export class SingleWallet {
   exportPrivateKey(publicKey: string) {
     const keyPair = this.retrievePrivateKey(publicKey);
     return keyPair.privateKey?.toString('hex');
+  }
+
+  // TRAC private key management methods
+  addTracPrivateKey(tracPrivateKey: string) {
+    this.tracPrivateKeys.push(tracPrivateKey);
+  }
+
+  getTracPrivateKey(accountIndex: number = 0): string | null {
+    return this.tracPrivateKeys[accountIndex] || null;
+  }
+
+  exportTracPrivateKey(accountIndex: number = 0): string | null {
+    return this.getTracPrivateKey(accountIndex);
   }
 
   retrievePublicKeys() {

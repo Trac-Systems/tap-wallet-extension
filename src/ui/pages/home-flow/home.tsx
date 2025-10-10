@@ -8,6 +8,7 @@ import {useNavigate, useLocation} from 'react-router-dom';
 import TapList from './components/tap-list';
 import {PAGE_SIZE, useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
+import {WalletSelector} from '../../redux/reducer/wallet/selector';
 import {useInscriptionHook} from './hook';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {Inscription} from '@/src/wallet-instance';
@@ -39,7 +40,12 @@ const Home = () => {
   //! State
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openDrawerInscription, setOpenDrawerInscription] = useState(false);
+  const [networkFilters, setNetworkFilters] = useState<{bitcoin: boolean; trac: boolean}>({
+    bitcoin: true,
+    trac: true,
+  });
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: PAGE_SIZE,
@@ -101,8 +107,13 @@ const Home = () => {
     pageSize: PAGE_SIZE,
   });
 
+  console.log('networkFilters', networkFilters);
   const tabItems = [
-    {label: 'Tokens', content: <TapList />, parentIndex: 0},
+    {label: 'Tokens', content: <TapList networkFilters={networkFilters} onFilterChange={async (filters) => {
+      setNetworkFilters(filters);
+      const walletIndex = activeWallet?.index ?? 0;
+      await walletProvider.setNetworkFilters(filters, walletIndex);
+    }} />, parentIndex: 0},
     {
       label: 'Inscriptions',
       content: (
@@ -147,6 +158,20 @@ const Home = () => {
     getTapList(1);
     getInscriptionList(0);
   }, [activeAccount.key, activeAccount.address]);
+
+  // Load network filters from service
+  useEffect(() => {
+    const loadNetworkFilters = async () => {
+      try {
+        const walletIndex = activeWallet?.index ?? 0;
+        const filters = await walletProvider.getNetworkFilters(walletIndex);
+        setNetworkFilters(filters);
+      } catch (error) {
+        console.error('Failed to load network filters:', error);
+      }
+    };
+    loadNetworkFilters();
+  }, [walletProvider, activeWallet?.index]);
 
   // Debug modal state
 
@@ -316,7 +341,7 @@ const Home = () => {
               <SVG.AddIcon />
             </UX.Box>
           </UX.Box>
-          <ListWallets />
+          <ListWallets networkFilters={networkFilters} />
           <UX.Box style={{padding: '0 24px'}} spacing="xlg">
             <UX.Tabs tabs={tabItems} />
           </UX.Box>

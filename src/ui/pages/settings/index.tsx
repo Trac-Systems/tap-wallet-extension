@@ -13,6 +13,7 @@ import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useIsTabOpen, useOpenInTab} from '../../browser';
 import {useResetReduxState} from '../../hook/reset-redux-state';
 import {ConnectedSite} from '@/src/background/service/permission.service';
+import {useIsTracSingleWallet} from '../home-flow/hook';
 
 const SettingPage = () => {
   //! State
@@ -36,6 +37,7 @@ const SettingPage = () => {
   }, [activeWallet]);
   const wallet = useWalletProvider();
   const resetReduxState = useResetReduxState();
+  const isTracSingleWallet = useIsTracSingleWallet();
 
   useMemo(async () => {
     setIsExtensionInTab(await isTabOpen());
@@ -68,7 +70,7 @@ const SettingPage = () => {
 
     const functions = [
       {
-        title: 'Address Type',
+        title: 'Bitcoin Address Type',
         desc: descAddress,
         link: '/setting/choose-address',
       },
@@ -102,9 +104,14 @@ const SettingPage = () => {
       {title: 'Manage Authority', link: '/authority-detail'},
     ];
 
-    const settings = checkIsSingleWallet
+    let settings = checkIsSingleWallet
       ? functions.filter(item => item.title !== 'Show recovery phrase')
       : functions;
+
+    // Hide Bitcoin Address Type for TRAC single wallets
+    if (isTracSingleWallet) {
+      settings = settings.filter(item => item.title !== 'Bitcoin Address Type');
+    }
 
     return settings.filter(item => {
       if (item.title === 'Manage Authority') {
@@ -118,6 +125,7 @@ const SettingPage = () => {
     activeWallet,
     sitesConnected,
     currentAuthority,
+    isTracSingleWallet,
   ]);
 
   const handleExpandView = async () => {

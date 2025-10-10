@@ -152,7 +152,7 @@ export class WalletService {
   };
 
   generateMnemonic() {
-    return bip39.generateMnemonic(128);
+    return bip39.generateMnemonic(256);
   }
 
   async createTempWallet(type: string, options: unknown) {
@@ -208,11 +208,13 @@ export class WalletService {
   async createWalletFromPrivateKey(
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ): Promise<IWallet> {
     const wallet = await this._addNewWallet(
       'Single Wallet',
       {
         privateKeys: [privateKey],
+        tracPrivateKeys: options?.tracPrivateKeys || [],
       },
       addressType,
     );

@@ -25,6 +25,8 @@ interface ICardAddressProps {
   assets?: AssetData;
   item?: IDisplayAccount;
   hasVault?: boolean;
+  assetUnit?: string;
+  assetIcon?: React.ReactNode;
 }
 const CardAddress = (props: ICardAddressProps) => {
   const {
@@ -38,6 +40,7 @@ const CardAddress = (props: ICardAddressProps) => {
     isAccount,
     hasVault,
   } = props;
+  const { assetUnit, assetIcon } = props;
   const navigate = useNavigate();
 
   return (
@@ -80,18 +83,20 @@ const CardAddress = (props: ICardAddressProps) => {
           layout="box_border"
           style={{marginTop: '10px', background: colors.black_2}}>
           <Box layout="row" spacing="sm">
-            <SVG.BitcoinIcon width={20} height={20} />
+            {assetIcon ?? <SVG.BitcoinIcon width={20} height={20} />}
             <Text
-              title={`${assets?.totalBtc} BTC`}
+              title={`${assets?.totalBtc} ${assetUnit || 'BTC'}`}
               styleType="body_14_bold"
               customStyles={{color: colors.main_500}}
             />
           </Box>
-          <Text
-            title={`${assets?.totalInscription} INSCRIPTIONS`}
-            styleType="body_14_bold"
-            customStyles={{color: colors.main_500}}
-          />
+          {assets?.totalInscription ? (
+            <Text
+              title={`${assets?.totalInscription} INSCRIPTIONS`}
+              styleType="body_14_bold"
+              customStyles={{color: colors.main_500}}
+            />
+          ) : null}
         </Box>
       )}
     </Box>

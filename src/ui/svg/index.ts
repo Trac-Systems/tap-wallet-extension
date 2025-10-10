@@ -38,10 +38,11 @@ import FilterIcon from './FilterIcon';
 import SearchIcon from './Search';
 import HyperfunIcon from './Hyperfun';
 import HypermallIcon from './Hypermall';
+import TracIcon from './Trac';
 
 export const SVG = {
   ArrowBackIcon,
-  QuestionMark,
+  QuestionMark, 
   RefreshIcon,
   CloseIcon,
   TransferIcon,
@@ -80,5 +81,6 @@ export const SVG = {
   SearchIcon,
   FilterIcon,
   HyperfunIcon,
-  HypermallIcon
+  HypermallIcon,
+  TracIcon
 };

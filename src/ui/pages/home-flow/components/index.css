@@ -94,13 +94,13 @@
 
 .cardSliderContainer {
   box-shadow: rgba(234, 91, 100, 0.5) 1.95px 1.95px 2.6px;
-  height: 170px;
+  height: 148px;
   background: linear-gradient(45deg, #f79e6d 0%, #c54359 50%, #c54359 100%);
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 16px;
+  padding: 24px;
   /* justify-content: space-between; */
   gap: 8px;
 }
@@ -233,6 +233,7 @@
   overflow: hidden;
   background-color: #191919 !important;
   height: 30vh !important;
+  padding-bottom: 16px; /* prevent content from sticking to bottom */
 }
 @media only screen and (min-width: 600px) {
   .drawer-add-wallet {
@@ -240,6 +241,7 @@
     height: 21vh !important;
     left: auto !important;
     right: auto !important;
+    padding-bottom: 16px;
   }
 }
 
@@ -256,6 +258,38 @@
     height: auto !important;
     left: auto !important;
     right: auto !important;
+  }
+}
+
+.drawer-receive {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  overflow: hidden;
+  background-color: #191919 !important;
+  height: auto !important;
+}
+@media only screen and (min-width: 600px) {
+  .drawer-receive {
+    max-width: 500px !important;
+    width: 100%;
+    height: auto !important;
+    margin: auto;
+  }
+}
+
+.drawer-network-filter {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  overflow: hidden;
+  background-color: #191919 !important;
+  height: auto !important;
+}
+@media only screen and (min-width: 600px) {
+  .drawer-network-filter {
+    max-width: 500px !important;
+    width: 100%;
+    height: auto !important;
+    margin: auto;
   }
 }
 .inscription-detail {
@@ -355,6 +389,3 @@
   }
 }
 
-.authority-token-section {
-  
-}

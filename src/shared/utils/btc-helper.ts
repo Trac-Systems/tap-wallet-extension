@@ -105,3 +105,23 @@ export const formatTicker = (ticker: string) => {
 
   return ticker;
 };
+
+/**
+ * Format TRAC balance to max 8 decimal places with ...
+ * @param balance - TRAC balance string
+ * @returns Formatted balance string with max 8 decimals and ... if truncated
+ */
+export const formatTracBalance = (balance: string | undefined): string => {
+  if (!balance || balance === '0') return '0';
+  
+  const num = parseFloat(balance);
+  if (isNaN(num)) return '0';
+  
+  // Check if has more than 8 decimal places
+  const decimalPart = balance.split('.')[1];
+  if (decimalPart && decimalPart.length > 8) {
+    return num.toFixed(8) + '...';
+  }
+  
+  return balance;
+};

@@ -1,7 +1,7 @@
 import {UX} from '@/src/ui/component';
 import {SVG} from '@/src/ui/svg';
 import {useAccountBalance, useActiveTracAddress, useTracBalances, useIsTracSingleWallet} from '../hook';
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {satoshisToAmount, formatTracBalance} from '@/src/shared/utils/btc-helper';
 
 interface ModalSelectTokenProps {
   handleClose: () => void;
@@ -19,8 +19,8 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
   // Format BTC balance using same method as tap-list-child
   const btcBalance = satoshisToAmount(accountBalance.amount);
   
-  // Format TNK balance from API
-  const tnkBalance = tracLoading ? "Loading..." : tracBalance;
+  // Format TNK balance from API with 8 decimal places limit
+  const tnkBalance = tracLoading ? "-" : formatTracBalance(tracBalance);
 
   return (
     <UX.Box style={{padding: '16px'}} spacing="xl">
@@ -63,15 +63,17 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
                 <SVG.TracIcon width={28} height={28} />
                 <UX.Text title="Send TNK" styleType="body_16_bold"/>
               </UX.Box>
-              <UX.Text 
-                title={tnkBalance} 
-                styleType="body_16_bold" 
-                customStyles={{
-                  textAlign: 'right',
-                  wordBreak: 'break-all',
-                  maxWidth: '60%'
-                }}
-              />
+              <UX.Tooltip text={tracBalance} isText>
+                <UX.Text 
+                  title={tnkBalance} 
+                  styleType="body_16_bold" 
+                  customStyles={{
+                    textAlign: 'right',
+                    wordBreak: 'break-all',
+                    maxWidth: '60%'
+                  }}
+                />
+              </UX.Tooltip>
             </UX.Box>
           </UX.Box>
         ) : null}

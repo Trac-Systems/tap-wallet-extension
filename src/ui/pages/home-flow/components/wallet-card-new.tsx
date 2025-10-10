@@ -90,7 +90,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
         </div>
         <div>
         {activeWallet?.type?.includes('Single') ? 
-        <UX.Box style={{height: '32px'}}/>
+        <UX.AddressBar address={address} />
         : (
           <UX.Box
             layout="row"
@@ -112,8 +112,6 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
             </UX.Box>
           </UX.Box>
         )}
-
-        {/* <UX.AddressBar address={address} /> */}
         </div>
         <UX.Box layout="row_between">
           <UX.Box layout="row" spacing="xs" style={{alignItems: 'center', width: '100%'}}>

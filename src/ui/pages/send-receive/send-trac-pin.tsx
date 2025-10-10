@@ -140,7 +140,7 @@ const SendTracPin = () => {
     <LayoutSendReceive
       header={<UX.TextHeader onBackClick={handleGoBack} />}
       body={
-        <UX.Box layout="column_center" style={{marginTop: '5rem'}} spacing="xl">
+        <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
             title={isLegacyUser ? "PIN" : "Password"}

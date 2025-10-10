@@ -1,4 +1,4 @@
-import { satoshisToAmount } from '@/src/shared/utils/btc-helper';
+import { satoshisToAmount, formatTracBalance } from '@/src/shared/utils/btc-helper';
 import { UX } from '@/src/ui/component';
 import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
@@ -401,11 +401,13 @@ const TapListChild = (props: TapListChildProps) => {
                 />
               </UX.Box>
 
-              <UX.Text
-                title={tracBalance}
-                styleType="body_16_normal"
-                customStyles={{ color: 'white' }}
-              />
+              <UX.Tooltip text={tracBalance} isText>
+                <UX.Text
+                  title={formatTracBalance(tracBalance)}
+                  styleType="body_16_normal"
+                  customStyles={{ color: 'white' }}
+                />
+              </UX.Tooltip>
             </UX.Box>
           </UX.Box>
         )}

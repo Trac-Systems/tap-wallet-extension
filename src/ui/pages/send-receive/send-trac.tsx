@@ -17,12 +17,26 @@ const SendTrac = () => {
   const {total, confirmed, unconfirmed, loading: balancesLoading} = useTracBalances(tracAddress);
   const [disabled, setDisabled] = useState(true);
   const [toInfo, setToInfo] = useState({address: ''});
+  const [addressError, setAddressError] = useState('');
   const {showToast} = useCustomToast();
   const [tracSendNumberValue, setTracSendNumberValue] = useState('');
   const wallet = useWalletProvider();
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
+    
+    // Validate address with detailed error messages
+    if (address.trim() === '') {
+      setAddressError('');
+      return;
+    }
+    
+    const validation = TracApiService.validateTracAddress(address);
+    if (!validation.valid) {
+      setAddressError('Invalid TRAC address format');
+    } else {
+      setAddressError('');
+    }
   };
 
   const onTracAmountChange = (input: string) => {
@@ -42,7 +56,8 @@ const SendTrac = () => {
   const isFormValid = isTracAddress(toInfo.address) && 
     tracSendNumberValue.trim() !== '' && 
     parseFloat(tracSendNumberValue) > 0 &&
-    parseFloat(tracSendNumberValue) <= parseFloat(confirmed || '0');
+    parseFloat(tracSendNumberValue) <= parseFloat(confirmed || '0') &&
+    !addressError;
 
   //! Function
   const handleGoBack = () => {
@@ -114,10 +129,10 @@ const SendTrac = () => {
                     title={`${confirmed || '0'} TNK`}
                     styleType="body_14_bold"
                     customStyles={{
+                      marginLeft: '6px',
                       color: colors.green_500, 
                       textAlign: 'right',
-                      wordBreak: 'break-all',
-                      maxWidth: '70%'
+                      wordBreak: 'break-word',
                     }}
                     />
                 </UX.Box>
@@ -206,7 +221,7 @@ const SendTrac = () => {
               style={{
                 borderRadius: 10,
                 padding: '12px 14px',
-                border: '1px solid #545454',
+                border: `1px solid ${addressError ? '#D16B7C' : '#545454'}`,
                 backgroundColor: '#2727276b',
               }}
             >
@@ -226,6 +241,17 @@ const SendTrac = () => {
                 autoFocus={true}
               />
             </UX.Box>
+            {addressError && (
+              <UX.Text
+                title={addressError}
+                styleType="body_12_normal"
+                customStyles={{
+                  color: '#D16B7C',
+                  marginTop: '4px',
+                  marginLeft: '4px'
+                }}
+              />
+            )}
           </UX.Box>
         </UX.Box>
       }

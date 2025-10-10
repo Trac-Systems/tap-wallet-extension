@@ -195,12 +195,72 @@ export class TracApiService {
   }
   
   /**
-   * Validate TRAC address format
+   * Validate TRAC address format with improved checks
    */
   static isValidTracAddress(addr: string): boolean {
     const a = addr.trim();
     if (!a) return false;
-    // Basic TRAC address check: must start with 'trac' and be bech32-like lowercase
-    return /^trac[0-9a-z]+$/.test(a);
+    
+    // Basic format check: must start with 'trac' and be lowercase alphanumeric
+    if (!/^trac[0-9a-z]+$/.test(a)) return false;
+    
+    // Check if it's a valid bech32m format
+    // TRAC addresses use bech32m encoding with variable HRP length
+    const separatorIndex = a.indexOf('1');
+    if (separatorIndex === -1) return false;
+    
+    const prefix = a.slice(0, separatorIndex);
+    const suffix = a.slice(separatorIndex + 1);
+    
+    // HRP must be 'trac' (4 characters)
+    if (prefix !== 'trac') return false;
+    
+    // Suffix must be valid bech32 characters and have correct length
+    const bech32Chars = /^[qpzry9x8gf2tvdw0s3jn54khce6mua7l]+$/;
+    if (!bech32Chars.test(suffix)) return false;
+    
+    // Suffix length should be: Math.ceil((32 * 8) / 5) + 6 = 58 characters
+    const expectedSuffixLength = Math.ceil((32 * 8) / 5) + 6; // 58
+    if (suffix.length !== expectedSuffixLength) return false;
+    
+    return true;
+  }
+
+  /**
+   * Validate TRAC address with detailed error messages
+   */
+  static validateTracAddress(addr: string): { valid: boolean; error?: string } {
+    const a = addr.trim();
+    
+    if (!a) return { valid: false, error: 'Address cannot be empty' };
+    
+    if (!/^trac[0-9a-z]+$/.test(a)) {
+      return { valid: false, error: 'Invalid TRAC address format. Must start with "trac" and contain only lowercase letters and numbers' };
+    }
+    
+    // Check bech32m format
+    const separatorIndex = a.indexOf('1');
+    if (separatorIndex === -1) {
+      return { valid: false, error: 'Invalid TRAC address format. Must contain separator "1"' };
+    }
+    
+    const prefix = a.slice(0, separatorIndex);
+    const suffix = a.slice(separatorIndex + 1);
+    
+    if (prefix !== 'trac') {
+      return { valid: false, error: 'Invalid TRAC address prefix. Must start with "trac"' };
+    }
+    
+    const bech32Chars = /^[qpzry9x8gf2tvdw0s3jn54khce6mua7l]+$/;
+    if (!bech32Chars.test(suffix)) {
+      return { valid: false, error: 'Invalid TRAC address suffix. Contains invalid bech32 characters' };
+    }
+    
+    const expectedSuffixLength = Math.ceil((32 * 8) / 5) + 6; // 58
+    if (suffix.length !== expectedSuffixLength) {
+      return { valid: false, error: `Invalid TRAC address length. Suffix must be ${expectedSuffixLength} characters, got ${suffix.length}` };
+    }
+    
+    return { valid: true };
   }
 }

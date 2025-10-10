@@ -7,6 +7,7 @@ import {UX} from '../../component/index';
 import {useCustomToast} from '../../component/toast-custom';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {satoshisToAmount} from '../../helper';
+import {formatTracBalance} from '../../../shared/utils/btc-helper';
 import {useTracBalances} from '../home-flow/hook';
 import LayoutScreenImport from '../../layouts/import-export';
 import {GlobalActions} from '../../redux/reducer/global/slice';
@@ -375,7 +376,7 @@ const ChooseAddress = () => {
                 path="m/0'/0'/0'"
                 address={tracAddress}
                 hasVault={tracBalance && parseFloat(tracBalance) > 0}
-                assets={tracBalance && parseFloat(tracBalance) > 0 ? { totalBtc: tracBalance, satoshis: 0, totalInscription: 0 } : undefined}
+                assets={tracBalance && parseFloat(tracBalance) > 0 ? { totalBtc: formatTracBalance(tracBalance), satoshis: 0, totalInscription: 0 } : undefined}
                 assetUnit={tracBalance && parseFloat(tracBalance) > 0 ? "TNK" : undefined}
                 assetIcon={<SVG.TracIcon width={20} height={20} />}
                 onClick={() => {}}

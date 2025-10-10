@@ -90,7 +90,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
         </div>
         <div>
         {activeWallet?.type?.includes('Single') ? 
-        <UX.AddressBar address={address} />
+        <UX.AddressBar address={tracAddress} />
         : (
           <UX.Box
             layout="row"

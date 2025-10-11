@@ -182,7 +182,14 @@ const ListWallets = (props: ListWalletsProps) => {
         {listWallets.map((wallet: WalletDisplay) => {
           return (
             <SwipeSlide key={wallet.key}>
-              {hasTrac && networkFilters?.trac !== false ? (
+              {isTracSingle ? (
+                <WalletCardNew
+                  keyring={wallet}
+                  handleOpenDrawerEdit={handleOpenDrawerEdit}
+                  handleOpenDrawerAccount={handleOpenDrawerAccount}
+                  isLoadingUtxo={isLoadingUtxo}
+                />
+              ) : hasTrac && networkFilters?.bitcoin === false ? (
                 <WalletCardNew
                   keyring={wallet}
                   handleOpenDrawerEdit={handleOpenDrawerEdit}

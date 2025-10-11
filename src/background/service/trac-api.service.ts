@@ -54,7 +54,7 @@ export class TracApiService {
       throw new Error("TracCryptoApi not available");
     }
     
-    const tracDerivationPath = `m/0'/0'/${accountIndex}'`;
+    const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
     const generated = await tracCrypto.address.generate('trac', mnemonic, tracDerivationPath);
     
     if (!generated || !generated.secretKey) {

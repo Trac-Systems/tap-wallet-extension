@@ -23,11 +23,11 @@ import ModalSelectToken from './modal-select-token';
 import WalletCard from './wallet-card-item';
 import WalletCardNew from './wallet-card-new';
 import { useActiveTracAddress, useIsTracSingleWallet } from '../hook';
-import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
-import {useNavigate} from 'react-router-dom';
 import {SVG} from '@/src/ui/svg';
 import { debounce } from 'lodash';
 import { useRef } from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 
 interface ListWalletsProps {
   networkFilters?: {bitcoin: boolean; trac: boolean};
@@ -35,6 +35,7 @@ interface ListWalletsProps {
 
 const ListWallets = (props: ListWalletsProps) => {
   const {networkFilters} = props;
+  const {showToast} = useCustomToast();
   //! State
   const navigate = useNavigate();
   const [openDrawerEditWallet, setOpenDrawerEditWallet] = useState(false);
@@ -49,7 +50,6 @@ const ListWallets = (props: ListWalletsProps) => {
   const dispatch = useAppDispatch();
   const wallet = useWalletProvider();
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
-  const {showToast} = useCustomToast();
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
@@ -292,8 +292,14 @@ const ListWallets = (props: ListWalletsProps) => {
         onClose={() => setOpenSelectToken(false)}>
         <ModalSelectToken 
           handleClose={() => setOpenSelectToken(false)}
-          onSelectBTC={() => navigate('/home/send')}
-          onSelectTNK={() => navigate('/home/send-trac')}
+          onSelectBTC={() => {
+            navigate('/home/send');
+            setOpenSelectToken(false);
+          }}
+          onSelectTNK={() => {
+            showToast({title: 'Mainnet not available yet', type: 'error'});
+            // Modal stays open for user to try again or select other option
+          }}
         />
       </UX.DrawerCustom>
     </>

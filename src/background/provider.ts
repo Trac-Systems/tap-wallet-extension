@@ -407,6 +407,20 @@ export class Provider {
     return (wallet as any).exportTracPrivateKey(accountIndex);
   };
 
+  getTracPrivateKeyUnlocked = async (
+    walletIndex: number,
+    accountIndex: number = 0,
+  ) => {
+    if (!this.isUnlocked()) {
+      throw new Error('Wallet must be unlocked to access TRAC private key');
+    }
+    const wallet = walletService.wallets[walletIndex];
+    if (!wallet || wallet.type !== 'Single Wallet') {
+      throw new Error('Wallet not found or not a Single Wallet');
+    }
+    return (wallet as any).exportTracPrivateKey(accountIndex);
+  };
+
 
   setWalletName = (wallet: WalletDisplay, name: string) => {
     walletConfig.setWalletName(wallet.key, name);

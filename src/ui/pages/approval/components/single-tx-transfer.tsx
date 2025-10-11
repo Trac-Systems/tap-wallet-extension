@@ -694,6 +694,7 @@ export const Step4 = ({
   const pushBitcoinTx = usePushBitcoinTxCallback();
   const [, resolveApproval, rejectApproval] = useApproval();
   const [valueInput, setValueInput] = useState('');
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const checkValue = !isValidAuthInput(valueInput);
   const wallet = useWalletProvider();
   const pinInputRef = useRef<AuthInputRef>(null);
@@ -718,6 +719,20 @@ export const Step4 = ({
 
   useEffect(() => {
     checkUserType();
+    // Check if wallet is already unlocked
+    const checkUnlockStatus = async () => {
+      try {
+        const unlocked = await wallet.isUnlocked();
+        setIsUnlocked(unlocked);
+        if (unlocked) {
+          // Auto proceed with transaction if already unlocked
+          handleSubmit();
+        }
+      } catch (error) {
+        setIsUnlocked(false);
+      }
+    };
+    checkUnlockStatus();
   }, []);
 
   const spendUtxos = useMemo(() => {
@@ -725,27 +740,31 @@ export const Step4 = ({
   }, [contextData.rawTxInfo?.inputs]);
 
   const handleSubmit = useCallback(async () => {
-    await wallet
-      .unlockApp(valueInput)
-      .then(() => {
-        pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos).then(
-          ({success, error, txid}) => {
-            if (success) {
-              // mark order as paid
-              wallet.paidOrder(contextData.order?.id);
-
-              resolveApproval({txid});
-            } else {
-              rejectApproval(error);
-            }
-          },
-        );
-      })
-      .catch(() => {
-        showToast({type: 'error', title: isLegacyUser ? 'wrong PIN' : 'wrong password'});
-        setValueInput('');
-        pinInputRef.current?.clear?.();
-      });
+    try {
+      // Check if wallet is already unlocked
+      const isUnlocked = await wallet.isUnlocked();
+      
+      if (!isUnlocked) {
+        // Only unlock if not already unlocked
+        await wallet.unlockApp(valueInput);
+      }
+      
+      // Proceed with transaction
+      const result = await pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos);
+      const {success, error, txid} = result;
+      
+      if (success) {
+        // mark order as paid
+        wallet.paidOrder(contextData.order?.id);
+        resolveApproval({txid});
+      } else {
+        rejectApproval(error);
+      }
+    } catch (error) {
+      showToast({type: 'error', title: isLegacyUser ? 'wrong PIN' : 'wrong password'});
+      setValueInput('');
+      pinInputRef.current?.clear?.();
+    }
   }, [contextData.rawTxInfo, valueInput]);
 
   useEffect(() => {
@@ -756,7 +775,7 @@ export const Step4 = ({
     setValueInput(pwd);
   };
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!checkValue && 'Enter' == e.key) {
+    if ((!checkValue || isUnlocked) && 'Enter' == e.key) {
       handleSubmit();
     }
   };
@@ -764,29 +783,34 @@ export const Step4 = ({
     <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
       <SVG.UnlockIcon />
       <UX.Text
-        title={isLegacyUser ? "PIN" : "Password"}
+        title={isUnlocked ? "Confirm Transaction" : (isLegacyUser ? "PIN" : "Password")}
         styleType="heading_24"
         customStyles={{
           marginTop: '16px',
         }}
       />
       <UX.Text
-        title={isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction"}
+        title={isUnlocked 
+          ? "Wallet is unlocked. Click confirm to proceed with the transaction." 
+          : (isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction")
+        }
         styleType="body_16_normal"
         customStyles={{textAlign: 'center'}}
       />
-      {isLegacyUser ? (
-        <UX.PinInput
-          onChange={handleOnChange}
-          onKeyUp={e => handleOnKeyUp(e)}
-          ref={legacyPinInputRef}
-        />
-      ) : (
-        <UX.AuthInput
-          onChange={handleOnChange}
-          onKeyUp={e => handleOnKeyUp(e)}
-          ref={pinInputRef}
-        />
+      {!isUnlocked && (
+        isLegacyUser ? (
+          <UX.PinInput
+            onChange={handleOnChange}
+            onKeyUp={e => handleOnKeyUp(e)}
+            ref={legacyPinInputRef}
+          />
+        ) : (
+          <UX.AuthInput
+            onChange={handleOnChange}
+            onKeyUp={e => handleOnKeyUp(e)}
+            ref={pinInputRef}
+          />
+        )
       )}
     </UX.Box>
   );

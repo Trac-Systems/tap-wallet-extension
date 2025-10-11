@@ -18,6 +18,7 @@ const Security = () => {
   const authInputRef = useRef<AuthInputRef>(null);
   const [valueInput, setValueInput] = useState('');
   const [disabled, setDisabled] = useState(true);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
   const wallet = useWalletProvider();
 
@@ -50,10 +51,27 @@ const Security = () => {
   };
 
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!disabled && 'Enter' == e.key) {
+    if ((!disabled || isUnlocked) && 'Enter' == e.key) {
       handleNavigate();
     }
   };
+
+  // Check unlock status on component mount
+  useEffect(() => {
+    const checkUnlockStatus = async () => {
+      try {
+        const unlocked = await wallet.isUnlocked();
+        setIsUnlocked(unlocked);
+        if (unlocked) {
+          setDisabled(false); // Enable confirm button if already unlocked
+          // DO NOT auto-proceed - always require user confirmation
+        }
+      } catch (error) {
+        setIsUnlocked(false);
+      }
+    };
+    checkUnlockStatus();
+  }, []);
 
   //! Effect
   useEffect(() => {
@@ -61,12 +79,14 @@ const Security = () => {
   }, []);
 
   useEffect(() => {
-    if (isLegacyUser) {
+    if (isUnlocked) {
+      setDisabled(false); // Always enabled if unlocked
+    } else if (isLegacyUser) {
       setDisabled(!(valueInput?.length === 4));
     } else {
       setDisabled(!isValidAuthInput(valueInput));
     }
-  }, [valueInput, isLegacyUser]);
+  }, [valueInput, isLegacyUser, isUnlocked]);
 
   //! Render
   return (
@@ -76,31 +96,36 @@ const Security = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title={isLegacyUser ? "PIN" : "Password"}
+            title={isUnlocked ? "Confirm Transaction" : (isLegacyUser ? "PIN" : "Password")}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title={isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction"}
+            title={isUnlocked 
+              ? "Wallet is unlocked. Click confirm to proceed with the transaction." 
+              : (isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction")
+            }
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
-          {isLegacyUser ? (
-            <UX.PinInput
-              onChange={handleOnChange}
-              onKeyUp={e => handleOnKeyUp(e)}
-              ref={pinInputRef}
-            />
-          ) : (
-            <UX.AuthInput
-              placeholder={isLegacyUser ? 'Enter your PIN' : 'Enter your password'}
-              onChange={handleOnChange}
-              onKeyUp={e => handleOnKeyUp(e)}
-              ref={authInputRef}
-              autoFocus={true}
-            />
+          {!isUnlocked && (
+            isLegacyUser ? (
+              <UX.PinInput
+                onChange={handleOnChange}
+                onKeyUp={e => handleOnKeyUp(e)}
+                ref={pinInputRef}
+              />
+            ) : (
+              <UX.AuthInput
+                placeholder={isLegacyUser ? 'Enter your PIN' : 'Enter your password'}
+                onChange={handleOnChange}
+                onKeyUp={e => handleOnKeyUp(e)}
+                ref={authInputRef}
+                autoFocus={true}
+              />
+            )
           )}
         </UX.Box>
       }
@@ -124,3 +149,4 @@ const Security = () => {
 };
 
 export default Security;
+

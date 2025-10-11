@@ -21,6 +21,7 @@ import SpendableAssetAttentionModal from '@/src/ui/pages/home-flow/components/sp
 import {colors} from '../../themes/color';
 import SpendableContainRuneAttentionModal from '@/src/ui/pages/home-flow/components/spendable-cotain-rune-attention-modal';
 import InscriptionList from './components/Inscription';
+import {useAutoLock} from '../../hook/use-auto-lock';
 
 const Home = () => {
   //! Hooks
@@ -30,7 +31,8 @@ const Home = () => {
   const {getTapList, getInscriptionList} = useInscriptionHook();
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
-
+  
+  useAutoLock(43200, 180); // 12 hours, check every 3 minutes
   const showSpendableList = useAppSelector(GlobalSelector.showSpendableList);
   const runeUtxos = useAppSelector(AccountSelector.runeUtxos);
   const walletProvider = useWalletProvider();

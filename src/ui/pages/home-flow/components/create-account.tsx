@@ -42,7 +42,7 @@ const CreateAccount = () => {
       }
 
       // Generate derivation path based on account index
-      const tracDerivationPath = `m/0'/0'/${accountIndex}'`;
+      const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
       
       const result = await api.address.generate('trac', mnemonic, tracDerivationPath);
       if (result && result.address) {

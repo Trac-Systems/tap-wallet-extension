@@ -27,6 +27,7 @@ interface ICardAddressProps {
   hasVault?: boolean;
   assetUnit?: string;
   assetIcon?: React.ReactNode;
+  hideCopy?: boolean;
 }
 const CardAddress = (props: ICardAddressProps) => {
   const {
@@ -39,6 +40,7 @@ const CardAddress = (props: ICardAddressProps) => {
     assets,
     isAccount,
     hasVault,
+    hideCopy,
   } = props;
   const { assetUnit, assetIcon } = props;
   const navigate = useNavigate();
@@ -75,7 +77,7 @@ const CardAddress = (props: ICardAddressProps) => {
         {isActive ? <SVG.CheckIcon /> : null}
       </Box>
       <Box layout="row_between">
-        <AddressBar address={address} />
+        <AddressBar address={address} hideCopy={hideCopy} />
         {path ? <Text title={path} styleType="body_14_bold" /> : null}
       </Box>
       {hasVault && (

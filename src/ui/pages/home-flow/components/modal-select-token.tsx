@@ -27,7 +27,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
       <UX.Box layout="row_center">
         <div style={{width: 36, height: 4, background: '#3F3F3F', borderRadius: 999}} />
       </UX.Box>
-      <UX.Text title="Select Token" styleType="heading_20" />
+      <UX.Text title="Send Coins" styleType="heading_20" />
 
       <UX.Box spacing="xl">
         {isTracSingle ? null : (
@@ -36,7 +36,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
             style={{cursor: 'pointer'}}
             onClick={() => {
               onSelectBTC();
-              handleClose();
+              // Don't close modal automatically - let parent decide
             }}
           >
             <UX.Box layout="row_between" style={{width: '100%'}}>
@@ -55,7 +55,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
             style={{cursor: 'pointer'}}
             onClick={() => {
               onSelectTNK();
-              handleClose();
+              // Don't close modal automatically - let parent decide
             }}
           >
             <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>

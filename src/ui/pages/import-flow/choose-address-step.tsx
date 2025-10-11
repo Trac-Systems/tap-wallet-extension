@@ -145,7 +145,7 @@ const ChooseAddress = () => {
       }
       
       // Generate TRAC address using the tracCrypto library
-      // If no derivation path provided, use library's default (m/0'/0'/0')
+      // If no derivation path provided, use library's default (m/918'/0'/0'/0')
       const result = await api.address.generate("trac", mnemonic, derivationPath || null);
       if (result && result.address) {
         return result.address;
@@ -179,7 +179,7 @@ const ChooseAddress = () => {
 
       // Generate TRAC address with derivation path for account 0
       const accountIndex = 0;
-      const tracDerivationPath = `m/0'/0'/${accountIndex}'`;
+      const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
       const tracAddress = await generateTracAddress(contextData.mnemonics, tracDerivationPath);
       setTracAddress(tracAddress);
 
@@ -366,14 +366,14 @@ const ChooseAddress = () => {
             {/* TRAC Network Section */}
             <UX.Box spacing="xs" style={{width: '100%'}}>
               <UX.Text
-                title="Track network address:"
+                title="TRAC network address:"
                 styleType="body_16_bold"
                 customStyles={{color: 'white', marginBottom: '8px'}}
               />
               <UX.CardAddress
                 isActive={true}
                 nameCardAddress="TRAC Network (TRAC)"
-                path="m/0'/0'/0'"
+                path="m/918'/0'/0'/0'"
                 address={tracAddress}
                 hasVault={tracBalance && parseFloat(tracBalance) > 0}
                 assets={tracBalance && parseFloat(tracBalance) > 0 ? { totalBtc: formatTracBalance(tracBalance), satoshis: 0, totalInscription: 0 } : undefined}

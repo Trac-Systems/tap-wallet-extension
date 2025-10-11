@@ -1,7 +1,7 @@
 import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {SVG} from '@/src/ui/svg';
-import {useRef, useState, useEffect} from 'react';
+import {useRef, useState, useEffect, useCallback} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useCustomToast} from '../../component/toast-custom';
 import {useActiveTracAddress, useIsTracSingleWallet} from '../home-flow/hook';
@@ -74,9 +74,13 @@ const SendTracPin = () => {
       let secret: Buffer;
       
       if (isTracSingleWallet) {
-        // For TRAC Single wallet: get TRAC private key directly (in original format)
-        const tracPrivateKey = await (wallet as any).getTracPrivateKey(pinValue, activeWallet.index, activeAccount.index);
-        secret = Buffer.from(tracPrivateKey, 'hex'); // Use original hex format
+        // For TRAC Single wallet: get TRAC private key directly
+        const tracPrivateKey = await (wallet as any).getTracPrivateKey(
+          pinValue,
+          activeWallet.index, 
+          activeAccount.index
+        );
+        secret = Buffer.from(tracPrivateKey, 'hex');
       } else {
         // For mnemonic wallet: generate keypair from mnemonic
         const mnemonicData = await wallet.getMnemonics(pinValue, activeWallet);
@@ -135,6 +139,7 @@ const SendTracPin = () => {
       setDisabled(!isValidAuthInput(pinValue));
     }
   }, [pinValue, isLegacyUser]);
+
 
   return (
     <LayoutSendReceive

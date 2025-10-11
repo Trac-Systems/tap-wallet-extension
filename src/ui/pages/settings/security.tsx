@@ -23,7 +23,7 @@ const deriveTracPrivateKeyFromMnemonic = async (mnemonic: string, accountIndex: 
       throw new Error('TracCryptoApi not loaded');
     }
     
-    const derivationPath = `m/0'/0'/${accountIndex}'`;
+    const derivationPath = `m/918'/0'/0'/${accountIndex}'`;
     const { secretKey } = await api.address.generate("trac", mnemonic, derivationPath);
     
     if (!secretKey) {

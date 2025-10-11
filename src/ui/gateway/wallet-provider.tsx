@@ -101,6 +101,10 @@ export interface IWalletProvider {
     walletIndex: number,
     accountIndex: number,
   ): Promise<string>;
+  getTracPrivateKeyUnlocked(
+    walletIndex: number,
+    accountIndex: number,
+  ): Promise<string>;
   verifyPassword(pin: string): Promise<any>;
   getEnableSignData(): Promise<boolean>;
   setEnableSignData(enable: boolean): Promise<void>;

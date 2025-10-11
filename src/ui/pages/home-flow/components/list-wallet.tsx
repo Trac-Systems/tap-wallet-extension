@@ -134,13 +134,14 @@ const ListWallets = (props: ListWalletsProps) => {
             clearTimeout(timeoutRef.current);
           }
           const nextWallet = listWallets[el.activeIndex];
-          await wallet.setActiveWallet(nextWallet, 0);
+          await wallet.setActiveWallet(nextWallet); // Use saved account index
           dispatch(WalletActions.setActiveWallet(nextWallet));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
           retryCountRef.current = 0;
-        } catch {
-          showToast({title: 'Oops something go wrong!!!', type: 'error'});
+        } catch (error) {
+          console.error('Error switching wallet:', error);
+          showToast({title: `Error switching wallet: ${error.message || 'Unknown error'}`, type: 'error'});
         }
       }
     },

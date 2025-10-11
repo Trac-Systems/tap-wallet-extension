@@ -285,9 +285,25 @@ export class Provider {
     }
   };
 
-  setActiveWallet = (wallet: WalletDisplay, accountIndex = 0) => {
+  setActiveWallet = (wallet: WalletDisplay, accountIndex?: number) => {
+    if (!wallet || !wallet.accounts || wallet.accounts.length === 0) {
+      throw new Error('Invalid wallet: no accounts found');
+    }
+    
     walletConfig.setActiveWalletIndex(wallet.index);
-    accountConfig.setActiveAccount(wallet.accounts[accountIndex]);
+    
+    // Use saved account index if not provided
+    const savedAccountIndex = accountIndex !== undefined ? accountIndex : walletConfig.getWalletAccountIndex(wallet.key);
+    const targetAccountIndex = Math.min(savedAccountIndex, wallet.accounts.length - 1);
+    
+    if (!wallet.accounts[targetAccountIndex]) {
+      throw new Error(`Account at index ${targetAccountIndex} not found`);
+    }
+    
+    accountConfig.setActiveAccount(wallet.accounts[targetAccountIndex]);
+    
+    // Save the account index for this wallet
+    walletConfig.setWalletAccountIndex(wallet.key, targetAccountIndex);
   };
 
   getActiveWallet = () => {
@@ -970,6 +986,9 @@ export class Provider {
   changeWallet = (wallet: WalletDisplay, accountIndex = 0, name?: string) => {
     walletConfig.setActiveWalletIndex(wallet.index);
     accountConfig.setActiveAccount(wallet.accounts[accountIndex], name);
+    
+    // Save the account index for this wallet
+    walletConfig.setWalletAccountIndex(wallet.key, accountIndex);
   };
 
   createNewAccountFromMnemonic = async (

@@ -2,6 +2,7 @@ import createPersistStore from '../../storage/persistStore';
 interface IMemStore {
   activeWalletIndex: number;
   contactMap:{ [key: string]: string };
+  walletAccountMap: { [walletKey: string]: number }; // Store last account index for each wallet
 }
 export class WalletConfigService {
   store!: IMemStore;
@@ -16,6 +17,7 @@ export class WalletConfigService {
       template: {
         activeWalletIndex: 0,
         contactMap: {},
+        walletAccountMap: {},
       },
     });
   }
@@ -39,5 +41,21 @@ export class WalletConfigService {
 
   setActiveWalletIndex(index: number) {
     this.store.activeWalletIndex = index;
+  }
+
+  setWalletAccountIndex(walletKey: string, accountIndex: number) {
+    if (!this.store.walletAccountMap) {
+      this.store.walletAccountMap = {};
+    }
+    this.store.walletAccountMap = Object.assign({}, this.store.walletAccountMap, {
+      [walletKey]: accountIndex,
+    });
+  }
+
+  getWalletAccountIndex(walletKey: string) {
+    if (!this.store.walletAccountMap) {
+      this.store.walletAccountMap = {};
+    }
+    return this.store.walletAccountMap[walletKey] || 0;
   }
 }

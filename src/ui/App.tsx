@@ -31,6 +31,10 @@ import Receive from './pages/send-receive/receive-screen';
 import Security from './pages/send-receive/security-transaction-screen';
 import SendBTC from './pages/send-receive/send-btc';
 import SendBTCConfirm from './pages/send-receive/send-btc-confirm';
+import SendTrac from './pages/send-receive/send-trac';
+import SendTracSummary from './pages/send-receive/send-trac-summary';
+import SendTracPin from './pages/send-receive/send-trac-pin';
+import SendTracSuccess from './pages/send-receive/send-trac-success';
 import FailScreen from './pages/send-receive/transaction-fail';
 import SuccessScreen from './pages/send-receive/transaction-success-screen';
 import DappPage from './pages/dapp';
@@ -42,6 +46,7 @@ import SecuritySetting from './pages/settings/security';
 import SettingAdvanced from './pages/settings/setting-advance';
 import ShowKey from './pages/settings/show-key';
 import TxSecurity from './pages/settings/tx-security';
+import ChangePassword from './pages/settings/change-password';
 import {AccountActions} from './redux/reducer/account/slice';
 import {GlobalSelector} from './redux/reducer/global/selector';
 import {GlobalActions} from './redux/reducer/global/slice';
@@ -130,6 +135,7 @@ function App() {
       <Routes>
         {/* Login */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/change-password" element={<ChangePassword />} />
 
         <Route path="/" element={<StartScreen />} />
         <Route path="/create-password" element={<CreatePassWord />} />
@@ -192,6 +198,10 @@ function App() {
         {/* Send */}
         <Route path="/home/send" element={<SendBTC />} />
         <Route path="/home/send-btc-confirm" element={<SendBTCConfirm />} />
+        <Route path="/home/send-trac" element={<SendTrac />} />
+        <Route path="/home/send-trac-summary" element={<SendTracSummary />} />
+        <Route path="/home/send-trac-pin" element={<SendTracPin />} />
+        <Route path="/home/send-trac-success" element={<SendTracSuccess />} />
 
         {/* Send inscriptions */}
         <Route path="/home/send-inscription" element={<SendInscription />} />

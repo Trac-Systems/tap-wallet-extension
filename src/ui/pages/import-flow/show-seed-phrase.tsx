@@ -55,7 +55,7 @@ const ShowSeedPhrase = () => {
             }}
           />
           <UX.Text
-            title="Write these 12 words in exactly that order and store them in a safe place."
+            title="Write these 24 words in exactly that order and store them in a safe place."
             styleType="body_16_normal"
             customStyles={{textAlign: 'center', marginBottom: spaces.xl}}
           />

@@ -8,12 +8,15 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {GlobalActions} from '@/src/ui/redux/reducer/global/slice';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {
   formatAddressLongText,
   shortAddress,
   useAppSelector,
+  useAppDispatch,
   validateBtcAddress,
   validateTapTokenAmount,
 } from '@/src/ui/utils';
@@ -26,7 +29,9 @@ import {
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {PinInputRef} from '../../../component/pin-input';
+import type {AuthInputRef} from '../../../component/auth-input';
+import type {PinInputRef} from '../../../component/pin-input';
+import {isValidAuthInput} from '@/src/ui/utils';
 import {useCustomToast} from '../../../component/toast-custom';
 import WebsiteBar from '../../../component/website-bar';
 import {FeeRateBar} from '../../send-receive/component/fee-rate-bar';
@@ -36,7 +41,6 @@ import {
   usePushBitcoinTxCallback,
 } from '../../send-receive/hook';
 import {useApproval} from '../hook';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 
 enum TabKey {
   STEP1,
@@ -690,37 +694,77 @@ export const Step4 = ({
   const pushBitcoinTx = usePushBitcoinTxCallback();
   const [, resolveApproval, rejectApproval] = useApproval();
   const [valueInput, setValueInput] = useState('');
-  const checkValue = valueInput.length !== 4;
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const checkValue = !isValidAuthInput(valueInput);
   const wallet = useWalletProvider();
-  const pinInputRef = useRef<PinInputRef>(null);
+  const pinInputRef = useRef<AuthInputRef>(null);
+  const legacyPinInputRef = useRef<PinInputRef>(null);
   const {showToast} = useCustomToast();
+  const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
+  const dispatch = useAppDispatch();
+
+  const checkUserType = async () => {
+    try {
+      const passwordUpgraded = await wallet.isPasswordUpgraded();
+      if (!passwordUpgraded) {
+        dispatch(GlobalActions.update({isLegacyUser: true}));
+      } else {
+        dispatch(GlobalActions.update({isLegacyUser: false}));
+      }
+    } catch (error) {
+      // Default to legacy user if we can't determine status
+      dispatch(GlobalActions.update({isLegacyUser: true}));
+    }
+  };
+
+  useEffect(() => {
+    checkUserType();
+    // Check if wallet is already unlocked
+    const checkUnlockStatus = async () => {
+      try {
+        const unlocked = await wallet.isUnlocked();
+        setIsUnlocked(unlocked);
+        if (unlocked) {
+          // Auto proceed with transaction if already unlocked
+          handleSubmit();
+        }
+      } catch (error) {
+        setIsUnlocked(false);
+      }
+    };
+    checkUnlockStatus();
+  }, []);
 
   const spendUtxos = useMemo(() => {
     return contextData.rawTxInfo?.inputs.map(input => input.utxo);
   }, [contextData.rawTxInfo?.inputs]);
 
   const handleSubmit = useCallback(async () => {
-    await wallet
-      .unlockApp(valueInput)
-      .then(() => {
-        pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos).then(
-          ({success, error, txid}) => {
-            if (success) {
-              // mark order as paid
-              wallet.paidOrder(contextData.order?.id);
-
-              resolveApproval({txid});
-            } else {
-              rejectApproval(error);
-            }
-          },
-        );
-      })
-      .catch(() => {
-        showToast({type: 'error', title: 'wrong pin'});
-        setValueInput('');
-        pinInputRef.current?.clearPin();
-      });
+    try {
+      // Check if wallet is already unlocked
+      const isUnlocked = await wallet.isUnlocked();
+      
+      if (!isUnlocked) {
+        // Only unlock if not already unlocked
+        await wallet.unlockApp(valueInput);
+      }
+      
+      // Proceed with transaction
+      const result = await pushBitcoinTx(contextData.rawTxInfo?.rawtx ?? '', spendUtxos);
+      const {success, error, txid} = result;
+      
+      if (success) {
+        // mark order as paid
+        wallet.paidOrder(contextData.order?.id);
+        resolveApproval({txid});
+      } else {
+        rejectApproval(error);
+      }
+    } catch (error) {
+      showToast({type: 'error', title: isLegacyUser ? 'wrong PIN' : 'wrong password'});
+      setValueInput('');
+      pinInputRef.current?.clear?.();
+    }
   }, [contextData.rawTxInfo, valueInput]);
 
   useEffect(() => {
@@ -731,30 +775,43 @@ export const Step4 = ({
     setValueInput(pwd);
   };
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!checkValue && 'Enter' == e.key) {
+    if ((!checkValue || isUnlocked) && 'Enter' == e.key) {
       handleSubmit();
     }
   };
   return (
-    <UX.Box layout="column_center" style={{marginTop: '5rem'}} spacing="xl">
+    <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
       <SVG.UnlockIcon />
       <UX.Text
-        title="PIN"
+        title={isUnlocked ? "Confirm Transaction" : (isLegacyUser ? "PIN" : "Password")}
         styleType="heading_24"
         customStyles={{
           marginTop: '16px',
         }}
       />
       <UX.Text
-        title="Enter your PIN code to confirm the transaction"
+        title={isUnlocked 
+          ? "Wallet is unlocked. Click confirm to proceed with the transaction." 
+          : (isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction")
+        }
         styleType="body_16_normal"
         customStyles={{textAlign: 'center'}}
       />
-      <UX.PinInput
-        onChange={handleOnChange}
-        onKeyUp={e => handleOnKeyUp(e)}
-        ref={pinInputRef}
-      />
+      {!isUnlocked && (
+        isLegacyUser ? (
+          <UX.PinInput
+            onChange={handleOnChange}
+            onKeyUp={e => handleOnKeyUp(e)}
+            ref={legacyPinInputRef}
+          />
+        ) : (
+          <UX.AuthInput
+            onChange={handleOnChange}
+            onKeyUp={e => handleOnKeyUp(e)}
+            ref={pinInputRef}
+          />
+        )
+      )}
     </UX.Box>
   );
 };

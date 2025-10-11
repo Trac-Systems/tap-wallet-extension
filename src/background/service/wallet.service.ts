@@ -107,6 +107,30 @@ export class WalletService {
     return this.wallets;
   }
 
+  async changePassword(oldPin: string, newPin: string) {
+    // verify old pin
+    await authService.verifyPassword(oldPin, true);
+
+    // re-encrypt wallets data with new pin
+    const walletsDataEncrypted = this.store.getState().walletsDataEncrypted;
+    if (!walletsDataEncrypted) {
+      throw new Error('Do not have any wallets existed!');
+    }
+    const walletsDecodeData: any = await authService.decodeData(
+      oldPin,
+      walletsDataEncrypted,
+    );
+
+    // update registered with new pin first
+    await authService.updateRegistered(newPin);
+
+    // encrypt wallets with new pin (authService.pin has been set)
+    const newEncrypted = await authService.encodeData(JSON.parse(walletsDecodeData));
+    this.store.updateState({walletsDataEncrypted: newEncrypted});
+
+    await this._updateMemStore();
+  }
+
   fullUpdate = (): IMemStore => {
     return this.memStore.getState();
   };
@@ -128,7 +152,7 @@ export class WalletService {
   };
 
   generateMnemonic() {
-    return bip39.generateMnemonic(128);
+    return bip39.generateMnemonic(256);
   }
 
   async createTempWallet(type: string, options: unknown) {
@@ -184,11 +208,13 @@ export class WalletService {
   async createWalletFromPrivateKey(
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ): Promise<IWallet> {
     const wallet = await this._addNewWallet(
       'Single Wallet',
       {
         privateKeys: [privateKey],
+        tracPrivateKeys: options?.tracPrivateKeys || [],
       },
       addressType,
     );

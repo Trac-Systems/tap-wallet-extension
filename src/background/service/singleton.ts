@@ -2,6 +2,7 @@ import {AuthService} from './auth.service';
 import {AccountConfigService} from './configuration/account';
 import {AppConfigService} from './configuration/app';
 import {NetworkConfigService} from './configuration/network';
+import {NetworkFilterConfigService} from './configuration/network-filter';
 import {WalletConfigService} from './configuration/wallet';
 import permissionService from './permission.service';
 import {WalletService} from './wallet.service';
@@ -15,6 +16,7 @@ export const networkConfig = new NetworkConfigService();
 export const walletConfig = new WalletConfigService();
 export const accountConfig = new AccountConfigService();
 export const appConfig = new AppConfigService();
+export const networkFilterConfig = new NetworkFilterConfigService();
 
 export const loadAllStorage = async () => {
   await Promise.all([
@@ -23,6 +25,7 @@ export const loadAllStorage = async () => {
     walletConfig.init(),
     accountConfig.init(),
     appConfig.init(),
+    networkFilterConfig.init(),
     permissionService.init(),
   ]);
 };

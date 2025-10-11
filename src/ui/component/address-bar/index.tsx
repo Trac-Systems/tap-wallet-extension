@@ -5,7 +5,7 @@ import Box from '../box-custom';
 import Text from '../text-custom';
 import {useCustomToast} from '../toast-custom';
 
-export function AddressBar({address}: {address: string}) {
+export function AddressBar({address, hideCopy}: {address: string; hideCopy?: boolean}) {
   //   const tools = useTools();
   const {showToast} = useCustomToast();
   return (
@@ -23,9 +23,11 @@ export function AddressBar({address}: {address: string}) {
         });
       }}>
       <Text title={shortAddress(address)} styleType="body_14_normal" />
-      <Box style={{width: 20}}>
-        <SVG.CopyPink color="white" width={20} height={20} />
-      </Box>
+      {!hideCopy && (
+        <Box style={{width: 20}}>
+          <SVG.CopyPink color="white" width={20} height={20} />
+        </Box>
+      )}
     </Box>
   );
 }

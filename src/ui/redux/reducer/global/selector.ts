@@ -9,5 +9,8 @@ export const GlobalSelector = {
   networkType: (state: AppState) => state.globalReducer.networkType,
   randomColors: (state: AppState) => state.globalReducer.randomColors,
   showSpendableList: (state: AppState) => state.globalReducer.showSpendableList,
-  auth: (state: AppState) => state.globalReducer.auth
+  auth: (state: AppState) => state.globalReducer.auth,
+  showPasswordUpdateModal: (state: AppState) => state.globalReducer.showPasswordUpdateModal,
+  currentPassword: (state: AppState) => state.globalReducer.currentPassword,
+  isLegacyUser: (state: AppState) => state.globalReducer.isLegacyUser
 };

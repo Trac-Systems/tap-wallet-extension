@@ -18,19 +18,31 @@ import './index.css';
 import ModalDeleteWallet from './modal-delete-wallet';
 import ModalEditWallet from './modal-edit-wallet';
 import ModalListAccountWallet from './modal-list-account-wallet';
+import ModalReceive from './modal-receive';
+import ModalSelectToken from './modal-select-token';
 import WalletCard from './wallet-card-item';
-import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
-import {useNavigate} from 'react-router-dom';
+import WalletCardNew from './wallet-card-new';
+import { useActiveTracAddress, useIsTracSingleWallet } from '../hook';
 import {SVG} from '@/src/ui/svg';
 import { debounce } from 'lodash';
 import { useRef } from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
 
-const ListWallets = () => {
+interface ListWalletsProps {
+  networkFilters?: {bitcoin: boolean; trac: boolean};
+}
+
+const ListWallets = (props: ListWalletsProps) => {
+  const {networkFilters} = props;
+  const {showToast} = useCustomToast();
   //! State
   const navigate = useNavigate();
   const [openDrawerEditWallet, setOpenDrawerEditWallet] = useState(false);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [drawerAccount, setDrawerAccount] = useState<boolean>(false);
+  const [openReceive, setOpenReceive] = useState<boolean>(false);
+  const [openSelectToken, setOpenSelectToken] = useState<boolean>(false);
   const listWallets = useAppSelector(WalletSelector.wallets);
   const pagination = {
     clickable: true,
@@ -38,7 +50,6 @@ const ListWallets = () => {
   const dispatch = useAppDispatch();
   const wallet = useWalletProvider();
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
-  const {showToast} = useCustomToast();
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
@@ -51,7 +62,13 @@ const ListWallets = () => {
     return 0;
   }, [listWallets.length, activeWallet.key]);
 
+  const isTracSingle = useIsTracSingleWallet();
+
   const handleFetchUtxos = useCallback(async () => {
+    if (isTracSingle) {
+      setIsLoadingUtxo(false);
+      return;
+    }
     setIsLoadingUtxo(true);
     try {
       const utxos = await fetchUtxos();
@@ -75,7 +92,7 @@ const ListWallets = () => {
         console.error('Failed to fetch UTXOs after retries:', err);
       }
     }
-  }, [fetchUtxos]);
+  }, [fetchUtxos, isTracSingle]);
 
   const debouncedFetchUtxos = useRef(
     debounce(handleFetchUtxos, 50)
@@ -83,7 +100,11 @@ const ListWallets = () => {
 
   useEffect(() => {
     if (!listWallets.length) return;
-    debouncedFetchUtxos();
+    if (isTracSingle) {
+      setIsLoadingUtxo(false);
+    } else {
+      debouncedFetchUtxos();
+    }
     setCurrentIndex(positionSlider ?? 0);
 
     return () => {
@@ -92,7 +113,7 @@ const ListWallets = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [listWallets, debouncedFetchUtxos, positionSlider]);
+  }, [listWallets, debouncedFetchUtxos, positionSlider, isTracSingle]);
 
   useEffect(() => {
     retryCountRef.current = 0;
@@ -112,8 +133,9 @@ const ListWallets = () => {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
           }
-          await wallet.setActiveWallet(listWallets[el.activeIndex], 0);
-          dispatch(WalletActions.setActiveWallet(listWallets[el.activeIndex]));
+          const nextWallet = listWallets[el.activeIndex];
+          await wallet.setActiveWallet(nextWallet, 0);
+          dispatch(WalletActions.setActiveWallet(nextWallet));
           const _activeAccount = await wallet.getActiveAccount();
           dispatch(AccountActions.setActiveAccount(_activeAccount));
           retryCountRef.current = 0;
@@ -131,6 +153,9 @@ const ListWallets = () => {
       swiperInstance.slideTo(idx);
     }
   };
+
+  const tracAddress = useActiveTracAddress();
+  const hasTrac = !!tracAddress;
 
   //! Render
   if (listWallets.length === 0 || positionSlider === -1) {
@@ -156,12 +181,21 @@ const ListWallets = () => {
         {listWallets.map((wallet: WalletDisplay) => {
           return (
             <SwipeSlide key={wallet.key}>
-              <WalletCard
-                keyring={wallet}
-                handleOpenDrawerEdit={handleOpenDrawerEdit}
-                handleOpenDrawerAccount={handleOpenDrawerAccount}
-                isLoadingUtxo={isLoadingUtxo}
-              />
+              {hasTrac && networkFilters?.trac !== false ? (
+                <WalletCardNew
+                  keyring={wallet}
+                  handleOpenDrawerEdit={handleOpenDrawerEdit}
+                  handleOpenDrawerAccount={handleOpenDrawerAccount}
+                  isLoadingUtxo={isLoadingUtxo}
+                />
+              ) : (
+                <WalletCard
+                  keyring={wallet}
+                  handleOpenDrawerEdit={handleOpenDrawerEdit}
+                  handleOpenDrawerAccount={handleOpenDrawerAccount}
+                  isLoadingUtxo={isLoadingUtxo}
+                />
+              )}
             </SwipeSlide>
           );
         })}
@@ -171,10 +205,10 @@ const ListWallets = () => {
             className="groupBox"
             role="button"
             tabIndex={0}
-            onClick={() => navigate('/home/send')}
+            onClick={() => setOpenSelectToken(true)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
-                navigate('/home/send');
+                setOpenSelectToken(true);
               }
             }}
           >
@@ -189,10 +223,10 @@ const ListWallets = () => {
             className="groupBox"
             role="button"
             tabIndex={0}
-            onClick={() => navigate('/home/receive')}
+            onClick={() => setOpenReceive(true)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
-                navigate('/home/receive');
+                setOpenReceive(true);
               }
             }}
           >
@@ -245,6 +279,28 @@ const ListWallets = () => {
         open={drawerAccount}
         onClose={() => setDrawerAccount(false)}>
         <ModalListAccountWallet handleClose={() => setDrawerAccount(false)} />
+      </UX.DrawerCustom>
+      <UX.DrawerCustom
+        className="drawer-receive"
+        open={openReceive}
+        onClose={() => setOpenReceive(false)}>
+        <ModalReceive handleClose={() => setOpenReceive(false)} />
+      </UX.DrawerCustom>
+      <UX.DrawerCustom
+        className="drawer-receive"
+        open={openSelectToken}
+        onClose={() => setOpenSelectToken(false)}>
+        <ModalSelectToken 
+          handleClose={() => setOpenSelectToken(false)}
+          onSelectBTC={() => {
+            navigate('/home/send');
+            setOpenSelectToken(false);
+          }}
+          onSelectTNK={() => {
+            showToast({title: 'Mainnet not available yet', type: 'error'});
+            // Modal stays open for user to try again or select other option
+          }}
+        />
       </UX.DrawerCustom>
     </>
   );

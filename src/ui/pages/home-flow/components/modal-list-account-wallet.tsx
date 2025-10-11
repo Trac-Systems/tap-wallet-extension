@@ -72,9 +72,10 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
               isActive={item.index === activeAccount.index}
               key={item.index}
               nameCardAddress={item.name}
-              path={path}
-              address={item.address}
+              path={""}
+              address={""}
               item={item}
+              hideCopy={true}
             />
           );
         })}

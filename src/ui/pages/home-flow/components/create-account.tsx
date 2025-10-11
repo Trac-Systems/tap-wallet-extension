@@ -29,13 +29,56 @@ const CreateAccount = () => {
     navigate('/home');
   };
 
+  const generateTracAddressForNewAccount = async (
+    walletIndex: number, 
+    accountIndex: number, 
+    mnemonic: string
+  ) => {
+    try {
+      const api = (window as any).TracCryptoApi;
+      if (!api) {
+        console.warn('TracCryptoApi not loaded');
+        return;
+      }
+
+      // Generate derivation path based on account index
+      const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
+      
+      const result = await api.address.generate('trac', mnemonic, tracDerivationPath);
+      if (result && result.address) {
+        // Store TRAC address
+        wallet.setTracAddress(walletIndex, accountIndex, result.address);
+      }
+    } catch (error) {
+      console.error('Error generating TRAC address:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     await wallet.createNewAccountFromMnemonic(
       activeWallet,
       newAccountName || defaultName,
     );
+    
     const activeAccount = await wallet.getActiveAccount();
     const _activeWallet = await wallet.getActiveWallet();
+    
+    // Generate TRAC address for new account
+    try {
+      const walletInfo = await wallet.getMnemonicsUnlocked(activeWallet);
+      const mnemonic = walletInfo.mnemonic;
+      
+      if (mnemonic && activeAccount) {
+        await generateTracAddressForNewAccount(
+          activeWallet.index,
+          activeAccount.index || 0,
+          mnemonic
+        );
+      }
+    } catch (error) {
+      console.log('Could not generate TRAC address:', error);
+    }
+    
     dispatch(WalletActions.setActiveWallet(_activeWallet));
     dispatch(AccountActions.setActiveAccount(activeAccount));
     showToast({

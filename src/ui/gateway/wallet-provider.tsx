@@ -55,6 +55,7 @@ export interface IWalletProvider {
   createWalletFromPrivateKey(
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ): Promise<void>;
   previewAddressFromPrivateKey(
     privateKey: string,
@@ -90,13 +91,26 @@ export interface IWalletProvider {
   ): Promise<UnspentOutput[]>;
 
   getMnemonics(pin: string, wallet: WalletDisplay): Promise<any>;
+  getMnemonicsUnlocked(wallet: WalletDisplay): Promise<any>;
   getPrivateKey(
     pin: string,
     {pubkey, type}: {pubkey: string; type: string},
   ): Promise<any>;
+  getTracPrivateKey(
+    pin: string,
+    walletIndex: number,
+    accountIndex: number,
+  ): Promise<string>;
+  getTracPrivateKeyUnlocked(
+    walletIndex: number,
+    accountIndex: number,
+  ): Promise<string>;
   verifyPassword(pin: string): Promise<any>;
   getEnableSignData(): Promise<boolean>;
   setEnableSignData(enable: boolean): Promise<void>;
+  isPasswordUpgraded(): Promise<boolean>;
+  markPasswordUpgraded(): Promise<void>;
+  isLegacyUser(pin: string): Promise<boolean>;
   getNextAccountName(keyring: WalletDisplay): Promise<string>;
   createNewAccountFromMnemonic(
     wallet: WalletDisplay,
@@ -258,6 +272,20 @@ export interface IWalletProvider {
   getAllAuthorityList(address: string): Promise<TokenAuthority[]>;
   getCurrentAuthority(address: string): Promise<TokenAuthority>;
   getAuthorityCanceled(ins: string): Promise<boolean>;
+  
+  // TRAC Address Management Methods
+  getTracAddressMap(): Promise<{[key: string]: string}>;
+  getTracAddress(walletIndex: number, accountIndex: number): string | null;
+  setTracAddress(walletIndex: number, accountIndex: number, address: string): void;
+  getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string};
+  removeTracAddress(walletIndex: number, accountIndex: number): void;
+  removeWalletTracAddresses(walletIndex: number): number;
+  clearAllTracAddresses(): number;
+  logAllTracAddresses(): void;
+  // Network Filter methods
+  getNetworkFilters(walletIndex?: number): Promise<{bitcoin: boolean; trac: boolean}>;
+  setNetworkFilters(filters: {bitcoin: boolean; trac: boolean}, walletIndex?: number): Promise<void>;
+  updateNetworkFilter(network: 'bitcoin' | 'trac', enabled: boolean, walletIndex?: number): Promise<void>;
 }
 
 const WalletContext = createContext<{

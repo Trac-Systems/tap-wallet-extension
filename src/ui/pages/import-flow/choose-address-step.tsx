@@ -7,6 +7,8 @@ import {UX} from '../../component/index';
 import {useCustomToast} from '../../component/toast-custom';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {satoshisToAmount} from '../../helper';
+import {formatTracBalance} from '../../../shared/utils/btc-helper';
+import {useTracBalances} from '../home-flow/hook';
 import LayoutScreenImport from '../../layouts/import-export';
 import {GlobalActions} from '../../redux/reducer/global/slice';
 import {SVG} from '../../svg';
@@ -128,6 +130,35 @@ const ChooseAddress = () => {
     derivationPathOptions.map(_v => ''),
   );
 
+  // TRAC Address state for UI display only
+  const [tracAddress, setTracAddress] = useState<string>('');
+  
+  // Get TRAC balance for the address
+  const {total: tracBalance} = useTracBalances(tracAddress);
+
+  const generateTracAddress = async (mnemonic: string, derivationPath?: string) => {
+    try {
+      const api = (window as any).TracCryptoApi;
+      if (!api) {
+        console.warn('TracCryptoApi not loaded');
+        return '';
+      }
+      
+      // Generate TRAC address using the tracCrypto library
+      // If no derivation path provided, use library's default (m/918'/0'/0'/0')
+      const result = await api.address.generate("trac", mnemonic, derivationPath || null);
+      if (result && result.address) {
+        return result.address;
+      }
+      
+      console.warn('Invalid TRAC address generation result:', result);
+      return '';
+    } catch (error) {
+      console.error('Error generating TRAC address:', error);
+      return '';
+    }
+  };
+
   const generateAddress = async () => {
     const addresses: string[] = [];
     const keyrings = await walletProvider.previewAllAddressesFromMnemonics(
@@ -139,11 +170,21 @@ const ChooseAddress = () => {
     );
 
     try {
+      // Generate regular Bitcoin addresses
       keyrings.forEach(keyring => {
         keyring.accounts.forEach(v => {
           addresses.push(v.address);
         });
       });
+
+      // Generate TRAC address with derivation path for account 0
+      const accountIndex = 0;
+      const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
+      const tracAddress = await generateTracAddress(contextData.mnemonics, tracDerivationPath);
+      setTracAddress(tracAddress);
+
+      // Do NOT persist here; persist after wallet is actually created to use real wallet.index
+      
     } catch {
       showToast({
         title: 'Something went wrong with address generation',
@@ -217,6 +258,17 @@ const ChooseAddress = () => {
         contextData.addressType,
         1,
       );
+      // After wallet is created, persist TRAC address using the real wallet index
+      try {
+        const activeWallet = await walletProvider.getActiveWallet();
+        const walletIndex = activeWallet?.index ?? 0;
+        const accountIndex = 0; // first account for new wallet
+        if (tracAddress) {
+          walletProvider.setTracAddress(walletIndex, accountIndex, tracAddress);
+        }
+      } catch (err) {
+        console.log('persist TRAC address after wallet creation failed:', err);
+      }
       dispatch(GlobalActions.update({isUnlocked: true}));
       if (isImport) {
         navigate(`/success?isImport=${isImport}`);
@@ -303,14 +355,41 @@ const ChooseAddress = () => {
           <UX.Box layout="column_center" spacing="xxl">
             <SVG.WalletIcon />
             <UX.Text
-              title="Choose your Address"
+              title="Choose your address type"
               styleType="heading_24"
               customStyles={{
                 textAlign: 'center',
                 marginTop: '8px',
               }}
             />
+            
+            {/* TRAC Network Section */}
             <UX.Box spacing="xs" style={{width: '100%'}}>
+              <UX.Text
+                title="TRAC network address:"
+                styleType="body_16_bold"
+                customStyles={{color: 'white', marginBottom: '8px'}}
+              />
+              <UX.CardAddress
+                isActive={true}
+                nameCardAddress="TRAC Network (TRAC)"
+                path="m/918'/0'/0'/0'"
+                address={tracAddress}
+                hasVault={tracBalance && parseFloat(tracBalance) > 0}
+                assets={tracBalance && parseFloat(tracBalance) > 0 ? { totalBtc: formatTracBalance(tracBalance), satoshis: 0, totalInscription: 0 } : undefined}
+                assetUnit={tracBalance && parseFloat(tracBalance) > 0 ? "TNK" : undefined}
+                assetIcon={<SVG.TracIcon width={20} height={20} />}
+                onClick={() => {}}
+              />
+            </UX.Box>
+
+            {/* Bitcoin Addresses Section */}
+            <UX.Box spacing="xs" style={{width: '100%'}}>
+              <UX.Text
+                title="Bitcoin addresses:"
+                styleType="body_16_bold"
+                customStyles={{color: 'white', marginBottom: '8px'}}
+              />
               {derivationPathOptions.map((item, index) => {
                 const derivationPath =
                   (contextData.customDerivationPath || item.derivationPath) +

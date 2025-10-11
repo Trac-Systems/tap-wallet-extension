@@ -5,6 +5,7 @@ import {
   walletConfig,
   networkConfig,
   appConfig,
+  networkFilterConfig,
   notificationService,
   permissionService,
   sessionService,
@@ -67,6 +68,10 @@ export class Provider {
 
   unlockApp = async (pin: string) => {
     await walletService.unlockWallet(pin);
+  };
+
+  changePassword = async (oldPin: string, newPin: string) => {
+    await walletService.changePassword(oldPin, newPin);
   };
 
   lockWallet = async () => {
@@ -232,10 +237,12 @@ export class Provider {
   createWalletFromPrivateKey = async (
     privateKey: string,
     addressType: AddressType,
+    options?: { tracPrivateKeys?: string[] },
   ) => {
     const originWallet = await walletService.createWalletFromPrivateKey(
       privateKey,
       addressType,
+      options,
     );
 
     const walletDataForUI = walletService.getWalletDataForUI(
@@ -266,6 +273,9 @@ export class Provider {
   };
 
   removeWallet = async (wallet: WalletDisplay) => {
+    this.removeWalletTracAddresses(wallet.index);
+    networkFilterConfig.removeWalletFilters(wallet.index);
+    
     await walletService.removeWallet(wallet.index);
     const wallets = this.getWallets();
     const nextWallet = wallets[wallets.length - 1];
@@ -339,6 +349,21 @@ export class Provider {
     };
   };
 
+  getMnemonicsUnlocked = async (wallet: WalletDisplay) => {
+    if (!this.isUnlocked()) {
+      throw new Error('Wallet must be unlocked to access mnemonic');
+    }
+    
+    const originWallet = walletService.wallets[wallet.index];
+    const serialized = await originWallet.serialize();
+    
+    return {
+      mnemonic: serialized.mnemonic,
+      derivationPath: serialized.derivationPath,
+      passphrase: serialized.passphrase,
+    };
+  };
+
   getPrivateKey = async (
     pin: string,
     {pubkey, type}: {pubkey: string; type: string},
@@ -362,6 +387,40 @@ export class Provider {
   };
 
   verifyPassword = async (pin: string) => await authService.verifyPassword(pin);
+
+  isPasswordUpgraded = async () => authService.isPasswordUpgraded();
+
+  markPasswordUpgraded = async () => authService.markPasswordUpgraded();
+
+  isLegacyUser = async (pin: string) => authService.isLegacyUser(pin);
+
+  getTracPrivateKey = async (
+    pin: string,
+    walletIndex: number,
+    accountIndex: number = 0,
+  ) => {
+    await authService.verifyPassword(pin);
+    const wallet = walletService.wallets[walletIndex];
+    if (!wallet || wallet.type !== 'Single Wallet') {
+      throw new Error('Wallet not found or not a Single Wallet');
+    }
+    return (wallet as any).exportTracPrivateKey(accountIndex);
+  };
+
+  getTracPrivateKeyUnlocked = async (
+    walletIndex: number,
+    accountIndex: number = 0,
+  ) => {
+    if (!this.isUnlocked()) {
+      throw new Error('Wallet must be unlocked to access TRAC private key');
+    }
+    const wallet = walletService.wallets[walletIndex];
+    if (!wallet || wallet.type !== 'Single Wallet') {
+      throw new Error('Wallet not found or not a Single Wallet');
+    }
+    return (wallet as any).exportTracPrivateKey(accountIndex);
+  };
+
 
   setWalletName = (wallet: WalletDisplay, name: string) => {
     walletConfig.setWalletName(wallet.key, name);
@@ -1468,6 +1527,55 @@ export class Provider {
     const message = 'wallet-auth';
     const signature = await this.signMessage(message);
     return {message, signature, address};
+  };
+
+  // TRAC Address Management Methods
+  getTracAddressMap = () => {
+    return accountConfig.getTracAddressMap();
+  };
+
+  getTracAddress = (walletIndex: number, accountIndex: number): string | null => {
+    return accountConfig.getTracAddress(walletIndex, accountIndex);
+  };
+
+  setTracAddress = (walletIndex: number, accountIndex: number, address: string) => {
+    accountConfig.setTracAddress(walletIndex, accountIndex, address);
+  };
+
+  getWalletTracAddresses = (walletIndex: number): {[accountIndex: string]: string} => {
+    return accountConfig.getWalletTracAddresses(walletIndex);
+  };
+
+  removeTracAddress = (walletIndex: number, accountIndex: number) => {
+    accountConfig.removeTracAddress(walletIndex, accountIndex);
+  };
+
+  removeWalletTracAddresses = (walletIndex: number) => {
+    return accountConfig.removeWalletTracAddresses(walletIndex);
+  };
+
+  clearAllTracAddresses = () => {
+    return accountConfig.clearAllTracAddresses();
+  };
+
+  logAllTracAddresses = () => {
+    accountConfig.logAllTracAddresses();
+  };
+
+  // Network Filter methods
+  getNetworkFilters = (walletIndex?: number) => {
+    const activeWalletIndex = walletIndex ?? walletConfig.getActiveWalletIndex() ?? 0;
+    return networkFilterConfig.getNetworkFilters(activeWalletIndex);
+  };
+
+  setNetworkFilters = (filters: {bitcoin: boolean; trac: boolean}, walletIndex?: number) => {
+    const activeWalletIndex = walletIndex ?? walletConfig.getActiveWalletIndex() ?? 0;
+    networkFilterConfig.setNetworkFilters(activeWalletIndex, filters);
+  };
+
+  updateNetworkFilter = (network: 'bitcoin' | 'trac', enabled: boolean, walletIndex?: number) => {
+    const activeWalletIndex = walletIndex ?? walletConfig.getActiveWalletIndex() ?? 0;
+    networkFilterConfig.updateNetworkFilter(activeWalletIndex, network, enabled);
   };
 }
 

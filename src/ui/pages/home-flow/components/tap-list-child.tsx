@@ -1,9 +1,9 @@
-import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
-import {UX} from '@/src/ui/component';
-import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
-import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
-import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
-import {SVG} from '@/src/ui/svg';
+import { satoshisToAmount, formatTracBalance } from '@/src/shared/utils/btc-helper';
+import { UX } from '@/src/ui/component';
+import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import { InscriptionSelector } from '@/src/ui/redux/reducer/inscription/selector';
+import { SVG } from '@/src/ui/svg';
 import {
   generateUniqueColors,
   TOKEN_PAGE_SIZE,
@@ -17,16 +17,22 @@ import {
   TokenAuthority,
   TokenBalance,
 } from '@/src/wallet-instance';
-import {debounce, isEmpty} from 'lodash';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions} from '../hook';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
+import { debounce, isEmpty } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions, useActiveTracAddress, useTracBalances, useIsTracSingleWallet } from '../hook';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
+import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
 
-const TapListChild = () => {
+interface TapListChildProps {
+  onOpenFilter?: () => void;
+  networkFilters?: { bitcoin: boolean; trac: boolean };
+}
+
+const TapListChild = (props: TapListChildProps) => {
+  const { onOpenFilter, networkFilters = { bitcoin: true, trac: true } } = props;
   const navigate = useNavigate();
-  const {getTapList} = useInscriptionHook();
+  const { getTapList } = useInscriptionHook();
   const { getTokenInfoAndStore, loadingTicker } = useTokenInfo();
   const { fetchAllInscriptions } = useAllInscriptions();
   const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
@@ -39,6 +45,9 @@ const TapListChild = () => {
   const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const randomColors = useAppSelector(GlobalSelector.randomColors);
+  const tracAddress = useActiveTracAddress();
+  const { total: tracBalance } = useTracBalances(tracAddress || undefined);
+  const isTracSingle = useIsTracSingleWallet();
   const [loading, setLoading] = useState(false);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const [tokenValue, setTokenValue] = useState('');
@@ -163,7 +172,6 @@ const TapListChild = () => {
           const allTokens = await walletProvider.getAllTapToken(activeAccount.address);
           setAllTapToken(allTokens);
           setHasLoadedAllTokens(true);
-          
           const filteredData = allTokens?.filter(data =>
             data.ticker.toLowerCase().includes(value.toLowerCase()),
           );
@@ -227,7 +235,7 @@ const TapListChild = () => {
   }, []);
 
   useEffect(() => {
-      fetchAllInscriptions();
+    fetchAllInscriptions();
   }, []);
 
   const mangeAuthorityTitle = useMemo(() => {
@@ -254,9 +262,9 @@ const TapListChild = () => {
 
   const displayData = useMemo(() => {
     if (tokenValue.length > 0) {
-      return tapItem; 
+      return tapItem;
     }
-    return tapList; 
+    return tapList;
   }, [tokenValue, tapItem, tapList]);
 
   useEffect(() => {
@@ -265,7 +273,7 @@ const TapListChild = () => {
         const ticker = tokenBalance.ticker;
         if (ticker && !tokenInfoMap[ticker]) {
           if (!loadingTicker) {
-             getTokenInfoAndStore(ticker);
+            getTokenInfoAndStore(ticker);
           } else {
             break;
           }
@@ -285,109 +293,151 @@ const TapListChild = () => {
   }
 
   return (
-    <UX.Box spacing="xl">
-      <UX.Box layout="row" spacing="xs" className="search-box-token">
-        <SVG.SearchIcon />
-        <input
-          placeholder="Search for token"
-          className="search-box-token-input"
-          onChange={handleChange}
-          value={tokenValue}
-        />
-      </UX.Box>
-
-      {currentAuthority ? (
-        <UX.Button
-          styleType={'primary'}
-          title="1-TX Transfer"
-          onClick={() => navigate('/transfer-authority')}
-        />
-      ) : (
-        <UX.Box
-          layout="box_border"
-          style={{cursor: 'pointer'}}
-          onClick={() => {
-            if (orderNeedTap) {
-              navigate('/authority-detail', {
-                state: {
-                  inscriptionId: orderNeedTap.files[0].inscriptionId,
-                  order: orderNeedTap,
-                },
-              });
-            } else if (orderAuthorityPending) {
-              // if authority is tapping, navigate to authority detail
-              if (
-                orderAuthorityPending.tappingStatus === TappingStatus.TAPPING
-              ) {
-                navigate('/authority-detail', {
-                  state: {
-                    inscriptionId: orderAuthorityPending.files[0].inscriptionId,
-                    order: orderAuthorityPending,
-                  },
-                });
-              } else {
-                // if authority is not tapping, navigate to authority warning
-                navigate('/authority-warning');
-              }
-            } else if (isGettingAuthorityStatus) {
-              // disable button
-              return;
-            } else {
-              navigate('/handle-create-authority');
-            }
-          }}>
-          <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />
-          <SVG.ArrowIconRight width={23} height={18} />
-        </UX.Box>
-      )}
-      <UX.Box layout="box">
-        <UX.Box layout="row_between" style={{width: '100%'}}>
-          <UX.Box
-            layout="row"
-            style={{
-              justifyItems: 'center',
-              alignItems: 'center',
-            }}>
-            <SVG.BitcoinIcon width={32} height={32} />
-            <UX.Text
-              title={'BTC'}
-              styleType="body_16_normal"
-              customStyles={{color: 'white', marginLeft: '8px'}}
+    <>
+      <UX.Box spacing="xl">
+        <UX.Box layout="row_between" spacing="xs" style={{ alignItems: 'center' }}>
+          <UX.Box layout="row" spacing="xs" className="search-box-token" style={{ flex: 1 }}>
+            <SVG.SearchIcon />
+            <input
+              placeholder="Search for token"
+              className="search-box-token-input"
+              onChange={handleChange}
+              value={tokenValue}
             />
           </UX.Box>
-
-          <UX.Text
-            title={`${balanceValue}`}
-            styleType="body_16_normal"
-            customStyles={{color: 'white'}}
-          />
+          <UX.Box
+            onClick={onOpenFilter}
+            style={{ cursor: 'pointer', padding: '8px', marginLeft: '8px' }}>
+            <SVG.FilterIcon />
+          </UX.Box>
         </UX.Box>
+
+        {currentAuthority ? (
+          <UX.Button
+            styleType={'primary'}
+            title="1-TX Transfer"
+            onClick={() => navigate('/transfer-authority')}
+          />
+        ) : (
+          <UX.Box
+            layout="box_border"
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              if (orderNeedTap) {
+                navigate('/authority-detail', {
+                  state: {
+                    inscriptionId: orderNeedTap.files[0].inscriptionId,
+                    order: orderNeedTap,
+                  },
+                });
+              } else if (orderAuthorityPending) {
+                // if authority is tapping, navigate to authority detail
+                if (
+                  orderAuthorityPending.tappingStatus === TappingStatus.TAPPING
+                ) {
+                  navigate('/authority-detail', {
+                    state: {
+                      inscriptionId: orderAuthorityPending.files[0].inscriptionId,
+                      order: orderAuthorityPending,
+                    },
+                  });
+                } else {
+                  // if authority is not tapping, navigate to authority warning
+                  navigate('/authority-warning');
+                }
+              } else if (isGettingAuthorityStatus) {
+                // disable button
+                return;
+              } else {
+                navigate('/handle-create-authority');
+              }
+            }}>
+            <UX.Text title={mangeAuthorityTitle} styleType="body_16_bold" />
+            <SVG.ArrowIconRight width={23} height={18} />
+          </UX.Box>
+        )}
+
+
+        {networkFilters.bitcoin && !isTracSingle && (
+          <UX.Box layout="box">
+            <UX.Box layout="row_between" style={{ width: '100%' }}>
+              <UX.Box
+                layout="row"
+                style={{
+                  justifyItems: 'center',
+                  alignItems: 'center',
+                }}>
+                <SVG.BitcoinIcon width={32} height={32} />
+                <UX.Text
+                  title={'BTC'}
+                  styleType="body_16_normal"
+                  customStyles={{ color: 'white', marginLeft: '8px' }}
+                />
+              </UX.Box>
+
+              <UX.Text
+                title={`${balanceValue}`}
+                styleType="body_16_normal"
+                customStyles={{ color: 'white' }}
+              />
+            </UX.Box>
+          </UX.Box>
+        )}
+        {/* TRAC row - visible when TRAC filter is on and we have an address */}
+        {networkFilters.trac && !!tracAddress && (
+          <UX.Box layout="box">
+            <UX.Box layout="row_between" style={{ width: '100%' }}>
+              <UX.Box
+                layout="row"
+                style={{
+                  justifyItems: 'center',
+                  alignItems: 'center',
+                }}>
+                <SVG.TracIcon width={32} height={32} />
+                <UX.Text
+                  title={'TNK'}
+                  styleType="body_16_normal"
+                  customStyles={{ color: 'white', marginLeft: '8px', marginRight: '4px' }}
+                />
+              </UX.Box>
+
+              <UX.Tooltip text={tracBalance} isText>
+                <UX.Text
+                  title={formatTracBalance(tracBalance)}
+                  styleType="body_16_normal"
+                  customStyles={{ color: 'white' }}
+                />
+              </UX.Tooltip>
+            </UX.Box>
+          </UX.Box>
+        )}
+
+        {networkFilters.bitcoin && displayData.map((tokenBalance: TokenBalance, index: number) => {
+          const indexCheck = index < 20 ? index : index % 20;
+          const tagColor = listRandomColor[indexCheck];
+          return (
+            <UX.TapBalanceItem
+              {...tokenBalance}
+              key={tokenBalance.ticker}
+              handleNavigate={() => handleNavigate(tokenBalance)}
+              tagColor={tagColor}
+            />
+          );
+        })}
+
+        {!hidePagination && (
+          <UX.Box layout="row_center">
+            <UX.Pagination
+              pagination={pagination}
+              total={totalTapToken || displayData.length}
+              onChange={pagination => {
+                setPagination(pagination);
+              }}
+            />
+          </UX.Box>
+        )}
       </UX.Box>
-      {displayData.map((tokenBalance: TokenBalance, index: number) => {
-        const indexCheck = index < 20 ? index : index % 20;
-        const tagColor = listRandomColor[indexCheck];
-        return (
-          <UX.TapBalanceItem
-            {...tokenBalance}
-            key={tokenBalance.ticker}
-            handleNavigate={() => handleNavigate(tokenBalance)}
-            tagColor={tagColor}
-          />
-        );
-      })}
-
-      {!hidePagination && (
-        <UX.Box layout="row_center">
-          <UX.Pagination
-            pagination={pagination}
-            total={totalTapToken || displayData.length}
-            onChange={pagination => {
-              setPagination(pagination);
-            }}
-          />
-        </UX.Box>
-      )}
-    </UX.Box>
+    </>
   );
 };
 

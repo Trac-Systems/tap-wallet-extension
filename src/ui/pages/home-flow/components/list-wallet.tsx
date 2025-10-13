@@ -292,7 +292,10 @@ const ListWallets = (props: ListWalletsProps) => {
         className="drawer-receive"
         open={openReceive}
         onClose={() => setOpenReceive(false)}>
-        <ModalReceive handleClose={() => setOpenReceive(false)} />
+        <ModalReceive 
+          handleClose={() => setOpenReceive(false)} 
+          isOpen={openReceive}
+        />
       </UX.DrawerCustom>
       <UX.DrawerCustom
         className="drawer-receive"

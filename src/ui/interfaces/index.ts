@@ -48,4 +48,7 @@ export interface Inscription {
   };
 }
 
-
+export interface dta {
+  op: string;
+  addr: string;
+}

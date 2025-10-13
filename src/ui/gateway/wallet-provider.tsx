@@ -23,7 +23,7 @@ import {
   InscriptionOrdClient,
   OrderType,
 } from '../../wallet-instance';
-import {Inscription} from '../interfaces';
+import {dta, Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
 import {bitcoin} from '../../background/utils';
 
@@ -173,13 +173,13 @@ export interface IWalletProvider {
   getDmtScriptId(
     depInscriptionId: string,
   ): Promise<{scriptInsId: string; ticker: string; unat: boolean}>;
-    createOrderTransfer(
+  createOrderTransfer(
     address: string,
     tick: string,
     amount: string,
     feeRate: number,
     outputValue: number,
-    data?: string,
+    dta?: dta,
   ): Promise<InscribeOrder>;
   createOrderAuthority(
     address: string,

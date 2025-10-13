@@ -14,6 +14,7 @@ import {ToAddressInfo, UnspentOutput, RawTxInfo} from '@/src/wallet-instance';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {bitcoin} from '@/src/background/utils';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import { dta } from '@/src/ui/interfaces'
 
 export function useSafeBalance() {
   const utxos = useAppSelector(TransactionSelector.btcUtxos);
@@ -155,7 +156,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
       feeRate,
       outputValue,
       enableRBF,
-      data
+      dta
     }: {
       toAddressInfo: ToAddressInfo;
       inscriptionId: string;
@@ -164,7 +165,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
       feeRate?: number;
       outputValue?: number;
       enableRBF?: boolean;
-      data?: string;
+      dta?: dta;
     }) => {
       if (!feeRate) {
         const recommendFee = await wallet.getRecommendFee();
@@ -211,7 +212,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
         assetAmount,
         ticker,
         enableRBF,
-        data
+        dta
       };
       return rawTxInfo;
     },
@@ -235,7 +236,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
       ticker,
       feeRate,
       enableRBF,
-      data,
+      dta,
     }: {
       toAddressInfo: ToAddressInfo;
       inscriptionIds: string[];
@@ -243,7 +244,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
       ticker: string;
       feeRate?: number;
       enableRBF?: boolean;
-      data?: string
+      dta?: dta
     }) => {
       if (!feeRate) {
         const summary = await wallet.getRecommendFee();
@@ -288,7 +289,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
         assetAmount,
         ticker,
         enableRBF,
-        data
+        dta
       };
       return rawTxInfo;
     },

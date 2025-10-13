@@ -20,6 +20,7 @@ import {
 } from '../../../send-receive/hook';
 import TransferApps from '../../../authority/component/trac-apps'
 import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
+import { dta } from '@/src/ui/interfaces'
 
 interface IProps {
   ticker?: string;
@@ -59,58 +60,58 @@ const TransferTap = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
-  
+
   const handleNavigate = async () => {
     try {
       setIsLoading(true);
       const inscriptionIds = Array.from(inscriptionIdSet);
-
-      // 1. Determine the final receiver address and full TAP + DTA payload
+      
+      // 1. Determine the final receiver address and DTA payload
       let finalAddress = toInfo.address;
-      let data: string | undefined = undefined;
-
+      let dta: dta
+      
       if (isExpanded && selectedApp) {
-        // A. Set the transaction's destination address to the TRAC App deposit address
-        const appNameKey = selectedApp.name.toLowerCase();
-        finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
-
-        // B. Build the full TAP payload with nested DTA
-        data = `{"p":"tap","op":"token-transfer","tick":"${ticker}","amt":"${String(amount)}","dta":{"op":"deposit","addr":"${selectedApp.address}"}}`
+          // A. Set the transaction's destination address to the hardcoded TRAC App address
+          const appNameKey = selectedApp.name.toLowerCase();
+          finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
+          
+          dta = {op: "deposit",addr: selectedApp.address};
       }
-
+      
       // 2. Execute transaction preparation
-      let rawTxInfo;
       if (inscriptionIds.length === 1) {
-        rawTxInfo = await prepareSendOrdinalsInscription({
-          toAddressInfo: { address: finalAddress },
+        const rawTxInfo = await prepareSendOrdinalsInscription({
+          toAddressInfo: {address: finalAddress}, // <-- Use finalAddress
           inscriptionId: inscriptionIds[0],
           feeRate: txStateInfo.feeRate,
           outputValue: outputValue,
           enableRBF,
           assetAmount: amount,
           ticker: ticker,
-          data: data, // full TAP + DTA payload
+          dta: dta,
+        });
+        navigate('/home/confirm-transaction', {
+          state: {rawTxInfo},
         });
       } else {
-        rawTxInfo = await prepareSendOrdinalsInscriptions({
-          toAddressInfo: { address: finalAddress },
+        const rawTxInfo = await prepareSendOrdinalsInscriptions({
+          toAddressInfo: {address: finalAddress}, // <-- Use finalAddress
           inscriptionIds,
           feeRate: txStateInfo.feeRate,
           enableRBF,
           assetAmount: amount,
           ticker: ticker,
-          data: data, // full TAP + DTA payload
+          dta: dta,
+        });
+        navigate('/home/confirm-transaction', {
+          state: {rawTxInfo},
         });
       }
-
-      console.log("tx2 rawTxInfo =>", rawTxInfo)
-
-      navigate("/home/confirm-transaction", { state: { rawTxInfo } });
     } catch (e) {
       const error = e as Error;
       showToast({
-        title: error.message || "",
-        type: "error",
+        title: error.message || '',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);

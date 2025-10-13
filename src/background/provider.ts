@@ -53,6 +53,7 @@ import {Psbt} from 'bitcoinjs-lib';
 import {InscribeApi} from './requests/inscribe-api';
 import {createHash} from 'crypto';
 import * as secp from '@noble/secp256k1';
+import { dta } from '../ui/interfaces'
 
 export interface IDerivationPathOption {
   label: string;
@@ -1152,8 +1153,10 @@ export class Provider {
     amount: string,
     feeRate: number,
     outputValue: number,
-    data?: string
+    dta?: dta,
   ): Promise<InscribeOrder> => {
+    console.log('this', this)
+    console.log('createOrderTransfer', {address, tick, amount, feeRate, outputValue, dta});
     const connectedAddress = this.getActiveAccount()?.address;
     const order = await this.inscribeApi.createOrderTapTransfer(
       feeRate,
@@ -1162,7 +1165,7 @@ export class Provider {
       address,
       tick,
       amount,
-      data
+      dta
     );
 
     // add pending order

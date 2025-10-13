@@ -52,7 +52,6 @@ export class AxiosRequest {
         ...reqHeaders,
         'X-Tapwallet-Agent': 'tap-wallet',
       };
-      console.log('headers', headers);
       const response = await this.api.post(endpoint, bodyData, {
         headers,
       });

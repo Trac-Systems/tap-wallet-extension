@@ -30,8 +30,8 @@ import {
 } from '@/src/shared/utils/btc-helper';
 
 import TransferApps from '../../authority/component/trac-apps'
-// NOTE: TRAC_APPS_BITCOIN_ADDRESSES is not used in TX 1, but we keep the import
-import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../authority/hook/use-trac-apps-logic'
+import { useTracAppsLogic } from '../../authority/hook/use-trac-apps-logic'
+import { dta } from '@/src/ui/interfaces'
 
 interface ContextData {
   ticker: string;
@@ -42,8 +42,7 @@ interface ContextData {
   transferAmount?: string;
   isApproval: boolean;
   tokenInfo?: TokenInfo;
-  // Added dtaValue to context for clarity, especially for the confirmation screen
-  dtaValue?: string; 
+  dta?: { op: string, addr: string}; 
 }
 
 interface UpdateContextDataParams {
@@ -54,7 +53,7 @@ interface UpdateContextDataParams {
   rawTxInfo?: RawTxInfo;
   transferAmount?: string;
   tokenInfo?: TokenInfo;
-  data?: string;
+  dta?: { op: string, addr: string};
 }
 
 const InscribeTransferTapScreen = () => {
@@ -205,35 +204,24 @@ const InscribeTransferTapScreen = () => {
     setInputAmount(cleanText);
   };
 
-
-  // NEEDS TO COMPLETE THE RAW TX INFO YET
   const inscribeOnPressed = async () => {
     try {
       setLoading(true);
       const amount = inputAmount;
       
-      // --------- DTA logic for TX 1 (Make Transferable) ---------
-      let data: string;
+      const dta: dta = isExpanded && selectedApp?.address 
+        ? { op: "deposit", addr: selectedApp.address } 
+        : undefined
       
-      if (isExpanded && selectedApp?.address) {
-          data = `{"p":"tap","op":"token-transfer","tick":"${contextData.ticker}","amt":"${String(amount)}","dta":{"op":"deposit","addr":"${selectedApp.address}"}}`
-      }
-      
-      // The destination address for the Inscription UTXO in TX 1 MUST be the user's own address.
-      const inscriptionDestinationAddress = activeAccount.address;
-
-      // --------- Call the Wallet API (Crucial Change) ---------
-      // NOTE: This assumes your wallet.createOrderTransfer now accepts dtaValue
       const order = await wallet.createOrderTransfer(
-        inscriptionDestinationAddress, // Send the new inscription UTXO back to the user
+        activeAccount.address,
         contextData.ticker,
         amount,
         feeRate,
         outputValue,
-        data
+        dta
       );
       
-      // --------- Prepare BTC Fee Transaction ---------
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order.payAddress, domain: ''},
         toAmount: Math.round(order.totalFee),
@@ -241,8 +229,7 @@ const InscribeTransferTapScreen = () => {
         enableRBF: enableRBF,
       });
       
-      // --------- Navigate to Confirmation ---------
-      updateContextData({order, transferAmount: amount, rawTxInfo, data});
+      updateContextData({order, transferAmount: amount, rawTxInfo, dta});
       navigate('/home/inscribe-confirm', {
         state: {
           contextDataParam: {
@@ -250,7 +237,7 @@ const InscribeTransferTapScreen = () => {
             order,
             transferAmount: amount,
             rawTxInfo,
-            data,
+            dta,
           },
         },
       });
@@ -272,7 +259,7 @@ const InscribeTransferTapScreen = () => {
   return (
     <LayoutTap
       header={
-        <UX.TextHeader text={'Inscribe Transfer'} onBackClick={handleGoBack} />
+        <UX.TextHeader text={'Inscribe Transfer pENIS'} onBackClick={handleGoBack} />
       }
       body={
         <UX.Box style={{width: '100%'}}>

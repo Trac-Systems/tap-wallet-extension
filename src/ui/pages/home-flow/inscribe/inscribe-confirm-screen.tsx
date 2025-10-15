@@ -2,7 +2,6 @@ import {formatTicker, satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import TransferPreviewTable from '@/src/ui/component/redeem-table/transfer-preview-table';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
-import { dta } from '@/src/ui/interfaces'
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
 import {
@@ -18,7 +17,7 @@ interface RedeemItem {
   tick: string;
   amt: string;
   address: string;
-  dta?: dta;
+  dta?: string;
   appName?: string;
 }
 

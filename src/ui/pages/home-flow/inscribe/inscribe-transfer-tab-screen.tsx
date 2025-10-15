@@ -31,7 +31,6 @@ import {
 
 import TransferApps from '../../authority/component/trac-apps'
 import { useTracAppsLogic } from '../../authority/hook/use-trac-apps-logic'
-import { dta } from '@/src/ui/interfaces'
 
 interface ContextData {
   ticker: string;
@@ -42,7 +41,7 @@ interface ContextData {
   transferAmount?: string;
   isApproval: boolean;
   tokenInfo?: TokenInfo;
-  dta?: { op: string, addr: string}; 
+  dta?: string; 
 }
 
 interface UpdateContextDataParams {
@@ -53,7 +52,7 @@ interface UpdateContextDataParams {
   rawTxInfo?: RawTxInfo;
   transferAmount?: string;
   tokenInfo?: TokenInfo;
-  dta?: { op: string, addr: string};
+  dta?: string;
 }
 
 const InscribeTransferTapScreen = () => {
@@ -209,8 +208,8 @@ const InscribeTransferTapScreen = () => {
       setLoading(true);
       const amount = inputAmount;
       
-      const dta: dta = isExpanded && selectedApp?.address 
-        ? { op: "deposit", addr: selectedApp.address } 
+      const dta: string = isExpanded && selectedApp?.address 
+        ? `{"op": "deposit","addr": "${selectedApp.address}"}`
         : undefined
       
       const order = await wallet.createOrderTransfer(
@@ -259,7 +258,7 @@ const InscribeTransferTapScreen = () => {
   return (
     <LayoutTap
       header={
-        <UX.TextHeader text={'Inscribe Transfer pENIS'} onBackClick={handleGoBack} />
+        <UX.TextHeader text={'Inscribe Transfer'} onBackClick={handleGoBack} />
       }
       body={
         <UX.Box style={{width: '100%'}}>

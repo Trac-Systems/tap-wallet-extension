@@ -52,7 +52,6 @@ import {Psbt} from 'bitcoinjs-lib';
 import {InscribeApi} from './requests/inscribe-api';
 import {createHash} from 'crypto';
 import * as secp from '@noble/secp256k1';
-import { dta } from '../ui/interfaces'
 
 export interface IDerivationPathOption {
   label: string;
@@ -1075,7 +1074,7 @@ export class Provider {
     amount: string,
     feeRate: number,
     outputValue: number,
-    dta?: dta,
+    dta?: string,
   ): Promise<InscribeOrder> => {
     console.log('this', this)
     console.log('createOrderTransfer', {address, tick, amount, feeRate, outputValue, dta});

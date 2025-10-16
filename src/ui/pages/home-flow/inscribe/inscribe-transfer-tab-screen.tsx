@@ -259,7 +259,7 @@ const InscribeTransferTapScreen = () => {
   return (
     <LayoutTap
       header={
-        <UX.TextHeader text={'Inscribe Transfer pENIS'} onBackClick={handleGoBack} />
+        <UX.TextHeader text={'Inscribe Transfer'} onBackClick={handleGoBack} />
       }
       body={
         <UX.Box style={{width: '100%'}}>

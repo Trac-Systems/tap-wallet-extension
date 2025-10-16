@@ -23,7 +23,7 @@ import {
   InscriptionOrdClient,
   OrderType,
 } from '../../wallet-instance';
-import {Inscription} from '../interfaces';
+import {dta, Inscription} from '../interfaces';
 import {ConnectedSite} from '../../background/service/permission.service';
 import {bitcoin} from '../../background/utils';
 
@@ -179,7 +179,7 @@ export interface IWalletProvider {
     amount: string,
     feeRate: number,
     outputValue: number,
-    dta?: string,
+    dta?: dta,
   ): Promise<InscribeOrder>;
   createOrderAuthority(
     address: string,

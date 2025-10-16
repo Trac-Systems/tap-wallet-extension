@@ -47,3 +47,8 @@ export interface Inscription {
     decimal: string;
   };
 }
+
+export interface dta {
+  op: string;
+  addr: string;
+}

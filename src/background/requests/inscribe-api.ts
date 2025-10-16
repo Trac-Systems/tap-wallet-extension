@@ -63,7 +63,6 @@ export class InscribeApi {
     dta?: dta,
   ) {
     console.log("data to send to api tapTransfer", dta)
-    
     const res = await this.api.post('/v1/inscribe/order/tapTransfer', {
       feeRate,
       postage: outputValue,
@@ -72,7 +71,7 @@ export class InscribeApi {
       ticker,
       receiver: receiveAddress,
       amount,
-      data: dta,
+      data: dta ? JSON.stringify(dta) : undefined, // JSON.stringify(dta),
     });
     if (!res.data) {
       throw new Error('Inscribe tap transfer order failed');

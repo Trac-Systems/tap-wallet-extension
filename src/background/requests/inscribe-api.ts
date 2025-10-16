@@ -2,6 +2,7 @@
 import {InscribeOrder, Network, OrderType} from '@/src/wallet-instance';
 import {networkConfig} from '../service/singleton';
 import {AxiosRequest} from './axios';
+import { dta } from '@/src/ui/interfaces'
 export const INSCRIBE_API_TESTNET = 'http://157.230.45.91:8080';
 
 export const INSCRIBE_API_MAINNET = 'https://inscriber.trac.network';
@@ -59,7 +60,7 @@ export class InscribeApi {
     receiveAddress: string,
     ticker: string,
     amount: string,
-    dta?: string,
+    dta?: dta,
   ) {
     console.log("data to send to api tapTransfer", dta)
     

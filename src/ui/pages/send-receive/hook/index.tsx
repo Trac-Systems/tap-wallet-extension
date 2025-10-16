@@ -14,6 +14,7 @@ import {ToAddressInfo, UnspentOutput, RawTxInfo} from '@/src/wallet-instance';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {bitcoin} from '@/src/background/utils';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import { dta } from '@/src/ui/interfaces'
 
 export function useSafeBalance() {
   const utxos = useAppSelector(TransactionSelector.btcUtxos);
@@ -164,7 +165,7 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
       feeRate?: number;
       outputValue?: number;
       enableRBF?: boolean;
-      dta?: string;
+      dta?: dta;
     }) => {
       if (!feeRate) {
         const recommendFee = await wallet.getRecommendFee();
@@ -243,7 +244,7 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
       ticker: string;
       feeRate?: number;
       enableRBF?: boolean;
-      dta?: string
+      dta?: dta
     }) => {
       if (!feeRate) {
         const summary = await wallet.getRecommendFee();

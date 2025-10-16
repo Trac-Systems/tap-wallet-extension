@@ -20,6 +20,7 @@ import {
 } from '../../../send-receive/hook';
 import TransferApps from '../../../authority/component/trac-apps'
 import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
+import { dta } from '@/src/ui/interfaces'
 
 interface IProps {
   ticker?: string;
@@ -67,14 +68,14 @@ const TransferTap = () => {
       
       // 1. Determine the final receiver address and DTA payload
       let finalAddress = toInfo.address;
-      let dta: string
+      let dta: dta
       
       if (isExpanded && selectedApp) {
           // A. Set the transaction's destination address to the hardcoded TRAC App address
           const appNameKey = selectedApp.name.toLowerCase();
           finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
           
-          dta = `{"op": "deposit","addr": "${selectedApp.address}"}`
+          dta = {op: "deposit",addr: selectedApp.address};
       }
       
       // 2. Execute transaction preparation

@@ -21,6 +21,8 @@ import {
 import TransferApps from '../../../authority/component/trac-apps'
 import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
 import { dta } from '@/src/ui/interfaces'
+import {useInscriptionsWithDta} from '../../hook';
+
 
 interface IProps {
   ticker?: string;
@@ -29,7 +31,6 @@ interface IProps {
 }
 
 const TransferTap = () => {
-  //! State
   const navigate = useNavigate();
   const location = useLocation();
   const {showToast} = useCustomToast();
@@ -56,6 +57,11 @@ const TransferTap = () => {
   const {onUpdateState, getComponentState} = useTracAppsLogic()
   const {isExpanded, selectedApp} = getComponentState(0);
 
+  const {dtaAmount, dtaInscriptionsIds} = useInscriptionsWithDta(
+    inscriptionIdSet ? Array.from(inscriptionIdSet) : [],
+  );
+
+
   //! Function
   const handleGoBack = () => {
     navigate(-1);
@@ -64,44 +70,59 @@ const TransferTap = () => {
   const handleNavigate = async () => {
     try {
       setIsLoading(true);
-      const inscriptionIds = Array.from(inscriptionIdSet);
+
+      // Determine if is DTA mode
+      const useDtaMode = isExpanded && dtaInscriptionsIds.length > 0;
       
-      // 1. Determine the final receiver address and DTA payload
+      // Prepare inscriptions IDs
+      const inscriptionIds = useDtaMode 
+        ? dtaInscriptionsIds 
+        : Array.from(inscriptionIdSet);
+      
+      // Return without inscriptions
+      if (inscriptionIds.length === 0) {
+        showToast({ title: 'Nenhuma inscrição para enviar.', type: 'error' });
+        return;
+      }
+
+      // Basic config for conventional transfer
       let finalAddress = toInfo.address;
-      let dta: dta
-      
-      if (isExpanded && selectedApp) {
-          // A. Set the transaction's destination address to the hardcoded TRAC App address
+      let dtaPayload: dta | undefined;
+      let finalAssetAmount = amount;
+
+      // Custom config for Trac Apps DTA transfer
+      if (useDtaMode && selectedApp) {
           const appNameKey = selectedApp.name.toLowerCase();
           finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
           
-          dta = {op: "deposit",addr: selectedApp.address};
+          dtaPayload = {op: "deposit", addr: selectedApp.address};
+          finalAssetAmount = dtaAmount.toString();
       }
-      
-      // 2. Execute transaction preparation
+
+      // 3. Prepare transaction
       if (inscriptionIds.length === 1) {
         const rawTxInfo = await prepareSendOrdinalsInscription({
-          toAddressInfo: {address: finalAddress}, // <-- Use finalAddress
+          toAddressInfo: {address: finalAddress},
           inscriptionId: inscriptionIds[0],
           feeRate: txStateInfo.feeRate,
           outputValue: outputValue,
           enableRBF,
-          assetAmount: amount,
+          assetAmount: finalAssetAmount,
           ticker: ticker,
-          dta: dta,
+          dta: dtaPayload,
         });
         navigate('/home/confirm-transaction', {
           state: {rawTxInfo},
         });
       } else {
         const rawTxInfo = await prepareSendOrdinalsInscriptions({
-          toAddressInfo: {address: finalAddress}, // <-- Use finalAddress
+          toAddressInfo: {address: finalAddress},
           inscriptionIds,
           feeRate: txStateInfo.feeRate,
           enableRBF,
-          assetAmount: amount,
+          assetAmount: finalAssetAmount,
           ticker: ticker,
-          dta: dta,
+          dta: dtaPayload,
         });
         navigate('/home/confirm-transaction', {
           state: {rawTxInfo},
@@ -148,13 +169,12 @@ const TransferTap = () => {
       return;
     }
     setDisabled(false);
-  }, [toInfo.address, outputValue, isExpanded, selectedApp]);
+  }, [toInfo.address, outputValue, isExpanded, selectedApp, setDisabled, setOutputValueError]);
 
   if (isLoading) {
     return <UX.Loading />;
   }
 
-  //! Renders
   return (
     <LayoutTap
       header={<UX.TextHeader text="Transfer Tap" onBackClick={handleGoBack} />}
@@ -164,7 +184,7 @@ const TransferTap = () => {
             <UX.Text title="Send" styleType="heading_14" />
             <UX.Input
               style={{whiteSpace: 'pre'}}
-              value={`${amount} ${formatTicker(ticker)}`}
+              value={`${dtaInscriptionsIds.length > 0 && isExpanded ? dtaAmount : amount} ${formatTicker(ticker)}`}
               disabled
             />
           </UX.Box>
@@ -185,11 +205,13 @@ const TransferTap = () => {
               autoFocus={true}
             />
           </UX.Box>)}
-          <TransferApps 
-            id={0} isExpanded={isExpanded} 
-            onUpdateState={onUpdateState} 
-            selectedApp={selectedApp} 
-            token={ticker}  />
+          {dtaInscriptionsIds.length > 0 && (
+            <TransferApps 
+              id={0} isExpanded={isExpanded} 
+              onUpdateState={onUpdateState} 
+              selectedApp={selectedApp} 
+              token={ticker}  />
+)}
 
           {isShowOutputValue && (
             <UX.Box spacing="xs">

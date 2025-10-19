@@ -62,7 +62,6 @@ export class InscribeApi {
     amount: string,
     dta?: dta,
   ) {
-    console.log("data to send to api tapTransfer", dta)
     const res = await this.api.post('/v1/inscribe/order/tapTransfer', {
       feeRate,
       postage: outputValue,

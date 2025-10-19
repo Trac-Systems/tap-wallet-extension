@@ -1155,8 +1155,6 @@ export class Provider {
     outputValue: number,
     dta?: dta,
   ): Promise<InscribeOrder> => {
-    console.log('this', this)
-    console.log('createOrderTransfer', {address, tick, amount, feeRate, outputValue, dta});
     const connectedAddress = this.getActiveAccount()?.address;
     const order = await this.inscribeApi.createOrderTapTransfer(
       feeRate,

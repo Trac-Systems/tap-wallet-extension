@@ -16,6 +16,8 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {TracBalanceActions} from '@/src/ui/redux/reducer/trac-balance/slice';
 import {TracBalanceSelector} from '@/src/ui/redux/reducer/trac-balance/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import { Inscription } from '@/src/ui/interfaces'
+
 // TRAC balance service (shared)
 export const TRAC_BASE_URL = 'http://trac.intern.ungueltig.com:1337';
 
@@ -448,4 +450,63 @@ export const useAllInscriptions = () => {
     fetchAllInscriptions,
     refreshAllInscriptions,
   };
+};
+
+
+
+type UseInscriptionsWithDta = {
+  dtaInscriptionsIds: string[];
+  dtaInscriptions: Inscription[];
+  dtaAmount: number;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+};
+
+/**
+ * Loads inscriptions and fetches each content body to find embedded `dta`.
+ */
+export const useInscriptionsWithDta = (ids: string[] = []): UseInscriptionsWithDta => {
+  const wallet = useWalletProvider();
+  const [dtaInscriptionsIds, setDtaInscriptionsIds] = useState<string[]>([]);
+  const [dtaInscriptions, setDtaInscriptions] = useState<Inscription[]>([]);
+  const [dtaAmount, setDtaAmount] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAll = useCallback(async () => {
+    if (!ids.length) return;
+    setLoading(true);
+    setError(null);
+    setDtaInscriptionsIds([]);
+
+    try {
+      let _dtaInscriptionsIds: string[] = []
+      let _dtaInscriptions: Inscription[] = []
+      let _dtaAmount = 0;
+      
+      for (const id of ids) {
+          const content = await wallet.getInscriptionContent(id);
+          if (!content || !content?.dta) continue;
+        
+          _dtaInscriptionsIds.push(id);
+          _dtaInscriptions.push(content)
+          _dtaAmount += parseInt(content?.amt || '0');
+      }
+
+      setDtaInscriptionsIds(_dtaInscriptionsIds);
+      setDtaInscriptions(_dtaInscriptions);
+      setDtaAmount(_dtaAmount);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [ids, wallet, setDtaInscriptionsIds]);
+
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  return { dtaInscriptionsIds, dtaInscriptions, dtaAmount, loading, error, refetch: fetchAll };
 };

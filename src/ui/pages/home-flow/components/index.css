@@ -94,13 +94,13 @@
 
 .cardSliderContainer {
   box-shadow: rgba(234, 91, 100, 0.5) 1.95px 1.95px 2.6px;
-  height: 148px;
+  height: 170px;
   background: linear-gradient(45deg, #f79e6d 0%, #c54359 50%, #c54359 100%);
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 24px;
+  padding: 16px;
   /* justify-content: space-between; */
   gap: 8px;
 }
@@ -233,7 +233,6 @@
   overflow: hidden;
   background-color: #191919 !important;
   height: 30vh !important;
-  padding-bottom: 16px; /* prevent content from sticking to bottom */
 }
 @media only screen and (min-width: 600px) {
   .drawer-add-wallet {
@@ -241,7 +240,6 @@
     height: 21vh !important;
     left: auto !important;
     right: auto !important;
-    padding-bottom: 16px;
   }
 }
 

@@ -88,6 +88,13 @@ const TokenSection = ({
             });
           }}
         />
+        {section.errorName && isSubmitted && (
+          <Text
+            title={section.errorName}
+            styleType="body_14_bold"
+            customStyles={{ color: colors.red_500, marginTop: '4px' }}
+          />
+        )}
         {section.selected && (
           <UX.Box layout="row_between">
             <UX.Text title="Available:" styleType="body_14_bold" />
@@ -159,7 +166,6 @@ const TokenSection = ({
         selectedApp={selectedApp} 
         token={section.selected}  />
 
-      {/* ONLY DISPLAY ERROR IF THE FORM HAS BEEN SUBMITTED */}
       {section.errorAddress && isSubmitted && (
         <Text
           title={section.errorAddress}
@@ -299,20 +305,25 @@ const TransferAuthority = () => {
 
   // Validation logic extracted and memoized
   const validateSection = useCallback((sectionToValidate) => {
-    // 1. Amount error
+    // 1. Token name error
+    let errorName = '';
+    if (!sectionToValidate.selected) {
+      errorName = 'Token name is required';
+    } else {
+      errorName = ''; // CLEAR error
+    }
+
+    // 2. Amount error
     let errorAmount = '';
     
-    // Check if a token is selected
-    if (!sectionToValidate.selected) {
-        errorAmount = 'Token name is required';
-    } else if (!sectionToValidate.amount) {
+    if (!sectionToValidate.amount) {
       errorAmount = 'Amount is required';
     } else {
       // Check if amount exceeds available balance
       const selectedOption = listTapList.find(
         option => option.value === sectionToValidate.selected,
       );
-      const optionAmount = selectedOption?.amount || 0;
+      const optionAmount = Number(selectedOption?.amount ?? 0);
       
       // Calculate amount used in other sections for the same token
       const selectedAmount = tokenSections.reduce((acc, item) => {
@@ -331,7 +342,7 @@ const TransferAuthority = () => {
       }
     }
 
-    // 2. Address error
+    // 3. Address error
     let errorAddress = '';
     const { isExpanded, selectedApp } = getComponentState(sectionToValidate.id);
 
@@ -357,7 +368,7 @@ const TransferAuthority = () => {
       }
     }
     
-    return { errorAmount, errorAddress };
+    return { errorName, errorAmount, errorAddress };
   }, [getComponentState, listTapList, networkType, tokenSections]); 
   
   // Function to update section errors from child component (memoized)
@@ -518,8 +529,19 @@ const TransferAuthority = () => {
   };
 
   // This check controls the button's enabled/disabled state (runs on every render)
+  // const isDisabledForm = tokenSections.some(section => {
+  //   return section.errorAmount || section.errorAddress;
+  // });
+
   const isDisabledForm = tokenSections.some(section => {
-    return section.errorAmount || section.errorAddress;
+    return (
+      !section.selected ||
+      !section.amount ||
+      (!getComponentState(section.id).isExpanded && !section.address) ||
+      (getComponentState(section.id).isExpanded && !getComponentState(section.id).selectedApp?.address) ||
+      section.errorAmount ||
+      section.errorAddress
+    );
   });
 
   //! Render
@@ -575,7 +597,7 @@ const TransferAuthority = () => {
             title={'Next'}
             customStyles={{zIndex: 2}}
             onClick={handleConfirm}
-            isDisable={isDisabledForm || loading}
+            isDisable={loading}
           />
         </UX.Box>
       }

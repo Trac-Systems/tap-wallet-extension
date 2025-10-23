@@ -210,7 +210,7 @@ const InscribeTransferTapScreen = () => {
       const amount = inputAmount;
       
       const dta: dta = isExpanded && selectedApp?.address 
-        ? { op: "deposit", addr: selectedApp.address } 
+        ? { op: "deposit", addr: selectedApp.address, appName: selectedApp.name.toLocaleLowerCase() } 
         : undefined
       
       const order = await wallet.createOrderTransfer(

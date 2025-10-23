@@ -20,7 +20,6 @@ import {
 } from '../../../send-receive/hook';
 import TransferApps from '../../../authority/component/trac-apps'
 import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
-import { dta } from '@/src/ui/interfaces'
 import {useInscriptionsWithDta} from '../../hook';
 
 
@@ -53,14 +52,15 @@ const TransferTap = () => {
     usePrepareSendOrdinalsInscriptionCallback();
   const [enableRBF, setEnableRBF] = useState(false);
   const getAddressTypeReceiver = getAddressType(toInfo.address);
+  const [filteredAmount, setFilteredAmount] = useState<string>("0");
+  const [filteredInscriptionIds, setFilteredInscriptionIds] = useState<string[]>([]);
 
   const {onUpdateState, getComponentState} = useTracAppsLogic()
   const {isExpanded, selectedApp} = getComponentState(0);
 
-  const {dtaAmount, dtaInscriptionsIds} = useInscriptionsWithDta(
+  const {dtaAmount, dtaInscriptions, dtaInscriptionsIds} = useInscriptionsWithDta(
     inscriptionIdSet ? Array.from(inscriptionIdSet) : [],
-  );
-
+  );  
 
   //! Function
   const handleGoBack = () => {
@@ -70,44 +70,39 @@ const TransferTap = () => {
   const handleNavigate = async () => {
     try {
       setIsLoading(true);
+      // Prepare inscriptions IDs
+      const inscriptionIds = filteredInscriptionIds;
+      const finalAmount = filteredAmount;
 
       // Determine if is DTA mode
-      const useDtaMode = isExpanded && dtaInscriptionsIds.length > 0;
-      
-      // Prepare inscriptions IDs
-      const inscriptionIds = useDtaMode 
-        ? dtaInscriptionsIds 
-        : Array.from(inscriptionIdSet);
+      const useDtaMode = isExpanded && inscriptionIds.length > 0 && selectedApp?.address;
       
       // Return without inscriptions
       if (inscriptionIds.length === 0) {
-        showToast({ title: 'Nenhuma inscrição para enviar.', type: 'error' });
+        showToast({ title: 'No inscription to transfer.', type: 'error' });
         return;
       }
 
       // Basic config for conventional transfer
       let finalAddress = toInfo.address;
-      let dtaPayload: dta | undefined;
-      let finalAssetAmount = amount;
-
+      let dtaPayload: string | undefined = undefined;
+      
       // Custom config for Trac Apps DTA transfer
-      if (useDtaMode && selectedApp) {
+      if (useDtaMode) {
           const appNameKey = selectedApp.name.toLowerCase();
           finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
-          
-          dtaPayload = {op: "deposit", addr: selectedApp.address};
-          finalAssetAmount = dtaAmount.toString();
+          dtaPayload = JSON.stringify({op: "deposit", addr: selectedApp.address});
       }
 
-      // 3. Prepare transaction
+      // Prepare transaction
       if (inscriptionIds.length === 1) {
         const rawTxInfo = await prepareSendOrdinalsInscription({
           toAddressInfo: {address: finalAddress},
-          inscriptionId: inscriptionIds[0],
+          inscriptionId: filteredInscriptionIds[0],
           feeRate: txStateInfo.feeRate,
           outputValue: outputValue,
           enableRBF,
-          assetAmount: finalAssetAmount,
+          assetAmount: finalAmount,
           ticker: ticker,
           dta: dtaPayload,
         });
@@ -117,10 +112,10 @@ const TransferTap = () => {
       } else {
         const rawTxInfo = await prepareSendOrdinalsInscriptions({
           toAddressInfo: {address: finalAddress},
-          inscriptionIds,
+          inscriptionIds: filteredInscriptionIds,
           feeRate: txStateInfo.feeRate,
           enableRBF,
-          assetAmount: finalAssetAmount,
+          assetAmount: finalAmount,
           ticker: ticker,
           dta: dtaPayload,
         });
@@ -138,7 +133,6 @@ const TransferTap = () => {
       setIsLoading(false);
     }
   };
-
 
   const handleAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -171,6 +165,41 @@ const TransferTap = () => {
     setDisabled(false);
   }, [toInfo.address, outputValue, isExpanded, selectedApp, setDisabled, setOutputValueError]);
 
+  useEffect(() => {
+    let _filteredAmount = 0;
+    let _filteredInscriptionIds: string[] = [];
+    const useDtaMode = isExpanded && dtaInscriptions.length > 0;
+
+    if (useDtaMode && selectedApp && selectedApp?.address !== "") {
+      const targetAppName = selectedApp.name.toLowerCase();      
+      const filteredInscriptions = dtaInscriptions.filter(inscription => {
+        try {
+          const payload = JSON.parse(inscription?.dta as string); 
+          return payload.appName && payload.appName === targetAppName;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      _filteredInscriptionIds = filteredInscriptions.map(inscription => inscription.inscriptionId);
+      _filteredAmount = filteredInscriptions.reduce((sum, inscription) => {
+        return sum + (parseInt(inscription.amt || '0'));
+      }, 0);
+
+    } else if (useDtaMode) {
+      _filteredAmount = dtaAmount;
+      _filteredInscriptionIds = dtaInscriptionsIds;
+      
+    } else {
+      _filteredAmount = parseInt(amount || '0');
+      _filteredInscriptionIds = inscriptionIdSet ? Array.from(inscriptionIdSet) : [];
+    }
+
+    setFilteredAmount(_filteredAmount.toString());
+    setFilteredInscriptionIds(_filteredInscriptionIds);
+
+  }, [amount, inscriptionIdSet, dtaAmount, dtaInscriptions, dtaInscriptionsIds, isExpanded, selectedApp]); 
+
   if (isLoading) {
     return <UX.Loading />;
   }
@@ -184,7 +213,7 @@ const TransferTap = () => {
             <UX.Text title="Send" styleType="heading_14" />
             <UX.Input
               style={{whiteSpace: 'pre'}}
-              value={`${dtaInscriptionsIds.length > 0 && isExpanded ? dtaAmount : amount} ${formatTicker(ticker)}`}
+              value={`${filteredAmount} ${formatTicker(ticker)}`}
               disabled
             />
           </UX.Box>
@@ -211,13 +240,32 @@ const TransferTap = () => {
               onUpdateState={onUpdateState} 
               selectedApp={selectedApp} 
               token={ticker}  />
-)}
+          )}
+
+          {isExpanded && !selectedApp && dtaInscriptionsIds.length > 0 && (
+            <UX.Box spacing="xl" className='' style={{backgroundColor: colors.gray, textAlign: "center", borderRadius: 20, padding: 10, paddingLeft: 50, paddingRight: 50}}>
+              <UX.Text
+                  title="The inscriptions ready to transfer to a Trac App are set. Select an app to proceed."
+                  styleType='body_12_bold'
+              />
+            </UX.Box>
+          )}
+
+          {isExpanded && selectedApp && selectedApp?.address !== "" && dtaInscriptionsIds.length > 0 && (
+            <UX.Box spacing="xl" className='' style={{backgroundColor: colors.red_700, textAlign: "center", borderRadius: 20, padding: 10, paddingLeft: 50, paddingRight: 50}}>
+              <UX.Text
+                  title={`You are only transferring inscriptions destinated to ${selectedApp.name}. Make sure this is correct before proceed.`}
+                  customStyles={{color: colors.white}}
+                  styleType='body_12_bold'
+              />
+            </UX.Box>
+          )}
 
           {isShowOutputValue && (
             <UX.Box spacing="xs">
               <UX.Text
                 styleType="heading_14"
-                customStyles={{color: 'white'}}
+                customStyles={{color: colors.white}}
                 title="Output Value"
               />
               <OutputValueBar

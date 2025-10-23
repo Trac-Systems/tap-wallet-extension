@@ -232,7 +232,7 @@ export interface RawTxInfo {
   assetAmount?: string;
   ticker?: string;
   enableRBF?: boolean;
-  dta?: dta
+  dta?: dta | string | undefined;
 }
 
 export interface TxInput {

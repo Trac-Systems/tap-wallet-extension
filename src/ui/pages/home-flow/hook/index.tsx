@@ -456,7 +456,7 @@ export const useAllInscriptions = () => {
 
 type UseInscriptionsWithDta = {
   dtaInscriptionsIds: string[];
-  dtaInscriptions: Inscription[];
+  dtaInscriptions: any[];
   dtaAmount: number;
   loading: boolean;
   error: string | null;
@@ -469,7 +469,7 @@ type UseInscriptionsWithDta = {
 export const useInscriptionsWithDta = (ids: string[] = []): UseInscriptionsWithDta => {
   const wallet = useWalletProvider();
   const [dtaInscriptionsIds, setDtaInscriptionsIds] = useState<string[]>([]);
-  const [dtaInscriptions, setDtaInscriptions] = useState<Inscription[]>([]);
+  const [dtaInscriptions, setDtaInscriptions] = useState<any[]>([]);
   const [dtaAmount, setDtaAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -482,7 +482,7 @@ export const useInscriptionsWithDta = (ids: string[] = []): UseInscriptionsWithD
 
     try {
       let _dtaInscriptionsIds: string[] = []
-      let _dtaInscriptions: Inscription[] = []
+      let _dtaInscriptions: any[] = []
       let _dtaAmount = 0;
       
       for (const id of ids) {
@@ -490,7 +490,7 @@ export const useInscriptionsWithDta = (ids: string[] = []): UseInscriptionsWithD
           if (!content || !content?.dta) continue;
         
           _dtaInscriptionsIds.push(id);
-          _dtaInscriptions.push(content)
+          _dtaInscriptions.push({inscriptionId: id, ...content});
           _dtaAmount += parseInt(content?.amt || '0');
       }
 

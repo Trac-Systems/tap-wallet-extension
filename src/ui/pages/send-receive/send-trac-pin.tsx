@@ -15,6 +15,7 @@ import {PinInputRef} from '../../component/pin-input';
 import type {AuthInputRef} from '../../component/auth-input';
 import {TracApi} from '../../../background/requests/trac-api';
 import {TracApiService} from '../../../background/service/trac-api.service';
+import {Network} from '../../../wallet-instance';
 
 interface TracSummaryData {
   to: string;
@@ -37,6 +38,7 @@ const SendTracPin = () => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const isTracSingleWallet = useIsTracSingleWallet();
   const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
+  const networkType = useAppSelector(GlobalSelector.networkType);
   
   const [pinValue, setPinValue] = useState('');
   const [sending, setSending] = useState(false);
@@ -96,12 +98,22 @@ const SendTracPin = () => {
         secret = TracApiService.toSecretBuffer(generated.secretKey);
       }
       
+      // Get chainId based on current network (same as settings)
+      const tracCrypto = TracApiService.getTracCryptoInstance();
+      if (!tracCrypto) {
+        throw new Error("TracCryptoApi not available");
+      }
+      
+      const chainId = networkType === Network.MAINNET 
+        ? tracCrypto.MAINNET_ID  // 918
+        : tracCrypto.TESTNET_ID; // 919
+      
       const txData = await TracApiService.preBuildTransaction({
         from: tracAddress, // Use active TRAC address
         to: summaryData.to,
         amountHex: summaryData.amountHex,
         validityHex: summaryData.validityHex
-      });
+      }, chainId);
       
       const txPayload = TracApiService.buildTransaction(txData, secret);
       

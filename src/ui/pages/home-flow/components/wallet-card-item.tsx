@@ -13,7 +13,7 @@ import {SVG} from '@/src/ui/svg';
 import {useAppSelector} from '@/src/ui/utils';
 import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
-import {useAccountBalance} from '../hook';
+import {useAccountBalance, useActiveTracAddress} from '../hook';
 import './index.css';
 import {debounce} from 'lodash';
 import {useSafeBalance} from '@/src/ui/pages/send-receive/hook';
@@ -52,6 +52,7 @@ const WalletCard = (props: IWalletCardProps) => {
   }, [activeWallet]);
 
   const {address} = activeAccount;
+  const tracAddress = useActiveTracAddress();
   const isActive = keyring.key === activeWallet.key;
 
   const balanceValue = useMemo(() => {
@@ -59,11 +60,17 @@ const WalletCard = (props: IWalletCardProps) => {
   }, [accountBalance.amount]);
 
   //! Function
-  const handleShowHistory = () => {
+  const handleShowHistoryBTC = () => {
     const url =
       networkType === NETWORK_TYPES.MAINNET.label
         ? 'https://mempool.space/address/' + address
         : 'https://mempool.space/testnet/address/' + address;
+    setMenuOpen(false);
+    return window.open(url, '_blank')?.focus();
+  };
+
+  const handleShowHistoryTRAC = () => {
+    const url = 'http://trac.intern.ungueltig.com:3001/address/' + tracAddress;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };
@@ -160,10 +167,16 @@ const WalletCard = (props: IWalletCardProps) => {
             {menuOpen && (
               <div className="containerOption">
                 <UX.Text
-                  onClick={handleShowHistory}
+                  onClick={handleShowHistoryBTC}
                   styleType="body_14_bold"
                   customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="View History"
+                  title="View BTC History"
+                />
+                <UX.Text
+                  onClick={handleShowHistoryTRAC}
+                  styleType="body_14_bold"
+                  customStyles={{cursor: 'pointer', color: 'white'}}
+                  title="View TRAC History"
                 />
                 <UX.Text
                   onClick={() => {

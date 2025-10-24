@@ -10,9 +10,12 @@ export interface TracCryptoInstance {
     }>;
   };
   transaction: {
-    preBuild: (from: string, to: string, amountHex: string, validityHex: string) => Promise<any>;
+    preBuild: (from: string, to: string, amountHex: string, validityHex: string, networkId?: number) => Promise<any>;
     build: (txData: any, secret: Buffer) => string;
   };
+
+  MAINNET_ID: number;
+  TESTNET_ID: number;
 }
 
 export interface TracTransactionData {
@@ -80,17 +83,19 @@ export class TracApiService {
   /**
    * Pre-build transaction
    */
-  static async preBuildTransaction(txData: TracTransactionData): Promise<any> {
+  static async preBuildTransaction(txData: TracTransactionData, networkId?: number): Promise<any> {
     const tracCrypto = this.getTracCryptoInstance();
     if (!tracCrypto) {
       throw new Error("TracCryptoApi not available");
     }
     
+    const chainId = networkId || 918; // MAINNET_ID
     return await tracCrypto.transaction.preBuild(
       txData.from,
       txData.to,
       txData.amountHex,
-      txData.validityHex
+      txData.validityHex,
+      chainId
     );
   }
   

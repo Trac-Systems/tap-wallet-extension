@@ -1,5 +1,6 @@
 import {TapTokenInfo} from '@/src/shared/utils/tap-response-adapter';
 import {PublicWallet} from '../background/service/wallet.service';
+import { dta } from '../ui/interfaces'
 
 export enum OrderType {
   TEXT = 'TEXT',
@@ -231,6 +232,7 @@ export interface RawTxInfo {
   assetAmount?: string;
   ticker?: string;
   enableRBF?: boolean;
+  dta?: dta | string | undefined;
 }
 
 export interface TxInput {

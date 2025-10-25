@@ -11,13 +11,13 @@ import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {useAppSelector} from '@/src/ui/utils';
-import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
+import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance, useActiveTracAddress} from '../hook';
 import './index.css';
 import {debounce} from 'lodash';
 import {useSafeBalance} from '@/src/ui/pages/send-receive/hook';
-import {TRAC_EXPLORER_URL} from '../../../../background/constants/trac-api';
+import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -71,7 +71,8 @@ const WalletCard = (props: IWalletCardProps) => {
   };
 
   const handleShowHistoryTRAC = () => {
-    const url = `${TRAC_EXPLORER_URL}/address/${tracAddress}`;
+    const currentNetwork = networkType === NETWORK_TYPES.MAINNET.label ? Network.MAINNET : Network.TESTNET;
+    const url = `${getTracExplorerUrl(currentNetwork)}/address/${tracAddress}`;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };

@@ -72,6 +72,17 @@ const SendTrac = () => {
     if (dotCount > 1) {
       return;
     }
+    
+    // Limit decimal places to 18
+    if (cleanText.includes('.')) {
+      const [integerPart, decimalPart] = cleanText.split('.');
+      if (decimalPart && decimalPart.length > 18) {
+        const limitedDecimal = decimalPart.substring(0, 18);
+        setTracSendNumberValue(`${integerPart}.${limitedDecimal}`);
+        return;
+      }
+    }
+    
     setTracSendNumberValue(cleanText);
   };
 

@@ -2,15 +2,20 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
 import {SVG} from '../../svg';
-import {TRAC_EXPLORER_URL} from '../../../background/constants/trac-api';
+import {getTracExplorerUrl} from '../../../background/constants/trac-api';
+import {useAppSelector} from '../../utils';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {NETWORK_TYPES, Network} from '../../../wallet-instance';
 
 const SendTracSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {txHash}: {txHash: string} = location.state;
+  const networkType = useAppSelector(GlobalSelector.networkType);
 
   const handleViewOnExplorer = () => {
-    const explorerUrl = `${TRAC_EXPLORER_URL}/tx/${txHash}`;
+    const currentNetwork = networkType === NETWORK_TYPES.MAINNET.label ? Network.MAINNET : Network.TESTNET;
+    const explorerUrl = `${getTracExplorerUrl(currentNetwork)}/tx/${txHash}`;
     window.open(explorerUrl, '_blank');
   };
 

@@ -17,6 +17,7 @@ import {useAccountBalance, useActiveTracAddress} from '../hook';
 import './index.css';
 import {debounce} from 'lodash';
 import {useSafeBalance} from '@/src/ui/pages/send-receive/hook';
+import {TRAC_EXPLORER_URL} from '../../../../background/constants/trac-api';
 
 interface IWalletCardProps {
   keyring: WalletDisplay;
@@ -70,7 +71,7 @@ const WalletCard = (props: IWalletCardProps) => {
   };
 
   const handleShowHistoryTRAC = () => {
-    const url = 'http://trac.intern.ungueltig.com:3001/address/' + tracAddress;
+    const url = `${TRAC_EXPLORER_URL}/address/${tracAddress}`;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };

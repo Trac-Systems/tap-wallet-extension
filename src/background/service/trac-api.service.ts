@@ -12,6 +12,7 @@ export interface TracCryptoInstance {
   transaction: {
     preBuild: (from: string, to: string, amountHex: string, validityHex: string, networkId?: number) => Promise<any>;
     build: (txData: any, secret: Buffer) => string;
+    decode?: (payload: string) => any;
   };
 
   MAINNET_ID: number;
@@ -109,6 +110,31 @@ export class TracApiService {
     }
     
     return tracCrypto.transaction.build(txData, secret);
+  }
+
+  /**
+   * Decode payload to extract transaction hash
+   */
+  static decodePayload(payload: string): string | null {
+    try {
+      // Try to decode as base64 first using browser's atob
+      try {
+        const decoded = atob(payload);
+        const parsed = JSON.parse(decoded);
+        return parsed?.tro?.tx || null;
+      } catch {
+        // If not base64 JSON, try direct JSON parse
+        try {
+          const parsed = JSON.parse(payload);
+          return parsed?.tro?.tx || null;
+        } catch {
+          return null;
+        }
+      }
+    } catch (error) {
+      console.error('Error decoding payload:', error);
+      return null;
+    }
   }
   
   /**

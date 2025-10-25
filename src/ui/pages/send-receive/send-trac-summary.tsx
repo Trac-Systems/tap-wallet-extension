@@ -88,8 +88,12 @@ const SendTracSummary = () => {
       const txPayload = TracApiService.buildTransaction(txData, secret);
       const result = await TracApi.broadcastTransaction(txPayload);
       if (result.success) {
+        // Decode payload to get transaction hash
+        const txHash = TracApiService.decodePayload(txPayload);
         showToast({title: 'Transaction sent successfully', type: 'success'});
-        navigate('/home/send-trac-success', { state: { txid: result.txid } });
+        navigate('/home/send-trac-success', { 
+          state: { txHash } 
+        });
       } else {
         showToast({title: result.error || 'Transaction failed', type: 'error'});
       }

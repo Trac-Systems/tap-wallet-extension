@@ -8,6 +8,7 @@ import {useAppSelector} from '@/src/ui/utils';
 import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
+import {TRAC_EXPLORER_URL} from '../../../../background/constants/trac-api';
 
 interface IWalletCardNewProps {
   keyring: WalletDisplay;
@@ -52,7 +53,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
   };
 
   const handleShowHistoryTRAC = () => {
-    const url = 'http://trac.intern.ungueltig.com:3001/address/' + tracAddress;
+    const url = `${TRAC_EXPLORER_URL}/address/${tracAddress}`;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };

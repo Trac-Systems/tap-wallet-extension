@@ -140,22 +140,32 @@ export class TracApiService {
   /**
    * Convert amount to hex string using BigInt
    * Amount must be 16 bytes (32 hex characters) with 18 decimal places
+   * Now accepts string to preserve precision
    */
-  static amountToHex(amount: number): string {
+  static amountToHex(amount: string | number): string {
     try {
-      // Handle edge cases
-      if (!isFinite(amount) || amount < 0) {
-        return '00000000000000000000000000000000';
+      // Convert to string first to preserve precision
+      let amountStr: string;
+      if (typeof amount === 'string') {
+        amountStr = amount;
+      } else {
+        // Handle edge cases for number input
+        if (!isFinite(amount) || amount < 0) {
+          return '00000000000000000000000000000000';
+        }
+        
+        // Handle scientific notation by using toFixed(18) for all numbers
+        if (amount < 1e-10 || amount.toString().includes('e')) {
+          amountStr = amount.toFixed(18);
+        } else {
+          amountStr = amount.toString();
+        }
       }
       
-      // Handle scientific notation by using toFixed(18) for all numbers
-      // This ensures we get the full decimal representation
-      let amountStr: string;
-      if (amount < 1e-10 || amount.toString().includes('e')) {
-        // For very small numbers or scientific notation, use toFixed(18)
-        amountStr = amount.toFixed(18);
-      } else {
-        amountStr = amount.toString();
+      // Validate string format (should be a valid decimal number)
+      if (!/^\d*\.?\d+$/.test(amountStr)) {
+        console.error('Invalid amount string format:', amountStr);
+        return '00000000000000000000000000000000';
       }
       
       const [integerPart, decimalPart = ''] = amountStr.split('.');

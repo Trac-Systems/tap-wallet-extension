@@ -9,6 +9,9 @@ import {useActiveTracAddress, useTracBalances} from '../home-flow/hook';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {TracApi} from '../../../background/requests/trac-api';
 import {TracApiService} from '../../../background/service/trac-api.service';
+import {useAppSelector} from '../../utils';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {Network} from '../../../wallet-instance';
 
 const SendTrac = () => {
   //! State
@@ -24,13 +27,14 @@ const SendTrac = () => {
   const [fee, setFee] = useState('');
   const [feeLoading, setFeeLoading] = useState(true);
   const wallet = useWalletProvider();
+  const networkType = useAppSelector(GlobalSelector.networkType);
 
   // Fetch fee when component mounts
   useEffect(() => {
     const fetchFee = async () => {
       try {
         setFeeLoading(true);
-        const feeHex = await TracApi.fetchTransactionFee();
+        const feeHex = await TracApi.fetchTransactionFee(networkType);
         setFee(feeHex);
       } catch (error) {
         console.error('Failed to fetch fee:', error);
@@ -41,7 +45,7 @@ const SendTrac = () => {
     };
 
     fetchFee();
-  }, []);
+  }, [networkType]);
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -130,10 +134,10 @@ const SendTrac = () => {
       }
 
       // Fetch validity (fee already fetched)
-      const validityHex = await TracApi.fetchTransactionValidity();
+      const validityHex = await TracApi.fetchTransactionValidity(networkType);
       
       // Convert input amount to hex using service
-      const amountHex = TracApiService.amountToHex(sendAmount);
+      const amountHex = TracApiService.amountToHex(tracSendNumberValue);
 
       const summaryData = {
         to: toInfo.address,

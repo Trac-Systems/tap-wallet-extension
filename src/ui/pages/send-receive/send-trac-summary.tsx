@@ -86,7 +86,7 @@ const SendTracSummary = () => {
       }, chainId);
 
       const txPayload = TracApiService.buildTransaction(txData, secret);
-      const result = await TracApi.broadcastTransaction(txPayload);
+      const result = await TracApi.broadcastTransaction(txPayload, networkType);
       if (result.success) {
         // Decode payload to get transaction hash
         const txHash = TracApiService.decodePayload(txPayload);

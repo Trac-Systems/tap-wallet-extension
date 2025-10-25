@@ -16,21 +16,24 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {TracBalanceActions} from '@/src/ui/redux/reducer/trac-balance/slice';
 import {TracBalanceSelector} from '@/src/ui/redux/reducer/trac-balance/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
-import { TRAC_BASE_URL } from '@/src/background/constants/trac-api';
+import { TRAC_BASE_URL_MAINNET, TRAC_BASE_URL_TESTNET } from '@/src/background/constants/trac-api';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import { Network } from '@/src/wallet-instance';
 
-export async function getTracBalances(address: string): Promise<{
+export async function getTracBalances(address: string, network: Network = Network.MAINNET): Promise<{
   total: string;
   confirmed: string;
   unconfirmed: string;
 }> {
   if (!address) return {total: '', confirmed: '', unconfirmed: ''};
-  const urlTotal = `${TRAC_BASE_URL}/balance/${address}`;
-  const urlConfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=true`;
-  const urlUnconfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=false`;
+  const baseUrl = network === Network.TESTNET ? TRAC_BASE_URL_TESTNET : TRAC_BASE_URL_MAINNET;
+  const urlTotal = `${baseUrl}/balance/${address}`;
+  const urlConfirmed = `${baseUrl}/balance/${address}?confirmed=true`;
+  const urlUnconfirmed = `${baseUrl}/balance/${address}?confirmed=false`;
   const [rTotal, rConfirmed, rUnconfirmed] = await Promise.all([
-    fetch(urlTotal),
-    fetch(urlConfirmed),
-    fetch(urlUnconfirmed),
+    fetch(urlTotal).catch(() => ({ ok: false, json: () => Promise.resolve({}) })),
+    fetch(urlConfirmed).catch(() => ({ ok: false, json: () => Promise.resolve({}) })),
+    fetch(urlUnconfirmed).catch(() => ({ ok: false, json: () => Promise.resolve({}) })),
   ]);
   const [jTotal, jConfirmed, jUnconfirmed] = await Promise.all([
     rTotal.ok ? rTotal.json().catch(() => ({} as any)) : ({} as any),
@@ -44,10 +47,11 @@ export async function getTracBalances(address: string): Promise<{
   };
 }
 
-export async function getTracTotal(address: string): Promise<string> {
+export async function getTracTotal(address: string, network: Network = Network.MAINNET): Promise<string> {
   if (!address) return '';
-  const url = `${TRAC_BASE_URL}/balance/${address}`;
-  const resp = await fetch(url);
+  const baseUrl = network === Network.TESTNET ? TRAC_BASE_URL_TESTNET : TRAC_BASE_URL_MAINNET;
+  const url = `${baseUrl}/balance/${address}`;
+  const resp = await fetch(url).catch(() => ({ ok: false, json: () => Promise.resolve({}) }));
   if (!resp.ok) return '';
   const data = await resp.json().catch(() => ({} as any));
   const rawBalance = (data?.balance ?? '') as string;
@@ -120,6 +124,7 @@ export function useTracBalanceByAddress(address?: string) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const latestCallIdRef = useRef<number>(0);
+  const networkType = useAppSelector(GlobalSelector.networkType);
 
   const fetchBalance = useCallback(async () => {
     if (!address) return;
@@ -127,27 +132,35 @@ export function useTracBalanceByAddress(address?: string) {
     setError(null);
     const callId = ++latestCallIdRef.current;
     try {
-      const next = await getTracTotal(address);
+      const next = await getTracTotal(address, networkType);
       if (callId === latestCallIdRef.current) {
         setBalance(next || '');
       }
     } catch (e) {
       if (callId === latestCallIdRef.current) {
         setError((e as Error).message);
-        setBalance('');
+        setBalance('0'); // Set to '0' on error (especially for testnet API errors)
       }
     } finally {
       if (callId === latestCallIdRef.current) {
         setLoading(false);
       }
     }
-  }, [address]);
+  }, [address, networkType]);
 
   useEffect(() => {
     // Clear value immediately when address changes to avoid showing previous address total
     setBalance('0');
     fetchBalance();
   }, [fetchBalance]);
+
+  useEffect(() => {
+    // Revalidate when network changes
+    if (address) {
+      setBalance('0');
+      fetchBalance();
+    }
+  }, [networkType, fetchBalance]);
 
   return {balance, loading, error, refetch: fetchBalance};
 }
@@ -156,6 +169,7 @@ export function useTracBalanceByAddress(address?: string) {
 export function useTracBalances(address?: string) {
   const dispatch = useAppDispatch();
   const reduxBalances = useAppSelector(state => TracBalanceSelector.byAddress(state, address));
+  const networkType = useAppSelector(GlobalSelector.networkType);
   
   // Use useMemo to automatically sync with Redux state changes
   const total = useMemo(() => reduxBalances.total || '0', [reduxBalances.total]);
@@ -173,16 +187,17 @@ export function useTracBalances(address?: string) {
     setError(null);
 
     const callId = ++latestCallIdRef.current;
-    const urlTotal = `${TRAC_BASE_URL}/balance/${address}`;
-    const urlConfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=true`;
-    const urlUnconfirmed = `${TRAC_BASE_URL}/balance/${address}?confirmed=false`;
+    const baseUrl = networkType === Network.TESTNET ? TRAC_BASE_URL_TESTNET : TRAC_BASE_URL_MAINNET;
+    const urlTotal = `${baseUrl}/balance/${address}`;
+    const urlConfirmed = `${baseUrl}/balance/${address}?confirmed=true`;
+    const urlUnconfirmed = `${baseUrl}/balance/${address}?confirmed=false`;
 
     try {
       // Fetch all three in parallel for maximum responsiveness
       const [rTotal, rConfirmed, rUnconfirmed] = await Promise.all([
-        fetch(urlTotal),
-        fetch(urlConfirmed),
-        fetch(urlUnconfirmed),
+        fetch(urlTotal).catch(() => ({ ok: false, json: () => Promise.resolve({}) })),
+        fetch(urlConfirmed).catch(() => ({ ok: false, json: () => Promise.resolve({}) })),
+        fetch(urlUnconfirmed).catch(() => ({ ok: false, json: () => Promise.resolve({}) })),
       ]);
 
       const [jTotal, jConfirmed, jUnconfirmed] = await Promise.all([
@@ -215,14 +230,22 @@ export function useTracBalances(address?: string) {
     } catch (e) {
       if (callId === latestCallIdRef.current) {
         setError((e as Error).message);
-        // keep last values on error
+        // Reset balances to 0 on error (especially for testnet API errors)
+        if (address) {
+          dispatch(TracBalanceActions.setBalancesIfChanged({
+            address,
+            total: '0',
+            confirmed: '0',
+            unconfirmed: '0',
+          }));
+        }
       }
     } finally {
       if (callId === latestCallIdRef.current) {
         setLoading(false);
       }
     }
-  }, [address]);
+  }, [address, networkType]);
 
   useEffect(() => {
     // Revalidate when address changes
@@ -231,6 +254,14 @@ export function useTracBalances(address?: string) {
       fetchBalances().finally(() => setLoading(false));
     }
   }, [address, fetchBalances]);
+
+  useEffect(() => {
+    // Revalidate when network changes
+    if (address) {
+      setLoading(true);
+      fetchBalances().finally(() => setLoading(false));
+    }
+  }, [networkType, fetchBalances]);
 
   return {total, confirmed, unconfirmed, loading, error, refetch: fetchBalances};
 }

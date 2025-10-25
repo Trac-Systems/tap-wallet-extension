@@ -2,6 +2,8 @@
  * TRAC API - Handles all external TRAC API calls
  */
 
+import { TRAC_BASE_URL } from '../constants/trac-api';
+
 export interface BroadcastResponse {
   success?: boolean;
   error?: string;
@@ -17,14 +19,12 @@ export interface FeeResponse {
 }
 
 export class TracApi {
-  private static readonly BASE_URL = 'http://trac.intern.ungueltig.com:1337';
-  
   /**
    * Broadcast transaction to TRAC network
    */
   static async broadcastTransaction(payload: string): Promise<BroadcastResponse> {
     try {
-      const response = await fetch(`${this.BASE_URL}/broadcast-transaction`, {
+      const response = await fetch(`${TRAC_BASE_URL}/broadcast-transaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload }),
@@ -47,7 +47,7 @@ export class TracApi {
    */
   static async fetchTransactionFee(): Promise<string> {
     try {
-      const resp = await fetch(`${this.BASE_URL}/fee`);
+      const resp = await fetch(`${TRAC_BASE_URL}/fee`);
       if (!resp.ok) {
         throw new Error(`Fetch /fee failed: ${resp.status}`);
       }
@@ -67,7 +67,7 @@ export class TracApi {
    */
   static async fetchTransactionValidity(): Promise<string> {
     try {
-      const resp = await fetch(`${this.BASE_URL}/txv`);
+      const resp = await fetch(`${TRAC_BASE_URL}/txv`);
       if (!resp.ok) {
         throw new Error(`Fetch /txv failed: ${resp.status}`);
       }

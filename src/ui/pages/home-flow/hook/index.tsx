@@ -16,8 +16,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {TracBalanceActions} from '@/src/ui/redux/reducer/trac-balance/slice';
 import {TracBalanceSelector} from '@/src/ui/redux/reducer/trac-balance/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
-// TRAC balance service (shared)
-export const TRAC_BASE_URL = 'http://trac.intern.ungueltig.com:1337';
+import { TRAC_BASE_URL } from '@/src/background/constants/trac-api';
 
 export async function getTracBalances(address: string): Promise<{
   total: string;

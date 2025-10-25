@@ -8,6 +8,7 @@ import {useAppSelector} from '@/src/ui/utils';
 import {NETWORK_TYPES, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
+import {TRAC_EXPLORER_URL} from '../../../../background/constants/trac-api';
 
 interface IWalletCardNewProps {
   keyring: WalletDisplay;
@@ -42,11 +43,17 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
 
 
   //! Function
-  const handleShowHistory = () => {
+  const handleShowHistoryBTC = () => {
     const url =
       networkType === NETWORK_TYPES.MAINNET.label
         ? 'https://mempool.space/address/' + address
         : 'https://mempool.space/testnet/address/' + address;
+    setMenuOpen(false);
+    return window.open(url, '_blank')?.focus();
+  };
+
+  const handleShowHistoryTRAC = () => {
+    const url = `${TRAC_EXPLORER_URL}/address/${tracAddress}`;
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };
@@ -70,10 +77,16 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
             {menuOpen && (
               <div className="containerOption">
                 <UX.Text
-                  onClick={handleShowHistory}
+                  onClick={handleShowHistoryBTC}
                   styleType="body_14_bold"
                   customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="View History"
+                  title="View BTC History"
+                />
+                <UX.Text
+                  onClick={handleShowHistoryTRAC}
+                  styleType="body_14_bold"
+                  customStyles={{cursor: 'pointer', color: 'white'}}
+                  title="View TRAC History"
                 />
                 <UX.Text
                   onClick={() => {

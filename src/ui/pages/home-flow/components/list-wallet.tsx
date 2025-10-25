@@ -308,8 +308,8 @@ const ListWallets = (props: ListWalletsProps) => {
             setOpenSelectToken(false);
           }}
           onSelectTNK={() => {
-            showToast({title: 'Mainnet not available yet', type: 'error'});
-            // Modal stays open for user to try again or select other option
+            navigate('/home/send-trac');
+            setOpenSelectToken(false);
           }}
         />
       </UX.DrawerCustom>

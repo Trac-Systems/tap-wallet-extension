@@ -6,7 +6,14 @@ import {useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useCustomToast} from '../../component/toast-custom';
 import {useActiveTracAddress} from '../home-flow/hook';
+import {useAppSelector} from '../../utils';
+import {WalletSelector} from '../../redux/reducer/wallet/selector';
+import {AccountSelector} from '../../redux/reducer/account/selector';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {useWalletProvider} from '../../gateway/wallet-provider';
 import {TracApiService} from '../../../background/service/trac-api.service';
+import {TracApi} from '../../../background/requests/trac-api';
+import {Network} from '../../../wallet-instance';
 
 interface TracSummaryData {
   to: string;
@@ -22,6 +29,11 @@ const SendTracSummary = () => {
   const {summaryData}: {summaryData: TracSummaryData} = location.state;
   
   const tracAddress = useActiveTracAddress();
+  const wallet = useWalletProvider();
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const networkType = useAppSelector(GlobalSelector.networkType);
+  const {showToast} = useCustomToast();
 
   // Convert fee from hex to decimal (dec 18)
   const formatFee = (feeHex: string) => {
@@ -38,8 +50,56 @@ const SendTracSummary = () => {
     navigate(-1);
   };
 
-  const handleConfirm = () => {
-    navigate('/home/send-trac-pin', { state: { summaryData } });
+  const handleConfirm = async () => {
+    try {
+      // Get secret without PIN, using unlocked session
+      let secret: Buffer;
+      try {
+        const tracPrivateKey = await wallet.getTracPrivateKeyUnlocked(
+          activeWallet.index,
+          activeAccount.index,
+        );
+        secret = Buffer.from(tracPrivateKey, 'hex');
+      } catch (e) {
+        // If not Single Wallet or no stored TRAC key, derive from mnemonic (unlocked)
+        const mnemonicData = await wallet.getMnemonicsUnlocked(activeWallet);
+        const generated = await TracApiService.generateKeypairFromMnemonic(
+          mnemonicData.mnemonic,
+          activeAccount.index,
+        );
+        secret = TracApiService.toSecretBuffer(generated.secretKey);
+      }
+
+      const tracCrypto = TracApiService.getTracCryptoInstance();
+      if (!tracCrypto) {
+        throw new Error('TracCryptoApi not available');
+      }
+      const chainId = networkType === Network.MAINNET
+        ? tracCrypto.MAINNET_ID
+        : tracCrypto.TESTNET_ID;
+
+      const txData = await TracApiService.preBuildTransaction({
+        from: tracAddress,
+        to: summaryData.to,
+        amountHex: summaryData.amountHex,
+        validityHex: summaryData.validityHex,
+      }, chainId);
+
+      const txPayload = TracApiService.buildTransaction(txData, secret);
+      const result = await TracApi.broadcastTransaction(txPayload);
+      if (result.success) {
+        // Decode payload to get transaction hash
+        const txHash = TracApiService.decodePayload(txPayload);
+        showToast({title: 'Transaction sent successfully', type: 'success'});
+        navigate('/home/send-trac-success', { 
+          state: { txHash } 
+        });
+      } else {
+        showToast({title: result.error || 'Transaction failed', type: 'error'});
+      }
+    } catch (err: any) {
+      showToast({title: err?.message || 'Failed to send transaction', type: 'error'});
+    }
   };
 
   const formatAddressLongText = (address: string, start: number, end: number) => {

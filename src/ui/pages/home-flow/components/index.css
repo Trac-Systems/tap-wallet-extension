@@ -232,12 +232,13 @@
   border-top-right-radius: 20px;
   overflow: hidden;
   background-color: #191919 !important;
-  height: 30vh !important;
+  height: auto !important;
+  margin-bottom: 10px !important;
 }
 @media only screen and (min-width: 600px) {
   .drawer-add-wallet {
     width: 500px !important;
-    height: 21vh !important;
+    height: auto !important;
     left: auto !important;
     right: auto !important;
   }

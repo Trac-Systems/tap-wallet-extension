@@ -2,11 +2,17 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
 import LayoutSendReceive from '../../layouts/send-receive';
 import {SVG} from '../../svg';
+import {TRAC_EXPLORER_URL} from '../../../background/constants/trac-api';
 
 const SendTracSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {txid}: {txid: string} = location.state;
+  const {txHash}: {txHash: string} = location.state;
+
+  const handleViewOnExplorer = () => {
+    const explorerUrl = `${TRAC_EXPLORER_URL}/tx/${txHash}`;
+    window.open(explorerUrl, '_blank');
+  };
 
   return (
     <LayoutSendReceive
@@ -27,6 +33,13 @@ const SendTracSuccess = () => {
               customStyles={{textAlign: 'center', padding: '0 32px'}}
             />
           </UX.Box>
+          {txHash && (
+            <UX.Button
+              styleType="text"
+              title="View on Explorer"
+              onClick={handleViewOnExplorer}
+            />
+          )}
         </UX.Box>
       }
       footer={

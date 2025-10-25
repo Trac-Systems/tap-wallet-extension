@@ -2,7 +2,7 @@ import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {colors} from '@/src/ui/themes/color';
 import {SVG} from '@/src/ui/svg';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useCustomToast} from '../../component/toast-custom';
 import {useActiveTracAddress, useTracBalances} from '../home-flow/hook';
@@ -18,9 +18,30 @@ const SendTrac = () => {
   const [disabled, setDisabled] = useState(true);
   const [toInfo, setToInfo] = useState({address: ''});
   const [addressError, setAddressError] = useState('');
+  const [tracInputError, setTracInputError] = useState('');
   const {showToast} = useCustomToast();
   const [tracSendNumberValue, setTracSendNumberValue] = useState('');
+  const [fee, setFee] = useState('');
+  const [feeLoading, setFeeLoading] = useState(true);
   const wallet = useWalletProvider();
+
+  // Fetch fee when component mounts
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        setFeeLoading(true);
+        const feeHex = await TracApi.fetchTransactionFee();
+        setFee(feeHex);
+      } catch (error) {
+        console.error('Failed to fetch fee:', error);
+        showToast({title: 'Failed to fetch transaction fee', type: 'error'});
+      } finally {
+        setFeeLoading(false);
+      }
+    };
+
+    fetchFee();
+  }, []);
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -40,7 +61,9 @@ const SendTrac = () => {
   };
 
   const onTracAmountChange = (input: string) => {
-    const cleanText = input.replace(/[^0-9.]/g, '');
+    // Replace comma with dot for consistency
+    const normalizedInput = input.replace(/,/g, '.');
+    const cleanText = normalizedInput.replace(/[^0-9.]/g, '');
     const dotCount = (cleanText.match(/\./g) || []).length;
     if (dotCount > 1) {
       return;
@@ -56,8 +79,34 @@ const SendTrac = () => {
   const isFormValid = isTracAddress(toInfo.address) && 
     tracSendNumberValue.trim() !== '' && 
     parseFloat(tracSendNumberValue) > 0 &&
-    parseFloat(tracSendNumberValue) <= parseFloat(confirmed || '0') &&
-    !addressError;
+    parseFloat(tracSendNumberValue) <= (parseFloat(confirmed || '0') - (fee ? parseFloat(TracApiService.balanceToDisplay(fee)) : 0)) &&
+    !addressError &&
+    !tracInputError;
+
+  // Validation effect
+  useEffect(() => {
+    setDisabled(!isFormValid);
+    setTracInputError('');
+    
+    if (!tracSendNumberValue) {
+      return;
+    }
+    
+    const sendAmount = parseFloat(tracSendNumberValue);
+    const confirmedAmount = parseFloat(confirmed || '0');
+    const feeAmount = fee ? parseFloat(TracApiService.balanceToDisplay(fee)) : 0;
+    const availableAmount = confirmedAmount - feeAmount;
+    
+    if (sendAmount > availableAmount) {
+      setTracInputError(`Insufficient balance. Available: ${availableAmount.toFixed(8)} TNK (excluding fee)`);
+      return;
+    }
+    
+    if (sendAmount <= 0) {
+      setTracInputError('Amount must be greater than 0');
+      return;
+    }
+  }, [toInfo, tracSendNumberValue, confirmed, fee, isFormValid, addressError]);
 
   //! Function
   const handleGoBack = () => {
@@ -66,29 +115,22 @@ const SendTrac = () => {
 
   const handleNavigate = async () => {
     try {
-      // Check if user has enough confirmed balance
+      // Check if user has enough confirmed balance (including fee)
       const sendAmount = parseFloat(tracSendNumberValue);
       const confirmedAmount = parseFloat(confirmed || '0');
+      const feeAmount = fee ? parseFloat(TracApiService.balanceToDisplay(fee)) : 0;
+      const totalRequired = sendAmount + feeAmount;
       
-      if (sendAmount > confirmedAmount) {
+      if (totalRequired > confirmedAmount) {
         showToast({
-          title: `Insufficient confirmed balance. Available: ${confirmed || '0'} TNK`,
+          title: `Insufficient confirmed balance. Required: ${totalRequired.toFixed(8)} TNK (including fee), Available: ${confirmed || '0'} TNK`,
           type: 'error'
         });
         return;
       }
 
-      const tracCrypto = TracApiService.getTracCryptoInstance();
-      if (!tracCrypto) {
-        showToast({title: 'TracCryptoApi not available', type: 'error'});
-        return;
-      }
-      
-      // Fetch fee and validity
-      const [feeHex, validityHex] = await Promise.all([
-        TracApi.fetchTransactionFee(),
-        TracApi.fetchTransactionValidity()
-      ]);
+      // Fetch validity (fee already fetched)
+      const validityHex = await TracApi.fetchTransactionValidity();
       
       // Convert input amount to hex using service
       const amountHex = TracApiService.amountToHex(sendAmount);
@@ -98,7 +140,7 @@ const SendTrac = () => {
         amountHex,
         validityHex,
         amount: tracSendNumberValue,
-        fee: feeHex
+        fee: fee // Use already fetched fee
       };
 
       navigate('/home/send-trac-summary', { state: { summaryData } });
@@ -145,7 +187,7 @@ const SendTrac = () => {
               style={{
                 background: 'transparent',
                 borderRadius: '12px',
-                border: '1px solid #3F3F3F',
+                border: `1px solid ${tracInputError ? '#D16B7C' : '#3F3F3F'}`,
                 padding: '12px 14px',
               }}
             >
@@ -178,6 +220,17 @@ const SendTrac = () => {
                 <UX.Text title="TNK" styleType="body_14_bold" customStyles={{color: 'white'}} />
               </UX.Box>
             </UX.Box>
+            {tracInputError && (
+              <UX.Text
+                title={tracInputError}
+                styleType="body_12_normal"
+                customStyles={{
+                  color: '#D16B7C',
+                  marginTop: '4px',
+                  marginLeft: '4px'
+                }}
+              />
+            )}
             <UX.Box layout="column" style={{width: '100%', alignItems: 'flex-end'}}>
                 <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
                     <UX.Text title="Unconfirmed:" styleType="body_14_bold" />
@@ -252,6 +305,16 @@ const SendTrac = () => {
                 }}
               />
             )}
+          </UX.Box>
+          
+          {/* Network Fee Display */}
+          <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center', marginTop: '16px'}}>
+            <UX.Text title="Network Fee" styleType="heading_16" customStyles={{color: 'white'}} />
+            <UX.Text 
+              title={feeLoading ? "Loading..." : `${fee ? TracApiService.balanceToDisplay(fee) : '0'} TNK`} 
+              styleType="body_14_bold" 
+              customStyles={{color: 'white'}} 
+            />
           </UX.Box>
         </UX.Box>
       }

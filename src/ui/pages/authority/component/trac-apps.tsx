@@ -7,8 +7,7 @@ import {
 } from '../hook/use-trac-apps-logic';
 import { UX } from '@/src/ui/component';
 import { SVG } from '@/src/ui/svg';
-// import ConfirmTracAppsModal from './confirm-trac-apps-modal';
-import CollapsibleList from './collapsible-list'; // Import the converted component
+import CollapsibleList from './collapsible-list';
 import ConfirmTracAppsModal, { TRAC_APPS_PERMITTED_TOKENS } from './confirm-trac-apps-modal'
 
 export type TracApp = {
@@ -117,7 +116,7 @@ const TransferApps = ({
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: colors.black,
+            backgroundColor: colors.greyRgba42,
             padding: '10px',
             borderRadius: '12px',
             marginRight: '8px',
@@ -167,7 +166,7 @@ const TransferApps = ({
         expandedData={apps}
         renderListItem={renderAppItem as any}
         containerStyle={{
-          backgroundColor: colors.gray,
+          backgroundColor: colors.black_2,
           borderRadius: '10px',
           marginTop: '12px',
         }}

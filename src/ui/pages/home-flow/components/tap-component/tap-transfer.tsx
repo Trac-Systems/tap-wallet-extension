@@ -1,4 +1,4 @@
-import {UX} from '@/src/ui/component';
+import React from 'react';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {colors} from '@/src/ui/themes/color';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -17,6 +17,21 @@ import BigNumber from 'bignumber.js';
 import {useCustomToast} from '@/src/ui/component/toast-custom';
 import InscribeAttentionModal from '../inscribe-attention-modal';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
+import { getInscriptionName } from '@/src/shared/utils/inscription-app-name'
+import {UX} from '@/src/ui/component';
+import { SVG } from '@/src/ui/svg'
+
+type AppIconComponent = React.FC<any> | undefined;
+interface EnrichedTokenTransfer extends TokenTransfer {
+  appIcon?: AppIconComponent;
+}
+const HyperfunIcon = () => <SVG.HyperfunIcon width={16} height={16} />
+const HypermallIcon = () => <SVG.HypermallIcon width={16} height={16} />
+
+const TracAppsIcons: Record<string, AppIconComponent> = {
+  "hyperfun": HyperfunIcon,
+  "hypermall": HypermallIcon
+}
 
 interface UpdateContextDataParams {
   transferAmount?: string;
@@ -45,8 +60,6 @@ const TapTransfer = () => {
   const location = useLocation();
   const {showToast} = useCustomToast();
   const {state} = location;
-
-  // TODO: Need check parameters when back from other screen
   const tokenBalance = state?.tokenBalance || {};
   const selectedAmount = state?.selectedAmount || 0;
   const selectedInscriptionIds = state?.selectedInscriptionIds || [];
@@ -57,7 +70,7 @@ const TapTransfer = () => {
   const [doNotShowAgain, setDoNotShowAgain] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const [showAttentionModal, setShowAttentionModal] = useState<boolean>(false);
-  const [items, setItems] = useState<TokenTransfer[]>([]);
+  const [items, setItems] = useState<EnrichedTokenTransfer[]>([]);
   const [allSelected, setAllSelected] = useState(false);
   const [totalInscription, setTotalInscription] = useState(0);
   const [contextData, setContextData] = useState<ContextData>({
@@ -113,8 +126,23 @@ const TapTransfer = () => {
         1,
         PAGE_SIZE,
       );
-      setItems(list);
+
       setTotalInscription(total);
+      
+      const enrichedList: EnrichedTokenTransfer[] = await Promise.all(
+        list.map(async (item) => {
+          const content = await getInscriptionName(wallet, item.inscriptionId);
+          const appName = content?.appName?.toLowerCase() || "";
+          const iconComponent = TracAppsIcons[appName];
+
+          return {
+            ...item,
+            appIcon: iconComponent,
+          };
+        }),
+      );
+
+      setItems(enrichedList);
     } catch (e) {
       showToast({
         title: (e as Error).message || '',
@@ -196,9 +224,24 @@ const TapTransfer = () => {
             layout="row"
             spacing="xs"
             style={{margin: '16px 0', width: '100%', overflowX: 'scroll'}}>
-            {items?.map((item: TokenTransfer, index: number) => {
+            {items?.map((item, index) => {
+              const AppIcon = item.appIcon;
               return (
-                <UX.Box key={index}>
+                <UX.Box key={index} style={{position: "relative"}}>
+                  {AppIcon && (
+                    <UX.Box 
+                      style={{
+                        width: 16, 
+                        height: 16, 
+                        position: "absolute", 
+                        top: 5,   
+                        right: 5, 
+                        zIndex: 10,
+                      }}>
+                      <AppIcon />
+                    </UX.Box>
+                  )}
+                  
                   <CoinCount
                     type="TRANSFER"
                     ticker={formatTicker(contextData?.tokenBalance?.ticker)}

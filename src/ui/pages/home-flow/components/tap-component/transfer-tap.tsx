@@ -18,6 +18,10 @@ import {
   usePrepareSendOrdinalsInscriptionsCallback,
   useUpdateTxStateInfo,
 } from '../../../send-receive/hook';
+import TransferApps from '../../../authority/component/trac-apps'
+import { useTracAppsLogic, TRAC_APPS_BITCOIN_ADDRESSES } from '../../../authority/hook/use-trac-apps-logic'
+import {useInscriptionsWithDta} from '../../hook';
+
 
 interface IProps {
   ticker?: string;
@@ -26,7 +30,6 @@ interface IProps {
 }
 
 const TransferTap = () => {
-  //! State
   const navigate = useNavigate();
   const location = useLocation();
   const {showToast} = useCustomToast();
@@ -49,6 +52,15 @@ const TransferTap = () => {
     usePrepareSendOrdinalsInscriptionCallback();
   const [enableRBF, setEnableRBF] = useState(false);
   const getAddressTypeReceiver = getAddressType(toInfo.address);
+  const [filteredAmount, setFilteredAmount] = useState<string>("0");
+  const [filteredInscriptionIds, setFilteredInscriptionIds] = useState<string[]>([]);
+
+  const {onUpdateState, getComponentState} = useTracAppsLogic()
+  const {isExpanded, selectedApp} = getComponentState(0);
+
+  const {dtaAmount, dtaInscriptions, dtaInscriptionsIds} = useInscriptionsWithDta(
+    inscriptionIdSet ? Array.from(inscriptionIdSet) : [],
+  );  
 
   //! Function
   const handleGoBack = () => {
@@ -58,28 +70,54 @@ const TransferTap = () => {
   const handleNavigate = async () => {
     try {
       setIsLoading(true);
-      const inscriptionIds = Array.from(inscriptionIdSet);
+      // Prepare inscriptions IDs
+      const inscriptionIds = filteredInscriptionIds;
+      const finalAmount = filteredAmount;
+
+      // Determine if is DTA mode
+      const useDtaMode = isExpanded && inscriptionIds.length > 0 && selectedApp?.address;
+      
+      // Return without inscriptions
+      if (inscriptionIds.length === 0) {
+        showToast({ title: 'No inscription to transfer.', type: 'error' });
+        return;
+      }
+
+      // Basic config for conventional transfer
+      let finalAddress = toInfo.address;
+      let dtaPayload: string | undefined = undefined;
+      
+      // Custom config for Trac Apps DTA transfer
+      if (useDtaMode) {
+          const appNameKey = selectedApp.name.toLowerCase();
+          finalAddress = TRAC_APPS_BITCOIN_ADDRESSES[appNameKey];
+          dtaPayload = JSON.stringify({op: "deposit", addr: selectedApp.address});
+      }
+
+      // Prepare transaction
       if (inscriptionIds.length === 1) {
         const rawTxInfo = await prepareSendOrdinalsInscription({
-          toAddressInfo: {address: toInfo.address},
-          inscriptionId: inscriptionIds[0],
+          toAddressInfo: {address: finalAddress},
+          inscriptionId: filteredInscriptionIds[0],
           feeRate: txStateInfo.feeRate,
           outputValue: outputValue,
           enableRBF,
-          assetAmount: amount,
+          assetAmount: finalAmount,
           ticker: ticker,
+          dta: dtaPayload,
         });
         navigate('/home/confirm-transaction', {
           state: {rawTxInfo},
         });
       } else {
         const rawTxInfo = await prepareSendOrdinalsInscriptions({
-          toAddressInfo: {address: toInfo.address},
-          inscriptionIds,
+          toAddressInfo: {address: finalAddress},
+          inscriptionIds: filteredInscriptionIds,
           feeRate: txStateInfo.feeRate,
           enableRBF,
-          assetAmount: amount,
+          assetAmount: finalAmount,
           ticker: ticker,
+          dta: dtaPayload,
         });
         navigate('/home/confirm-transaction', {
           state: {rawTxInfo},
@@ -114,9 +152,10 @@ const TransferTap = () => {
     setDisabled(true);
     setOutputValueError('');
 
-    if (!toInfo.address) {
+    if (!toInfo.address && !isExpanded || isExpanded && !selectedApp?.address) {
       return;
     }
+
     if (outputValue < getUtxoDustThreshold(getAddressTypeReceiver)) {
       setOutputValueError(
         `OutputValue must be at least ${getUtxoDustThreshold(getAddressTypeReceiver)}`,
@@ -124,13 +163,47 @@ const TransferTap = () => {
       return;
     }
     setDisabled(false);
-  }, [toInfo.address, outputValue]);
+  }, [toInfo.address, outputValue, isExpanded, selectedApp, setDisabled, setOutputValueError]);
+
+  useEffect(() => {
+    let _filteredAmount = 0;
+    let _filteredInscriptionIds: string[] = [];
+    const useDtaMode = isExpanded && dtaInscriptions.length > 0;
+
+    if (useDtaMode && selectedApp && selectedApp?.address !== "") {
+      const targetAppName = selectedApp.name.toLowerCase();      
+      const filteredInscriptions = dtaInscriptions.filter(inscription => {
+        try {
+          const payload = JSON.parse(inscription?.dta as string); 
+          return payload.appName && payload.appName === targetAppName;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      _filteredInscriptionIds = filteredInscriptions.map(inscription => inscription.inscriptionId);
+      _filteredAmount = filteredInscriptions.reduce((sum, inscription) => {
+        return sum + (parseInt(inscription.amt || '0'));
+      }, 0);
+
+    } else if (useDtaMode) {
+      _filteredAmount = dtaAmount;
+      _filteredInscriptionIds = dtaInscriptionsIds;
+      
+    } else {
+      _filteredAmount = parseInt(amount || '0');
+      _filteredInscriptionIds = inscriptionIdSet ? Array.from(inscriptionIdSet) : [];
+    }
+
+    setFilteredAmount(_filteredAmount.toString());
+    setFilteredInscriptionIds(_filteredInscriptionIds);
+
+  }, [amount, inscriptionIdSet, dtaAmount, dtaInscriptions, dtaInscriptionsIds, isExpanded, selectedApp]); 
 
   if (isLoading) {
     return <UX.Loading />;
   }
 
-  //! Renders
   return (
     <LayoutTap
       header={<UX.TextHeader text="Transfer Tap" onBackClick={handleGoBack} />}
@@ -140,11 +213,12 @@ const TransferTap = () => {
             <UX.Text title="Send" styleType="heading_14" />
             <UX.Input
               style={{whiteSpace: 'pre'}}
-              value={`${amount} ${formatTicker(ticker)}`}
+              value={`${filteredAmount} ${formatTicker(ticker)}`}
               disabled
             />
           </UX.Box>
-          <UX.Box spacing="xs">
+          {!isExpanded && (
+            <UX.Box spacing="xs">
             <UX.Text title="Receiver" styleType="heading_14" />
             <UX.AddressInput
               style={{
@@ -159,12 +233,39 @@ const TransferTap = () => {
               }}
               autoFocus={true}
             />
-          </UX.Box>
+          </UX.Box>)}
+          {dtaInscriptionsIds.length > 0 && (
+            <TransferApps 
+              id={0} isExpanded={isExpanded} 
+              onUpdateState={onUpdateState} 
+              selectedApp={selectedApp} 
+              token={ticker}  />
+          )}
+
+          {isExpanded && !selectedApp && dtaInscriptionsIds.length > 0 && (
+            <UX.Box spacing="xl" className='' style={{backgroundColor: colors.gray, textAlign: "center", borderRadius: 20, padding: 10, paddingLeft: 50, paddingRight: 50}}>
+              <UX.Text
+                  title="The inscriptions ready to transfer to a Trac App are set. Select an app to proceed."
+                  styleType='body_12_bold'
+              />
+            </UX.Box>
+          )}
+
+          {isExpanded && selectedApp && selectedApp?.address !== "" && dtaInscriptionsIds.length > 0 && (
+            <UX.Box spacing="xl" className='' style={{backgroundColor: colors.red_700, textAlign: "center", borderRadius: 20, padding: 10, paddingLeft: 50, paddingRight: 50}}>
+              <UX.Text
+                  title={`You are only transferring inscriptions destinated to ${selectedApp.name}. Make sure this is correct before proceed.`}
+                  customStyles={{color: colors.white}}
+                  styleType='body_12_bold'
+              />
+            </UX.Box>
+          )}
+
           {isShowOutputValue && (
             <UX.Box spacing="xs">
               <UX.Text
                 styleType="heading_14"
-                customStyles={{color: 'white'}}
+                customStyles={{color: colors.white}}
                 title="Output Value"
               />
               <OutputValueBar

@@ -29,6 +29,10 @@ import {
   formatTicker,
 } from '@/src/shared/utils/btc-helper';
 
+import TransferApps from '../../authority/component/trac-apps'
+import { useTracAppsLogic } from '../../authority/hook/use-trac-apps-logic'
+import { dta } from '@/src/ui/interfaces'
+
 interface ContextData {
   ticker: string;
   session?: any;
@@ -38,6 +42,7 @@ interface ContextData {
   transferAmount?: string;
   isApproval: boolean;
   tokenInfo?: TokenInfo;
+  dta?: { op: string, addr: string}; 
 }
 
 interface UpdateContextDataParams {
@@ -48,6 +53,7 @@ interface UpdateContextDataParams {
   rawTxInfo?: RawTxInfo;
   transferAmount?: string;
   tokenInfo?: TokenInfo;
+  dta?: { op: string, addr: string};
 }
 
 const InscribeTransferTapScreen = () => {
@@ -80,6 +86,9 @@ const InscribeTransferTapScreen = () => {
     ticker: ticker,
     isApproval: false,
   });
+
+  const {onUpdateState, getComponentState} = useTracAppsLogic()
+  const {isExpanded, selectedApp} = getComponentState(0);
 
   const updateContextData = useCallback(
     (params: UpdateContextDataParams) => {
@@ -150,6 +159,9 @@ const InscribeTransferTapScreen = () => {
       return;
     }
 
+    if (isExpanded && !selectedApp?.address) return;
+    
+    
     if (feeRate <= 0) {
       return;
     }
@@ -165,7 +177,7 @@ const InscribeTransferTapScreen = () => {
     }
 
     setDisabled(false);
-  }, [inputAmount, feeRate, outputValue, contextData.tokenBalance]);
+  }, [inputAmount, feeRate, outputValue, contextData.tokenBalance, isExpanded, selectedApp]);
 
   //! Function
   const handleGoBack = () => {
@@ -196,20 +208,28 @@ const InscribeTransferTapScreen = () => {
     try {
       setLoading(true);
       const amount = inputAmount;
+      
+      const dta: dta = isExpanded && selectedApp?.address 
+        ? { op: "deposit", addr: selectedApp.address, appName: selectedApp.name.toLocaleLowerCase() } 
+        : undefined
+      
       const order = await wallet.createOrderTransfer(
         activeAccount.address,
         contextData.ticker,
         amount,
         feeRate,
         outputValue,
+        dta
       );
+      
       const rawTxInfo = await prepareSendBTC({
         toAddressInfo: {address: order.payAddress, domain: ''},
         toAmount: Math.round(order.totalFee),
         feeRate: feeRate,
         enableRBF: enableRBF,
       });
-      updateContextData({order, transferAmount: amount, rawTxInfo});
+      
+      updateContextData({order, transferAmount: amount, rawTxInfo, dta});
       navigate('/home/inscribe-confirm', {
         state: {
           contextDataParam: {
@@ -217,6 +237,7 @@ const InscribeTransferTapScreen = () => {
             order,
             transferAmount: amount,
             rawTxInfo,
+            dta,
           },
         },
       });
@@ -294,6 +315,13 @@ const InscribeTransferTapScreen = () => {
                 />
               )}
             </UX.Box>
+
+            {/* TRAC APPS SELECTION */}
+            <TransferApps 
+              id={0} isExpanded={isExpanded} 
+              onUpdateState={onUpdateState} 
+              selectedApp={selectedApp} 
+              token={ticker}  />
 
             <UX.Box spacing="xss">
               <UX.Text

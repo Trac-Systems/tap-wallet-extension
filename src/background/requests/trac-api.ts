@@ -2,7 +2,8 @@
  * TRAC API - Handles all external TRAC API calls
  */
 
-import { TRAC_BASE_URL } from '../constants/trac-api';
+import { TRAC_BASE_URL_MAINNET, TRAC_BASE_URL_TESTNET } from '../constants/trac-api';
+import { Network } from '../../wallet-instance';
 
 export interface BroadcastResponse {
   success?: boolean;
@@ -20,11 +21,19 @@ export interface FeeResponse {
 
 export class TracApi {
   /**
+   * Get the appropriate API base URL based on network type
+   */
+  private static getBaseUrl(network: Network = Network.MAINNET): string {
+    return network === Network.TESTNET ? TRAC_BASE_URL_TESTNET : TRAC_BASE_URL_MAINNET;
+  }
+
+  /**
    * Broadcast transaction to TRAC network
    */
-  static async broadcastTransaction(payload: string): Promise<BroadcastResponse> {
+  static async broadcastTransaction(payload: string, network: Network = Network.MAINNET): Promise<BroadcastResponse> {
     try {
-      const response = await fetch(`${TRAC_BASE_URL}/broadcast-transaction`, {
+      const baseUrl = this.getBaseUrl(network);
+      const response = await fetch(`${baseUrl}/broadcast-transaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload }),
@@ -45,9 +54,10 @@ export class TracApi {
   /**
    * Fetch transaction fee from TRAC network
    */
-  static async fetchTransactionFee(): Promise<string> {
+  static async fetchTransactionFee(network: Network = Network.MAINNET): Promise<string> {
     try {
-      const resp = await fetch(`${TRAC_BASE_URL}/fee`);
+      const baseUrl = this.getBaseUrl(network);
+      const resp = await fetch(`${baseUrl}/fee`);
       if (!resp.ok) {
         throw new Error(`Fetch /fee failed: ${resp.status}`);
       }
@@ -65,9 +75,10 @@ export class TracApi {
   /**
    * Fetch transaction validity from TRAC network
    */
-  static async fetchTransactionValidity(): Promise<string> {
+  static async fetchTransactionValidity(network: Network = Network.MAINNET): Promise<string> {
     try {
-      const resp = await fetch(`${TRAC_BASE_URL}/txv`);
+      const baseUrl = this.getBaseUrl(network);
+      const resp = await fetch(`${baseUrl}/txv`);
       if (!resp.ok) {
         throw new Error(`Fetch /txv failed: ${resp.status}`);
       }

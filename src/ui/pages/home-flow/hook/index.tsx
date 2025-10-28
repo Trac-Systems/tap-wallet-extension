@@ -328,6 +328,7 @@ export const useInscriptionHook = () => {
   const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
   const retryCountRef = useRef(0);
+  const latestTapCallIdRef = useRef(0);
 
   const getInscriptionList = async (currentCursor: number) => {
     if (!activeAccount.address) {
@@ -373,19 +374,29 @@ export const useInscriptionHook = () => {
   };
 
   const getTapList = async (page: number) => {
+    // Guard: skip if address not ready
+    const address = activeAccount?.address;
+    if (!address) return;
+
+    const callId = ++latestTapCallIdRef.current;
     try {
       const {list, total} = await wallet.getTapList(
-        activeAccount.address,
+        address,
         page,
         TOKEN_PAGE_SIZE,
       );
-      dispatch(InscriptionActions.setTotalTap(total));
-      dispatch(InscriptionActions.setListTapToken({list}));
+      // Only apply result if this is the latest call
+      if (callId === latestTapCallIdRef.current) {
+        dispatch(InscriptionActions.setTotalTap(total));
+        dispatch(InscriptionActions.setListTapToken({list}));
+      }
     } catch (err) {
-      showToast({
-        title: `${(err as Error).message}`,
-        type: 'error',
-      });
+      if (callId === latestTapCallIdRef.current) {
+        showToast({
+          title: `${(err as Error).message}`,
+          type: 'error',
+        });
+      }
     }
   };
 

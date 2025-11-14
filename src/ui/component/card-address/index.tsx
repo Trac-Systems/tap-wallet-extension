@@ -92,7 +92,7 @@ const CardAddress = (props: ICardAddressProps) => {
         {path ? <Text title={`(${path})`} styleType="body_12_bold" /> : null}
       </Box>
       {secondaryAddress ? (
-        <Box layout="row_between" spacing="sm" style={{marginTop: spaces.sm}}>
+        <Box layout="row_between" spacing="sm">
           <Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
             <Text
               title={secondaryLabel || 'TRAC'}

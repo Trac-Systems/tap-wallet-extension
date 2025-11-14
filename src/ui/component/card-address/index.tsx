@@ -28,6 +28,9 @@ interface ICardAddressProps {
   assetUnit?: string;
   assetIcon?: React.ReactNode;
   hideCopy?: boolean;
+  secondaryLabel?: string;
+  secondaryAddress?: string;
+  secondaryPath?: string;
 }
 const CardAddress = (props: ICardAddressProps) => {
   const {
@@ -41,8 +44,11 @@ const CardAddress = (props: ICardAddressProps) => {
     isAccount,
     hasVault,
     hideCopy,
+    secondaryLabel,
+    secondaryAddress,
+    secondaryPath,
   } = props;
-  const { assetUnit, assetIcon } = props;
+  const {assetUnit, assetIcon} = props;
   const navigate = useNavigate();
 
   return (
@@ -76,10 +82,30 @@ const CardAddress = (props: ICardAddressProps) => {
         </Box>
         {isActive ? <SVG.CheckIcon /> : null}
       </Box>
-      <Box layout="row_between">
-        <AddressBar address={address} hideCopy={hideCopy} />
-        {path ? <Text title={path} styleType="body_14_bold" /> : null}
+      <Box layout="row_between" spacing="sm">
+        <Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
+          {secondaryAddress ? (
+            <Text title="BTC" styleType="body_12_bold" customStyles={{color: colors.white}} />
+          ) : null}
+          <AddressBar address={address} hideCopy={hideCopy} />
+        </Box>
+        {path ? <Text title={`(${path})`} styleType="body_12_bold" /> : null}
       </Box>
+      {secondaryAddress ? (
+        <Box layout="row_between" spacing="sm">
+          <Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
+            <Text
+              title={secondaryLabel || 'TRAC'}
+              styleType="body_12_bold"
+              customStyles={{color: colors.white}}
+            />
+            <AddressBar address={secondaryAddress} hideCopy={hideCopy} />
+          </Box>
+          {secondaryPath ? (
+            <Text title={`(${secondaryPath})`} styleType="body_12_bold" />
+          ) : null}
+        </Box>
+      ) : null}
       {hasVault && (
         <Box
           layout="box_border"

@@ -1,3 +1,4 @@
+import {useEffect, useState} from 'react';
 import {UX} from '@/src/ui/component';
 import {useCustomToast} from '@/src/ui/component/toast-custom';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
@@ -23,6 +24,45 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
   const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
   const reloadAccounts = useReloadAccounts();
+  const [tracAddressMap, setTracAddressMap] = useState<{
+    [accountIndex: string]: string;
+  }>({});
+
+  useEffect(() => {
+    let ignore = false;
+    const fetchTracAddresses = async () => {
+      if (typeof activeWallet?.index !== 'number') {
+        if (!ignore) {
+          setTracAddressMap({});
+        }
+        return;
+      }
+
+      try {
+        const map =
+          (await Promise.resolve(
+            wallet.getWalletTracAddresses(activeWallet.index),
+          )) || {};
+        if (!ignore) {
+          setTracAddressMap(map);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setTracAddressMap({});
+        }
+      }
+    };
+
+    fetchTracAddresses();
+    return () => {
+      ignore = true;
+    };
+  }, [wallet, activeWallet?.index, activeWallet?.accounts?.length]);
+
+  const deriveTracPath = (accountIndex?: number) => {
+    const index = accountIndex ?? 0;
+    return `m/918'/0'/0'/${index}'`;
+  };
 
   //! Function
   const handleChangeAccount = async (account: IDisplayAccount) => {
@@ -64,7 +104,10 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
           overflowY: 'scroll',
         }}>
         {activeWallet?.accounts?.map(item => {
-          const path = activeWallet.derivationPath + '/' + item.index;
+          const btcPath = `${activeWallet.derivationPath}/${item.index}`;
+          const accountIndexKey = String(item?.index ?? 0);
+          const tracAddress = tracAddressMap?.[accountIndexKey];
+
           return (
             <UX.CardAddress
               isAccount
@@ -72,10 +115,12 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
               isActive={item.index === activeAccount.index}
               key={item.index}
               nameCardAddress={item.name}
-              path={""}
-              address={""}
+              path={btcPath}
+              address={item.address}
+              secondaryLabel={tracAddress ? 'TRAC' : undefined}
+              secondaryAddress={tracAddress}
+              secondaryPath={tracAddress ? deriveTracPath(item.index) : undefined}
               item={item}
-              hideCopy={true}
             />
           );
         })}

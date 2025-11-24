@@ -16,6 +16,7 @@ import {
   ACCOUNT_TYPE_TEXT,
   ADDRESS_TYPES,
   WALLET_TYPE,
+  adjustDerivationPathForNetwork,
 } from '../wallet-instance/constant';
 import {
   ECPair,
@@ -107,10 +108,16 @@ export class Provider {
   generateMnemonic = (): string => {
     return walletService.generateMnemonic();
   };
-  private _genDefaultAccountName = (type: string, accountIndex: number) => {
-    if (type === 'HD Wallet') {
-      return `Account ${accountIndex + 1}`;
+  private _getAccountLabel = (type: string) => {
+    if (type === 'HD Wallet' || type === 'Hardware Wallet') {
+      return 'Account';
     }
+    return ACCOUNT_TYPE_TEXT[type] || 'Account';
+  };
+
+  private _genDefaultAccountName = (type: string, accountIndex: number) => {
+    const label = this._getAccountLabel(type);
+    return `${label} ${accountIndex + 1}`;
   };
 
   _getWalletDisplayUI = (walletDisplay: IWalletDisplayUI, index: number) => {
@@ -189,6 +196,28 @@ export class Provider {
       addressType,
       accountNum,
       hdWallet,
+    );
+    const walletDataForUI = walletService.getWalletDataForUI(
+      originWallet,
+      addressType,
+      walletService.wallets.length - 1,
+    );
+    const wallet = this._getWalletDisplayUI(
+      walletDataForUI,
+      walletService.wallets.length - 1,
+    );
+    this.setActiveWallet(wallet);
+  };
+
+  createWalletFromLedger = async (
+    derivationPath: string,
+    addressType: AddressType,
+    accountNum: number,
+  ) => {
+    const originWallet = await walletService.createWalletFromLedger(
+      derivationPath,
+      addressType,
+      accountNum,
     );
     const walletDataForUI = walletService.getWalletDataForUI(
       originWallet,
@@ -474,7 +503,7 @@ export class Provider {
     return (await paidApi.getAddressBalance(address)) || defaultBalance;
   };
 
-  getAllAddresses = (wallet: WalletDisplay, index: number) => {
+  getAllAddresses = async (wallet: WalletDisplay, index: number) => {
     const networkType = this.getActiveNetwork();
     const addresses: {[key: string]: {addressType: AddressType}} = {};
     const _wallet = walletService.wallets[wallet.index];
@@ -498,6 +527,35 @@ export class Provider {
           );
           addresses[address] = {addressType: v.value};
         }
+      }
+    } else if (_wallet?.type === 'Hardware Wallet') {
+      const hwWallet = _wallet as any;
+      // Fetch addresses sequentially to avoid "Ledger Device is busy" errors
+      // Ledger can only handle one request at a time
+      const addressTypesList = Object.keys(ADDRESS_TYPES)
+        .map(k => ({key: k, value: ADDRESS_TYPES[k]}))
+        .filter(item => item.value.displayIndex >= 0)
+        .sort((a, b) => a.value.displayIndex - b.value.displayIndex);
+      
+      for (const item of addressTypesList) {
+        const v = item.value;
+        // Adjust derivation path for current network (testnet/mainnet)
+        const adjustedPath = adjustDerivationPathForNetwork(v.derivationPath, networkType);
+        
+        let pubkey = hwWallet.getAccountByDerivationPath?.(adjustedPath, index);
+        if (!pubkey && hwWallet.ensureAccountForDerivation) {
+          try {
+            pubkey = await hwWallet.ensureAccountForDerivation(adjustedPath, index);
+          } catch (error) {
+            console.error('Failed to fetch Ledger pubkey for', adjustedPath, error);
+            continue;
+          }
+        }
+        if (!pubkey) {
+          continue;
+        }
+        const address = deriveAddressFromPublicKey(pubkey, v.value, networkType);
+        addresses[address] = {addressType: v.value};
       }
     } else {
       for (const k in ADDRESS_TYPES) {
@@ -620,9 +678,16 @@ export class Provider {
       feeRate,
       enableRBF,
     });
-    this.setPsbtSignNonSegwitEnable(psbt, true);
-    await this.signPsbt(psbt, inputForSigns, true);
-    this.setPsbtSignNonSegwitEnable(psbt, false);
+    
+    // Skip signing for hardware wallets (Ledger) - will be signed in confirm screen
+    const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+    
+    if (!isHardwareWallet) {
+      this.setPsbtSignNonSegwitEnable(psbt, true);
+      await this.signPsbt(psbt, inputForSigns, true);
+      this.setPsbtSignNonSegwitEnable(psbt, false);
+    }
+    
     return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
   };
 
@@ -679,9 +744,13 @@ export class Provider {
       outputValue: outputValue || assetUtxo.satoshi,
       enableRBF,
     });
-    this.setPsbtSignNonSegwitEnable(psbt, true);
-    await this.signPsbt(psbt, inputForSigns, true);
-    this.setPsbtSignNonSegwitEnable(psbt, false);
+    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
+
+    if (!isHardwareWallet) {
+      this.setPsbtSignNonSegwitEnable(psbt, true);
+      await this.signPsbt(psbt, inputForSigns, true);
+      this.setPsbtSignNonSegwitEnable(psbt, false);
+    }
     return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
   };
 
@@ -740,9 +809,13 @@ export class Provider {
       feeRate,
       enableRBF,
     });
-    this.setPsbtSignNonSegwitEnable(psbt, true);
-    await this.signPsbt(psbt, inputForSigns, true);
-    this.setPsbtSignNonSegwitEnable(psbt, false);
+    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
+
+    if (!isHardwareWallet) {
+      this.setPsbtSignNonSegwitEnable(psbt, true);
+      await this.signPsbt(psbt, inputForSigns, true);
+      this.setPsbtSignNonSegwitEnable(psbt, false);
+    }
 
     return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
   };
@@ -844,6 +917,18 @@ export class Provider {
       });
     }
     return inputForSigns;
+  };
+
+  signPsbtFromHex = async (
+    psbtHex: string,
+    inputForSigns: InputForSigning[],
+    autoFinalized: boolean = true,
+  ): Promise<string> => {
+    const networkType = this.getActiveNetwork();
+    const psbtNetwork = getBitcoinNetwork(networkType);
+    const psbt = bitcoin.Psbt.fromHex(psbtHex, {network: psbtNetwork});
+    const signedPsbt = await this.signPsbt(psbt, inputForSigns, autoFinalized);
+    return signedPsbt.toHex();
   };
 
   signPsbt = async (
@@ -976,8 +1061,8 @@ export class Provider {
   };
 
   private _generateAccountName = (type: string, index: number) => {
-    const accountName = `${ACCOUNT_TYPE_TEXT[type]} ${index}`;
-    return accountName;
+    const label = this._getAccountLabel(type);
+    return `${label} ${index}`;
   };
 
   getNextAccountName = (wallet: WalletDisplay) => {
@@ -1406,6 +1491,39 @@ export class Provider {
     // convert content to hex
     return createHash('sha256').update(content).digest();
   };
+  private _encodeVarInt = (value: number) => {
+    if (value < 0xfd) {
+      return Buffer.from([value]);
+    }
+    if (value <= 0xffff) {
+      const buf = Buffer.alloc(3);
+      buf[0] = 0xfd;
+      buf.writeUInt16LE(value, 1);
+      return buf;
+    }
+    if (value <= 0xffffffff) {
+      const buf = Buffer.alloc(5);
+      buf[0] = 0xfe;
+      buf.writeUInt32LE(value, 1);
+      return buf;
+    }
+    const buf = Buffer.alloc(9);
+    buf[0] = 0xff;
+    buf.writeBigUInt64LE(BigInt(value), 1);
+    return buf;
+  };
+  private _hashBitcoinMessage = (message: string) => {
+    const prefix = Buffer.from('Bitcoin Signed Message:\n', 'utf8');
+    const messageBuffer = Buffer.from(message, 'utf8');
+    const payload = Buffer.concat([
+      this._encodeVarInt(prefix.length),
+      prefix,
+      this._encodeVarInt(messageBuffer.length),
+      messageBuffer,
+    ]);
+    const firstHash = createHash('sha256').update(payload).digest();
+    return createHash('sha256').update(firstHash).digest();
+  };
   // generate salt
   private _generateSalt = () => {
     const array = new Uint32Array(4);
@@ -1427,11 +1545,7 @@ export class Provider {
       return null;
     }
     const salt = this._generateSalt();
-    const privateKey = await wallet.exportPrivateKey(pubKey);
-    const privKeyBuffer = Buffer.from(privateKey, 'hex');
-    const privKeyUint8Array = new Uint8Array(privKeyBuffer);
-    const pubKeyBuffer = Buffer.from(pubKey, 'hex');
-    const pubKeyUint8Array = new Uint8Array(pubKeyBuffer);
+    const messageString = JSON.stringify(message) + salt;
     const proto = {
       p: 'tap',
       op: 'token-auth',
@@ -1440,21 +1554,45 @@ export class Provider {
       salt: salt,
     };
 
-    const msgHash = this._sha256(JSON.stringify(message) + proto.salt);
-    const signature = await secp.signAsync(msgHash, privKeyUint8Array);
-    proto[authType] = message;
-    proto.sig = {
-      v: '' + signature.recovery,
-      r: signature.r.toString(),
-      s: signature.s.toString(),
-    };
-    proto.hash = Buffer.from(msgHash).toString('hex');
+    const isHardwareWallet = (wallet as any)?.type === 'Hardware Wallet';
+    if (isHardwareWallet) {
+      const signatureBase64 = await wallet.signMessage(pubKey, messageString);
+      if (!signatureBase64) {
+        throw new Error('Failed to sign message with hardware wallet');
+      }
+      const sigBuffer = Buffer.from(signatureBase64, 'base64');
+      if (sigBuffer.length < 65) {
+        throw new Error('Invalid signature returned by hardware wallet');
+      }
+      const recovery = sigBuffer[0] - 27 - 4;
+      const rHex = sigBuffer.slice(1, 33).toString('hex') || '0';
+      const sHex = sigBuffer.slice(33, 65).toString('hex') || '0';
+      proto[authType] = message;
+      proto.sig = {
+        v: `${recovery}`,
+        r: BigInt(`0x${rHex}`).toString(),
+        s: BigInt(`0x${sHex}`).toString(),
+        format: 'bsm',
+      } as any;
+      const hashBuffer = this._hashBitcoinMessage(messageString);
+      proto.hash = hashBuffer.toString('hex');
+    } else {
+      const privateKey = await wallet.exportPrivateKey(pubKey);
+      const privKeyBuffer = Buffer.from(privateKey, 'hex');
+      const privKeyUint8Array = new Uint8Array(privKeyBuffer);
+      const msgHash = this._sha256(messageString);
+      const signature = await secp.signAsync(msgHash, privKeyUint8Array);
+      proto[authType] = message;
+      proto.sig = {
+        v: '' + signature.recovery,
+        r: signature.r.toString(),
+        s: signature.s.toString(),
+        format: 'raw',
+      } as any;
+      proto.hash = Buffer.from(msgHash).toString('hex');
+    }
 
-    const test_proto = JSON.parse(JSON.stringify(proto));
-    const test_msgHash = this._sha256(
-      JSON.stringify(test_proto[authType]) + test_proto.salt,
-    );
-    const isValid = secp.verify(signature, test_msgHash, pubKeyUint8Array);
+    const isValid = await this.validateSignature(proto);
 
     return {
       proto: JSON.stringify(proto),
@@ -1502,8 +1640,16 @@ export class Provider {
       if (!proto.salt) return false;
       if (proto.auth === undefined) return false;
       if (!pubKeyHex || typeof pubKeyHex !== 'string') return false;
-      const messageString = JSON.stringify(proto.auth) + proto.salt;
-      const msgHash = createHash('sha256').update(messageString).digest();
+      const messagePayload = proto.auth ?? proto.redeem ?? proto.cancel ?? proto['auth'];
+      if (!messagePayload) {
+        return false;
+      }
+      const messageString = JSON.stringify(messagePayload) + proto.salt;
+      const format = proto.sig?.format || 'raw';
+      const msgHash =
+        format === 'bsm'
+          ? this._hashBitcoinMessage(messageString)
+          : createHash('sha256').update(messageString).digest();
       let rBigInt, sBigInt, recovery;
       try {
         rBigInt = BigInt(r);

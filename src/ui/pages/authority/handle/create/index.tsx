@@ -4,10 +4,12 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {usePrepareSendBTCCallback} from '@/src/ui/pages/send-receive/hook';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {useAppSelector} from '@/src/ui/utils';
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
+import {ledgerSignManager} from '@/src/ui/utils/ledger-sign-manager';
 
 enum LoadStatus {
   NOT_LOADED,
@@ -26,6 +28,8 @@ const HandleCreateAuthority = () => {
   const [orderPreview, setOrderPreview] = useState<string>('');
   const [feeRate, setFeeRate] = useState<number>(5);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
   const [loadStatus, setLoadStatus] = useState<LoadStatus>(
     LoadStatus.NOT_LOADED,
   );
@@ -70,8 +74,22 @@ const HandleCreateAuthority = () => {
 
   // generate token auth
   const generateTokenAuth = async () => {
-    const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
-    setOrderPreview(_tokenAuth.proto);
+    try {
+      if (isHardwareWallet) {
+        ledgerSignManager.show();
+      }
+      const _tokenAuth = await walletProvider.generateTokenAuth([], 'auth');
+      setOrderPreview(_tokenAuth.proto);
+    } catch (error: any) {
+      showToast({
+        title: error?.message || 'Failed to generate token auth',
+        type: 'error',
+      });
+    } finally {
+      if (isHardwareWallet) {
+        ledgerSignManager.hide();
+      }
+    }
   };
 
   // generate order preview

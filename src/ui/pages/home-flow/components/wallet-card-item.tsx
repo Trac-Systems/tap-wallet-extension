@@ -47,10 +47,13 @@ const WalletCard = (props: IWalletCardProps) => {
   const [usdAvailable, setUsdAvailable] = useState(0);
   const [isLoadingUsd, setIsLoadingUsd] = useState(false);
 
-
   const checkIsSingleWallet = useMemo(() => {
     return activeWallet?.type?.includes('Single');
   }, [activeWallet]);
+
+  const isHardwareWallet = useMemo(() => {
+    return keyring?.type === 'Hardware Wallet';
+  }, [keyring?.type]);
 
   const {address} = activeAccount;
   const tracAddress = useActiveTracAddress();
@@ -153,45 +156,49 @@ const WalletCard = (props: IWalletCardProps) => {
   //! Render
   return (
     <>
-      <div className="cardSliderContainer">
-        <div className="cardSlider">
-          <UX.Text
-            styleType="body_14_normal"
-            title={keyring?.name ?? 'Error'}
-            className="nameHdWallet"
-          />
-          <UX.Box ref={ref}>
-            <UX.Box
-              onClick={() => setMenuOpen(true)}
-              style={{cursor: 'pointer', position: 'relative'}}>
-              <SVG.DotIcon />
+        <div className="cardSliderContainer">
+          <div className="cardSlider">
+            <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center'}}>
+              <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
+                <UX.Text
+                  styleType="body_14_normal"
+                  title={keyring?.name ?? 'Error'}
+                  className="nameHdWallet"
+                />
+              </UX.Box>
+              <UX.Box ref={ref}>
+                <UX.Box
+                  onClick={() => setMenuOpen(true)}
+                  style={{cursor: 'pointer', position: 'relative'}}>
+                  <SVG.DotIcon />
+                </UX.Box>
+                {menuOpen && (
+                  <div className="containerOption">
+                    <UX.Text
+                      onClick={handleShowHistoryBTC}
+                      styleType="body_14_bold"
+                      customStyles={{cursor: 'pointer', color: 'white'}}
+                      title="View BTC History"
+                    />
+                    <UX.Text
+                      onClick={handleShowHistoryTRAC}
+                      styleType="body_14_bold"
+                      customStyles={{cursor: 'pointer', color: 'white'}}
+                      title="View TRAC History"
+                    />
+                    <UX.Text
+                      onClick={() => {
+                        setMenuOpen(false);
+                        handleOpenDrawerEdit?.();
+                      }}
+                      styleType="body_14_bold"
+                      customStyles={{cursor: 'pointer', color: 'white'}}
+                      title="Edit Wallet"
+                    />
+                  </div>
+                )}
+              </UX.Box>
             </UX.Box>
-            {menuOpen && (
-              <div className="containerOption">
-                <UX.Text
-                  onClick={handleShowHistoryBTC}
-                  styleType="body_14_bold"
-                  customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="View BTC History"
-                />
-                <UX.Text
-                  onClick={handleShowHistoryTRAC}
-                  styleType="body_14_bold"
-                  customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="View TRAC History"
-                />
-                <UX.Text
-                  onClick={() => {
-                    setMenuOpen(false);
-                    handleOpenDrawerEdit?.();
-                  }}
-                  styleType="body_14_bold"
-                  customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="Edit Wallet"
-                />
-              </div>
-            )}
-          </UX.Box>
         </div>
         <div>
         {checkIsSingleWallet ? (

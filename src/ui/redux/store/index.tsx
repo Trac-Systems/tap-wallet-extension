@@ -10,7 +10,7 @@ import {
 } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import rootReducers from '../reducer';
-import storage from 'redux-persist/lib/storage'; // Import đúng storage
+import storage from 'redux-persist/lib/storage';
 
 const sagaMiddleware = createSagaMiddleware();
 

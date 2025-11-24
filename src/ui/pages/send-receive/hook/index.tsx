@@ -72,8 +72,42 @@ export function usePrepareSendBTCCallback() {
       });
 
       const psbt = bitcoin.Psbt.fromHex(psbtHex);
-      const rawtx = psbt.extractTransaction(true).toHex();
-      const fee = psbt.getFee();
+      const activeWallet = await wallet.getActiveWallet();
+      const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+
+      let rawtx = '';
+      let fee = 0;
+
+      if (!isHardwareWallet) {
+        // Soft wallets: legacy behaviour (no try/catch)
+        rawtx = psbt.extractTransaction(true).toHex();
+        fee = psbt.getFee();
+      } else {
+        // Hardware wallets: PSBT may not be signed/finalized yet
+        try {
+          rawtx = psbt.extractTransaction(true).toHex();
+        } catch (error) {
+          // PSBT is not signed yet - will be signed in confirm screen
+          rawtx = '';
+        }
+
+        try {
+          fee = psbt.getFee();
+        } catch (error) {
+          // PSBT not finalized - calculate fee from inputs and outputs
+          const inputValue = inputs.reduce((sum, input) => {
+            // Get value from utxo.satoshi or witnessUtxo.value
+            const value =
+              input.utxo?.satoshi || input.data?.witnessUtxo?.value || 0;
+            return sum + value;
+          }, 0);
+          const outputValue = outputs.reduce(
+            (sum, output) => sum + (output.value || 0),
+            0,
+          );
+          fee = inputValue - outputValue;
+        }
+      }
       dispatch(
         TransactionsActions.updateBitcoinTx({
           rawtx,
@@ -186,8 +220,39 @@ export function usePrepareSendOrdinalsInscriptionCallback() {
           btcUtxos,
         });
       const psbt = bitcoin.Psbt.fromHex(psbtHex);
-      const fee = psbt.getFee();
-      const rawtx = psbt.extractTransaction(true).toHex();
+      const activeWallet = await wallet.getActiveWallet();
+      const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+
+      let fee = 0;
+      let rawtx = '';
+
+      if (!isHardwareWallet) {
+        // Soft wallets: keep legacy behaviour exactly
+        fee = psbt.getFee();
+        rawtx = psbt.extractTransaction(true).toHex();
+      } else {
+        // Hardware wallets: PSBT may not be finalized/signed yet
+        try {
+          fee = psbt.getFee();
+        } catch (error) {
+          const inputValue = inputs.reduce((sum, input) => {
+            const value =
+              input.utxo?.satoshi || input.data?.witnessUtxo?.value || 0;
+            return sum + value;
+          }, 0);
+          const outputValue = outputs.reduce(
+            (sum, output) => sum + (output.value || 0),
+            0,
+          );
+          fee = inputValue - outputValue;
+        }
+
+        try {
+          rawtx = psbt.extractTransaction(true).toHex();
+        } catch (error) {
+          rawtx = '';
+        }
+      }
       dispatch(
         TransactionsActions.updateOrdinalsTx({
           rawtx,
@@ -263,9 +328,39 @@ export function usePrepareSendOrdinalsInscriptionsCallback() {
           btcUtxos,
         });
       const psbt = bitcoin.Psbt.fromHex(psbtHex);
-      const fee = psbt.getFee();
+      const activeWallet = await wallet.getActiveWallet();
+      const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
 
-      const rawtx = psbt.extractTransaction(true).toHex();
+      let fee = 0;
+      let rawtx = '';
+
+      if (!isHardwareWallet) {
+        // Soft wallets: legacy behaviour
+        fee = psbt.getFee();
+        rawtx = psbt.extractTransaction(true).toHex();
+      } else {
+        // Hardware wallets: PSBT may not be finalized/signed yet
+        try {
+          fee = psbt.getFee();
+        } catch (error) {
+          const inputValue = inputs.reduce((sum, input) => {
+            const value =
+              input.utxo?.satoshi || input.data?.witnessUtxo?.value || 0;
+            return sum + value;
+          }, 0);
+          const outputValue = outputs.reduce(
+            (sum, output) => sum + (output.value || 0),
+            0,
+          );
+          fee = inputValue - outputValue;
+        }
+
+        try {
+          rawtx = psbt.extractTransaction(true).toHex();
+        } catch (error) {
+          rawtx = '';
+        }
+      }
       dispatch(
         TransactionsActions.updateOrdinalsTx({
           rawtx,

@@ -17,6 +17,7 @@ import InscribeSignScreen from './pages/home-flow/inscribe/inscribe-sign-screen'
 import InscribeTransferTapScreen from './pages/home-flow/inscribe/inscribe-transfer-tab-screen';
 import CheckSeedPhrase from './pages/import-flow/check-seed-phrase-step';
 import ChooseAddressPrivate from './pages/import-flow/choose-address-private';
+import ChooseLedgerAddress from './pages/import-flow/choose-ledger-address';
 import ChooseAddress from './pages/import-flow/choose-address-step';
 import CreatePassWord from './pages/import-flow/create-password';
 import NoteStep from './pages/import-flow/note-step';
@@ -25,6 +26,7 @@ import RestoreWalletOption from './pages/import-flow/restore-wallet-option';
 import ShowSeedPhrase from './pages/import-flow/show-seed-phrase';
 import StartScreen from './pages/import-flow/start-screen';
 import SuccessAccount from './pages/import-flow/success-account';
+import ConnectLedger from './pages/import-flow/connect-ledger';
 import LoginPage from './pages/login-screen';
 import NotFound from './pages/not-found-screen';
 import Receive from './pages/send-receive/receive-screen';
@@ -62,6 +64,7 @@ import HandleCreateAuthority from './pages/authority/handle/create';
 import HandleTappingAuthority from './pages/authority/handle/tapping';
 import CancelAuthorityDetail from '@/src/ui/pages/authority/cancel-authority-detail';
 import {AuthorityWarning} from '@/src/ui/pages/authority/authority-warning';
+import LedgerSignModalHost from './component/ledger-sign-modal/host';
 
 function App() {
   const walletProvider = useWalletProvider();
@@ -132,7 +135,8 @@ function App() {
 
   return (
     <HashRouter>
-      <Routes>
+      <>
+        <Routes>
         {/* Login */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/change-password" element={<ChangePassword />} />
@@ -145,6 +149,8 @@ function App() {
           element={<RestoreWalletOption />}
         />
         <Route path="/restore-wallet" element={<RestoreWallet />} />
+        {/* Connect Ledger */}
+        <Route path="/connect-ledger" element={<ConnectLedger />} />
 
         {/* Create new wallet */}
         <Route path="/note-step" element={<NoteStep />} />
@@ -152,6 +158,7 @@ function App() {
         <Route path="/check-seed-phrase" element={<CheckSeedPhrase />} />
 
         <Route path="/choose-address" element={<ChooseAddress />} />
+        <Route path="/choose-ledger-address" element={<ChooseLedgerAddress />} />
         <Route
           path="/choose-address-private"
           element={<ChooseAddressPrivate />}
@@ -266,6 +273,8 @@ function App() {
         />
         <Route path="/authority-warning" element={<AuthorityWarning />} />
       </Routes>
+      <LedgerSignModalHost />
+      </>
     </HashRouter>
   );
 }

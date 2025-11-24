@@ -11,6 +11,7 @@ import Text from '../../component/text-custom';
 import { GlobalSelector } from '../../redux/reducer/global/selector';
 import { useWalletProvider } from '../../gateway/wallet-provider';
 import { AccountSelector } from '../../redux/reducer/account/selector';
+import { WalletSelector } from '../../redux/reducer/wallet/selector';
 import { usePrepareSendBTCCallback } from '../send-receive/hook';
 import { useCustomToast } from '../../component/toast-custom';
 import { InscribeOrder, InscriptionOrdClient, OrderType, TappingStatus } from '@/src/wallet-instance/types';
@@ -19,6 +20,7 @@ import { calculateAmount } from '@/src/shared/utils/btc-helper';
 import { useTokenInfo } from '../home-flow/hook';
 import TransferApps from './component/trac-apps'
 import { useTracAppsLogic } from './hook/use-trac-apps-logic'
+import { ledgerSignManager } from '../../utils/ledger-sign-manager';
 
 export const TRAC_APPS_BITCOIN_ADDRESSES = {
   hyperfun: 'bc1pg0raefujxhtzac9hnkvmextu023tntgu0ldduj9crsaf3s3vtyhsc2ht9r',
@@ -211,6 +213,8 @@ const TransferAuthority = () => {
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
   const auth = currentAuthority?.ins;
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
   const prepareSendBTC = usePrepareSendBTCCallback();
   const tokens = currentAuthority?.auth || [];
   const order = state?.order as InscribeOrder;
@@ -426,10 +430,17 @@ const TransferAuthority = () => {
 
       const message = { items, auth, data: '' };
 
-      const _tokenAuth = await walletProvider.generateTokenAuth(
-        message,
-        'redeem',
-      );
+      let _tokenAuth;
+      try {
+        if (isHardwareWallet) {
+          ledgerSignManager.show();
+        }
+        _tokenAuth = await walletProvider.generateTokenAuth(message, 'redeem');
+      } finally {
+        if (isHardwareWallet) {
+          ledgerSignManager.hide();
+        }
+      }
 
       const order = await walletProvider.createOrderRedeem(
         activeAccount.address,

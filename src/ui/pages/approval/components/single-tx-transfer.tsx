@@ -8,6 +8,7 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {copyToClipboard} from '@/src/ui/helper';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {GlobalActions} from '@/src/ui/redux/reducer/global/slice';
 import {SVG} from '@/src/ui/svg';
@@ -41,6 +42,7 @@ import {
   usePushBitcoinTxCallback,
 } from '../../send-receive/hook';
 import {useApproval} from '../hook';
+import {ledgerSignManager} from '@/src/ui/utils/ledger-sign-manager';
 
 enum TabKey {
   STEP1,
@@ -109,11 +111,15 @@ const defaultOutputValue = 546; //getAddressUtxoDust(account.address);
 export const Step1 = ({
   contextData,
   updateContextData,
+  onLedgerSigningChange,
 }: {
   contextData: ContextData;
   updateContextData: (params: UpdateContextDataParams) => void;
+  onLedgerSigningChange: (isSigning: boolean) => void;
 }) => {
   const account = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
   const network = useAppSelector(GlobalSelector.networkType);
   const walletProvider = useWalletProvider();
 
@@ -262,24 +268,60 @@ export const Step1 = ({
 
   // generate redeem content
   useEffect(() => {
-    if (!validated) {
-      return;
-    }
+    let isMounted = true;
 
-    if (!contextData.currentAuthority) {
-      return;
-    }
+    const fetchRedeemContent = async () => {
+      if (!validated) {
+        return;
+      }
 
-    const message = {
-      items: contextData.items,
-      auth: contextData.currentAuthority?.ins,
-      data: '',
+      if (!contextData.currentAuthority) {
+        return;
+      }
+
+      const message = {
+        items: contextData.items,
+        auth: contextData.currentAuthority?.ins,
+        data: '',
+      };
+
+      try {
+        if (isHardwareWallet) {
+          onLedgerSigningChange(true);
+          ledgerSignManager.show();
+        }
+        const redeemContent = await walletProvider.generateTokenAuth(
+          message,
+          'redeem',
+        );
+        if (isMounted) {
+          updateContextData({redeemContent});
+        }
+      } catch (error) {
+        console.error('Failed to generate redeem content', error);
+        if (isMounted) {
+          rejectApproval('Failed to generate redeem content');
+        }
+      } finally {
+        if (isHardwareWallet) {
+          ledgerSignManager.hide();
+          onLedgerSigningChange(false);
+        }
+      }
     };
 
-    walletProvider.generateTokenAuth(message, 'redeem').then(redeemContent => {
-      updateContextData({redeemContent});
-    });
-  }, [validated, contextData.currentAuthority]);
+    fetchRedeemContent();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    validated,
+    contextData.currentAuthority,
+    contextData.items,
+    isHardwareWallet,
+    onLedgerSigningChange,
+  ]);
 
   // check conditions for disable button
   useEffect(() => {
@@ -821,6 +863,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
   const walletProvider = useWalletProvider();
   const [, , rejectApproval] = useApproval();
   const account = useAppSelector(AccountSelector.activeAccount);
+  const [isLedgerSigning, setIsLedgerSigning] = useState(false);
 
   // check items is empty or invalid type
   if (!data?.items?.length || !Array.isArray(data.items)) {
@@ -861,6 +904,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         <Step1
           contextData={contextData}
           updateContextData={updateContextData}
+          onLedgerSigningChange={setIsLedgerSigning}
         />
       );
     } else if (contextData.tabKey === TabKey.STEP2) {
@@ -885,7 +929,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         />
       );
     }
-  }, [contextData]);
+  }, [contextData, updateContextData, setIsLedgerSigning]);
 
   // get current authority
   useEffect(() => {
@@ -1034,7 +1078,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
       body={
         <UX.Box style={{width: '100%'}}>
           {component}
-          {contextData.isLoading && <UX.Loading />}
+          {contextData.isLoading && !isLedgerSigning && <UX.Loading />}
         </UX.Box>
       }
       footer={footer}

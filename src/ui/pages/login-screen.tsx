@@ -9,7 +9,7 @@ import LayoutLogin from '../layouts/login';
 import {GlobalActions} from '../redux/reducer/global/slice';
 import {GlobalSelector} from '../redux/reducer/global/selector';
 import {SVG} from '../svg';
-import {useAppDispatch, isValidAuthInput, isLegacyPin, useAppSelector} from '../utils';
+import {useAppDispatch, isValidAuthInput, isLegacyPin, useAppSelector, hasWalletsWithAccounts} from '../utils';
 import {useApproval} from './approval/hook';
 
 const LoginPage = () => {
@@ -54,13 +54,20 @@ const LoginPage = () => {
     try {
       await wallet.unlockApp(valueInput);
       dispatch(GlobalActions.update({isUnlocked: true}));
-      // pass prop to home if user used a 4-digit PIN
+      
+      const hasWallets = await hasWalletsWithAccounts(wallet);
+      
       if (/^\d{4}$/.test(valueInput)) {
         await resolveApproval();
-        // Set modal state in store
         dispatch(GlobalActions.update({showPasswordUpdateModal: true, currentPassword: valueInput}));
-        return navigate('/home');
+        
+        if (hasWallets) {
+          return navigate('/home');
+        } else {
+          return navigate('/');
+        }
       }
+      
       await resolveApproval();
       return navigate('/');
     } catch (error) {

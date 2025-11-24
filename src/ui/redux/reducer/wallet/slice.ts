@@ -31,7 +31,17 @@ const WalletSlice = createSlice({
     },
     setListWallet(state, action: {payload: WalletDisplay[]}) {
       const {payload} = action;
-      state.wallets = payload;
+      state.wallets = payload.filter(
+        wallet => wallet?.accounts && wallet.accounts.length > 0,
+      );
+
+      if (
+        state.activeWallet &&
+        (!state.activeWallet.accounts || state.activeWallet.accounts.length === 0)
+      ) {
+        state.activeWallet =
+          state.wallets.length > 0 ? state.wallets[0] : initialKeyring;
+      }
     },
 
     reset() {

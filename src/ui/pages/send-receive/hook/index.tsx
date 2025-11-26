@@ -9,10 +9,12 @@ import {TransactionSelector} from '@/src/ui/redux/reducer/transaction/selector';
 import {TransactionsActions} from '@/src/ui/redux/reducer/transaction/slice';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {isEmpty} from 'lodash';
-import {ToAddressInfo, UnspentOutput, RawTxInfo} from '@/src/wallet-instance';
+import {ToAddressInfo, UnspentOutput, RawTxInfo, Network} from '@/src/wallet-instance';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
-import {bitcoin} from '@/src/background/utils';
+import {bitcoin, deriveAddressFromPublicKey} from '@/src/background/utils';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
 
 export function useSafeBalance() {
@@ -467,4 +469,64 @@ export function useUpdateTxStateInfo() {
       }),
     );
   };
+}
+
+/**
+ * Hook to check if hardware wallet is mismatched with current network
+ * Returns true if hardware wallet address was derived from a different network
+ */
+export function useHardwareWalletMismatch(): {
+  isMismatched: boolean;
+  expectedNetwork: Network | null;
+} {
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const networkType = useAppSelector(GlobalSelector.networkType);
+
+  return useMemo(() => {
+    // Only check for hardware wallets
+    if (!activeAccount?.pubkey || !activeAccount?.address) {
+      return {isMismatched: false, expectedNetwork: null};
+    }
+
+    if (activeWallet?.type !== 'Hardware Wallet') {
+      return {isMismatched: false, expectedNetwork: null};
+    }
+
+    try {
+      const addressMainnet = deriveAddressFromPublicKey(
+        activeAccount.pubkey,
+        activeWallet.addressType,
+        Network.MAINNET,
+      );
+      const addressTestnet = deriveAddressFromPublicKey(
+        activeAccount.pubkey,
+        activeWallet.addressType,
+        Network.TESTNET,
+      );
+
+      let expectedNetwork: Network | null = null;
+      if (addressMainnet === activeAccount.address) {
+        expectedNetwork = Network.MAINNET;
+      } else if (addressTestnet === activeAccount.address) {
+        expectedNetwork = Network.TESTNET;
+      }
+
+      // Derive address with current network
+      const addressWithCurrentNetwork = deriveAddressFromPublicKey(
+        activeAccount.pubkey,
+        activeWallet.addressType,
+        networkType,
+      );
+
+      const isMismatched =
+        Boolean(addressWithCurrentNetwork) &&
+        addressWithCurrentNetwork !== activeAccount.address;
+
+      return {isMismatched, expectedNetwork};
+    } catch (error) {
+      console.error('Error checking hardware wallet mismatch:', error);
+      return {isMismatched: false, expectedNetwork: null};
+    }
+  }, [activeWallet, activeAccount, networkType]);
 }

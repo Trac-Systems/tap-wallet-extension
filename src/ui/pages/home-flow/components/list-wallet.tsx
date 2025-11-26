@@ -27,7 +27,7 @@ import {SVG} from '@/src/ui/svg';
 import { debounce } from 'lodash';
 import { useRef } from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
+import {useFetchUtxosCallback, useHardwareWalletMismatch} from '@/src/ui/pages/send-receive/hook';
 
 interface ListWalletsProps {
   networkFilters?: {bitcoin: boolean; trac: boolean};
@@ -56,7 +56,9 @@ const ListWallets = (props: ListWalletsProps) => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const retryCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  
+  // Check if hardware wallet is mismatched
+  const {isMismatched, expectedNetwork} = useHardwareWalletMismatch();
   const positionSlider = useMemo(() => {
     if (!isEmpty(listWallets) || !activeWallet.key)
       return listWallets.findIndex(wallet => wallet.key === activeWallet.key);
@@ -275,11 +277,32 @@ const ListWallets = (props: ListWalletsProps) => {
             className="groupBox"
             role="button"
             tabIndex={0}
-            onClick={() => setOpenSelectToken(true)}
+            onClick={() => {
+              if (isMismatched) {
+                showToast({
+                  title: 'Please reconnect Ledger and sync network before sending.',
+                  type: 'error',
+                });
+                return;
+              }
+              setOpenSelectToken(true);
+            }}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
+                if (isMismatched) {
+                  showToast({
+                    title: 'Please reconnect Ledger and sync network before sending.',
+                    type: 'error',
+                  });
+                  return;
+                }
                 setOpenSelectToken(true);
               }
+            }}
+            style={{
+              opacity: isMismatched ? 0.8 : 1,
+              cursor: isMismatched ? 'not-allowed' : 'pointer',
+              pointerEvents: isMismatched ? 'none' : 'auto',
             }}
           >
             <SVG.ArrowSendIcon />

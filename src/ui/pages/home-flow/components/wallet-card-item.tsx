@@ -16,7 +16,7 @@ import {useNavigate} from 'react-router-dom';
 import {useAccountBalance, useActiveTracAddress} from '../hook';
 import './index.css';
 import {debounce} from 'lodash';
-import {useSafeBalance} from '@/src/ui/pages/send-receive/hook';
+import {useSafeBalance, useHardwareWalletMismatch} from '@/src/ui/pages/send-receive/hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
 
 interface IWalletCardProps {
@@ -36,6 +36,8 @@ const WalletCard = (props: IWalletCardProps) => {
   const accountBalance = useAccountBalance();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const {isMismatched: cardMismatched, expectedNetwork} = useHardwareWalletMismatch();
+  const showOverlay = cardMismatched && keyring.key === activeWallet.key;
   const accountName = useMemo(() => {
     return activeWallet.accounts.find(acc => acc.key === activeAccount.key)
       ?.name;
@@ -156,7 +158,31 @@ const WalletCard = (props: IWalletCardProps) => {
   //! Render
   return (
     <>
-        <div className="cardSliderContainer">
+        <div className="cardSliderContainer" style={{position: 'relative'}}>
+          {showOverlay && (
+            <UX.Box
+              layout="column_center"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgb(74 10 21 / 94%)',
+                zIndex: 6,
+                borderRadius: 16,
+                textAlign: 'center',
+                padding: '0 16px',
+              }}>
+              <UX.Text
+                styleType="body_16_bold"
+                customStyles={{color: 'white'}}
+              title={`Wallet only available on ${
+                expectedNetwork === Network.TESTNET ? 'testnet' : 'mainnet'
+              }`}
+              />
+            </UX.Box>
+          )}
           <div className="cardSlider">
             <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center'}}>
               <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>

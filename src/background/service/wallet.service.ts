@@ -422,6 +422,12 @@ export class WalletService {
     }
     if (type === 'Hardware Wallet') {
       wallet = new LedgerWallet(data);
+      if (Array.isArray(data?.activeIndexes)) {
+        (wallet as LedgerWallet).activeIndexes = data.activeIndexes;
+      }
+      if (Array.isArray(data?.pubkeys)) {
+        (wallet as LedgerWallet).hydrateCachedPubkeys(data.pubkeys);
+      }
     }
 
     wallet?.retrievePublicKeys();

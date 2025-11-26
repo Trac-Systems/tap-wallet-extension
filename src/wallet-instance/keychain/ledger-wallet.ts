@@ -47,6 +47,7 @@ export class LedgerWallet {
     return {
       derivationPath: this.derivationRoot,
       activeIndexes: this.activeIndexes,
+      pubkeys: Array.from(this.indexToPubkeyHex.entries()),
     };
   }
 
@@ -173,6 +174,21 @@ export class LedgerWallet {
 
   async ensureAccountForDerivation(derivationPath: string, index: number): Promise<string> {
     return this._ensurePubkeyAtIndex(index, derivationPath);
+  }
+
+  hydrateCachedPubkeys(entries: Array<[number, string]>) {
+    if (!this.derivationRoot || !entries?.length) {
+      return;
+    }
+    const rootMap = new Map<number, string>();
+    entries.forEach(([idx, value]) => {
+      this.indexToPubkeyHex.set(idx, value);
+      rootMap.set(idx, value);
+      if (!this.activeIndexes.includes(idx)) {
+        this.activeIndexes.push(idx);
+      }
+    });
+    this.rootToIndexToPubkey.set(this.derivationRoot, rootMap);
   }
 
   async signTransaction(

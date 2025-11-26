@@ -127,12 +127,23 @@ export class Provider {
     const type = walletDisplay.type;
     const accounts: IDisplayAccount[] = [];
 
+    // For hardware wallets, check if there's a network mismatch
+    // If mismatch, use the saved network instead of current network
+    let effectiveNetworkType = networkType;
+    if (type === 'Hardware Wallet') {
+      const savedNetwork = walletConfig.getHardwareWalletNetwork(key);
+      if (savedNetwork && savedNetwork !== networkType) {
+        // Hardware wallet is mismatched, use saved network to keep address unchanged
+        effectiveNetworkType = savedNetwork;
+      }
+    }
+
     for (let j = 0; j < walletDisplay.accounts.length; j++) {
       const {pubkey} = walletDisplay.accounts[j];
       const address = deriveAddressFromPublicKey(
         pubkey,
         addressType,
-        networkType,
+        effectiveNetworkType,
       );
       const accountKey = key + '#' + j;
       const defaultName = this._genDefaultAccountName(type, j);
@@ -163,11 +174,28 @@ export class Provider {
   };
 
   setActiveNetwork = (network: Network) => {
+    const oldNetwork = networkConfig.getActiveNetwork();
     networkConfig.setActiveNetwork(network);
     paidApi.changeNetwork();
     this.mempoolApi.changeNetwork(network);
     this.tapApi.changeNetwork(network);
     this.inscribeApi.changeNetwork(network);
+    
+    // Mark all hardware wallets as mismatch if network changed
+    if (oldNetwork !== network) {
+      const wallets = this.getWallets();
+      for (const wallet of wallets) {
+        if (wallet.type === 'Hardware Wallet') {
+          // Save the old network for this hardware wallet
+          const savedNetwork = walletConfig.getHardwareWalletNetwork(wallet.key);
+          if (!savedNetwork) {
+            // Only save if not already saved (first time mismatch)
+            walletConfig.setHardwareWalletNetwork(wallet.key, oldNetwork);
+          }
+        }
+      }
+    }
+    
     const activeAccount = this.getActiveAccount();
     const wallet = this.getActiveWallet();
     if (!wallet) {
@@ -228,6 +256,10 @@ export class Provider {
       walletDataForUI,
       walletService.wallets.length - 1,
     );
+    // Clear mismatch and save current network for this hardware wallet
+    // since Ledger is now connected with the correct app
+    walletConfig.clearHardwareWalletNetwork(wallet.key);
+    walletConfig.setHardwareWalletNetwork(wallet.key, networkConfig.getActiveNetwork());
     this.setActiveWallet(wallet);
   };
 

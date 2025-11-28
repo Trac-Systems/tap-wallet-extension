@@ -157,8 +157,13 @@ export class Provider {
         key: accountKey,
       });
     }
-    const derivationPath =
-      type === WALLET_TYPE.HdWallet ? walletDisplay.wallet.derivationPath : '';
+    let derivationPath = '';
+    if (type === WALLET_TYPE.HdWallet) {
+      derivationPath = walletDisplay.wallet.derivationPath || '';
+    } else if (type === 'Hardware Wallet') {
+      // LedgerWallet stores derivation path in derivationRoot
+      derivationPath = walletDisplay.wallet.derivationPath || '';
+    }
 
     const name = walletConfig.getWalletName(key, `${type} #${index + 1}`);
     const wallet: WalletDisplay = {
@@ -241,12 +246,20 @@ export class Provider {
     derivationPath: string,
     addressType: AddressType,
     accountNum: number,
+    allPubkeys?: Array<{derivationPath: string; pubkey: string; addressType: AddressType}>,
   ) => {
     const originWallet = await walletService.createWalletFromLedger(
       derivationPath,
       addressType,
       accountNum,
     );
+    
+    // Cache all pubkeys that were pre-fetched during address selection
+    const hwWallet = originWallet as any;
+    if (allPubkeys && allPubkeys.length > 0 && hwWallet.cachePubkeysForAllPaths) {
+      hwWallet.cachePubkeysForAllPaths(allPubkeys);
+    }
+    
     const walletDataForUI = walletService.getWalletDataForUI(
       originWallet,
       addressType,
@@ -562,6 +575,15 @@ export class Provider {
       }
     } else if (_wallet?.type === 'Hardware Wallet') {
       const hwWallet = _wallet as any;
+      
+      // For hardware wallets, check if there's a network mismatch
+      // If mismatch, use the saved network to keep addresses consistent with home screen
+      const walletKey = 'wallet_' + wallet.index;
+      const savedNetwork = walletConfig.getHardwareWalletNetwork(walletKey);
+      const effectiveNetworkType = (savedNetwork && savedNetwork !== networkType) 
+        ? savedNetwork 
+        : networkType;
+      
       // Fetch addresses sequentially to avoid "Ledger Device is busy" errors
       // Ledger can only handle one request at a time
       const addressTypesList = Object.keys(ADDRESS_TYPES)
@@ -571,8 +593,8 @@ export class Provider {
       
       for (const item of addressTypesList) {
         const v = item.value;
-        // Adjust derivation path for current network (testnet/mainnet)
-        const adjustedPath = adjustDerivationPathForNetwork(v.derivationPath, networkType);
+        // Adjust derivation path for the effective network (saved network if mismatched)
+        const adjustedPath = adjustDerivationPathForNetwork(v.derivationPath, effectiveNetworkType);
         
         let pubkey = hwWallet.getAccountByDerivationPath?.(adjustedPath, index);
         if (!pubkey && hwWallet.ensureAccountForDerivation) {
@@ -586,7 +608,7 @@ export class Provider {
         if (!pubkey) {
           continue;
         }
-        const address = deriveAddressFromPublicKey(pubkey, v.value, networkType);
+        const address = deriveAddressFromPublicKey(pubkey, v.value, effectiveNetworkType);
         addresses[address] = {addressType: v.value};
       }
     } else {

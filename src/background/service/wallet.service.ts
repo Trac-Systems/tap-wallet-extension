@@ -54,7 +54,8 @@ export class PublicWallet {
     this.accounts = wallet.accounts || [];
     this.type = wallet.type;
     this.addressType = '';
-    this.derivationPath = (wallet as any).derivationPath;
+    // HD Wallet uses 'derivationPath', LedgerWallet uses 'derivationRoot'
+    this.derivationPath = (wallet as any).derivationPath || (wallet as any).derivationRoot || '';
     this.getAccounts = () => {
       return wallet.retrievePublicKeys();
     };

@@ -12,13 +12,14 @@ import {SVG} from '../../svg';
 import {colors} from '../../themes/color';
 import browser from 'webextension-polyfill';
 import {useCustomToast} from '../../component/toast-custom';
-import {useAppSelector} from '../../utils';
+import {useAppSelector, useAppDispatch} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {deriveAddressFromPublicKey} from '@/src/background/utils';
 import {Buffer} from 'buffer';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useReloadAccounts} from '../home-flow/hook';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
+import {AccountActions} from '../../redux/reducer/account/slice';
 
 type LedgerPathOption = {
   label: string;
@@ -43,6 +44,7 @@ const getExpectedAppName = (network: Network): string => {
 
 const ChooseLedgerAddress = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
   const wallet = useWalletProvider();
   const reloadAccounts = useReloadAccounts();
@@ -68,6 +70,7 @@ const ChooseLedgerAddress = () => {
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [addressMap, setAddressMap] = useState<Record<string, string>>({});
+  const [pubkeyMap, setPubkeyMap] = useState<Record<string, {pubkey: string; derivationPath: string; addressType: AddressType}>>({});
   const [balanceMap, setBalanceMap] = useState<
     Record<
       string,
@@ -158,21 +161,32 @@ const ChooseLedgerAddress = () => {
         ...prev,
         [key]: address,
       }));
+      // Save pubkey for later use when creating wallet
+      setPubkeyMap(prev => ({
+        ...prev,
+        [key]: {
+          pubkey: publicKeyHex,
+          derivationPath: option.derivationPath,
+          addressType: option.addressType,
+        },
+      }));
 
       // Fetch balance in the background – do NOT await here so we don't block
       // the sequential Ledger calls. Network calls can run in parallel.
       (async () => {
         try {
           const balance = await wallet.getAddressBalance(address);
-          const btc =
-            balance?.btcSatoshi !== undefined
-              ? (balance.btcSatoshi / 1e8).toFixed(8)
-              : '0';
+          // Include both confirmed and pending satoshis for total balance
+          // Use satoshi + pendingSatoshi for total (covers all cases)
+          const confirmedSatoshi = balance?.satoshi || 0;
+          const pendingSatoshi = balance?.pendingSatoshi || 0;
+          const totalSatoshi = confirmedSatoshi + Math.max(0, pendingSatoshi);
+          const btc = (totalSatoshi / 1e8).toFixed(8);
           setBalanceMap(prev => ({
             ...prev,
             [key]: {
               totalBtc: btc,
-              satoshis: balance?.btcSatoshi || 0,
+              satoshis: totalSatoshi,
               totalInscription: balance?.inscriptionUtxoCount || 0,
             },
           }));
@@ -427,13 +441,43 @@ const ChooseLedgerAddress = () => {
       
       await removeExistingHardwareWallets();
 
+      // Collect all pubkeys to cache in hardware wallet
+      const allPubkeys = Object.values(pubkeyMap).map(item => ({
+        derivationPath: item.derivationPath,
+        pubkey: item.pubkey,
+        addressType: item.addressType,
+      }));
+
       await wallet.createWalletFromLedger(
         derivationPath,
         ledgerAddressType,
         1,
+        allPubkeys,
       );
       
       await reloadAccounts();
+      
+      // Fetch balance immediately for hardware wallet to avoid timing issues on first import
+      try {
+        const activeAccount = await wallet.getActiveAccount();
+        if (activeAccount?.address) {
+          const balanceData = await wallet.getAddressBalance(activeAccount.address);
+          if (balanceData) {
+            dispatch(
+              AccountActions.setBalance({
+                address: activeAccount.address,
+                amount: (balanceData.satoshi || 0) + (balanceData.pendingSatoshi || 0),
+                btcAmount: balanceData.btcSatoshi || 0,
+                inscriptionAmount: balanceData.inscriptionUtxoCount || 0,
+                pendingBtcAmount: balanceData.btcPendingSatoshi || 0,
+              }),
+            );
+          }
+        }
+      } catch (e) {
+        console.error('Failed to prefetch balance for hardware wallet:', e);
+      }
+      
       navigate('/home');
     } catch (error: any) {
       showToast({

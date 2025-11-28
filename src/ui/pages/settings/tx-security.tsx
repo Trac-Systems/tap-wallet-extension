@@ -53,7 +53,7 @@ const TxSecurity = () => {
   const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
   const dispatch = useAppDispatch();
   const showLedgerFinalizeCopy =
-    isHardwareWallet && type === TxType.INSCRIBE_TAP;
+    isHardwareWallet && (type === TxType.INSCRIBE_TAP || type === TxType.TAPPING);
   const unlockedTitle = showLedgerFinalizeCopy
     ? 'Finalize Transaction'
     : 'Confirm Transaction';

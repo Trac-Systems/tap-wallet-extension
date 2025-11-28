@@ -60,7 +60,8 @@ export interface IWalletProvider {
   createWalletFromLedger(
     derivationPath: string,
     addressType: AddressType,
-    accountNum: number
+    accountNum: number,
+    allPubkeys?: Array<{derivationPath: string; pubkey: string; addressType: AddressType}>,
   ): Promise<void>;
   previewAddressFromPrivateKey(
     privateKey: string,

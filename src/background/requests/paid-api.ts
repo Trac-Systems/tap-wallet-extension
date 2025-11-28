@@ -171,8 +171,8 @@ export class PaidApi {
       list: !isEmpty(dataResult?.utxo)
         ? convertInscriptionTransferList(network, dataResult?.utxo)
         : [],
-      total: dataResult?.total,
-      cursor: dataResult?.cursor,
+      total: dataResult?.total ?? 0,
+      cursor: dataResult?.cursor ?? 0,
     };
   }
 

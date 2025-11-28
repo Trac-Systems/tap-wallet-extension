@@ -44,10 +44,17 @@ export class LedgerWallet {
   }
 
   serialize(): any {
+    // Serialize all cached pubkeys for all derivation paths
+    const allPubkeysObj: {[root: string]: Array<[number, string]>} = {};
+    for (const [root, rootMap] of this.rootToIndexToPubkey.entries()) {
+      allPubkeysObj[root] = Array.from(rootMap.entries());
+    }
+    
     return {
       derivationPath: this.derivationRoot,
       activeIndexes: this.activeIndexes,
       pubkeys: Array.from(this.indexToPubkeyHex.entries()),
+      allPubkeys: allPubkeysObj, // Store all cached pubkeys for all address types
     };
   }
 
@@ -176,7 +183,7 @@ export class LedgerWallet {
     return this._ensurePubkeyAtIndex(index, derivationPath);
   }
 
-  hydrateCachedPubkeys(entries: Array<[number, string]>) {
+  hydrateCachedPubkeys(entries: Array<[number, string]>, allPubkeys?: {[root: string]: Array<[number, string]>}) {
     if (!this.derivationRoot || !entries?.length) {
       return;
     }
@@ -189,6 +196,43 @@ export class LedgerWallet {
       }
     });
     this.rootToIndexToPubkey.set(this.derivationRoot, rootMap);
+    
+    // Restore all cached pubkeys for other derivation paths
+    if (allPubkeys) {
+      for (const root in allPubkeys) {
+        if (root === this.derivationRoot) {
+          continue; // Already handled above
+        }
+        const pubkeyEntries = allPubkeys[root];
+        if (pubkeyEntries?.length) {
+          const otherRootMap = new Map<number, string>();
+          pubkeyEntries.forEach(([idx, value]) => {
+            otherRootMap.set(idx, value);
+          });
+          this.rootToIndexToPubkey.set(root, otherRootMap);
+        }
+      }
+    }
+  }
+
+  /**
+   * Cache pubkeys for all address types that were pre-fetched during address selection.
+   * This allows changing address type later without needing Ledger connection.
+   */
+  cachePubkeysForAllPaths(allPubkeys: Array<{derivationPath: string; pubkey: string}>) {
+    if (!allPubkeys?.length) {
+      return;
+    }
+    for (const item of allPubkeys) {
+      const {derivationPath, pubkey} = item;
+      if (!derivationPath || !pubkey) {
+        continue;
+      }
+      // Cache pubkey at index 0 for each derivation path
+      const rootMap = this.rootToIndexToPubkey.get(derivationPath) || new Map<number, string>();
+      rootMap.set(0, pubkey);
+      this.rootToIndexToPubkey.set(derivationPath, rootMap);
+    }
   }
 
   async signTransaction(

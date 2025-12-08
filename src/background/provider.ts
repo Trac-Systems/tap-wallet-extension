@@ -722,6 +722,7 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
+    const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
     const {psbt, inputForSigns, outputs, inputs} = await sendBTC({
       btcUtxos: btcUtxos,
       tos: [{address: to, satoshis: amount}],
@@ -731,10 +732,8 @@ export class Provider {
       pubkey: account.pubkey,
       feeRate,
       enableRBF,
+      isHardwareWallet,
     });
-    
-    // Skip signing for hardware wallets (Ledger) - will be signed in confirm screen
-    const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
     
     if (!isHardwareWallet) {
       this.setPsbtSignNonSegwitEnable(psbt, true);
@@ -785,6 +784,7 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
+    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
 
     const {psbt, inputForSigns, inputs, outputs} = await sendInscription({
       assetUtxo,
@@ -797,8 +797,8 @@ export class Provider {
       feeRate,
       outputValue: outputValue || assetUtxo.satoshi,
       enableRBF,
+      isHardwareWallet,
     });
-    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
 
     if (!isHardwareWallet) {
       this.setPsbtSignNonSegwitEnable(psbt, true);
@@ -851,6 +851,7 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
+    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
 
     const {psbt, inputForSigns, inputs, outputs} = await sendInscriptions({
       assetUtxos,
@@ -862,8 +863,8 @@ export class Provider {
       pubkey: account.pubkey,
       feeRate,
       enableRBF,
+      isHardwareWallet,
     });
-    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
 
     if (!isHardwareWallet) {
       this.setPsbtSignNonSegwitEnable(psbt, true);

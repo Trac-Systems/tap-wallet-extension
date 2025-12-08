@@ -89,6 +89,7 @@ export class Transaction {
   pubkey: string;
   feeRate: number;
   enableRBF: boolean;
+  isHardwareWallet: boolean;
   allBtcUtxos: UnspentOutput[] = [];
   selectedUtxos: UnspentOutput[] = [];
   outputs: TxOutput[] = [];
@@ -101,6 +102,7 @@ export class Transaction {
     pubkey,
     feeRate,
     enableRBF,
+    isHardwareWallet = false,
   }: {
     networkType: Network;
     fromAddress: string;
@@ -108,6 +110,7 @@ export class Transaction {
     pubkey: string;
     feeRate: number;
     enableRBF: boolean;
+    isHardwareWallet?: boolean;
   }) {
     this.networkType = networkType;
     this.fromAddress = fromAddress;
@@ -115,6 +118,7 @@ export class Transaction {
     this.pubkey = pubkey;
     this.feeRate = feeRate;
     this.enableRBF = enableRBF;
+    this.isHardwareWallet = isHardwareWallet;
   }
 
   // Add UTXOs to the transaction
@@ -253,9 +257,16 @@ export class Transaction {
   // Calculate network fee from temp wallet
   async calNetworkFeeFromTempWallet() {
     const psbt = await this.generateTempWallet();
-    const txSize = psbt.extractTransaction(true).virtualSize();
-    const fee = Math.ceil(txSize * this.feeRate);
-    return fee;
+    let txSize = psbt.extractTransaction(true).virtualSize();
+    
+    // Adjust vsize for hardware wallets (Ledger)
+    // Ledger adds 1 byte to witness for each input, vsize adjustment = ceil(inputCount / 4)
+    if (this.isHardwareWallet) {
+      const inputCount = this.selectedUtxos.length || this.inputs.length;
+      txSize += Math.ceil(inputCount / 4);
+    }
+    
+    return Math.ceil(txSize * this.feeRate);
   }
 
   // Select UTXOs while preserving the ordinal inscription

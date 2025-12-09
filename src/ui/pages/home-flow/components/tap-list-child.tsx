@@ -161,7 +161,8 @@ const TapListChild = (props: TapListChildProps) => {
   };
 
   const handleNavigate = (tokenBalance: TokenBalance) => {
-    navigate(`/home/list-tap-options/${tokenBalance.ticker}`);
+    const encodedTicker = encodeURIComponent(tokenBalance.ticker);
+    navigate(`/home/list-tap-options/${encodedTicker}`);
   };
 
   const debouncedFetch = useCallback(

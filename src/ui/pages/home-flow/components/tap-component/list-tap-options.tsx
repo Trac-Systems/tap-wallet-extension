@@ -24,7 +24,8 @@ const ListTapOptions = () => {
   const wallet = useWalletProvider();
   const location = useLocation();
   // TODO: brcTokenBalance is param passing, need check brcTokenBalance when back from other screen
-  const {id} = useParams();
+  const {id: encodedId} = useParams();
+  const id = encodedId ? decodeURIComponent(encodedId) : '';
 
   //! State
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);

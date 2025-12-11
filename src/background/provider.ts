@@ -1368,6 +1368,25 @@ export class Provider {
     return 0;
   };
 
+  getTracUSDPrice = async (tracAmount: number) => {
+    if (tracAmount === 0 || isNaN(tracAmount)) {
+      return '0.00';
+    }
+
+    try {
+      const tracPrice = await usdApi.getTracUSDPrice();
+      if (tracPrice === 0) {
+        return '0.00';
+      }
+
+      const usdValue = tracPrice * tracAmount;
+      return usdValue.toFixed(2);
+    } catch (error) {
+      console.error('Error calculating TRAC USD price:', error);
+      return '0.00';
+    }
+  };
+
   setAccountSpendableInscriptions = (
     account: IDisplayAccount,
     inscriptions: Inscription[],

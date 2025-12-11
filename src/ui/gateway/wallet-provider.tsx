@@ -256,6 +256,7 @@ export interface IWalletProvider {
   removeConnectedSite(origin: string): Promise<void>;
   getCurrentConnectedSite(id: string): Promise<ConnectedSite>;
   getUSDPrice(bits: number): Promise<any>;
+  getTracUSDPrice(tracAmount: number): Promise<string>;
   setAccountSpendableInscriptions(
     account: IDisplayAccount,
     inscriptions: Inscription[],

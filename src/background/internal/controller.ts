@@ -1,8 +1,10 @@
-import {ethErrors} from 'eth-rpc-errors';
-import {permissionService, sessionService} from '../service/singleton';
-import {bitcoin, getBitcoinNetwork} from '../utils';
+import { ethErrors } from 'eth-rpc-errors';
+import { permissionService, sessionService, networkConfig } from '../service/singleton';
+import { bitcoin, getBitcoinNetwork } from '../utils';
 import walletProvider from '../provider';
-import {NETWORK_TYPES, Network} from '../../wallet-instance';
+import { NETWORK_TYPES, Network } from '../../wallet-instance';
+import { TracApiService } from '../service/trac-api.service';
+import { TracApi } from '../requests/trac-api';
 
 function formatPsbtHex(psbtHex: string) {
   let formatData = '';
@@ -20,7 +22,7 @@ function formatPsbtHex(psbtHex: string) {
 }
 
 class InternalProvider {
-  requestAccounts = async ({session: {origin}}) => {
+  requestAccounts = async ({ session: { origin } }) => {
     if (!permissionService.hasPermission(origin)) {
       throw ethErrors.provider.unauthorized();
     }
@@ -43,7 +45,7 @@ class InternalProvider {
   };
 
   @Reflect.metadata('SAFE', true)
-  getAccounts = async ({session: {origin}}) => {
+  getAccounts = async ({ session: { origin } }) => {
     if (!permissionService.hasPermission(origin)) {
       return [];
     }
@@ -80,7 +82,7 @@ class InternalProvider {
   switchNetwork = async req => {
     const {
       data: {
-        params: {networkType},
+        params: { networkType },
       },
     } = req;
     walletProvider.setActiveNetwork(networkType);
@@ -98,17 +100,17 @@ class InternalProvider {
   getInscriptions = async req => {
     const {
       data: {
-        params: {cursor, size},
+        params: { cursor, size },
       },
     } = req;
     const account = await walletProvider.getActiveAccount();
     if (!account) return '';
-    const {list, total} = await walletProvider.getInscriptions(
+    const { list, total } = await walletProvider.getInscriptions(
       account.address,
       cursor,
       size,
     );
-    return {list, total};
+    return { list, total };
   };
 
   @Reflect.metadata('SAFE', true)
@@ -130,12 +132,12 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {toAddress, satoshis},
+          params: { toAddress, satoshis },
         },
       } = req;
     },
   ])
-  sendBitcoin = async ({approvalRes: {psbtHex, spendUtxos}}) => {
+  sendBitcoin = async ({ approvalRes: { psbtHex, spendUtxos } }) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
@@ -147,12 +149,12 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {toAddress, satoshis},
+          params: { toAddress, satoshis },
         },
       } = req;
     },
   ])
-  sendInscription = async ({approvalRes: {psbtHex, spendUtxos}}) => {
+  sendInscription = async ({ approvalRes: { psbtHex, spendUtxos } }) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
@@ -164,12 +166,12 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {toAddress, ticker},
+          params: { toAddress, ticker },
         },
       } = req;
     },
   ])
-  sendTapTransfer = async ({approvalRes: {psbtHex}}) => {
+  sendTapTransfer = async ({ approvalRes: { psbtHex } }) => {
     const psbt = bitcoin.Psbt.fromHex(psbtHex);
     const tx = psbt.extractTransaction(true);
     const rawtx = tx.toHex();
@@ -184,7 +186,7 @@ class InternalProvider {
   ])
   signMessage = async ({
     data: {
-      params: {text, type},
+      params: { text, type },
     },
     approvalRes,
   }) => {
@@ -200,7 +202,7 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {psbtHex},
+          params: { psbtHex },
         },
       } = req;
       req.data.params.psbtHex = formatPsbtHex(psbtHex);
@@ -208,7 +210,7 @@ class InternalProvider {
   ])
   signPsbt = async ({
     data: {
-      params: {psbtHex, options},
+      params: { psbtHex, options },
     },
     approvalRes,
   }) => {
@@ -217,7 +219,7 @@ class InternalProvider {
     }
     const networkType = walletProvider.getActiveNetwork();
     const psbtNetwork = getBitcoinNetwork(networkType);
-    const psbt = bitcoin.Psbt.fromHex(psbtHex, {network: psbtNetwork});
+    const psbt = bitcoin.Psbt.fromHex(psbtHex, { network: psbtNetwork });
     const autoFinalized =
       options && options.autoFinalized == false ? false : true;
     const toSignInputs = await walletProvider.formatOptionsInputForSignings(
@@ -233,7 +235,7 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {psbtHexs, options},
+          params: { psbtHexs, options },
         },
       } = req;
       req.data.params.psbtHexs = psbtHexs.map(psbtHex =>
@@ -243,7 +245,7 @@ class InternalProvider {
   ])
   multiSignPsbt = async ({
     data: {
-      params: {psbtHexs, options},
+      params: { psbtHexs, options },
     },
   }) => {
     const account = walletProvider.getActiveAccount();
@@ -254,7 +256,7 @@ class InternalProvider {
     const optionsLength = options ? options.length : 0;
 
     for (let i = 0; i < psbtHexs.length; i++) {
-      const psbt = bitcoin.Psbt.fromHex(psbtHexs[i], {network: psbtNetwork});
+      const psbt = bitcoin.Psbt.fromHex(psbtHexs[i], { network: psbtNetwork });
       const option = optionsLength > i ? options[i] : {}; // Use empty object if index is out of bounds
       const autoFinalized = option.autoFinalized !== false; // Default to true
       const toSignInputs = await walletProvider.formatOptionsInputForSignings(
@@ -270,7 +272,7 @@ class InternalProvider {
   @Reflect.metadata('SAFE', true)
   pushTx = async ({
     data: {
-      params: {rawtx},
+      params: { rawtx },
     },
   }) => {
     return await walletProvider.pushTx(rawtx);
@@ -279,7 +281,7 @@ class InternalProvider {
   @Reflect.metadata('SAFE', true)
   pushPsbt = async ({
     data: {
-      params: {psbtHex},
+      params: { psbtHex },
     },
   }) => {
     const hexData = formatPsbtHex(psbtHex);
@@ -302,13 +304,13 @@ class InternalProvider {
     req => {
       const {
         data: {
-          params: {ticker, addr, dta},
+          params: { ticker, addr, dta },
         },
       } = req;
       // todo
     },
   ])
-  inscribeTransfer = async ({approvalRes}) => {
+  inscribeTransfer = async ({ approvalRes }) => {
     console.log('inscribeTransfer', approvalRes);
     const account = await walletProvider.getActiveAccount();
     if (!account) return [];
@@ -327,13 +329,418 @@ class InternalProvider {
   };
 
   @Reflect.metadata('APPROVAL', ['SingleTxTransfer'])
-  singleTxTransfer = async ({approvalRes}) => {
+  singleTxTransfer = async ({ approvalRes }) => {
     return approvalRes;
   };
 
   @Reflect.metadata('SAFE', true)
-  disconnect = async ({session: {origin}}) => {
+  disconnect = async ({ session: { origin } }) => {
     return walletProvider.removeConnectedSite(origin);
+  };
+
+  // TRAC Network API methods
+  @Reflect.metadata('APPROVAL', ['TracConnect'])
+  tracRequestAccount = async ({ session: { origin, name, icon }, approvalRes }) => {
+    // If we just came from the approval popup
+    if (approvalRes) {
+      permissionService.addTracConnection(origin, name, icon);
+      return approvalRes; // The popup returns the address
+    }
+
+    // This part runs if the popup was skipped (should not happen with standard metadata)
+    const _account = walletProvider.getActiveAccount();
+    const _wallet = walletProvider.getActiveWallet();
+
+    if (!_account || !_wallet) {
+      throw new Error('No active account or wallet found.');
+    }
+
+    const tracAddress = walletProvider.getTracAddress(_wallet.index, _account.index ?? 0);
+    if (!tracAddress) {
+      throw new Error('No TRAC address found for this account.');
+    }
+
+    return tracAddress;
+  };
+
+  @Reflect.metadata('SAFE', true)
+  tracGetAddress = async ({ session: { origin } }) => {
+    // Check if origin has TRAC permission
+    if (!permissionService.hasTracPermission(origin)) {
+      throw new Error('Not connected. Please call requestAccount() first.');
+    }
+
+    // Get active wallet and account to retrieve TRAC address
+    const _account = walletProvider.getActiveAccount();
+    const _wallet = walletProvider.getActiveWallet();
+
+    if (!_account || !_wallet) {
+      throw new Error('No active account or wallet found.');
+    }
+
+    // Get TRAC address for the active account
+    const accountIndex = _account.index ?? 0;
+    const tracAddress = walletProvider.getTracAddress(_wallet.index, accountIndex);
+
+    if (!tracAddress) {
+      throw new Error('No TRAC address found for this account.');
+    }
+
+    return tracAddress;
+  };
+
+  @Reflect.metadata('SAFE', true)
+  tracGetBalance = async ({ session: { origin } }) => {
+    // Check if origin has TRAC permission
+    if (!permissionService.hasTracPermission(origin)) {
+      throw new Error('Not connected. Please call requestAccount() first.');
+    }
+
+    // Get active wallet and account to retrieve TRAC address
+    const _account = walletProvider.getActiveAccount();
+    const _wallet = walletProvider.getActiveWallet();
+
+    if (!_account || !_wallet) {
+      throw new Error('No active account or wallet found.');
+    }
+
+    // Get TRAC address for the active account
+    const accountIndex = _account.index ?? 0;
+    const tracAddress = walletProvider.getTracAddress(_wallet.index, accountIndex);
+
+    if (!tracAddress) {
+      throw new Error('No TRAC address found for this account.');
+    }
+
+    // Fetch balance from TRAC API
+    const balance = await walletProvider.getTracBalance(tracAddress);
+    return balance;
+  };
+
+  @Reflect.metadata('SAFE', true)
+  tracGetPublicKey = async ({ session: { origin } }) => {
+    // Check if origin has TRAC permission
+    if (!permissionService.hasTracPermission(origin)) {
+      throw new Error('Not connected. Please call requestAccount() first.');
+    }
+
+    // Get active wallet and account
+    const _account = walletProvider.getActiveAccount();
+    const _wallet = walletProvider.getActiveWallet();
+
+    if (!_account || !_wallet) {
+      throw new Error('No active account or wallet found.');
+    }
+
+    // Get mnemonic (unlocked)
+    const _walletObj = await walletProvider.getActiveWallet();
+    const mnemonicData = await walletProvider.getMnemonicsUnlocked(_walletObj);
+    const mnemonic = mnemonicData.mnemonic;
+
+    // Generate keypair to get public key
+    const keypair = await TracApiService.generateKeypairFromMnemonic(
+      mnemonic,
+      _account.index ?? 0
+    );
+
+    // Convert publicKey to hex string
+    let result: string;
+    if (typeof keypair.publicKey === 'string') {
+      result = keypair.publicKey;
+    } else if (keypair.publicKey) {
+      // Convert Buffer/Uint8Array to hex string
+      result = Buffer.from(keypair.publicKey).toString('hex');
+    } else {
+      result = '';
+    }
+    
+    return result;
+  };
+
+  @Reflect.metadata('APPROVAL', ['TracSignMessage'])
+  tracSignMessage = async ({ session: { origin }, data: { params }, approvalRes }) => {
+    // If user approved in popup
+    if (approvalRes && approvalRes.approved) {
+      const { message } = params;
+
+      // Check permission
+      if (!permissionService.hasTracPermission(origin)) {
+        throw new Error('Not connected. Please call requestAccount() first.');
+      }
+
+      // Validate message
+      if (!message || typeof message !== 'string') {
+        throw new Error('Invalid message');
+      }
+
+      // Limit message length (10KB)
+      if (message.length > 10000) {
+        throw new Error('Message too long (max 10KB)');
+      }
+
+      // Get account
+      const _account = walletProvider.getActiveAccount();
+      const _wallet = walletProvider.getActiveWallet();
+
+      if (!_account || !_wallet) {
+        throw new Error('No active account or wallet found.');
+      }
+
+      // Get mnemonic
+      const _walletObj = await walletProvider.getActiveWallet();
+      const mnemonicData = await walletProvider.getMnemonicsUnlocked(_walletObj);
+      const mnemonic = mnemonicData.mnemonic;
+
+      // Generate keypair
+      const keypair = await TracApiService.generateKeypairFromMnemonic(
+        mnemonic,
+        _account.index ?? 0
+      );
+
+      // Sign message
+      const signature = await TracApiService.signMessage(message, keypair.secretKey);
+
+      // Convert publicKey to hex string
+      let publicKeyHex: string;
+      if (typeof keypair.publicKey === 'string') {
+        publicKeyHex = keypair.publicKey;
+      } else if (keypair.publicKey) {
+        publicKeyHex = Buffer.from(keypair.publicKey).toString('hex');
+      } else {
+        publicKeyHex = '';
+      }
+
+      // Return signature + metadata
+      const result = {
+        signature: signature,
+        publicKey: publicKeyHex,
+        address: keypair.address
+      };
+      
+      return result;
+    }
+    // Return params to trigger popup
+    throw new Error('User rejected signature request');
+  };
+
+  @Reflect.metadata('APPROVAL', ['SendTNKApproval'])
+  tracSendTNK = async ({ session: { origin }, data: { params }, approvalRes }) => {
+    if (approvalRes) {
+      return approvalRes;
+    }
+
+    if (!permissionService.hasTracPermission(origin)) {
+      throw new Error('Not connected. Please call requestAccount() first.');
+    }
+
+    const { from, to, amount } = params;
+
+    if (!to || typeof to !== 'string') {
+      throw new Error('Invalid recipient address.');
+    }
+
+    if (!amount || (typeof amount !== 'string' && typeof amount !== 'number')) {
+      throw new Error('Invalid amount.');
+    }
+
+    // Resolve 'from' address - either use provided or get from active account
+    let fromAddress: string;
+
+    if (from && typeof from === 'string') {
+      // Validate that address exists in wallet
+      const indices = walletProvider.getIndicesByTracAddress(from);
+      if (!indices) {
+        throw new Error(`Address ${from} not found in wallet.`);
+      }
+      fromAddress = from;
+    } else {
+      const _account = walletProvider.getActiveAccount();
+      const _wallet = walletProvider.getActiveWallet();
+
+      if (!_account || !_wallet) {
+        throw new Error('No active account or wallet found.');
+      }
+
+      const addr = walletProvider.getTracAddress(_wallet.index, _account.index ?? 0);
+      if (!addr) {
+        throw new Error('No TRAC address found for active account.');
+      }
+      fromAddress = addr;
+    }
+
+    return { from: fromAddress, to, amount: amount.toString() };
+  };
+
+  // Advanced transaction methods
+  @Reflect.metadata('SAFE', true)
+  tracBuildTx = async ({ session: { origin }, data: { params } }) => {
+    // Check if origin has TRAC permission
+    if (!permissionService.hasTracPermission(origin)) {
+      throw new Error('Not connected. Please call requestAccount() first.');
+    }
+
+    const { from, to, amount } = params;
+
+    // Validate params
+    if (!to || typeof to !== 'string') {
+      throw new Error('Invalid recipient address.');
+    }
+
+    if (!amount || (typeof amount !== 'string' && typeof amount !== 'number')) {
+      throw new Error('Invalid amount.');
+    }
+
+    // Resolve 'from' address
+    let fromAddress: string;
+
+    if (from && typeof from === 'string') {
+      const indices = walletProvider.getIndicesByTracAddress(from);
+      if (!indices) {
+        throw new Error(`Address ${from} not found in wallet.`);
+      }
+      fromAddress = from;
+    } else {
+      const _account = walletProvider.getActiveAccount();
+      const _wallet = walletProvider.getActiveWallet();
+
+      if (!_account || !_wallet) {
+        throw new Error('No active account or wallet found.');
+      }
+
+      const addr = walletProvider.getTracAddress(_wallet.index, _account.index ?? 0);
+      if (!addr) {
+        throw new Error('No TRAC address found for active account.');
+      }
+      fromAddress = addr;
+    }
+
+    // Convert amount to hex
+    const amountHex = TracApiService.amountToHex(amount.toString());
+
+    // Get validity from TRAC API
+    const network = networkConfig.getActiveNetwork();
+    const validity = await TracApi.fetchTransactionValidity(network);
+
+    // Pre-build transaction
+    const networkId = network === Network.MAINNET ? 918 : 9180;
+    const txData = await TracApiService.preBuildTransaction(
+      { from: fromAddress, to, amountHex, validityHex: validity },
+      networkId
+    );
+
+    const serializedTxData = {
+      ...txData,
+      amountHex,
+      validityHex: validity,
+      chainId: networkId,
+      hash: txData.hash ? Buffer.from(txData.hash).toString('hex') : null,
+      nonce: txData.nonce ? Buffer.from(txData.nonce).toString('hex') : null,
+      _bufferFields: ['hash', 'nonce']
+    };
+
+    return serializedTxData;
+  };
+
+  @Reflect.metadata('APPROVAL', ['SignTracTxApproval'])
+  tracSignTx = async ({ session: { origin }, data: { params }, approvalRes }) => {
+    // If user approved in popup
+    if (approvalRes && approvalRes.approved) {
+      const { txData } = params;
+
+      if (!txData || typeof txData !== 'object') {
+        throw new Error('Invalid transaction data');
+      }
+      if (!permissionService.hasTracPermission(origin)) {
+        throw new Error('Not connected. Please call requestAccount() first.');
+      }
+      const fromAddress = txData.from;
+      if (!fromAddress) {
+        throw new Error('Transaction data missing "from" address');
+      }
+      const indices = walletProvider.getIndicesByTracAddress(fromAddress);
+      if (!indices) {
+        throw new Error(`Address ${fromAddress} not found in wallet.`);
+      }
+      const wallets = walletProvider.getWallets();
+      const _wallet = wallets.find(w => w.index === indices.walletIndex);
+      if (!_wallet) {
+        throw new Error('Wallet not found');
+      }
+
+      const mnemonicData = await walletProvider.getMnemonicsUnlocked(_wallet);
+      const mnemonic = mnemonicData.mnemonic;
+
+      const keypair = await TracApiService.generateKeypairFromMnemonic(
+        mnemonic,
+        indices.accountIndex
+      );
+
+      if (txData._bufferFields && Array.isArray(txData._bufferFields)) {
+        txData._bufferFields.forEach(fieldName => {
+          const value = txData[fieldName];
+          if (value && typeof value === 'string') {
+            txData[fieldName] = Buffer.from(value, 'hex');
+          } else if (value && typeof value === 'object' && !(value instanceof Buffer)) {
+            txData[fieldName] = Buffer.from(Object.values(value));
+          }
+        });
+        delete txData._bufferFields;
+      } else {
+        if (txData.hash && !(txData.hash instanceof Buffer) && !(txData.hash instanceof Uint8Array)) {
+          if (typeof txData.hash === 'string') {
+            txData.hash = Buffer.from(txData.hash, 'hex');
+          } else {
+            txData.hash = Buffer.from(Object.values(txData.hash));
+          }
+        }
+
+        if (txData.nonce && !(txData.nonce instanceof Buffer) && !(txData.nonce instanceof Uint8Array)) {
+          if (typeof txData.nonce === 'string') {
+            txData.nonce = Buffer.from(txData.nonce, 'hex');
+          } else {
+            txData.nonce = Buffer.from(Object.values(txData.nonce));
+          }
+        }
+      }
+
+      const secretBuffer = TracApiService.toSecretBuffer(keypair.secretKey);
+      const txPayload = TracApiService.buildTransaction(txData, secretBuffer);
+
+      return txPayload;
+    }
+
+    throw new Error('User rejected transaction signing');
+  };
+
+  @Reflect.metadata('SAFE', true)
+  tracPushTx = async ({ session: { origin }, data: { params } }) => {
+    if (!permissionService.hasTracPermission(origin)) {
+      throw new Error('Not connected. Please call requestAccount() first.');
+    }
+
+    const { txPayload } = params;
+
+    if (!txPayload || typeof txPayload !== 'string') {
+      throw new Error('Invalid transaction payload');
+    }
+
+    const network = networkConfig.getActiveNetwork();
+    const response = await TracApi.broadcastTransaction(txPayload, network);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    if (!response.success) {
+      throw new Error('Transaction broadcast failed');
+    }
+
+    const txHash = response.txid || TracApiService.decodePayload(txPayload);
+
+    return {
+      txHash,
+      success: true
+    };
   };
 }
 

@@ -13,6 +13,7 @@ import LayoutScreenImport from '../../layouts/import-export';
 import {GlobalActions} from '../../redux/reducer/global/slice';
 import {SVG} from '../../svg';
 import {colors} from '../../themes/color';
+import {TracApiService} from '@/src/background/service/trac-api.service';
 import {useAppDispatch} from '../../utils';
 import {CreateWalletContext} from './services/wallet-service-create';
 import {IResponseAddressBalance} from '../../../background/requests/paid-api';
@@ -136,23 +137,10 @@ const ChooseAddress = () => {
   // Get TRAC balance for the address
   const {total: tracBalance} = useTracBalances(tracAddress);
 
-  const generateTracAddress = async (mnemonic: string, derivationPath?: string) => {
+  const generateTracAddress = async (mnemonic: string, accountIndex: number = 0) => {
     try {
-      const api = (window as any).TracCryptoApi;
-      if (!api) {
-        console.warn('TracCryptoApi not loaded');
-        return '';
-      }
-      
-      // Generate TRAC address using the tracCrypto library
-      // If no derivation path provided, use library's default (m/918'/0'/0'/0')
-      const result = await api.address.generate("trac", mnemonic, derivationPath || null);
-      if (result && result.address) {
-        return result.address;
-      }
-      
-      console.warn('Invalid TRAC address generation result:', result);
-      return '';
+      const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex);
+      return result?.address || '';
     } catch (error) {
       console.error('Error generating TRAC address:', error);
       return '';
@@ -177,10 +165,8 @@ const ChooseAddress = () => {
         });
       });
 
-      // Generate TRAC address with derivation path for account 0
-      const accountIndex = 0;
-      const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
-      const tracAddress = await generateTracAddress(contextData.mnemonics, tracDerivationPath);
+      // Generate TRAC address for account 0
+      const tracAddress = await generateTracAddress(contextData.mnemonics, 0);
       setTracAddress(tracAddress);
 
       // Do NOT persist here; persist after wallet is actually created to use real wallet.index

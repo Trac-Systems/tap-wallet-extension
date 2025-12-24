@@ -120,8 +120,7 @@ const SendTracPin = () => {
       const result = await TracApi.broadcastTransaction(txPayload, networkType);
       
       if (result.success) {
-        // Decode payload to get transaction hash
-        const txHash = TracApiService.decodePayload(txPayload);
+        const txHash = result.txid || TracApiService.decodePayload(txPayload);
         showToast({title: 'Transaction sent successfully', type: 'success'});
         navigate('/home/send-trac-success', { 
           state: { txHash } 

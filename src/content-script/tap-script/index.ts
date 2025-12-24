@@ -50,13 +50,13 @@ if (
 }
 
 // this script is injected into webpage's context
-import {ethErrors, serializeError} from 'eth-rpc-errors';
-import {EventEmitter} from 'events';
+import { ethErrors, serializeError } from 'eth-rpc-errors';
+import { EventEmitter } from 'events';
 
 import ReadyPromise from './ready-promise';
-import {$, domReadyCall} from './utils';
+import { $, domReadyCall } from './utils';
 import BroadcastChannelMessage from '@/src/gateway/message/broadcast-chanel';
-import {TxType} from '@/src/wallet-instance';
+import { TxType } from '@/src/wallet-instance';
 import MessageHandlers from './message-handler';
 
 const script = document.currentScript;
@@ -95,7 +95,7 @@ export class TapProvider extends EventEmitter {
 
   private _bcm = new BroadcastChannelMessage(channelName);
 
-  constructor({maxListeners = 100} = {}) {
+  constructor({ maxListeners = 100 } = {}) {
     super();
     this.setMaxListeners(maxListeners);
     this.initialize();
@@ -122,12 +122,12 @@ export class TapProvider extends EventEmitter {
 
       this._bcm.request({
         method: 'tabCheckin',
-        params: {icon, name, origin},
+        params: { icon, name, origin },
       });
     });
 
     try {
-      const {network, accounts, isUnlocked}: any = await this._request({
+      const { network, accounts, isUnlocked }: any = await this._request({
         method: 'getProviderState',
       });
       if (isUnlocked) {
@@ -170,7 +170,7 @@ export class TapProvider extends EventEmitter {
     }
   };
 
-  private _handleBackgroundMessage = ({event, data}) => {
+  private _handleBackgroundMessage = ({ event, data }) => {
     if (this._MessageHandlers[event]) {
       return this._MessageHandlers[event](data);
     }
@@ -286,7 +286,7 @@ export class TapProvider extends EventEmitter {
   sendBitcoin = async (
     toAddress: string,
     satoshis: number,
-    options?: {feeRate: number; memo?: string; memos?: string[]},
+    options?: { feeRate: number; memo?: string; memos?: string[] },
   ) => {
     return this._request({
       method: 'sendBitcoin',
@@ -304,7 +304,7 @@ export class TapProvider extends EventEmitter {
   sendInscription = async (
     toAddress: string,
     inscriptionId: string,
-    options?: {feeRate: number},
+    options?: { feeRate: number },
   ) => {
     return this._request({
       method: 'sendInscription',
@@ -452,3 +452,162 @@ Object.defineProperty(window, 'tapprotocol', {
 });
 
 window.dispatchEvent(new Event('tapprotocol#initialized'));
+
+// TRAC Network Provider
+export class TracNetworkProvider extends EventEmitter {
+  private _bcm = new BroadcastChannelMessage(channelName);
+  private _requestPromise = new ReadyPromise(0);
+  private _initialized = false;
+
+  constructor({ maxListeners = 100 } = {}) {
+    super();
+    this.setMaxListeners(maxListeners);
+    this.initialize();
+  }
+
+  initialize = async () => {
+    document.addEventListener(
+      'visibilitychange',
+      this._requestPromiseCheckVisibility,
+    );
+
+    this._bcm.connect().on('message', this._handleBackgroundMessage);
+
+    this._initialized = true;
+    this.emit('_initialized');
+  };
+
+  private _requestPromiseCheckVisibility = () => {
+    if (document.visibilityState === 'visible') {
+      this._requestPromise.check(1);
+    } else {
+      this._requestPromise.uncheck(1);
+    }
+  };
+
+  private _handleBackgroundMessage = ({ event, data }) => {
+    this.emit(event, data);
+  };
+
+  _request = async data => {
+    if (!data) {
+      throw ethErrors.rpc.invalidRequest();
+    }
+
+    this._requestPromiseCheckVisibility();
+
+    return this._requestPromise.call(() => {
+      return this._bcm
+        .request(data)
+        .then(res => {
+          return res;
+        })
+        .catch(err => {
+          throw serializeError(err);
+        });
+    });
+  };
+
+  requestAccount = async () => {
+    return this._request({
+      method: 'tracRequestAccount',
+    });
+  };
+
+  getAddress = async () => {
+    return this._request({
+      method: 'tracGetAddress',
+    });
+  };
+
+  getBalance = async () => {
+    return this._request({
+      method: 'tracGetBalance',
+    });
+  };
+
+  getNetwork = async () => {
+    return this._request({
+      method: 'getNetwork',
+    });
+  };
+
+  switchNetwork = async (network: string) => {
+    return this._request({
+      method: 'switchNetwork',
+      params: {
+        network,
+      },
+    });
+  };
+
+  getPublicKey = async () => {
+    return this._request({
+      method: 'tracGetPublicKey',
+    });
+  };
+
+  signMessage = async (message: string) => {
+    return this._request({
+      method: 'tracSignMessage',
+      params: {
+        message,
+      },
+    });
+  };
+
+  sendTNK = async (from: string, to: string, amount: string) => {
+    return this._request({
+      method: 'tracSendTNK',
+      params: {
+        from,
+        to,
+        amount,
+      },
+    });
+  };
+
+  buildTracTx = async (params: { from?: string; to: string; amount: string }) => {
+    return this._request({
+      method: 'tracBuildTx',
+      params,
+    });
+  };
+
+  signTracTx = async (txData: any) => {
+    return this._request({
+      method: 'tracSignTx',
+      params: { txData },
+    });
+  };
+
+  pushTracTx = async (txPayload: string) => {
+    return this._request({
+      method: 'tracPushTx',
+      params: { txPayload },
+    });
+  };
+}
+
+declare global {
+  interface Window {
+    tracnetwork: TracNetworkProvider;
+  }
+}
+
+const tracProvider = new TracNetworkProvider();
+
+if (!window.tracnetwork) {
+  window.tracnetwork = new Proxy(tracProvider, {
+    deleteProperty: () => true,
+  });
+}
+
+Object.defineProperty(window, 'tracnetwork', {
+  value: new Proxy(tracProvider, {
+    deleteProperty: () => true,
+  }),
+  writable: false,
+});
+
+window.dispatchEvent(new Event('tracnetwork#initialized'));

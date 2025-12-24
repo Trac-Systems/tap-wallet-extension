@@ -13,27 +13,16 @@ import {WalletSelector} from '../../redux/reducer/wallet/selector';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {GlobalActions} from '../../redux/reducer/global/slice';
 import {useIsTracSingleWallet} from '../home-flow/hook';
-import { RestoreTypes } from '@/src/wallet-instance';
+import {TracApiService} from '@/src/background/service/trac-api.service';
+import {RestoreTypes} from '@/src/wallet-instance';
 
 // Function to derive TRAC private key from mnemonic
 const deriveTracPrivateKeyFromMnemonic = async (mnemonic: string, accountIndex: number): Promise<string> => {
-  try {
-    const api = (window as any).TracCryptoApi;
-    if (!api) {
-      throw new Error('TracCryptoApi not loaded');
-    }
-    
-    const derivationPath = `m/918'/0'/0'/${accountIndex}'`;
-    const { secretKey } = await api.address.generate("trac", mnemonic, derivationPath);
-    
-    if (!secretKey) {
-      throw new Error('No secretKey returned from TracCryptoApi');
-    }
-    
-    return secretKey;
-  } catch (error) {
-    throw new Error('Failed to derive TRAC private key: ' + (error as Error).message);
+  const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex);
+  if (!result?.secretKey) {
+    throw new Error('Failed to derive TRAC private key');
   }
+  return result.secretKey;
 };
 
 const SecuritySetting = () => {

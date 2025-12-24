@@ -1,7 +1,7 @@
-import {createContext, ReactNode, useContext} from 'react';
-import {IDerivationPathOption} from '../../background/provider';
-import {IResponseAddressBalance} from '../../background/requests/paid-api';
-import {IWallet} from '../../background/service/wallet.service';
+import { createContext, ReactNode, useContext } from 'react';
+import { IDerivationPathOption } from '../../background/provider';
+import { IResponseAddressBalance } from '../../background/requests/paid-api';
+import { IWallet } from '../../background/service/wallet.service';
 import {
   WalletDisplay,
   IDisplayAccount,
@@ -23,9 +23,9 @@ import {
   InscriptionOrdClient,
   OrderType,
 } from '../../wallet-instance';
-import {dta, Inscription} from '../interfaces';
-import {ConnectedSite} from '../../background/service/permission.service';
-import {bitcoin} from '../../background/utils';
+import { dta, Inscription } from '../interfaces';
+import { ConnectedSite } from '../../background/service/permission.service';
+import { bitcoin } from '../../background/utils';
 
 export interface IWalletProvider {
   unlockApp(pin: string): Promise<void>;
@@ -81,7 +81,7 @@ export interface IWalletProvider {
   getAllAddresses(
     wallet: WalletDisplay,
     index: number,
-  ): Promise<{[key: string]: {addressType: AddressType}}>;
+  ): Promise<{ [key: string]: { addressType: AddressType } }>;
   changeAddressType(addressType: AddressType): Promise<void>;
   getRecommendFee(): Promise<any>;
   pushTx(rawTx: string, spendUtxos?: UnspentOutput[]): Promise<any>;
@@ -94,7 +94,7 @@ export interface IWalletProvider {
   getMnemonicsUnlocked(wallet: WalletDisplay): Promise<any>;
   getPrivateKey(
     pin: string,
-    {pubkey, type}: {pubkey: string; type: string},
+    { pubkey, type }: { pubkey: string; type: string },
   ): Promise<any>;
   getTracPrivateKey(
     pin: string,
@@ -166,13 +166,13 @@ export interface IWalletProvider {
     ticker: string,
     currentPage: number,
     pageSize: number,
-  ): Promise<{total: number; list: TokenTransfer[]}>;
+  ): Promise<{ total: number; list: TokenTransfer[] }>;
   getAccountAllMintsListByTicker(address: string, ticker: string): Promise<any>;
   getAllTapDmt(address: string): Promise<TokenBalance[]>;
   getAllAddressDmtMintList(address: string): Promise<any[]>;
   getDmtScriptId(
     depInscriptionId: string,
-  ): Promise<{scriptInsId: string; ticker: string; unat: boolean}>;
+  ): Promise<{ scriptInsId: string; ticker: string; unat: boolean }>;
   createOrderTransfer(
     address: string,
     tick: string,
@@ -254,6 +254,7 @@ export interface IWalletProvider {
   rejectApproval(data?: any, data2?: any, data3?: any): Promise<void>;
   getConnectedSites(): Promise<ConnectedSite[]>;
   removeConnectedSite(origin: string): Promise<void>;
+  removeTracConnection(origin: string): Promise<void>;
   getCurrentConnectedSite(id: string): Promise<ConnectedSite>;
   getUSDPrice(bits: number): Promise<any>;
   setAccountSpendableInscriptions(
@@ -273,19 +274,20 @@ export interface IWalletProvider {
   getAllAuthorityList(address: string): Promise<TokenAuthority[]>;
   getCurrentAuthority(address: string): Promise<TokenAuthority>;
   getAuthorityCanceled(ins: string): Promise<boolean>;
-  
+
   // TRAC Address Management Methods
-  getTracAddressMap(): Promise<{[key: string]: string}>;
-  getTracAddress(walletIndex: number, accountIndex: number): string | null;
+  getTracAddressMap(): Promise<{ [key: string]: string }>;
+  getIndicesByTracAddress(address: string): Promise<{ walletIndex: number; accountIndex: number } | null>;
+  getTracAddress(walletIndex: number, accountIndex: number): Promise<string | null>;
   setTracAddress(walletIndex: number, accountIndex: number, address: string): void;
-  getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string};
+  getWalletTracAddresses(walletIndex: number): { [accountIndex: string]: string };
   removeTracAddress(walletIndex: number, accountIndex: number): void;
   removeWalletTracAddresses(walletIndex: number): number;
   clearAllTracAddresses(): number;
   logAllTracAddresses(): void;
   // Network Filter methods
-  getNetworkFilters(walletIndex?: number): Promise<{bitcoin: boolean; trac: boolean}>;
-  setNetworkFilters(filters: {bitcoin: boolean; trac: boolean}, walletIndex?: number): Promise<void>;
+  getNetworkFilters(walletIndex?: number): Promise<{ bitcoin: boolean; trac: boolean }>;
+  setNetworkFilters(filters: { bitcoin: boolean; trac: boolean }, walletIndex?: number): Promise<void>;
   updateNetworkFilter(network: 'bitcoin' | 'trac', enabled: boolean, walletIndex?: number): Promise<void>;
 }
 
@@ -300,17 +302,17 @@ const WalletProvider = ({
   children?: ReactNode;
   walletProvider: IWalletProvider;
 }) => (
-  <WalletContext.Provider value={{walletProvider}}>
+  <WalletContext.Provider value={{ walletProvider }}>
     {children}
   </WalletContext.Provider>
 );
 
 const useWalletProvider = () => {
-  const {walletProvider} = useContext(WalletContext) as {
+  const { walletProvider } = useContext(WalletContext) as {
     walletProvider: IWalletProvider;
   };
 
   return walletProvider;
 };
 
-export {useWalletProvider, WalletProvider};
+export { useWalletProvider, WalletProvider };

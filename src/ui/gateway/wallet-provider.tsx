@@ -57,6 +57,12 @@ export interface IWalletProvider {
     addressType: AddressType,
     options?: { tracPrivateKeys?: string[] },
   ): Promise<void>;
+  createWalletFromLedger(
+    derivationPath: string,
+    addressType: AddressType,
+    accountNum: number,
+    allPubkeys?: Array<{derivationPath: string; pubkey: string; addressType: AddressType}>,
+  ): Promise<void>;
   previewAddressFromPrivateKey(
     privateKey: string,
     addressType: AddressType,
@@ -249,6 +255,11 @@ export interface IWalletProvider {
     _psbt: string | bitcoin.Psbt,
     options?: TransactionSigningOptions,
   ): Promise<InputForSigning[]>;
+  signPsbtFromHex(
+    psbtHex: string,
+    inputForSigns: InputForSigning[],
+    autoFinalized?: boolean,
+  ): Promise<string>;
   getApproval(): Promise<any>;
   resolveApproval(data?: any, data2?: any): Promise<void>;
   rejectApproval(data?: any, data2?: any, data3?: any): Promise<void>;
@@ -287,6 +298,8 @@ export interface IWalletProvider {
   getNetworkFilters(walletIndex?: number): Promise<{bitcoin: boolean; trac: boolean}>;
   setNetworkFilters(filters: {bitcoin: boolean; trac: boolean}, walletIndex?: number): Promise<void>;
   updateNetworkFilter(network: 'bitcoin' | 'trac', enabled: boolean, walletIndex?: number): Promise<void>;
+  // Ledger methods
+  isLedgerConnected(): Promise<boolean>;
 }
 
 const WalletContext = createContext<{

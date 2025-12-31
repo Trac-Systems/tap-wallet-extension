@@ -55,37 +55,82 @@ const CreateAccount = () => {
   };
 
   const handleSubmit = async () => {
-    await wallet.createNewAccountFromMnemonic(
-      activeWallet,
-      newAccountName || defaultName,
-    );
-    
-    const activeAccount = await wallet.getActiveAccount();
-    const _activeWallet = await wallet.getActiveWallet();
-    
-    // Generate TRAC address for new account
     try {
-      const walletInfo = await wallet.getMnemonicsUnlocked(activeWallet);
-      const mnemonic = walletInfo.mnemonic;
-      
-      if (mnemonic && activeAccount) {
-        await generateTracAddressForNewAccount(
-          activeWallet.index,
-          activeAccount.index || 0,
-          mnemonic
-        );
+      // Check Ledger connection BEFORE creating account for hardware wallets
+      const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+      if (isHardwareWallet) {
+        try {
+          const isConnected = await wallet.isLedgerConnected();
+          if (!isConnected) {
+            showToast({
+              title: 'Ledger connection lost. Verify the device is unlocked and connected.',
+              type: 'error',
+            });
+            return;
+          }
+        } catch (error: any) {
+          showToast({
+            title: error?.message || 'Failed to check Ledger connection',
+            type: 'error',
+          });
+          return;
+        }
       }
-    } catch (error) {
-      console.log('Could not generate TRAC address:', error);
+
+      await wallet.createNewAccountFromMnemonic(
+        activeWallet,
+        newAccountName || defaultName,
+      );
+
+      const activeAccount = await wallet.getActiveAccount();
+      const _activeWallet = await wallet.getActiveWallet();
+
+      // Generate TRAC address for new account
+      try {
+        const walletInfo = await wallet.getMnemonicsUnlocked(activeWallet);
+        const mnemonic = walletInfo.mnemonic;
+
+        if (mnemonic && activeAccount) {
+          await generateTracAddressForNewAccount(
+            activeWallet.index,
+            activeAccount.index || 0,
+            mnemonic
+          );
+        }
+      } catch (error) {
+        console.log('Could not generate TRAC address:', error);
+      }
+
+      dispatch(WalletActions.setActiveWallet(_activeWallet));
+      dispatch(AccountActions.setActiveAccount(activeAccount));
+      showToast({
+        title: 'Create account successfully',
+        type: 'success',
+      });
+      navigate('/home');
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error || '');
+
+      // Check if this is a Ledger connection error
+      if (
+        errorMsg.includes('not connected') ||
+        errorMsg.includes('disconnected') ||
+        errorMsg.includes('Ledger') ||
+        errorMsg.includes('Device') ||
+        errorMsg.includes('0x6982')
+      ) {
+        showToast({
+          title: 'Ledger connection lost. Verify the device is unlocked and connected.',
+          type: 'error',
+        });
+      } else {
+        // Other errors
+        showToast({
+          title: errorMsg || 'Failed to create account',
+          type: 'error',
+        });
+      }
     }
-    
-    dispatch(WalletActions.setActiveWallet(_activeWallet));
-    dispatch(AccountActions.setActiveAccount(activeAccount));
-    showToast({
-      title: 'Create account successfully',
-      type: 'success',
-    });
-    navigate('/home');
   };
 
   useEffect(() => {

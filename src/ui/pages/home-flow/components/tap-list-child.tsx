@@ -21,6 +21,7 @@ import { debounce, isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions, useActiveTracAddress, useTracBalances, useIsTracSingleWallet } from '../hook';
+import { useHardwareWalletMismatch } from '@/src/ui/pages/send-receive/hook';
 import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
 
@@ -67,6 +68,7 @@ const TapListChild = (props: TapListChildProps) => {
   const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
   const [hasLoadedAllTokens, setHasLoadedAllTokens] = useState(false);
   const [isLoadingAllTokens, setIsLoadingAllTokens] = useState(false);
+  const {isMismatched, expectedNetwork} = useHardwareWalletMismatch();
 
   const currentAccountRef = useRef<string>('');
 
@@ -377,7 +379,11 @@ const TapListChild = (props: TapListChildProps) => {
               </UX.Box>
 
               <UX.Text
-                title={`${balanceValue}`}
+                title={
+                  isMismatched && expectedNetwork
+                    ? '0'
+                    : `${balanceValue}`
+                }
                 styleType="body_16_normal"
                 customStyles={{ color: 'white' }}
               />

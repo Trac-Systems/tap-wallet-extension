@@ -16,6 +16,7 @@ function convertUtxoToInput(
   utxo: UnspentOutput,
   addressType: AddressType,
   pubkey: string,
+  isHardwareWallet: boolean = true,
 ): TxInput | undefined {
   if (
     addressType === AddressType.P2TR ||
@@ -51,6 +52,22 @@ function convertUtxoToInput(
       utxo,
     };
   } else if (addressType === AddressType.P2PKH) {
+    if (isHardwareWallet) {
+      if (!utxo.rawTxHex) {
+        throw new Error(
+          'Ledger Legacy (P2PKH) requires rawTxHex for nonWitnessUtxo',
+        );
+      }
+
+      const data = {
+        hash: utxo.txid,
+        index: utxo.vout,
+        nonWitnessUtxo: Buffer.from(utxo.rawTxHex, 'hex'),
+      };
+
+      return {data, utxo};
+    }
+
     const data = {
       hash: utxo.txid,
       index: utxo.vout,
@@ -59,10 +76,8 @@ function convertUtxoToInput(
         script: Buffer.from(utxo.scriptPk, 'hex'),
       },
     };
-    return {
-      data,
-      utxo,
-    };
+
+    return {data, utxo};
   } else if (addressType === AddressType.P2SH_P2WPKH) {
     const redeemData = bitcoin.payments.p2wpkh({
       pubkey: Buffer.from(pubkey, 'hex'),
@@ -89,6 +104,7 @@ export class Transaction {
   pubkey: string;
   feeRate: number;
   enableRBF: boolean;
+  isHardwareWallet: boolean;
   allBtcUtxos: UnspentOutput[] = [];
   selectedUtxos: UnspentOutput[] = [];
   outputs: TxOutput[] = [];
@@ -101,6 +117,7 @@ export class Transaction {
     pubkey,
     feeRate,
     enableRBF,
+    isHardwareWallet = false,
   }: {
     networkType: Network;
     fromAddress: string;
@@ -108,6 +125,7 @@ export class Transaction {
     pubkey: string;
     feeRate: number;
     enableRBF: boolean;
+    isHardwareWallet?: boolean;
   }) {
     this.networkType = networkType;
     this.fromAddress = fromAddress;
@@ -115,6 +133,7 @@ export class Transaction {
     this.pubkey = pubkey;
     this.feeRate = feeRate;
     this.enableRBF = enableRBF;
+    this.isHardwareWallet = isHardwareWallet;
   }
 
   // Add UTXOs to the transaction
@@ -127,6 +146,7 @@ export class Transaction {
       assetUtxo,
       this.addressType,
       this.pubkey,
+      this.isHardwareWallet,
     );
     if (assetUtxoInput) {
       this.inputs.push(assetUtxoInput);
@@ -135,7 +155,12 @@ export class Transaction {
   }
 
   addBtcInput(utxo: UnspentOutput) {
-    const utxoInput = convertUtxoToInput(utxo, this.addressType, this.pubkey);
+    const utxoInput = convertUtxoToInput(
+      utxo,
+      this.addressType,
+      this.pubkey,
+      this.isHardwareWallet,
+    );
     if (utxoInput) {
       this.inputs.push(utxoInput);
     }
@@ -233,6 +258,7 @@ export class Transaction {
         v,
         this.addressType,
         tempWallet.publicKey,
+        false, 
       );
       if (input) {
         tx.inputs.push(input);
@@ -253,9 +279,16 @@ export class Transaction {
   // Calculate network fee from temp wallet
   async calNetworkFeeFromTempWallet() {
     const psbt = await this.generateTempWallet();
-    const txSize = psbt.extractTransaction(true).virtualSize();
-    const fee = Math.ceil(txSize * this.feeRate);
-    return fee;
+    let txSize = psbt.extractTransaction(true).virtualSize();
+    
+    // Adjust vsize for hardware wallets (Ledger)
+    // Ledger adds 1 byte to witness for each input, vsize adjustment = ceil(inputCount / 4)
+    if (this.isHardwareWallet) {
+      const inputCount = this.selectedUtxos.length || this.inputs.length;
+      txSize += Math.ceil(inputCount / 4);
+    }
+    
+    return Math.ceil(txSize * this.feeRate);
   }
 
   // Select UTXOs while preserving the ordinal inscription

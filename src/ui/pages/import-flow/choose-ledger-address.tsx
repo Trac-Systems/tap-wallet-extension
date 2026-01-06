@@ -236,14 +236,59 @@ const ChooseLedgerAddress = () => {
           }
         }
       }
-      
-      // Set error state in address map
-      setAddressMap(prev => ({
-        ...prev,
-        [key]: errorMsg.includes('0x6a80') 
-          ? 'Taproot requires Ledger Bitcoin app 2.1.0+'
-          : 'Failed to fetch address',
-      }));
+
+      // On error, trigger reconnection and retry all addresses
+      const currentSession = fetchSessionRef.current;
+      fetchSessionRef.current += 1;
+
+      // Clear all data to trigger fresh fetch
+      setAddressMap({});
+      setPubkeyMap({});
+      setBalanceMap({});
+
+      // Trigger reconnect and retry
+      (async () => {
+        try {
+          const reconnectResp: any = await browser.runtime.sendMessage({
+            type: 'LEDGER_CONNECT',
+            method: 'auto',
+          });
+          if (reconnectResp?.success && reconnectResp.deviceInfo?.name) {
+            lastStatusRef.current = {
+              connected: true,
+              name: reconnectResp.deviceInfo.name,
+            };
+            setLedgerStatus({
+              connected: true,
+              name: reconnectResp.deviceInfo.name,
+            });
+            // Small delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Retry loading all addresses
+            setScreenStep('loading');
+            for (let i = 0; i < options.length; i++) {
+              if (fetchSessionRef.current !== currentSession + 1) {
+                return;
+              }
+              try {
+                await fetchAddress(options[i], i);
+                if (i < options.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 80));
+                }
+              } catch (retryError) {
+                // If retry fails, just continue to next address
+              }
+            }
+            if (fetchSessionRef.current === currentSession + 1) {
+              setScreenStep('ready');
+            }
+          }
+        } catch (reconnectErr) {
+          // If reconnect fails, reset to intro
+          setScreenStep('intro');
+        }
+      })();
     }
   };
 

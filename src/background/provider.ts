@@ -696,28 +696,33 @@ export class Provider {
         ? [...utxosWithoutInscription, ...spendableUtxoInscriptions]
         : utxosWithoutInscription;
 
-    const wallet = this.getActiveWallet();
-    const isLedger = wallet?.type === 'Hardware Wallet';
-    const isLegacy = wallet?.addressType === AddressType.P2PKH;
-
-    if (isLedger && isLegacy) {
-      await Promise.all(
-        utxosWithoutInscription.map(async utxo => {
-          if (!utxo.rawTxHex) {
-            const rawWithWitness = await this.mempoolApi.getRawTxHex(utxo.txid);
-
-            const tx = bitcoin.Transaction.fromHex(rawWithWitness);
-            tx.ins.forEach(input => {
-              input.witness = [];
-            });
-            utxo.rawTxHex = tx.toBuffer().toString('hex');
-          }
-        }),
-      );
-    }
-
     return finalUtxos;
   };
+
+  private async ensureLedgerLegacyUtxos(utxos: UnspentOutput[]) {
+    const wallet = this.getActiveWallet();
+    if (!wallet) return;
+
+    const isLedger = wallet.type === 'Hardware Wallet';
+    const isLegacy = wallet.addressType === AddressType.P2PKH;
+
+    if (!isLedger || !isLegacy) return;
+
+    await Promise.all(
+      utxos.map(async utxo => {
+        if (utxo.rawTxHex) return;
+
+        const rawWithWitness = await this.mempoolApi.getRawTxHex(utxo.txid);
+        const tx = bitcoin.Transaction.fromHex(rawWithWitness);
+
+        tx.ins.forEach(input => {
+          input.witness = [];
+        });
+
+        utxo.rawTxHex = tx.toBuffer().toString('hex');
+      }),
+    );
+  }
 
   sendBTC = async ({
     to,
@@ -746,6 +751,9 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
+
+    await this.ensureLedgerLegacyUtxos(btcUtxos);
+
     const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
     const {psbt, inputForSigns, outputs, inputs} = await sendBTC({
       btcUtxos: btcUtxos,
@@ -808,6 +816,9 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
+
+    await this.ensureLedgerLegacyUtxos([assetUtxo, ...btcUtxos]);
+
     const isHardwareWallet = wallet?.type === 'Hardware Wallet';
 
     const {psbt, inputForSigns, inputs, outputs} = await sendInscription({
@@ -875,6 +886,9 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
+
+    await this.ensureLedgerLegacyUtxos([...assetUtxos, ...btcUtxos]);
+
     const isHardwareWallet = wallet?.type === 'Hardware Wallet';
 
     const {psbt, inputForSigns, inputs, outputs} = await sendInscriptions({

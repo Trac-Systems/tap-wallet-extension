@@ -7,10 +7,12 @@ import {
 import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
+import {WalletActions} from '@/src/ui/redux/reducer/wallet/slice';
 import {SVG} from '@/src/ui/svg';
-import {useAppSelector} from '@/src/ui/utils';
+import {useAppSelector, useAppDispatch} from '@/src/ui/utils';
 import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance, useActiveTracAddress} from '../hook';
@@ -31,6 +33,7 @@ const WalletCard = (props: IWalletCardProps) => {
   const {keyring, handleOpenDrawerEdit, handleOpenDrawerAccount, isLoadingUtxo} = props;
   const navigate = useNavigate();
   const wallet = useWalletProvider();
+  const dispatch = useAppDispatch();
   const networkType = useAppSelector(GlobalSelector.networkType);
   const ref = useRef<HTMLDivElement>(null);
   const accountBalance = useAccountBalance();
@@ -215,8 +218,15 @@ const WalletCard = (props: IWalletCardProps) => {
                       title="View TRAC History"
                     />
                     <UX.Text
-                      onClick={() => {
+                      onClick={async () => {
                         setMenuOpen(false);
+                        // Set active wallet if this card is not already active
+                        if (keyring.key !== activeWallet.key) {
+                          await wallet.setActiveWallet(keyring);
+                          dispatch(WalletActions.setActiveWallet(keyring));
+                          const _activeAccount = await wallet.getActiveAccount();
+                          dispatch(AccountActions.setActiveAccount(_activeAccount));
+                        }
                         handleOpenDrawerEdit?.();
                       }}
                       styleType="body_14_bold"

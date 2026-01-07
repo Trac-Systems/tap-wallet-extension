@@ -4,6 +4,7 @@ import {colors} from '@/src/ui/themes/color';
 import {SVG} from '@/src/ui/svg';
 import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
+import Text from '../../component/text-custom';
 import {useCustomToast} from '../../component/toast-custom';
 import {useActiveTracAddress, useTracBalances} from '../home-flow/hook';
 import {useWalletProvider} from '../../gateway/wallet-provider';
@@ -28,6 +29,10 @@ const SendTrac = () => {
   const [feeLoading, setFeeLoading] = useState(true);
   const wallet = useWalletProvider();
   const networkType = useAppSelector(GlobalSelector.networkType);
+  // USD states
+  const [usdConfirmed, setUsdConfirmed] = useState('');
+  const [usdTotal, setUsdTotal] = useState('');
+  const [usdFee, setUsdFee] = useState('');
 
   // Fetch fee when component mounts
   useEffect(() => {
@@ -46,6 +51,50 @@ const SendTrac = () => {
 
     fetchFee();
   }, [networkType]);
+
+  // Update USD for confirmed
+  useEffect(() => {
+    let ignore = false;
+    if (Number(confirmed) > 0) {
+      wallet.getTracUSDPrice(Number(confirmed)).then(val => {
+        if (!ignore) setUsdConfirmed(val);
+      });
+    } else {
+      setUsdConfirmed('0.00');
+    }
+    return () => { ignore = true; };
+  }, [confirmed]);
+
+  // Update USD for total
+  useEffect(() => {
+    let ignore = false;
+    if (Number(total) > 0) {
+      wallet.getTracUSDPrice(Number(total)).then(val => {
+        if (!ignore) setUsdTotal(val);
+      });
+    } else {
+      setUsdTotal('0.00');
+    }
+    return () => { ignore = true; };
+  }, [total]);
+
+  // Update USD for fee
+  useEffect(() => {
+    let ignore = false;
+    if (fee) {
+      const feeAmount = parseFloat(TracApiService.balanceToDisplay(fee));
+      if (feeAmount > 0) {
+        wallet.getTracUSDPrice(feeAmount).then(val => {
+          if (!ignore) setUsdFee(val);
+        });
+      } else {
+        setUsdFee('0.00');
+      }
+    } else {
+      setUsdFee('0.00');
+    }
+    return () => { ignore = true; };
+  }, [fee]);
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -180,20 +229,21 @@ const SendTrac = () => {
                 title="Send"
               />
               <UX.Box layout="column" style={{alignItems: 'flex-end', marginLeft: '25px' }}>
-                <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
-                    <UX.Text title="Confirmed:" styleType="body_14_bold" />
-                    <UX.Text
+                <UX.Box layout="row" spacing="xs">
+                  <UX.Text title="Confirmed:" styleType="body_14_bold" />
+                  <UX.Text
                     title={`${confirmed || '0'} TNK`}
                     styleType="body_14_bold"
                     customStyles={{
-                      marginLeft: '6px',
-                      color: colors.green_500, 
-                      textAlign: 'right',
-                      wordBreak: 'break-word',
+                      color: colors.green_500,
                     }}
-                    />
+                  />
                 </UX.Box>
-                
+                <Text
+                  title={`≈ ${Number(usdConfirmed).toLocaleString()} USD`}
+                  styleType="body_12_normal"
+                  customStyles={{color: colors.smoke, marginTop: 2}}
+                />
               </UX.Box>
             </UX.Box>
           
@@ -263,19 +313,20 @@ const SendTrac = () => {
                 
             </UX.Box>
             <UX.Box layout="column" style={{width: '100%', alignItems: 'flex-end'}}>
-            <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
-                <UX.Text title="Total:" styleType="body_14_bold" />
-                <UX.Text
-                  title={`${total || '0'} TNK`}
-                  styleType="body_14_bold"
-                  customStyles={{
-                    color: colors.green_500,
-                    textAlign: 'right',
-                    wordBreak: 'break-all',
-                    maxWidth: '60%'
-                  }}
-                />
-            </UX.Box>
+              <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
+                <UX.Text styleType="body_14_bold" title="Total" />
+                <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+                  <UX.Box layout="row" spacing="xss_s">
+                    <UX.Text title={total || '0'} styleType="body_14_bold" />
+                    <UX.Text title="TNK" styleType="body_14_bold" />
+                  </UX.Box>
+                  <Text
+                    title={`≈ ${Number(usdTotal).toLocaleString()} USD`}
+                    styleType="body_12_normal"
+                    customStyles={{color: colors.smoke, marginTop: 2}}
+                  />
+                </UX.Box>
+              </UX.Box>
             </UX.Box>
           </UX.Box>
           <UX.Box spacing="xss">
@@ -325,11 +376,20 @@ const SendTrac = () => {
           {/* Network Fee Display */}
           <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center', marginTop: '16px'}}>
             <UX.Text title="Network Fee" styleType="heading_16" customStyles={{color: 'white'}} />
-            <UX.Text 
-              title={feeLoading ? "Loading..." : `${fee ? TracApiService.balanceToDisplay(fee) : '0'} TNK`} 
-              styleType="body_14_bold" 
-              customStyles={{color: 'white'}} 
-            />
+            <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+              <UX.Text 
+                title={feeLoading ? "Loading..." : `${fee ? TracApiService.balanceToDisplay(fee) : '0'} TNK`} 
+                styleType="body_14_bold" 
+                customStyles={{color: 'white'}} 
+              />
+              {!feeLoading && fee && (
+                <Text
+                  title={`≈ ${Number(usdFee).toLocaleString()} USD`}
+                  styleType="body_12_normal"
+                  customStyles={{color: colors.smoke, marginTop: 2}}
+                />
+              )}
+            </UX.Box>
           </UX.Box>
         </UX.Box>
       }

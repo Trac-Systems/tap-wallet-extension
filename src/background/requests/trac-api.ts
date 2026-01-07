@@ -38,16 +38,22 @@ export class TracApi {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload }),
       });
-      
+
       const json = await response.json().catch(() => ({}));
-      
+
       if (response.ok) {
+        if (json.result?.tx) {
+          return { 
+            success: true, 
+            txid: json.result.tx 
+          };
+        }
         return { success: true, ...json };
       } else {
-        return { error: json?.error || 'Transaction failed' };
+        return { error: json?.error || json?.result?.message || `Transaction failed with status ${response.status}` };
       }
-    } catch (error) {
-      return { error: 'Network error occurred' };
+    } catch (error: any) {
+      return { error: error?.message || 'Network error occurred' };
     }
   }
   
@@ -89,6 +95,27 @@ export class TracApi {
       return data.txv;
     } catch (error) {
       console.error('Error fetching validity:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch balance for a TRAC address
+   */
+  static async fetchBalance(address: string, network: Network = Network.MAINNET): Promise<string> {
+    try {
+      const baseUrl = this.getBaseUrl(network);
+      const resp = await fetch(`${baseUrl}/balance/${address}`);
+      if (!resp.ok) {
+        throw new Error(`Fetch /balance failed: ${resp.status}`);
+      }
+      const data = (await resp.json()) as {balance?: string};
+      if (data?.balance === undefined) {
+        throw new Error('Missing balance in response');
+      }
+      return data.balance;
+    } catch (error) {
+      console.error('Error fetching balance:', error);
       throw error;
     }
   }

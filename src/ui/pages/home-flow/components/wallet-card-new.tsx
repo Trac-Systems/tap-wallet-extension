@@ -12,6 +12,8 @@ import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {formatNumberValue} from '@/src/shared/utils/btc-helper';
 
 interface IWalletCardNewProps {
   keyring: WalletDisplay;
@@ -39,12 +41,17 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
 
   const {address} = activeAccount;
   const isActive = keyring.key === activeWallet.key;
+  const wallet = useWalletProvider();
 
   // TRAC balances
   const tracAddress = useActiveTracAddress();
   const {total: tracTotal, confirmed: tracConfirmed} = useTracBalances(
     tracAddress,
   );
+
+  // USD values for TRAC balances
+  const [tracUsdTotal, setTracUsdTotal] = useState<string>('0.00');
+  const [tracUsdConfirmed, setTracUsdConfirmed] = useState<string>('0.00');
 
 
   //! Function
@@ -63,6 +70,78 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };
+
+  // Fetch USD value for total balance
+  useEffect(() => {
+    let cancelled = false;
+    if (!isActive) {
+      setTracUsdTotal('0.00');
+      return;
+    }
+    if (!tracTotal || tracTotal === '0' || tracTotal === '') {
+      setTracUsdTotal('0.00');
+      return;
+    }
+
+    const parsedTotal = parseFloat(tracTotal);
+    if (isNaN(parsedTotal) || parsedTotal === 0) {
+      setTracUsdTotal('0.00');
+      return;
+    }
+
+    wallet
+      .getTracUSDPrice(parsedTotal)
+      .then(val => {
+        if (!cancelled) {
+          setTracUsdTotal(val || '0.00');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setTracUsdTotal('0.00');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tracTotal, isActive, wallet]);
+
+  // Fetch USD value for confirmed balance
+  useEffect(() => {
+    let cancelled = false;
+    if (!isActive) {
+      setTracUsdConfirmed('0.00');
+      return;
+    }
+    if (!tracConfirmed || tracConfirmed === '0' || tracConfirmed === '') {
+      setTracUsdConfirmed('0.00');
+      return;
+    }
+
+    const parsedConfirmed = parseFloat(tracConfirmed);
+    if (isNaN(parsedConfirmed) || parsedConfirmed === 0) {
+      setTracUsdConfirmed('0.00');
+      return;
+    }
+
+    wallet
+      .getTracUSDPrice(parsedConfirmed)
+      .then(val => {
+        if (!cancelled) {
+          setTracUsdConfirmed(val || '0.00');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setTracUsdConfirmed('0.00');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tracConfirmed, isActive, wallet]);
 
   //! Render
   return (
@@ -152,9 +231,20 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
             </UX.Tooltip>
             <UX.Text styleType="heading_20" customStyles={{lineHeight: '32px', fontSize: 24}} title={'TNK'} />
           </UX.Box>
+          <UX.Box layout="row" spacing="xss_s">
+            <UX.Text title="≈" styleType="body_16_normal" />
+            <UX.Tooltip text={formatNumberValue(tracUsdTotal)} isText>
+              <UX.Text
+                title={formatNumberValue(tracUsdTotal)}
+                styleType="body_16_normal"
+                className="textBalance"
+              />
+            </UX.Tooltip>
+            <UX.Text title="USD" styleType="body_16_normal" />
+          </UX.Box>
         </UX.Box>
 
-        {/* Confirmed balance section (replace Available balance, hide USD) */}
+        {/* Confirmed balance section */}
         <UX.Box>
           <UX.Text styleType="body_12_normal" title="Confirmed balance:"  />
           <UX.Box layout="row_between">
@@ -169,11 +259,21 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                     <UX.Text
                       styleType="body_14_normal"
                       title={tracConfirmed || '0'}
-                      // className="textBalance"
                       customStyles={{ color: 'white', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     />
                   </UX.Tooltip>
                   <UX.Text styleType="body_14_normal" title={'TNK'} customStyles={{ color: 'white', flexShrink: 0 }} />
+                </UX.Box>
+                <UX.Box layout="row" spacing="xss_s">
+                  <UX.Text title="≈" styleType="body_16_normal" />
+                  <UX.Tooltip text={formatNumberValue(tracUsdConfirmed)} isText>
+                    <UX.Text
+                      title={formatNumberValue(tracUsdConfirmed)}
+                      styleType="body_16_normal"
+                      className="textBalance"
+                    />
+                  </UX.Tooltip>
+                  <UX.Text title="USD" styleType="body_16_normal" />
                 </UX.Box>
               </>
             )}

@@ -8,6 +8,7 @@ import {WalletActions} from '@/src/ui/redux/reducer/wallet/slice';
 import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {TracApiService} from '@/src/background/service/trac-api.service';
 
 const CreateAccount = () => {
   //! State
@@ -35,18 +36,8 @@ const CreateAccount = () => {
     mnemonic: string
   ) => {
     try {
-      const api = (window as any).TracCryptoApi;
-      if (!api) {
-        console.warn('TracCryptoApi not loaded');
-        return;
-      }
-
-      // Generate derivation path based on account index
-      const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
-      
-      const result = await api.address.generate('trac', mnemonic, tracDerivationPath);
-      if (result && result.address) {
-        // Store TRAC address
+      const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex);
+      if (result?.address) {
         wallet.setTracAddress(walletIndex, accountIndex, result.address);
       }
     } catch (error) {

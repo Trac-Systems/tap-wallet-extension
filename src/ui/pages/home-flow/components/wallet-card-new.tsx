@@ -12,7 +12,6 @@ import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {formatNumberValue} from '@/src/shared/utils/btc-helper';
 
 interface IWalletCardNewProps {
@@ -41,7 +40,6 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
 
   const {address} = activeAccount;
   const isActive = keyring.key === activeWallet.key;
-  const wallet = useWalletProvider();
 
   // TRAC balances
   const tracAddress = useActiveTracAddress();

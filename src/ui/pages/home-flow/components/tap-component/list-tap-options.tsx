@@ -4,6 +4,7 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {useAppSelector} from '@/src/ui/utils';
@@ -31,6 +32,8 @@ const ListTapOptions = () => {
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isLedgerWallet = activeWallet.type === 'Hardware Wallet';
   const [deployInscriptionState, setDeployInscription] =
     useState<Inscription>();
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>({
@@ -200,23 +203,25 @@ const ListTapOptions = () => {
             </UX.Box>
             {isValidToken && (
               <>
-                <UX.Box layout="row" spacing="xl">
-                  <UX.Button
-                    title={'1-TX Transfer'}
-                    isDisable={!enableTransfer}
-                    onClick={() => {
-                      navigate('/transfer-authority', {
-                        state: {ticker: id},
-                      });
-                    }}
-                    svgIcon={
-                      <SVG.TransferIcon color="white" width={20} height={20} />
-                    }
-                    styleType="primary"
-                    withIcon
-                    customStyles={{flex: 1, flexDirection: 'row-reverse'}}
-                  />
-                </UX.Box>
+                {!isLedgerWallet && (
+                  <UX.Box layout="row" spacing="xl">
+                    <UX.Button
+                      title={'1-TX Transfer'}
+                      isDisable={!enableTransfer}
+                      onClick={() => {
+                        navigate('/transfer-authority', {
+                          state: {ticker: id},
+                        });
+                      }}
+                      svgIcon={
+                        <SVG.TransferIcon color="white" width={20} height={20} />
+                      }
+                      styleType="primary"
+                      withIcon
+                      customStyles={{flex: 1, flexDirection: 'row-reverse'}}
+                    />
+                  </UX.Box>
+                )}
                 <UX.Text
                   onClick={handleNavigate}
                   title="Use Native Transfer"

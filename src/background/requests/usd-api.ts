@@ -1,7 +1,7 @@
 import {AxiosRequest} from './axios';
 
 const API_USD = 'https://api.coinbase.com/v2/prices/BTC-USD/spot';
-const API_TRAC_USD = 'https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids=trac-network&x_cg_demo_api_key=CG-4L32DNvEaiEU75u91gncpf82';
+const API_TRAC_USD = 'https://inscriber.trac.network/v1/trac-price';
 
 // Cache for TRAC price to avoid multiple API calls
 interface TracPriceCache {
@@ -57,14 +57,19 @@ export class UsdAPI {
     try {
       const response = await fetch(API_TRAC_USD);
       if (!response.ok) {
-        throw new Error(`CoinGecko API error: ${response.status}`);
+        throw new Error(`TRAC API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      const price = data?.['trac-network']?.usd;
+      const result = await response.json();
+
+      if (result?.statusCode !== 200) {
+        throw new Error(`TRAC API error: ${result?.message || 'Unknown error'}`);
+      }
+
+      const price = result?.data?.price_usd;
 
       if (typeof price !== 'number' || isNaN(price)) {
-        throw new Error('Invalid price data from CoinGecko');
+        throw new Error('Invalid price data from TRAC API');
       }
 
       // Update cache

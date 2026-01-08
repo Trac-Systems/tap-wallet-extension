@@ -1,8 +1,7 @@
 import { AxiosRequest } from './axios';
 
 const API_BTC_USD = 'https://api.coinbase.com/v2/prices/BTC-USD/spot';
-const API_COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
-const COINGECKO_API_KEY = 'CG-4L32DNvEaiEU75u91gncpf82';
+const API_TRAC_USD = 'https://inscriber.trac.network/v1/trac-price';
 
 // Cache for TRAC price to avoid multiple API calls
 interface TracPriceCache {
@@ -12,7 +11,6 @@ interface TracPriceCache {
 
 export class UsdAPI {
   api_btc!: AxiosRequest;
-  api_trac!: AxiosRequest;
   private tracPriceCache: TracPriceCache | null = null;
   private readonly CACHE_DURATION = 60000; // 60 seconds
   private isFetchingTracPrice = false;
@@ -21,9 +19,6 @@ export class UsdAPI {
   constructor() {
     this.api_btc = new AxiosRequest({
       baseUrl: API_BTC_USD,
-    });
-    this.api_trac = new AxiosRequest({
-      baseUrl: API_COINGECKO_BASE,
     });
   }
 
@@ -60,20 +55,21 @@ export class UsdAPI {
 
   private async fetchTracPrice(): Promise<number> {
     try {
-      const response = await this.api_trac.get('/simple/price', {
-        vs_currencies: 'usd',
-        ids: 'trac-network',
-        x_cg_demo_api_key: COINGECKO_API_KEY,
-      });
-
-      if (!response?.success) {
-        throw new Error(`CoinGecko API error: ${response?.message}`);
+      const response = await fetch(API_TRAC_USD);
+      if (!response.ok) {
+        throw new Error(`TRAC API error: ${response.status}`);
       }
 
-      const price = response.data?.['trac-network']?.usd;
+      const result = await response.json();
+
+      if (result?.statusCode !== 200) {
+        throw new Error(`TRAC API error: ${result?.message || 'Unknown error'}`);
+      }
+
+      const price = result?.data?.price_usd;
 
       if (typeof price !== 'number' || isNaN(price)) {
-        throw new Error('Invalid price data from CoinGecko');
+        throw new Error('Invalid price data from TRAC API');
       }
 
       // Update cache
@@ -89,10 +85,7 @@ export class UsdAPI {
         return this.tracPriceCache.price;
       }
 
-      console.error(
-        'Failed to fetch TRAC price and no cache available:',
-        error,
-      );
+      console.error('Failed to fetch TRAC price and no cache available:', error);
       return 0;
     }
   }

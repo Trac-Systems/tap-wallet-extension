@@ -156114,7 +156114,7 @@ zoo`.split('\n');
 	    [inputAddr, bytes.length, outputAddr, hashLength],
 	  );
 
-	  const res = wasm.HEAPU8.subarray(outputAddr, outputAddr + hashLength);
+	  const res = wasm.HEAPU8.slice(outputAddr, outputAddr + hashLength);
 	  wasm._free(outputAddr);
 	  wasm._free(inputAddr);
 	  return res

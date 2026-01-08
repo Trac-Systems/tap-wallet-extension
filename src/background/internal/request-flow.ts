@@ -75,7 +75,7 @@ const flowContext = flow
       },
       mapMethod,
     } = ctx;
-    if (!['getNetwork', 'switchNetwork'].includes(mapMethod)) {
+    if (!['getNetwork', 'switchNetwork', 'tracRequestAccount', 'tracGetAddress', 'tracGetBalance', 'tracGetPublicKey', 'tracSignMessage', 'tracSendTNK', 'tracBuildTx', 'tracSignTx', 'tracPushTx'].includes(mapMethod)) {
       if (!permissionService.hasPermission(origin)) {
         ctx.request.requestedApproval = true;
         await notificationService.requestApproval(
@@ -90,6 +90,25 @@ const flowContext = flow
           {height: windowHeight},
         );
         permissionService.addConnectedSite(origin, name, icon);
+      }
+    }
+
+    // TRAC auto-connect check (for methods other than tracRequestAccount)
+    if (['tracGetAddress', 'tracGetBalance', 'tracGetPublicKey', 'tracSignMessage', 'tracSendTNK', 'tracBuildTx', 'tracSignTx', 'tracPushTx'].includes(mapMethod)) {
+      if (!permissionService.hasTracPermission(origin)) {
+        ctx.request.requestedApproval = true;
+        ctx.approvalRes = await notificationService.requestApproval(
+          {
+            params: {
+              method: 'tracRequestAccount',
+              data: {},
+              session: {origin, name, icon},
+            },
+            approvalComponent: 'TracConnect',
+          },
+          {height: windowHeight},
+        );
+        permissionService.addTracConnection(origin, name, icon);
       }
     }
 

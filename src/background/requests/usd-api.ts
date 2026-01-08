@@ -1,6 +1,6 @@
-import {AxiosRequest} from './axios';
+import { AxiosRequest } from './axios';
 
-const API_USD = 'https://api.coinbase.com/v2/prices/BTC-USD/spot';
+const API_BTC_USD = 'https://api.coinbase.com/v2/prices/BTC-USD/spot';
 const API_TRAC_USD = 'https://inscriber.trac.network/v1/trac-price';
 
 // Cache for TRAC price to avoid multiple API calls
@@ -10,20 +10,20 @@ interface TracPriceCache {
 }
 
 export class UsdAPI {
-  api!: AxiosRequest;
+  api_btc!: AxiosRequest;
   private tracPriceCache: TracPriceCache | null = null;
   private readonly CACHE_DURATION = 60000; // 60 seconds
   private isFetchingTracPrice = false;
   private tracPricePromise: Promise<number> | null = null;
 
   constructor() {
-    this.api = new AxiosRequest({
-      baseUrl: API_USD,
+    this.api_btc = new AxiosRequest({
+      baseUrl: API_BTC_USD,
     });
   }
 
   async getUSDPrice(): Promise<any> {
-    const response = await this.api.get('/', {});
+    const response = await this.api_btc.get('/', {});
     return response?.data?.data?.amount;
   }
 

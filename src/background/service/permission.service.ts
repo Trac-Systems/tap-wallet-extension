@@ -1,4 +1,4 @@
-import {max} from 'lodash';
+import { max } from 'lodash';
 import LRU from 'lru-cache';
 import createPersistStore from '../storage/persistStore';
 
@@ -11,6 +11,7 @@ export interface ConnectedSite {
   isTop: boolean;
   order?: number;
   isConnected: boolean;
+  tracConnected?: boolean;
 }
 
 export type PermissionStore = {
@@ -95,7 +96,7 @@ class PermissionService {
 
     if (partialUpdate) {
       const _value = this.lruCache.get(origin);
-      this.lruCache.set(origin, {..._value, ...value} as ConnectedSite);
+      this.lruCache.set(origin, { ..._value, ...value } as ConnectedSite);
     } else {
       this.lruCache.set(origin, value as ConnectedSite);
     }
@@ -133,7 +134,7 @@ class PermissionService {
 
   getRecentConnectedSites = () => {
     const sites = (this.lruCache?.values() || []).filter(
-      item => item.isConnected,
+      item => item.isConnected || item.tracConnected,
     );
     const pinnedSites = sites
       .filter(item => item?.isTop)
@@ -143,12 +144,12 @@ class PermissionService {
   };
 
   getConnectedSites = () => {
-    return (this.lruCache?.values() || []).filter(item => item.isConnected);
+    return (this.lruCache?.values() || []).filter(item => item.isConnected || item.tracConnected);
   };
 
   getConnectedSite = (key: string) => {
     const site = this.lruCache?.get(key);
-    if (site && site.isConnected) {
+    if (site && (site.isConnected || site.tracConnected)) {
       return site;
     }
   };
@@ -177,16 +178,54 @@ class PermissionService {
 
   removeConnectedSite = (origin: string) => {
     if (!this.lruCache) return;
-    const site = this.getConnectedSite(origin);
+    const site = this.lruCache.get(origin);
     if (!site) {
       return;
     }
     this.setSite({
       ...site,
       isConnected: false,
+      tracConnected: false,
     });
     this.sync();
   };
+
+  // TRAC Network specific methods
+  hasTracPermission = (origin: string) => {
+    if (!this.lruCache) return false;
+    const site = this.lruCache.get(origin);
+    return site && site.tracConnected === true;
+  };
+
+  addTracConnection = (origin: string, name: string, icon: string) => {
+    if (!this.lruCache) return;
+
+    const existingSite = this.lruCache.get(origin);
+    if (existingSite) {
+      this.updateConnectSite(origin, { ...existingSite, tracConnected: true }, true);
+    } else {
+      this.lruCache.set(origin, {
+        origin,
+        name,
+        icon,
+        isSigned: false,
+        isTop: false,
+        isConnected: false,
+        tracConnected: true,
+      });
+    }
+    this.sync();
+  };
+
+  removeTracConnection = (origin: string) => {
+    if (!this.lruCache) return;
+    const site = this.lruCache.get(origin);
+    if (!site) return;
+
+    this.updateConnectSite(origin, { ...site, tracConnected: false }, true);
+    this.sync();
+  };
+
 
 }
 

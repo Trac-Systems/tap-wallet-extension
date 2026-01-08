@@ -221,25 +221,45 @@ export class AccountConfigService {
     if (!this.store?.tracAddressMap) {
       this.store.tracAddressMap = {};
     }
-    
+
     const key = `wallet_${walletIndex}#${accountIndex}`;
     this.store.tracAddressMap = Object.assign({}, this.store.tracAddressMap, {
       [key]: address,
     });
-    
   }
+
+  getIndicesByTracAddress(address: string): { walletIndex: number; accountIndex: number } | null {
+    const tracMap = this.getTracAddressMap();
+    const entry = Object.entries(tracMap).find(([key, addr]) => addr === address);
+
+    if (!entry) {
+      return null;
+    }
+
+    const [key] = entry;
+    const match = key.match(/wallet_(\d+)#(\d+)/);
+
+    if (match) {
+      return {
+        walletIndex: parseInt(match[1]),
+        accountIndex: parseInt(match[2]),
+      };
+    }
+    return null;
+  }
+
 
   getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string} {
     const tracMap = this.getTracAddressMap();
     const result: {[accountIndex: string]: string} = {};
-    
+
     Object.keys(tracMap).forEach(key => {
       if (key.startsWith(`wallet_${walletIndex}#`)) {
         const accountIndex = key.split('#')[1];
         result[accountIndex] = tracMap[key];
       }
     });
-    
+
     return result;
   }
 
@@ -247,11 +267,11 @@ export class AccountConfigService {
     if (!this.store?.tracAddressMap) {
       return;
     }
-    
+
     const key = `wallet_${walletIndex}#${accountIndex}`;
     const updatedTracMap = {...this.store.tracAddressMap};
     delete updatedTracMap[key];
-    
+
     this.store.tracAddressMap = updatedTracMap;
   }
 
@@ -260,11 +280,11 @@ export class AccountConfigService {
     if (!this.store?.tracAddressMap) {
       return;
     }
-    
+
     const tracMap = this.getTracAddressMap();
     const updatedTracMap = {...tracMap};
     let removedCount = 0;
-    
+
     // Find and remove all keys that start with wallet_X#
     Object.keys(tracMap).forEach(key => {
       if (key.startsWith(`wallet_${walletIndex}#`)) {
@@ -272,8 +292,8 @@ export class AccountConfigService {
         removedCount++;
       }
     });
-    
-    this.store.tracAddressMap = updatedTracMap;    
+
+    this.store.tracAddressMap = updatedTracMap;
     return removedCount;
   }
 
@@ -282,7 +302,7 @@ export class AccountConfigService {
     if (!this.store?.tracAddressMap) {
       return;
     }
-    
+
     const count = Object.keys(this.store.tracAddressMap).length;
     this.store.tracAddressMap = {};
     return count;

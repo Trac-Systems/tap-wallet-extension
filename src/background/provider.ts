@@ -27,8 +27,9 @@ import {
   getBitcoinNetwork,
   extractAddressFromScript,
 } from './utils';
-import {IResponseAddressBalance, PaidApi} from './requests/paid-api';
-import {mempoolApi, paidApi, tapApi, inscribeApi, usdApi} from './requests';
+import { IResponseAddressBalance, PaidApi } from './requests/paid-api';
+import { TracApi } from './requests/trac-api';
+import { mempoolApi, paidApi, tapApi, inscribeApi, usdApi } from './requests';
 import {
   AddressType,
   IDisplayAccount,
@@ -43,15 +44,15 @@ import {
   OrderType,
   InscribeOrder,
 } from '../wallet-instance';
-import {toXOnly} from 'bitcoinjs-lib/src/psbt/bip371';
-import {convertScriptToAddress} from '../shared/utils/btc-helper';
-import {MempoolApi} from './requests/mempool-api';
-import {TapApi} from './requests/tap-api';
-import {ConnectedSite} from './service/permission.service';
-import {isEmpty} from 'lodash';
-import {Psbt} from 'bitcoinjs-lib';
-import {InscribeApi} from './requests/inscribe-api';
-import {createHash} from 'crypto';
+import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371';
+import { convertScriptToAddress } from '../shared/utils/btc-helper';
+import { MempoolApi } from './requests/mempool-api';
+import { TapApi } from './requests/tap-api';
+import { ConnectedSite } from './service/permission.service';
+import { isEmpty } from 'lodash';
+import { Psbt } from 'bitcoinjs-lib';
+import { InscribeApi } from './requests/inscribe-api';
+import { createHash } from 'crypto';
 import * as secp from '@noble/secp256k1';
 import { dta } from '../ui/interfaces'
 
@@ -121,7 +122,7 @@ export class Provider {
     const accounts: IDisplayAccount[] = [];
 
     for (let j = 0; j < walletDisplay.accounts.length; j++) {
-      const {pubkey} = walletDisplay.accounts[j];
+      const { pubkey } = walletDisplay.accounts[j];
       const address = deriveAddressFromPublicKey(
         pubkey,
         addressType,
@@ -276,7 +277,7 @@ export class Provider {
   removeWallet = async (wallet: WalletDisplay) => {
     this.removeWalletTracAddresses(wallet.index);
     networkFilterConfig.removeWalletFilters(wallet.index);
-    
+
     await walletService.removeWallet(wallet.index);
     const wallets = this.getWallets();
     const nextWallet = wallets[wallets.length - 1];
@@ -290,19 +291,19 @@ export class Provider {
     if (!wallet || !wallet.accounts || wallet.accounts.length === 0) {
       throw new Error('Invalid wallet: no accounts found');
     }
-    
+
     walletConfig.setActiveWalletIndex(wallet.index);
-    
+
     // Use saved account index if not provided
     const savedAccountIndex = accountIndex !== undefined ? accountIndex : walletConfig.getWalletAccountIndex(wallet.key);
     const targetAccountIndex = Math.min(savedAccountIndex, wallet.accounts.length - 1);
-    
+
     if (!wallet.accounts[targetAccountIndex]) {
       throw new Error(`Account at index ${targetAccountIndex} not found`);
     }
-    
+
     accountConfig.setActiveAccount(wallet.accounts[targetAccountIndex]);
-    
+
     // Save the account index for this wallet
     walletConfig.setWalletAccountIndex(wallet.key, targetAccountIndex);
   };
@@ -370,10 +371,10 @@ export class Provider {
     if (!this.isUnlocked()) {
       throw new Error('Wallet must be unlocked to access mnemonic');
     }
-    
+
     const originWallet = walletService.wallets[wallet.index];
     const serialized = await originWallet.serialize();
-    
+
     return {
       mnemonic: serialized.mnemonic,
       derivationPath: serialized.derivationPath,
@@ -383,7 +384,7 @@ export class Provider {
 
   getPrivateKey = async (
     pin: string,
-    {pubkey, type}: {pubkey: string; type: string},
+    { pubkey, type }: { pubkey: string; type: string },
   ) => {
     await authService.verifyPassword(pin);
     const wallet = await walletService.getWalletForBackground(pubkey, type);
@@ -441,7 +442,7 @@ export class Provider {
 
   setWalletName = (wallet: WalletDisplay, name: string) => {
     walletConfig.setWalletName(wallet.key, name);
-    return Object.assign({}, wallet, {name});
+    return Object.assign({}, wallet, { name });
   };
 
   getAddressBalance = async (address: string) => {
@@ -476,10 +477,10 @@ export class Provider {
 
   getAllAddresses = (wallet: WalletDisplay, index: number) => {
     const networkType = this.getActiveNetwork();
-    const addresses: {[key: string]: {addressType: AddressType}} = {};
+    const addresses: { [key: string]: { addressType: AddressType } } = {};
     const _wallet = walletService.wallets[wallet.index];
     if (wallet.type === WALLET_TYPE.HdWallet) {
-      const pathPubkey: {[path: string]: string} = {};
+      const pathPubkey: { [path: string]: string } = {};
 
       for (const k in ADDRESS_TYPES) {
         const v = ADDRESS_TYPES[k];
@@ -496,7 +497,7 @@ export class Provider {
             v.value,
             networkType,
           );
-          addresses[address] = {addressType: v.value};
+          addresses[address] = { addressType: v.value };
         }
       }
     } else {
@@ -509,7 +510,7 @@ export class Provider {
             v.value,
             networkType,
           );
-          addresses[address] = {addressType: v.value};
+          addresses[address] = { addressType: v.value };
         }
       }
     }
@@ -542,7 +543,7 @@ export class Provider {
 
   setAccountName = (account: IDisplayAccount, name: string) => {
     accountConfig.setAccountName(account.key, name);
-    return Object.assign({}, account, {name});
+    return Object.assign({}, account, { name });
   };
 
   pushTx = async (rawTx: string, spendUtoxs?: UnspentOutput[]) => {
@@ -564,7 +565,7 @@ export class Provider {
     const account = this.getActiveAccount();
     const spendableInscriptions =
       (await this.getAccountSpendableInscriptions(account)) || [];
-    const ignoreAssetMap: {[key: string]: boolean} = {};
+    const ignoreAssetMap: { [key: string]: boolean } = {};
     ignoreAsset?.forEach(inscriptionId => {
       ignoreAssetMap[inscriptionId] = true;
     });
@@ -610,9 +611,9 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
-    const {psbt, inputForSigns, outputs, inputs} = await sendBTC({
+    const { psbt, inputForSigns, outputs, inputs } = await sendBTC({
       btcUtxos: btcUtxos,
-      tos: [{address: to, satoshis: amount}],
+      tos: [{ address: to, satoshis: amount }],
       networkType,
       fromAddress: account.address,
       addressType: activeWallet?.addressType,
@@ -623,7 +624,7 @@ export class Provider {
     this.setPsbtSignNonSegwitEnable(psbt, true);
     await this.signPsbt(psbt, inputForSigns, true);
     this.setPsbtSignNonSegwitEnable(psbt, false);
-    return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
+    return { psbtHex: psbt.toHex(), inputs, outputs, inputForSigns };
   };
 
   sendOrdinalsInscription = async ({
@@ -667,7 +668,7 @@ export class Provider {
       throw new Error('Insufficient balance.');
     }
 
-    const {psbt, inputForSigns, inputs, outputs} = await sendInscription({
+    const { psbt, inputForSigns, inputs, outputs } = await sendInscription({
       assetUtxo,
       btcUtxos,
       toAddress: to,
@@ -682,7 +683,7 @@ export class Provider {
     this.setPsbtSignNonSegwitEnable(psbt, true);
     await this.signPsbt(psbt, inputForSigns, true);
     this.setPsbtSignNonSegwitEnable(psbt, false);
-    return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
+    return { psbtHex: psbt.toHex(), inputs, outputs, inputForSigns };
   };
 
   sendOrdinalsInscriptions = async ({
@@ -729,7 +730,7 @@ export class Provider {
       throw new Error('Insufficient balance.');
     }
 
-    const {psbt, inputForSigns, inputs, outputs} = await sendInscriptions({
+    const { psbt, inputForSigns, inputs, outputs } = await sendInscriptions({
       assetUtxos,
       btcUtxos,
       toAddress: to,
@@ -744,7 +745,7 @@ export class Provider {
     await this.signPsbt(psbt, inputForSigns, true);
     this.setPsbtSignNonSegwitEnable(psbt, false);
 
-    return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
+    return { psbtHex: psbt.toHex(), inputs, outputs, inputForSigns };
   };
 
   setPsbtSignNonSegwitEnable = (psbt: bitcoin.Psbt, enable: boolean) => {
@@ -778,7 +779,7 @@ export class Provider {
           throw new Error('Invalid input index');
         }
 
-        const {address, publicKey} = input as any;
+        const { address, publicKey } = input as any;
         if (!address && !publicKey) {
           throw new Error('Input requires either an address or a public key');
         }
@@ -810,7 +811,7 @@ export class Provider {
 
       const psbt =
         typeof _psbt === 'string'
-          ? bitcoin.Psbt.fromHex(_psbt as string, {network: psbtNetwork})
+          ? bitcoin.Psbt.fromHex(_psbt as string, { network: psbtNetwork })
           : (_psbt as bitcoin.Psbt);
       psbt.data.inputs.forEach((v, index) => {
         let address = '';
@@ -880,7 +881,7 @@ export class Provider {
       // Special measures taken for compatibility with certain applications.
       if (isNotSigned && isP2TR && lostInternalPubkey) {
         const tapInternalKey = toXOnly(Buffer.from(account.pubkey, 'hex'));
-        const {output} = bitcoin.payments.p2tr({
+        const { output } = bitcoin.payments.p2tr({
           internalPubkey: tapInternalKey,
           network: psbtNetwork,
         });
@@ -911,13 +912,13 @@ export class Provider {
     const networkType = this.getActiveNetwork();
     const network = getBitcoinNetwork(networkType);
     // Step 1: Parse the PSBT from hex
-    const psbt = Psbt.fromHex(psbtHex, {network});
+    const psbt = Psbt.fromHex(psbtHex, { network });
 
-    const outputAddressMap: {[key: string]: number} = {};
+    const outputAddressMap: { [key: string]: number } = {};
 
     psbt.txOutputs.forEach(v => {
       const address =
-        v.address ?? extractAddressFromScript({script: v.script, network});
+        v.address ?? extractAddressFromScript({ script: v.script, network });
       extractData.outputs.push({
         value: v.value,
         address,
@@ -987,7 +988,7 @@ export class Provider {
   changeWallet = (wallet: WalletDisplay, accountIndex = 0, name?: string) => {
     walletConfig.setActiveWalletIndex(wallet.index);
     accountConfig.setActiveAccount(wallet.accounts[accountIndex], name);
-    
+
     // Save the account index for this wallet
     walletConfig.setWalletAccountIndex(wallet.key, accountIndex);
   };
@@ -1043,7 +1044,7 @@ export class Provider {
   ) => {
     const offset = (currentPage - 1) * pageSize;
     const max = pageSize;
-    const {list, total} = await this.tapApi.getAddressTapTokens(
+    const { list, total } = await this.tapApi.getAddressTapTokens(
       address,
       offset,
       max,
@@ -1085,7 +1086,7 @@ export class Provider {
   ) => {
     const offset = (currentPage - 1) * pageSize;
     const max = pageSize;
-    const {list, total} = await this.tapApi.getTapTransferAbleList(
+    const { list, total } = await this.tapApi.getTapTransferAbleList(
       address,
       ticker,
       offset,
@@ -1121,7 +1122,7 @@ export class Provider {
 
   getDmtScriptId = async (
     depInscriptionId: string,
-  ): Promise<{scriptInsId: string; ticker: string; unat: boolean}> => {
+  ): Promise<{ scriptInsId: string; ticker: string; unat: boolean }> => {
     try {
       const depInfo =
         await this.paidApi.getInscriptionContent(depInscriptionId);
@@ -1140,7 +1141,7 @@ export class Provider {
       }
 
       const unat = Boolean(scriptInsId);
-      return {scriptInsId: scriptInsId, ticker, unat};
+      return { scriptInsId: scriptInsId, ticker, unat };
     } catch (error) {
       console.log('Provider ~ getDmtContent= ~ error:', error);
       throw error; // return {contentIns};
@@ -1294,7 +1295,7 @@ export class Provider {
     return permissionService.getRecentConnectedSites();
   };
   getCurrentSite = (tabId: number): ConnectedSite | null => {
-    const {origin, name, icon} = sessionService.getSession(tabId) || {};
+    const { origin, name, icon } = sessionService.getSession(tabId) || {};
     if (!origin) {
       return null;
     }
@@ -1312,7 +1313,7 @@ export class Provider {
     };
   };
   getCurrentConnectedSite = (tabId: number) => {
-    const {origin} = sessionService.getSession(tabId) || {};
+    const { origin } = sessionService.getSession(tabId) || {};
     return permissionService.getWithoutUpdate(origin);
   };
   setSite = (data: ConnectedSite) => {
@@ -1350,6 +1351,10 @@ export class Provider {
   removeConnectedSite = (origin: string) => {
     sessionService.broadcastEvent('accountsChanged', [], origin);
     permissionService.removeConnectedSite(origin);
+  };
+
+  removeTracConnection = (origin: string) => {
+    permissionService.removeTracConnection(origin);
   };
   signMessage = async (text: string) => {
     const account = accountConfig.getActiveAccount();
@@ -1516,7 +1521,7 @@ export class Provider {
         typeof resultJson === 'string' ? JSON.parse(resultJson) : resultJson;
       if (!proto || typeof proto !== 'object') return false;
       if (!proto.sig || typeof proto.sig !== 'object') return false;
-      const {r, s, v} = proto.sig;
+      const { r, s, v } = proto.sig;
       if (r === undefined || s === undefined || v === undefined) return false;
       if (!proto.salt) return false;
       if (proto.auth === undefined) return false;
@@ -1567,13 +1572,18 @@ export class Provider {
     }
     const message = 'wallet-auth';
     const signature = await this.signMessage(message);
-    return {message, signature, address};
+    return { message, signature, address };
   };
 
   // TRAC Address Management Methods
   getTracAddressMap = () => {
     return accountConfig.getTracAddressMap();
   };
+
+  getIndicesByTracAddress = (address: string) => {
+    return accountConfig.getIndicesByTracAddress(address);
+  };
+
 
   getTracAddress = (walletIndex: number, accountIndex: number): string | null => {
     return accountConfig.getTracAddress(walletIndex, accountIndex);
@@ -1583,7 +1593,7 @@ export class Provider {
     accountConfig.setTracAddress(walletIndex, accountIndex, address);
   };
 
-  getWalletTracAddresses = (walletIndex: number): {[accountIndex: string]: string} => {
+  getWalletTracAddresses = (walletIndex: number): { [accountIndex: string]: string } => {
     return accountConfig.getWalletTracAddresses(walletIndex);
   };
 
@@ -1603,13 +1613,18 @@ export class Provider {
     accountConfig.logAllTracAddresses();
   };
 
+  getTracBalance = async (address: string): Promise<string> => {
+    const network = this.getActiveNetwork();
+    return await TracApi.fetchBalance(address, network);
+  };
+
   // Network Filter methods
   getNetworkFilters = (walletIndex?: number) => {
     const activeWalletIndex = walletIndex ?? walletConfig.getActiveWalletIndex() ?? 0;
     return networkFilterConfig.getNetworkFilters(activeWalletIndex);
   };
 
-  setNetworkFilters = (filters: {bitcoin: boolean; trac: boolean}, walletIndex?: number) => {
+  setNetworkFilters = (filters: { bitcoin: boolean; trac: boolean }, walletIndex?: number) => {
     const activeWalletIndex = walletIndex ?? walletConfig.getActiveWalletIndex() ?? 0;
     networkFilterConfig.setNetworkFilters(activeWalletIndex, filters);
   };

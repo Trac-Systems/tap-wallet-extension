@@ -11,6 +11,7 @@ import {AddressType} from '@/src/wallet-instance';
 import {useAppDispatch} from '../../utils';
 import {WalletActions} from '../../redux/reducer/wallet/slice';
 import {AccountActions} from '../../redux/reducer/account/slice';
+import {TracApiService} from '@/src/background/service/trac-api.service';
 
 const RestoreWallet = () => {
   //! State
@@ -89,16 +90,8 @@ const RestoreWallet = () => {
           // 1) Derive TRAC address from provided secretKey first to check for duplicates
           let tracAddress = '';
           try {
-            const api = (window as any).TracCryptoApi;
-            if (api && api.address?.fromSecretKey) {
-              const result = await api.address.fromSecretKey('trac', secretBytes);
-              tracAddress = result?.address;
-              if (!tracAddress) {
-                throw new Error('Failed to derive TRAC address from secret key');
-              }
-            } else {
-              throw new Error('TracCryptoApi not available');
-            }
+            const result = await TracApiService.addressFromSecretKey(secretBytes);
+            tracAddress = result.address;
           } catch (error) {
             console.log('Error deriving TRAC address:', error);
             showToast({

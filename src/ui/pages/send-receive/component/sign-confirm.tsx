@@ -14,6 +14,7 @@ import {
 import {isEmpty} from 'lodash';
 import {useEffect, useMemo, useState} from 'react';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {
   formatAddressLongText,
   shortAddress,
@@ -25,6 +26,8 @@ import {
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {bitcoin} from '@/src/background/utils';
+import {ledgerSignManager} from '@/src/ui/utils/ledger-sign-manager';
 
 interface Props {
   params: {
@@ -56,7 +59,8 @@ const SignConfirm = ({
 }: Props) => {
   const navigate = useNavigate();
   const {showToast} = useCustomToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
   const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
   // const [usdPriceAmount, setUsdPriceAmount] = useState(0);
 
@@ -77,6 +81,8 @@ const SignConfirm = ({
   };
 
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWalletInfo = useAppSelector(WalletSelector.activeWallet);
+  const isHardwareWallet = activeWalletInfo?.type === 'Hardware Wallet';
   const activeAccountAddress = activeAccount.address;
 
   const isValidData = useMemo(() => {
@@ -156,21 +162,21 @@ const SignConfirm = ({
     let timer: any;
 
     if (!netSatoshis || !spendSatoshis) {
-      setIsLoading(true);
+      setIsPageLoading(true);
 
       timer = setTimeout(() => {
         if (!netSatoshis || !spendSatoshis) {
-          setIsLoading(false);
+          setIsPageLoading(false);
         }
       }, 2000);
     } else {
-      setIsLoading(false);
+      setIsPageLoading(false);
     }
 
     return () => clearTimeout(timer);
   }, [netSatoshis, spendSatoshis]);
 
-  if (isLoading) {
+  if (isPageLoading) {
     return <UX.Loading />;
   }
 
@@ -393,17 +399,125 @@ const SignConfirm = ({
           <UX.Button
             styleType="primary"
             title="Sign & Pay"
-            onClick={() =>
+            onClick={async () => {
+              let finalRawtx = rawTxInfo.rawtx;
+
+              // If rawtx is empty, PSBT is not signed yet (hardware wallet)
+              // Need to sign it first
+              if (!finalRawtx && rawTxInfo.psbtHex) {
+                // Check Ledger connection BEFORE showing sign modal
+                if (isHardwareWallet) {
+                  try {
+                    const isConnected = await wallet.isLedgerConnected();
+                    if (!isConnected) {
+                      showToast({
+                        title: 'Ledger is not connected. Please connect your Ledger device and open the Bitcoin app.',
+                        type: 'error',
+                      });
+                      return;
+                    }
+                  } catch (error: any) {
+                    showToast({
+                      title: error?.message || 'Failed to check Ledger connection',
+                      type: 'error',
+                    });
+                    return;
+                  }
+                }
+
+                try {
+                  setIsSigning(true);
+                  if (isHardwareWallet) {
+                    ledgerSignManager.show();
+                  }
+                  
+                  // Sign PSBT with hardware wallet
+                  if (rawTxInfo.inputForSigns && rawTxInfo.inputForSigns.length > 0) {
+                    const signedPsbtHex = await wallet.signPsbtFromHex(
+                      rawTxInfo.psbtHex,
+                      rawTxInfo.inputForSigns,
+                      true,
+                    );
+                    const signedPsbt = bitcoin.Psbt.fromHex(signedPsbtHex);
+                    finalRawtx = signedPsbt.extractTransaction(true).toHex();
+                  } else {
+                    throw new Error('No inputs to sign');
+                  }
+                } catch (error: any) {
+                  showToast({
+                    title: error?.message || 'Failed to sign transaction with hardware wallet',
+                    type: 'error',
+                  });
+                  setIsSigning(false);
+                  return;
+                } finally {
+                  if (isHardwareWallet) {
+                    ledgerSignManager.hide();
+                  }
+                  setIsSigning(false);
+                }
+              }
+              
+              if (!finalRawtx) {
+                showToast({
+                  title: 'Transaction is not signed',
+                  type: 'error',
+                });
+                return;
+              }
+
+              // For Ledger wallet: skip tx-security screen (no wallet-auth needed)
+              // Navigate directly to result screen after broadcast
+              if (isHardwareWallet && (type === TxType.INSCRIBE_TAP || type === TxType.TAPPING)) {
+                try {
+                  const spendUtxos = rawTxInfo.inputs.map(input => input.utxo);
+                  const txid = await wallet.pushTx(finalRawtx, spendUtxos);
+
+                  // Transaction broadcast successful
+                  // Skip paidOrder/tappingOrder for Ledger (no wallet-auth)
+                  if (type === TxType.INSCRIBE_TAP) {
+                    navigate('/home/inscribe-result', {
+                      state: {
+                        order,
+                        tokenBalance,
+                        txid,
+                      },
+                    });
+                  } else if (type === TxType.TAPPING) {
+                    navigate('/home/send-success', {state: {txid}});
+                  }
+                } catch (error: any) {
+                  // Transaction broadcast failed
+                  showToast({
+                    title: error?.message || 'Failed to broadcast transaction',
+                    type: 'error',
+                  });
+
+                  if (type === TxType.INSCRIBE_TAP) {
+                    navigate('/home/inscribe-result', {
+                      state: {error: error?.message || 'Failed to broadcast transaction'},
+                    });
+                  } else if (type === TxType.TAPPING) {
+                    navigate('/home/send-fail', {
+                      state: {error: error?.message || 'Failed to broadcast transaction'},
+                    });
+                  }
+                }
+                return;
+              }
+
+              // For soft wallets: go through tx-security screen
               navigate('/home/tx-security', {
                 state: {
-                  rawtx: rawTxInfo.rawtx,
+                  rawtx: finalRawtx,
                   type,
                   tokenBalance,
                   order,
                   spendInputs: rawTxInfo.inputs,
                 },
-              })
-            }
+              });
+            }}
+            isDisable={isSigning}
           />
         </UX.Box>
       }

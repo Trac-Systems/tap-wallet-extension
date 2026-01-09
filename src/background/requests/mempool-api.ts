@@ -11,6 +11,8 @@ export class MempoolApi {
   api_mempool!: AxiosRequest;
   api_electrs!: AxiosRequest;
 
+  private rawTxCache = new Map<string, string>();
+
   constructor() {
     if (!this.api_mempool || !this.api_electrs) {
       this.init();
@@ -56,5 +58,16 @@ export class MempoolApi {
   async getUtxoData(address: string) {
     const response = await this.api_electrs.get(`address/${address}/utxo`, {});
     return response.data;
+  }
+
+  async getRawTxHex(txid: string): Promise<string> {
+    if (this.rawTxCache.has(txid)) {
+      return this.rawTxCache.get(txid)!;
+    }
+
+    const response = await this.api_electrs.get(`/tx/${txid}/hex`, {});
+    const rawWithWitness = response.data;
+    this.rawTxCache.set(txid, rawWithWitness);
+    return rawWithWitness;
   }
 }

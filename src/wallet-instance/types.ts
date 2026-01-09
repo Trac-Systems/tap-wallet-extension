@@ -208,6 +208,7 @@ export interface UnspentOutput {
     isVindicate: boolean;
     isBRC20: boolean;
   }[];
+  rawTxHex?: string; 
 }
 export interface ToAddressInfo {
   address: string;

@@ -13,6 +13,8 @@ import {
 } from '@/src/wallet-instance/types';
 import {useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
+import {useAppSelector} from '@/src/ui/utils';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 
 interface RedeemItem {
   tick: string;
@@ -36,6 +38,8 @@ const InscribeConfirmScreen = () => {
   const location = useLocation();
   const {state} = location;
   const walletProvider = useWalletProvider();
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
 
   const contextDataParam: ContextDataParam = state?.contextDataParam || {};
 
@@ -90,10 +94,21 @@ const InscribeConfirmScreen = () => {
   );
 
   const handleGoBack = () => {
-    // cancel order then go back
-    walletProvider.cancelOrder(contextDataParam?.order.id).then(() => {
+    // NOTE: Skip cancelOrder for Hardware Wallets (Ledger) to avoid requiring wallet-auth signing
+    // For soft wallets, cancel order then go back
+    if (isHardwareWallet) {
+      // For Ledger: just navigate back without canceling order
       navigate(-1);
-    });
+    } else {
+      // For soft wallets: cancel order then go back
+      walletProvider.cancelOrder(contextDataParam?.order.id).then(() => {
+        navigate(-1);
+      }).catch((error) => {
+        // If cancel fails, still navigate back
+        console.error('Failed to cancel order:', error);
+        navigate(-1);
+      });
+    }
   };
 
   const handleInscribeSign = () => {

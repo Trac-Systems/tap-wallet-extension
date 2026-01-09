@@ -16,6 +16,7 @@ export async function sendBTC({
   pubkey,
   feeRate,
   enableRBF = true,
+  isHardwareWallet = false,
 }: {
   btcUtxos: UnspentOutput[];
   tos: {
@@ -28,6 +29,7 @@ export async function sendBTC({
   pubkey: string;
   feeRate: number;
   enableRBF?: boolean;
+  isHardwareWallet?: boolean;
 }) {
   const tx = new Transaction({
     networkType: networkType,
@@ -36,6 +38,7 @@ export async function sendBTC({
     pubkey: pubkey,
     feeRate,
     enableRBF,
+    isHardwareWallet,
   });
 
   tos.forEach(v => {
@@ -57,6 +60,7 @@ export async function sendInscription({
   feeRate,
   outputValue,
   enableRBF = true,
+  isHardwareWallet = false,
 }: {
   assetUtxo: UnspentOutput;
   btcUtxos: UnspentOutput[];
@@ -68,6 +72,7 @@ export async function sendInscription({
   feeRate: number;
   outputValue: number;
   enableRBF?: boolean;
+  isHardwareWallet?: boolean;
 }) {
   // check safe Balance
   // btcUtxos.forEach(utxo => {
@@ -86,6 +91,7 @@ export async function sendInscription({
     pubkey: pubkey,
     feeRate,
     enableRBF,
+    isHardwareWallet,
   });
   tx.addUtxos(btcUtxos);
   tx.addInscriptionInput(assetUtxo);
@@ -105,6 +111,7 @@ export async function sendInscriptions({
   pubkey,
   feeRate,
   enableRBF = true,
+  isHardwareWallet = false,
 }: {
   assetUtxos: UnspentOutput[];
   btcUtxos: UnspentOutput[];
@@ -115,6 +122,7 @@ export async function sendInscriptions({
   pubkey: string;
   feeRate: number;
   enableRBF?: boolean;
+  isHardwareWallet?: boolean;
 }) {
   assetUtxos.forEach(utxo => {
     if (isEmpty(utxo.inscriptions)) {
@@ -129,6 +137,7 @@ export async function sendInscriptions({
     pubkey: pubkey,
     feeRate,
     enableRBF,
+    isHardwareWallet,
   });
   tx.addUtxos(btcUtxos);
 

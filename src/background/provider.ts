@@ -10,12 +10,14 @@ import {
   permissionService,
   sessionService,
 } from './service/singleton';
+import {getLedgerService} from './service/ledger.service';
 import * as hdkey from 'hdkey';
 import * as bip39 from 'bip39';
 import {
   ACCOUNT_TYPE_TEXT,
   ADDRESS_TYPES,
   WALLET_TYPE,
+  adjustDerivationPathForNetwork,
 } from '../wallet-instance/constant';
 import {
   ECPair,
@@ -108,10 +110,16 @@ export class Provider {
   generateMnemonic = (): string => {
     return walletService.generateMnemonic();
   };
-  private _genDefaultAccountName = (type: string, accountIndex: number) => {
-    if (type === 'HD Wallet') {
-      return `Account ${accountIndex + 1}`;
+  private _getAccountLabel = (type: string) => {
+    if (type === 'HD Wallet' || type === 'Hardware Wallet') {
+      return 'Account';
     }
+    return ACCOUNT_TYPE_TEXT[type] || 'Account';
+  };
+
+  private _genDefaultAccountName = (type: string, accountIndex: number) => {
+    const label = this._getAccountLabel(type);
+    return `${label} ${accountIndex + 1}`;
   };
 
   _getWalletDisplayUI = (walletDisplay: IWalletDisplayUI, index: number) => {
@@ -121,12 +129,23 @@ export class Provider {
     const type = walletDisplay.type;
     const accounts: IDisplayAccount[] = [];
 
+    // For hardware wallets, check if there's a network mismatch
+    // If mismatch, use the saved network instead of current network
+    let effectiveNetworkType = networkType;
+    if (type === 'Hardware Wallet') {
+      const savedNetwork = walletConfig.getHardwareWalletNetwork(key);
+      if (savedNetwork && savedNetwork !== networkType) {
+        // Hardware wallet is mismatched, use saved network to keep address unchanged
+        effectiveNetworkType = savedNetwork;
+      }
+    }
+
     for (let j = 0; j < walletDisplay.accounts.length; j++) {
       const { pubkey } = walletDisplay.accounts[j];
       const address = deriveAddressFromPublicKey(
         pubkey,
         addressType,
-        networkType,
+        effectiveNetworkType,
       );
       const accountKey = key + '#' + j;
       const defaultName = this._genDefaultAccountName(type, j);
@@ -140,8 +159,13 @@ export class Provider {
         key: accountKey,
       });
     }
-    const derivationPath =
-      type === WALLET_TYPE.HdWallet ? walletDisplay.wallet.derivationPath : '';
+    let derivationPath = '';
+    if (type === WALLET_TYPE.HdWallet) {
+      derivationPath = walletDisplay.wallet.derivationPath || '';
+    } else if (type === 'Hardware Wallet') {
+      // LedgerWallet stores derivation path in derivationRoot
+      derivationPath = walletDisplay.wallet.derivationPath || '';
+    }
 
     const name = walletConfig.getWalletName(key, `${type} #${index + 1}`);
     const wallet: WalletDisplay = {
@@ -157,11 +181,28 @@ export class Provider {
   };
 
   setActiveNetwork = (network: Network) => {
+    const oldNetwork = networkConfig.getActiveNetwork();
     networkConfig.setActiveNetwork(network);
     paidApi.changeNetwork();
     this.mempoolApi.changeNetwork(network);
     this.tapApi.changeNetwork(network);
     this.inscribeApi.changeNetwork(network);
+    
+    // Mark all hardware wallets as mismatch if network changed
+    if (oldNetwork !== network) {
+      const wallets = this.getWallets();
+      for (const wallet of wallets) {
+        if (wallet.type === 'Hardware Wallet') {
+          // Save the old network for this hardware wallet
+          const savedNetwork = walletConfig.getHardwareWalletNetwork(wallet.key);
+          if (!savedNetwork) {
+            // Only save if not already saved (first time mismatch)
+            walletConfig.setHardwareWalletNetwork(wallet.key, oldNetwork);
+          }
+        }
+      }
+    }
+    
     const activeAccount = this.getActiveAccount();
     const wallet = this.getActiveWallet();
     if (!wallet) {
@@ -200,6 +241,40 @@ export class Provider {
       walletDataForUI,
       walletService.wallets.length - 1,
     );
+    this.setActiveWallet(wallet);
+  };
+
+  createWalletFromLedger = async (
+    derivationPath: string,
+    addressType: AddressType,
+    accountNum: number,
+    allPubkeys?: Array<{derivationPath: string; pubkey: string; addressType: AddressType}>,
+  ) => {
+    const originWallet = await walletService.createWalletFromLedger(
+      derivationPath,
+      addressType,
+      accountNum,
+    );
+    
+    // Cache all pubkeys that were pre-fetched during address selection
+    const hwWallet = originWallet as any;
+    if (allPubkeys && allPubkeys.length > 0 && hwWallet.cachePubkeysForAllPaths) {
+      hwWallet.cachePubkeysForAllPaths(allPubkeys);
+    }
+    
+    const walletDataForUI = walletService.getWalletDataForUI(
+      originWallet,
+      addressType,
+      walletService.wallets.length - 1,
+    );
+    const wallet = this._getWalletDisplayUI(
+      walletDataForUI,
+      walletService.wallets.length - 1,
+    );
+    // Clear mismatch and save current network for this hardware wallet
+    // since Ledger is now connected with the correct app
+    walletConfig.clearHardwareWalletNetwork(wallet.key);
+    walletConfig.setHardwareWalletNetwork(wallet.key, networkConfig.getActiveNetwork());
     this.setActiveWallet(wallet);
   };
 
@@ -475,7 +550,7 @@ export class Provider {
     return (await paidApi.getAddressBalance(address)) || defaultBalance;
   };
 
-  getAllAddresses = (wallet: WalletDisplay, index: number) => {
+  getAllAddresses = async (wallet: WalletDisplay, index: number) => {
     const networkType = this.getActiveNetwork();
     const addresses: { [key: string]: { addressType: AddressType } } = {};
     const _wallet = walletService.wallets[wallet.index];
@@ -499,6 +574,44 @@ export class Provider {
           );
           addresses[address] = { addressType: v.value };
         }
+      }
+    } else if (_wallet?.type === 'Hardware Wallet') {
+      const hwWallet = _wallet as any;
+      
+      // For hardware wallets, check if there's a network mismatch
+      // If mismatch, use the saved network to keep addresses consistent with home screen
+      const walletKey = 'wallet_' + wallet.index;
+      const savedNetwork = walletConfig.getHardwareWalletNetwork(walletKey);
+      const effectiveNetworkType = (savedNetwork && savedNetwork !== networkType) 
+        ? savedNetwork 
+        : networkType;
+      
+      // Fetch addresses sequentially to avoid "Ledger Device is busy" errors
+      // Ledger can only handle one request at a time
+      const addressTypesList = Object.keys(ADDRESS_TYPES)
+        .map(k => ({key: k, value: ADDRESS_TYPES[k]}))
+        .filter(item => item.value.displayIndex >= 0)
+        .sort((a, b) => a.value.displayIndex - b.value.displayIndex);
+      
+      for (const item of addressTypesList) {
+        const v = item.value;
+        // Adjust derivation path for the effective network (saved network if mismatched)
+        const adjustedPath = adjustDerivationPathForNetwork(v.derivationPath, effectiveNetworkType);
+        
+        let pubkey = hwWallet.getAccountByDerivationPath?.(adjustedPath, index);
+        if (!pubkey && hwWallet.ensureAccountForDerivation) {
+          try {
+            pubkey = await hwWallet.ensureAccountForDerivation(adjustedPath, index);
+          } catch (error) {
+            console.error('Failed to fetch Ledger pubkey for', adjustedPath, error);
+            continue;
+          }
+        }
+        if (!pubkey) {
+          continue;
+        }
+        const address = deriveAddressFromPublicKey(pubkey, v.value, effectiveNetworkType);
+        addresses[address] = {addressType: v.value};
       }
     } else {
       for (const k in ADDRESS_TYPES) {
@@ -578,11 +691,39 @@ export class Provider {
       },
       [],
     );
-    if (spendableUtxoInscriptions.length > 0) {
-      return [...utxosWithoutInscription, ...spendableUtxoInscriptions];
-    }
-    return utxosWithoutInscription;
+
+    const finalUtxos =
+      spendableUtxoInscriptions.length > 0
+        ? [...utxosWithoutInscription, ...spendableUtxoInscriptions]
+        : utxosWithoutInscription;
+
+    return finalUtxos;
   };
+
+  private async ensureLedgerLegacyUtxos(utxos: UnspentOutput[]) {
+    const wallet = this.getActiveWallet();
+    if (!wallet) return;
+
+    const isLedger = wallet.type === 'Hardware Wallet';
+    const isLegacy = wallet.addressType === AddressType.P2PKH;
+
+    if (!isLedger || !isLegacy) return;
+
+    await Promise.all(
+      utxos.map(async utxo => {
+        if (utxo.rawTxHex) return;
+
+        const rawWithWitness = await this.mempoolApi.getRawTxHex(utxo.txid);
+        const tx = bitcoin.Transaction.fromHex(rawWithWitness);
+
+        tx.ins.forEach(input => {
+          input.witness = [];
+        });
+
+        utxo.rawTxHex = tx.toBuffer().toString('hex');
+      }),
+    );
+  }
 
   sendBTC = async ({
     to,
@@ -611,7 +752,11 @@ export class Provider {
     if (!btcUtxos || btcUtxos?.length === 0) {
       throw new Error('Insufficient balance.');
     }
-    const { psbt, inputForSigns, outputs, inputs } = await sendBTC({
+
+    await this.ensureLedgerLegacyUtxos(btcUtxos);
+
+    const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+    const {psbt, inputForSigns, outputs, inputs} = await sendBTC({
       btcUtxos: btcUtxos,
       tos: [{ address: to, satoshis: amount }],
       networkType,
@@ -620,11 +765,16 @@ export class Provider {
       pubkey: account.pubkey,
       feeRate,
       enableRBF,
+      isHardwareWallet,
     });
-    this.setPsbtSignNonSegwitEnable(psbt, true);
-    await this.signPsbt(psbt, inputForSigns, true);
-    this.setPsbtSignNonSegwitEnable(psbt, false);
-    return { psbtHex: psbt.toHex(), inputs, outputs, inputForSigns };
+    
+    if (!isHardwareWallet) {
+      this.setPsbtSignNonSegwitEnable(psbt, true);
+      await this.signPsbt(psbt, inputForSigns, true);
+      this.setPsbtSignNonSegwitEnable(psbt, false);
+    }
+    
+    return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
   };
 
   sendOrdinalsInscription = async ({
@@ -668,7 +818,11 @@ export class Provider {
       throw new Error('Insufficient balance.');
     }
 
-    const { psbt, inputForSigns, inputs, outputs } = await sendInscription({
+    await this.ensureLedgerLegacyUtxos([assetUtxo, ...btcUtxos]);
+
+    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
+
+    const {psbt, inputForSigns, inputs, outputs} = await sendInscription({
       assetUtxo,
       btcUtxos,
       toAddress: to,
@@ -679,11 +833,15 @@ export class Provider {
       feeRate,
       outputValue: outputValue || assetUtxo.satoshi,
       enableRBF,
+      isHardwareWallet,
     });
-    this.setPsbtSignNonSegwitEnable(psbt, true);
-    await this.signPsbt(psbt, inputForSigns, true);
-    this.setPsbtSignNonSegwitEnable(psbt, false);
-    return { psbtHex: psbt.toHex(), inputs, outputs, inputForSigns };
+
+    if (!isHardwareWallet) {
+      this.setPsbtSignNonSegwitEnable(psbt, true);
+      await this.signPsbt(psbt, inputForSigns, true);
+      this.setPsbtSignNonSegwitEnable(psbt, false);
+    }
+    return {psbtHex: psbt.toHex(), inputs, outputs, inputForSigns};
   };
 
   sendOrdinalsInscriptions = async ({
@@ -730,7 +888,11 @@ export class Provider {
       throw new Error('Insufficient balance.');
     }
 
-    const { psbt, inputForSigns, inputs, outputs } = await sendInscriptions({
+    await this.ensureLedgerLegacyUtxos([...assetUtxos, ...btcUtxos]);
+
+    const isHardwareWallet = wallet?.type === 'Hardware Wallet';
+
+    const {psbt, inputForSigns, inputs, outputs} = await sendInscriptions({
       assetUtxos,
       btcUtxos,
       toAddress: to,
@@ -740,10 +902,14 @@ export class Provider {
       pubkey: account.pubkey,
       feeRate,
       enableRBF,
+      isHardwareWallet,
     });
-    this.setPsbtSignNonSegwitEnable(psbt, true);
-    await this.signPsbt(psbt, inputForSigns, true);
-    this.setPsbtSignNonSegwitEnable(psbt, false);
+
+    if (!isHardwareWallet) {
+      this.setPsbtSignNonSegwitEnable(psbt, true);
+      await this.signPsbt(psbt, inputForSigns, true);
+      this.setPsbtSignNonSegwitEnable(psbt, false);
+    }
 
     return { psbtHex: psbt.toHex(), inputs, outputs, inputForSigns };
   };
@@ -845,6 +1011,18 @@ export class Provider {
       });
     }
     return inputForSigns;
+  };
+
+  signPsbtFromHex = async (
+    psbtHex: string,
+    inputForSigns: InputForSigning[],
+    autoFinalized: boolean = true,
+  ): Promise<string> => {
+    const networkType = this.getActiveNetwork();
+    const psbtNetwork = getBitcoinNetwork(networkType);
+    const psbt = bitcoin.Psbt.fromHex(psbtHex, {network: psbtNetwork});
+    const signedPsbt = await this.signPsbt(psbt, inputForSigns, autoFinalized);
+    return signedPsbt.toHex();
   };
 
   signPsbt = async (
@@ -977,8 +1155,8 @@ export class Provider {
   };
 
   private _generateAccountName = (type: string, index: number) => {
-    const accountName = `${ACCOUNT_TYPE_TEXT[type]} ${index}`;
-    return accountName;
+    const label = this._getAccountLabel(type);
+    return `${label} ${index}`;
   };
 
   getNextAccountName = (wallet: WalletDisplay) => {
@@ -1465,14 +1643,14 @@ export class Provider {
     };
 
     const msgHash = this._sha256(JSON.stringify(message) + proto.salt);
-    const signature = await secp.signAsync(msgHash, privKeyUint8Array);
-    proto[authType] = message;
-    proto.sig = {
-      v: '' + signature.recovery,
-      r: signature.r.toString(),
-      s: signature.s.toString(),
+      const signature = await secp.signAsync(msgHash, privKeyUint8Array);
+      proto[authType] = message;
+      proto.sig = {
+        v: '' + signature.recovery,
+        r: signature.r.toString(),
+        s: signature.s.toString(),
     };
-    proto.hash = Buffer.from(msgHash).toString('hex');
+      proto.hash = Buffer.from(msgHash).toString('hex');
 
     const test_proto = JSON.parse(JSON.stringify(proto));
     const test_msgHash = this._sha256(
@@ -1526,7 +1704,11 @@ export class Provider {
       if (!proto.salt) return false;
       if (proto.auth === undefined) return false;
       if (!pubKeyHex || typeof pubKeyHex !== 'string') return false;
-      const messageString = JSON.stringify(proto.auth) + proto.salt;
+      const messagePayload = proto.auth ?? proto.redeem ?? proto.cancel ?? proto['auth'];
+      if (!messagePayload) {
+        return false;
+      }
+      const messageString = JSON.stringify(messagePayload) + proto.salt;
       const msgHash = createHash('sha256').update(messageString).digest();
       let rBigInt, sBigInt, recovery;
       try {
@@ -1632,6 +1814,16 @@ export class Provider {
   updateNetworkFilter = (network: 'bitcoin' | 'trac', enabled: boolean, walletIndex?: number) => {
     const activeWalletIndex = walletIndex ?? walletConfig.getActiveWalletIndex() ?? 0;
     networkFilterConfig.updateNetworkFilter(activeWalletIndex, network, enabled);
+  };
+
+  isLedgerConnected = async (): Promise<boolean> => {
+    try {
+      const ledgerService = getLedgerService();
+      const status = await ledgerService.getStatus();
+      return status.connected;
+    } catch (error) {
+      return false;
+    }
   };
 }
 

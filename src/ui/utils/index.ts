@@ -289,3 +289,16 @@ export const isLegacyPin = (value: string): boolean => {
   const trimmed = value.trim();
   return /^\d{4}$/.test(trimmed);
 };
+
+// Check if there are any wallets with accounts
+export const hasWalletsWithAccounts = async (wallet: any): Promise<boolean> => {
+  try {
+    const wallets = await wallet.getWallets();
+    return wallets?.some(
+      wallet => wallet?.accounts && wallet.accounts.length > 0,
+    ) ?? false;
+  } catch (error) {
+    console.error('[hasWalletsWithAccounts] Error checking wallets:', error);
+    return false;
+  }
+};

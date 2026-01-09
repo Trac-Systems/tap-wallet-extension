@@ -27,7 +27,7 @@ import {SVG} from '@/src/ui/svg';
 import { debounce } from 'lodash';
 import { useRef } from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useFetchUtxosCallback} from '@/src/ui/pages/send-receive/hook';
+import {useFetchUtxosCallback, useHardwareWalletMismatch} from '@/src/ui/pages/send-receive/hook';
 
 interface ListWalletsProps {
   networkFilters?: {bitcoin: boolean; trac: boolean};
@@ -53,9 +53,12 @@ const ListWallets = (props: ListWalletsProps) => {
   const fetchUtxos = useFetchUtxosCallback();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoadingUtxo, setIsLoadingUtxo] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const retryCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  
+  // Check if hardware wallet is mismatched
+  const {isMismatched, expectedNetwork} = useHardwareWalletMismatch();
   const positionSlider = useMemo(() => {
     if (!isEmpty(listWallets) || !activeWallet.key)
       return listWallets.findIndex(wallet => wallet.key === activeWallet.key);
@@ -121,6 +124,38 @@ const ListWallets = (props: ListWalletsProps) => {
       clearTimeout(timeoutRef.current);
     }
   }, [activeWallet.key]);
+
+  // Track initial load completion
+  useEffect(() => {
+    if (listWallets.length > 0) {
+      setIsInitialLoad(false);
+    } else {
+      // Set timeout to mark as loaded even if no wallets found
+      const timer = setTimeout(() => {
+        setIsInitialLoad(false);
+      }, 3000); // Wait 3 seconds for accounts to load
+      return () => clearTimeout(timer);
+    }
+  }, [listWallets.length]);
+
+  // Handle case where positionSlider is -1 but wallets exist
+  useEffect(() => {
+    if (!isInitialLoad && positionSlider === -1 && listWallets.length > 0 && activeWallet.key) {
+      // Try to find wallet by key or set first wallet as active
+      const foundWallet = listWallets.find(w => w.key === activeWallet.key);
+      if (foundWallet) {
+        wallet.setActiveWallet(foundWallet).then(() => {
+          dispatch(WalletActions.setActiveWallet(foundWallet));
+        });
+      } else if (listWallets.length > 0) {
+        // If activeWallet not found in list, set first wallet as active
+        const firstWallet = listWallets[0];
+        wallet.setActiveWallet(firstWallet).then(() => {
+          dispatch(WalletActions.setActiveWallet(firstWallet));
+        });
+      }
+    }
+  }, [isInitialLoad, positionSlider, listWallets, activeWallet.key, wallet, dispatch]);
   
   const handleOpenDrawerEdit = () => setOpenDrawerEditWallet(true);
   const handleOpenDrawerAccount = () => setDrawerAccount(true);
@@ -155,11 +190,40 @@ const ListWallets = (props: ListWalletsProps) => {
     }
   };
 
+  // Auto-scroll to active wallet after reload
+  useEffect(() => {
+    if (swiperInstance && positionSlider >= 0 && listWallets.length > 0) {
+      // Use setTimeout to ensure Swiper is fully initialized
+      const timer = setTimeout(() => {
+        swiperInstance.slideTo(positionSlider, 0); // 0 = no animation
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [swiperInstance, positionSlider, listWallets.length]);
+
   const tracAddress = useActiveTracAddress();
   const hasTrac = !!tracAddress;
 
   //! Render
-  if (listWallets.length === 0 || positionSlider === -1) {
+  // Show loading only during initial load
+  if (isInitialLoad && (listWallets.length === 0 || positionSlider === -1)) {
+    return (
+      <UX.Box
+        layout="column_center"
+        style={{height: '30vh', position: 'relative'}}>
+        <Loading />
+      </UX.Box>
+    );
+  }
+
+  // If loaded but no wallets, redirect to start screen
+  if (!isInitialLoad && listWallets.length === 0) {
+    navigate('/', {replace: true});
+    return null;
+  }
+
+  // If loaded but positionSlider is -1, show loading while fixing
+  if (!isInitialLoad && positionSlider === -1 && listWallets.length > 0) {
     return (
       <UX.Box
         layout="column_center"
@@ -213,11 +277,32 @@ const ListWallets = (props: ListWalletsProps) => {
             className="groupBox"
             role="button"
             tabIndex={0}
-            onClick={() => setOpenSelectToken(true)}
+            onClick={() => {
+              if (isMismatched) {
+                showToast({
+                  title: 'Please reconnect Ledger and sync network before sending.',
+                  type: 'error',
+                });
+                return;
+              }
+              setOpenSelectToken(true);
+            }}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
+                if (isMismatched) {
+                  showToast({
+                    title: 'Please reconnect Ledger and sync network before sending.',
+                    type: 'error',
+                  });
+                  return;
+                }
                 setOpenSelectToken(true);
               }
+            }}
+            style={{
+              opacity: isMismatched ? 0.8 : 1,
+              cursor: isMismatched ? 'not-allowed' : 'pointer',
+              pointerEvents: isMismatched ? 'none' : 'auto',
             }}
           >
             <SVG.ArrowSendIcon />

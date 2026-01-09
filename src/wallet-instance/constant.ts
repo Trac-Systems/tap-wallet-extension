@@ -83,3 +83,17 @@ export const RestoreTypes = {
   MNEMONIC: 'recovery',
   PRIVATE_KEY: 'private',
 };
+
+export function adjustDerivationPathForNetwork(path: string, network: Network): string {
+  const wantCoinType = network === Network.TESTNET ? "1'" : "0'";
+  const parts = path.split('/');
+  if (parts.length >= 2) {
+    // parts[0] = "m" or "m'", parts[1] = coin_type' (e.g., "0'" or "1'")
+    const coin = parts[1]?.replace(/'/g, '');
+    if (coin !== undefined && (coin === '0' || coin === '1')) {
+      parts[1] = wantCoinType;
+    }
+    return parts.join('/');
+  }
+  return path;
+}

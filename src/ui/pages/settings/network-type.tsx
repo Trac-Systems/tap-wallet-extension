@@ -9,6 +9,7 @@ import {useCustomToast} from '../../component/toast-custom';
 import {useReloadAccounts} from '../home-flow/hook';
 import {Network} from '@/src/wallet-instance';
 import {useChangeNetworkCallback} from './hooks';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 
 const NetWorkType = () => {
   //! State
@@ -17,6 +18,7 @@ const NetWorkType = () => {
   const changeNetworkType = useChangeNetworkCallback();
   const {showToast} = useCustomToast();
   const reloadAccounts = useReloadAccounts();
+  const walletProvider = useWalletProvider();
 
   //! Function
   const handleChangeNetwork = async (network: Network) => {
@@ -26,10 +28,21 @@ const NetWorkType = () => {
     try {
       await changeNetworkType(network);
       reloadAccounts();
+
+      const remainingWallets = await walletProvider.getWallets();
+
       showToast({
         title: 'Network changed successfully',
         type: 'success',
       });
+
+      // If no wallets remain, navigate to start screen
+      if (remainingWallets.length === 0) {
+        navigate('/');
+        return;
+      }
+
+      // Otherwise navigate to home
       navigate('/home');
     } catch {
       showToast({

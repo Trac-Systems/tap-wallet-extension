@@ -4,6 +4,7 @@ import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
 import {useAppSelector} from '@/src/ui/utils';
@@ -31,6 +32,8 @@ const ListTapOptions = () => {
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
   const [loading, setLoading] = useState(false);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isLedgerWallet = activeWallet.type === 'Hardware Wallet';
   const [deployInscriptionState, setDeployInscription] =
     useState<Inscription>();
   const [tokenSummary, setTokenSummary] = useState<AddressTokenSummary>({
@@ -165,7 +168,7 @@ const ListTapOptions = () => {
 
   const tokens = currentAuthority?.auth || [];
   const isExistToken = tokens?.includes(id);
-  const isValidToken = currentAuthority && (!tokens.length || isExistToken);  
+  const isValidToken = currentAuthority && !isLedgerWallet && (!tokens.length || isExistToken);  
 
   //! Render
   return (

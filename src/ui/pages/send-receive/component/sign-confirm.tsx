@@ -465,7 +465,48 @@ const SignConfirm = ({
                 });
                 return;
               }
-              
+
+              // For Ledger wallet: skip tx-security screen (no wallet-auth needed)
+              // Navigate directly to result screen after broadcast
+              if (isHardwareWallet && (type === TxType.INSCRIBE_TAP || type === TxType.TAPPING)) {
+                try {
+                  const spendUtxos = rawTxInfo.inputs.map(input => input.utxo);
+                  const txid = await wallet.pushTx(finalRawtx, spendUtxos);
+
+                  // Transaction broadcast successful
+                  // Skip paidOrder/tappingOrder for Ledger (no wallet-auth)
+                  if (type === TxType.INSCRIBE_TAP) {
+                    navigate('/home/inscribe-result', {
+                      state: {
+                        order,
+                        tokenBalance,
+                        txid,
+                      },
+                    });
+                  } else if (type === TxType.TAPPING) {
+                    navigate('/home/send-success', {state: {txid}});
+                  }
+                } catch (error: any) {
+                  // Transaction broadcast failed
+                  showToast({
+                    title: error?.message || 'Failed to broadcast transaction',
+                    type: 'error',
+                  });
+
+                  if (type === TxType.INSCRIBE_TAP) {
+                    navigate('/home/inscribe-result', {
+                      state: {error: error?.message || 'Failed to broadcast transaction'},
+                    });
+                  } else if (type === TxType.TAPPING) {
+                    navigate('/home/send-fail', {
+                      state: {error: error?.message || 'Failed to broadcast transaction'},
+                    });
+                  }
+                }
+                return;
+              }
+
+              // For soft wallets: go through tx-security screen
               navigate('/home/tx-security', {
                 state: {
                   rawtx: finalRawtx,

@@ -49,10 +49,23 @@ browser.runtime.onConnect.addListener(port => {
       if (account) {
         const pendingOrders = walletProvider.getAccountPendingOrders();
         console.log('pendingOrders', pendingOrders);
+
+        // Check wallet type to decide if we should cancel orders
+        const activeWallet = walletProvider.getActiveWallet();
+        const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+
         // cancel pending orders
         for (const orderId of pendingOrders) {
           try {
-            await walletProvider.cancelOrder(orderId);
+            if (isHardwareWallet) {
+              // For Ledger: skip cancelOrder API call (would require wallet-auth signing)
+              // Just remove from local pending list
+              walletProvider.removeAccountPendingOrder(orderId);
+              console.log('Skipped cancelOrder for Ledger wallet (orderId:', orderId, ')');
+            } else {
+              // For soft wallets: cancel normally
+              await walletProvider.cancelOrder(orderId);
+            }
           } catch (error) {
             console.log('cancel order error', error);
           }

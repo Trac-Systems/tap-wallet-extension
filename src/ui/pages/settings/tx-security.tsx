@@ -10,8 +10,6 @@ import {useCustomToast} from '../../component/toast-custom';
 import {isValidAuthInput, useAppSelector, useAppDispatch} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {GlobalActions} from '../../redux/reducer/global/slice';
-import {WalletSelector} from '../../redux/reducer/wallet/selector';
-import {ledgerSignManager} from '../../utils/ledger-sign-manager';
 import {
   usePushBitcoinTxCallback,
   usePushOrdinalsTxCallback,
@@ -47,19 +45,8 @@ const TxSecurity = () => {
   const [autoProcessing, setAutoProcessing] = useState(false);
   const {showToast} = useCustomToast();
   const [loading, setLoading] = useState(false);
-  const [isLedgerSigning, setIsLedgerSigning] = useState(false);
   const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
-  const activeWallet = useAppSelector(WalletSelector.activeWallet);
-  const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
   const dispatch = useAppDispatch();
-  const showLedgerFinalizeCopy =
-    isHardwareWallet && (type === TxType.INSCRIBE_TAP || type === TxType.TAPPING);
-  const unlockedTitle = showLedgerFinalizeCopy
-    ? 'Finalize Transaction'
-    : 'Confirm Transaction';
-  const unlockedDescription = showLedgerFinalizeCopy
-    ? 'Your signature has been processed! Please confirm the wallet-auth message on your Ledger to finalize the transaction.'
-    : 'Wallet is unlocked. Click confirm to proceed with the transaction.';
 
   //! Function
   const checkUserType = async () => {
@@ -145,44 +132,13 @@ const TxSecurity = () => {
           try {
             const {success, error, txid} = await pushBitcoinTx(rawtx, spendUtxos);
             if (success && order?.id) {
-              let paid = false;
-              try {
-                if (isHardwareWallet) {
-                  setIsLedgerSigning(true);
-                  ledgerSignManager.show();
-                }
-                await wallet.paidOrder(order.id);
-                paid = true;
-              } catch (err: any) {
-                if (
-                  err?.message?.toLowerCase?.().includes('denied') ||
-                  err?.message?.toLowerCase?.().includes('rejected')
-                ) {
-                  showToast({
-                    title: 'Ledger message signing was rejected.',
-                    type: 'error',
-                  });
-                  navigate('/home/inscribe-result', {
-                    state: {error: 'Ledger message signing was rejected.'},
-                  });
-                  return;
-                }
-                throw err;
-              } finally {
-                if (isHardwareWallet) {
-                  ledgerSignManager.hide();
-                  setIsLedgerSigning(false);
-                }
-              }
-
+              await wallet.paidOrder(order.id);
               navigate('/home/inscribe-result', {
-                state: paid
-                  ? {
-                      order,
-                      tokenBalance,
-                      txid,
-                    }
-                  : {error: 'Ledger message signing failed.'},
+                state: {
+                  order,
+                  tokenBalance,
+                  txid,
+                },
               });
             } else {
               if (order?.id) {
@@ -193,11 +149,7 @@ const TxSecurity = () => {
               });
             }
           } catch (e: any) {
-            if (
-              order?.id &&
-              !e?.message?.toLowerCase?.().includes('denied') &&
-              !e?.message?.toLowerCase?.().includes('rejected')
-            ) {
+            if (order?.id) {
               await wallet.cancelOrder(order.id);
             }
             showToast({
@@ -214,18 +166,7 @@ const TxSecurity = () => {
             spendUtxos,
           );
           if (success && order?.id) {
-            try {
-              if (isHardwareWallet) {
-                setIsLedgerSigning(true);
-                ledgerSignManager.show();
-              }
-              await wallet.tappingOrder(order.id);
-            } finally {
-              if (isHardwareWallet) {
-                ledgerSignManager.hide();
-                setIsLedgerSigning(false);
-              }
-            }
+            await wallet.tappingOrder(order.id);
             navigate('/home/send-success', {state: {txid}});
           } else {
             navigate('/home/send-fail', {state: {error}});
@@ -275,7 +216,7 @@ const TxSecurity = () => {
   }, [valueInput, isLegacyUser, isUnlocked]);
 
   //! Render
-  if ((loading || autoProcessing) && !isLedgerSigning) {
+  if (loading || autoProcessing) {
     return <UX.Loading />;
   }
 
@@ -286,7 +227,7 @@ const TxSecurity = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title={isUnlocked ? unlockedTitle : (isLegacyUser ? "PIN" : "Password")}
+            title={isUnlocked ? "Confirm Transaction" : (isLegacyUser ? "PIN" : "Password")}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
@@ -294,7 +235,7 @@ const TxSecurity = () => {
           />
           <UX.Text
             title={isUnlocked 
-              ? unlockedDescription 
+              ? "Wallet is unlocked. Click confirm to proceed with the transaction." 
               : (isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction")
             }
             styleType="body_16_normal"

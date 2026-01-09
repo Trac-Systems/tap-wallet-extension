@@ -168,7 +168,7 @@ const ListTapOptions = () => {
 
   const tokens = currentAuthority?.auth || [];
   const isExistToken = tokens?.includes(id);
-  const isValidToken = currentAuthority && (!tokens.length || isExistToken);  
+  const isValidToken = currentAuthority && !isLedgerWallet && (!tokens.length || isExistToken);  
 
   //! Render
   return (
@@ -203,25 +203,23 @@ const ListTapOptions = () => {
             </UX.Box>
             {isValidToken && (
               <>
-                {!isLedgerWallet && (
-                  <UX.Box layout="row" spacing="xl">
-                    <UX.Button
-                      title={'1-TX Transfer'}
-                      isDisable={!enableTransfer}
-                      onClick={() => {
-                        navigate('/transfer-authority', {
-                          state: {ticker: id},
-                        });
-                      }}
-                      svgIcon={
-                        <SVG.TransferIcon color="white" width={20} height={20} />
-                      }
-                      styleType="primary"
-                      withIcon
-                      customStyles={{flex: 1, flexDirection: 'row-reverse'}}
-                    />
-                  </UX.Box>
-                )}
+                <UX.Box layout="row" spacing="xl">
+                  <UX.Button
+                    title={'1-TX Transfer'}
+                    isDisable={!enableTransfer}
+                    onClick={() => {
+                      navigate('/transfer-authority', {
+                        state: {ticker: id},
+                      });
+                    }}
+                    svgIcon={
+                      <SVG.TransferIcon color="white" width={20} height={20} />
+                    }
+                    styleType="primary"
+                    withIcon
+                    customStyles={{flex: 1, flexDirection: 'row-reverse'}}
+                  />
+                </UX.Box>
                 <UX.Text
                   onClick={handleNavigate}
                   title="Use Native Transfer"

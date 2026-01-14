@@ -159,9 +159,7 @@ const ChooseAddressType = () => {
             {addressTypes.map(item => {
               const address = addressTypeMap?.[item.value] ?? '';
               const assets = addressAssets[address];
-              const hasVault = Boolean(
-                assets?.satoshis && assets?.satoshis > 0,
-              );
+              const hasVault = parseFloat(assets?.totalBtc || '0') > 0;
 
               return (
                 <UX.CardAddress

@@ -3,6 +3,7 @@ import { UX } from '@/src/ui/component';
 import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 import { InscriptionSelector } from '@/src/ui/redux/reducer/inscription/selector';
+import { WalletSelector } from '@/src/ui/redux/reducer/wallet/selector';
 import { SVG } from '@/src/ui/svg';
 import {
   generateUniqueColors,
@@ -21,6 +22,7 @@ import { debounce, isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions, useActiveTracAddress, useTracBalances, useIsTracSingleWallet } from '../hook';
+import { useHardwareWalletMismatch } from '@/src/ui/pages/send-receive/hook';
 import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
 
@@ -44,6 +46,8 @@ const TapListChild = (props: TapListChildProps) => {
   const tapList = useAppSelector(InscriptionSelector.listTapToken);
   const totalTapToken = useAppSelector(InscriptionSelector.totalTap);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
+  const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const isLedgerWallet = activeWallet.type === 'Hardware Wallet';
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const tracAddress = useActiveTracAddress();
   const { total: tracBalance } = useTracBalances(tracAddress || undefined);
@@ -67,6 +71,7 @@ const TapListChild = (props: TapListChildProps) => {
   const [allTapToken, setAllTapToken] = useState<TokenBalance[]>([]);
   const [hasLoadedAllTokens, setHasLoadedAllTokens] = useState(false);
   const [isLoadingAllTokens, setIsLoadingAllTokens] = useState(false);
+  const {isMismatched, expectedNetwork} = useHardwareWalletMismatch();
 
   const currentAccountRef = useRef<string>('');
 
@@ -313,13 +318,14 @@ const TapListChild = (props: TapListChildProps) => {
           </UX.Box>
         </UX.Box>
 
-        {currentAuthority ? (
+        {currentAuthority && !isLedgerWallet && (
           <UX.Button
             styleType={'primary'}
             title="1-TX Transfer"
             onClick={() => navigate('/transfer-authority')}
           />
-        ) : (
+        )}
+        {!currentAuthority && !isLedgerWallet && (
           <UX.Box
             layout="box_border"
             style={{ cursor: 'pointer' }}
@@ -377,7 +383,11 @@ const TapListChild = (props: TapListChildProps) => {
               </UX.Box>
 
               <UX.Text
-                title={`${balanceValue}`}
+                title={
+                  isMismatched && expectedNetwork
+                    ? '0'
+                    : `${balanceValue}`
+                }
                 styleType="body_16_normal"
                 customStyles={{ color: 'white' }}
               />

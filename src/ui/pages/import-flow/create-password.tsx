@@ -33,6 +33,34 @@ const CreatePassWord = () => {
   });
   const {showToast} = useCustomToast();
   const [disabled, setDisabled] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Check if app already has password and is unlocked, redirect if needed
+  useEffect(() => {
+    const checkPasswordStatus = async () => {
+      try {
+        const hasWallet = await walletProvider.hasWallet();
+        const isUnlocked = await walletProvider.isUnlocked();
+        
+        if (hasWallet && isUnlocked) {
+          if (check === 'isImport') {
+            navigate('/restore-wallet-option', {replace: true});
+            return;
+          }
+          if (check === 'isLedger') {
+            navigate('/connect-ledger', {replace: true});
+            return;
+          }
+          navigate('/', {replace: true});
+          return;
+        }
+        setIsChecking(false);
+      } catch (error) {
+        setIsChecking(false);
+      }
+    };
+    checkPasswordStatus();
+  }, [walletProvider, navigate, check]);
 
   //! Function
   const handleGoBack = () => {
@@ -76,6 +104,11 @@ const CreatePassWord = () => {
         navigate('/restore-wallet-option');
         return;
       }
+      if (check === 'isLedger') {
+        // Navigate to connect ledger screen after password is set
+        navigate('/connect-ledger');
+        return;
+      }
       navigate('/note-step');
     }
   };
@@ -113,6 +146,11 @@ const CreatePassWord = () => {
   }, [valueInput, contextData.password2, contextData.isStepSetPin]);
 
   //! Render
+  // Show loading while checking password status
+  if (isChecking) {
+    return <UX.Loading />;
+  }
+
   return (
     <LayoutScreenImport
       header={<UX.TextHeader onBackClick={handleGoBack} />}

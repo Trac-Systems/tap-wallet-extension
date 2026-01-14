@@ -2,7 +2,7 @@ import {ObservableStore} from '@metamask/obs-store';
 import {ISignTxInput} from '../../wallet-instance/transactions';
 import {bitcoin} from '../utils/bitcoin-core';
 import * as bip39 from 'bip39';
-import {HDWallet, SingleWallet} from '../../wallet-instance/keychain';
+import {HDWallet, SingleWallet, LedgerWallet} from '../../wallet-instance/keychain';
 import {isEmpty} from 'lodash';
 import {
   ADDRESS_TYPES,
@@ -54,7 +54,8 @@ export class PublicWallet {
     this.accounts = wallet.accounts || [];
     this.type = wallet.type;
     this.addressType = '';
-    this.derivationPath = (wallet as any).derivationPath;
+    // HD Wallet uses 'derivationPath', LedgerWallet uses 'derivationRoot'
+    this.derivationPath = (wallet as any).derivationPath || (wallet as any).derivationRoot || '';
     this.getAccounts = () => {
       return wallet.retrievePublicKeys();
     };
@@ -163,6 +164,12 @@ export class WalletService {
     if (type === 'Single Wallet') {
       wallet = new SingleWallet(options);
     }
+    if (type === 'Hardware Wallet') {
+      wallet = new LedgerWallet(options);
+      if (wallet.initializeRoot) {
+        await wallet.initializeRoot(options);
+      }
+    }
     return wallet;
   }
 
@@ -226,6 +233,48 @@ export class WalletService {
     return wallet;
   }
 
+  async createWalletFromLedger(
+    derivationPath: string,
+    addressType: AddressType,
+    accountNum: number,
+    allPubkeys?: Array<{derivationPath: string; pubkey: string}>,
+  ): Promise<IWallet> {
+    if (accountNum < 1) {
+      throw new Error('account count must be greater than 0');
+    }
+    const activeIndexes: number[] = [];
+    for (let i = 0; i < accountNum; i++) {
+      activeIndexes.push(i);
+    }
+    const wallet = await this._addNewWallet(
+      'Hardware Wallet',
+      {
+        derivationPath,
+        activeIndexes,
+      },
+      addressType,
+    );
+    let pubkeys = wallet.retrievePublicKeys();
+    if (!pubkeys?.length && (wallet as any).activateAccounts) {
+      // Retry activation explicitly in case first hardware call was delayed
+      await (wallet as any).activateAccounts(activeIndexes);
+      pubkeys = wallet.retrievePublicKeys();
+    }
+    if (!pubkeys?.length) {
+      throw new Error(
+        'Ledger is not ready. Please unlock device, open Bitcoin app, approve connection, then try again.',
+      );
+    }
+
+    // Cache all pubkeys for all address types to avoid reconnecting Ledger when switching address types
+    if (allPubkeys && (wallet as any).cachePubkeysForAllPaths) {
+      (wallet as any).cachePubkeysForAllPaths(allPubkeys);
+    }
+
+    await this._storeWallets();
+    return wallet;
+  }
+
   removeWallet = async (walletIndex: number) => {
     this.wallets[walletIndex] = null;
     await this._storeWallets();
@@ -267,7 +316,7 @@ export class WalletService {
 
   async changeAddressType(walletIndex: number, addressType: AddressType) {
     const wallet: IWallet = this.wallets[walletIndex];
-    if (wallet.type === WALLET_TYPE.HdWallet) {
+    if (wallet.type === WALLET_TYPE.HdWallet || wallet.type === 'Hardware Wallet') {
       const derivationPath = ADDRESS_TYPES[addressType].derivationPath;
       if (
         (wallet as any).derivationPath !== derivationPath &&
@@ -294,6 +343,12 @@ export class WalletService {
     }
     if (type === 'Single Wallet') {
       wallet = new SingleWallet(options);
+    }
+    if (type === 'Hardware Wallet') {
+      wallet = new LedgerWallet(options);
+      if (wallet.initializeRoot) {
+        await wallet.initializeRoot(options);
+      }
     }
     const accounts = await wallet.retrievePublicKeys();
     this._checkDuplicate(wallet.type, accounts);
@@ -372,6 +427,15 @@ export class WalletService {
     }
     if (type === 'Single Wallet') {
       wallet = new SingleWallet(data);
+    }
+    if (type === 'Hardware Wallet') {
+      wallet = new LedgerWallet(data);
+      if (Array.isArray(data?.activeIndexes)) {
+        (wallet as LedgerWallet).activeIndexes = data.activeIndexes;
+      }
+      if (Array.isArray(data?.pubkeys)) {
+        (wallet as LedgerWallet).hydrateCachedPubkeys(data.pubkeys, data.allPubkeys);
+      }
     }
 
     wallet?.retrievePublicKeys();

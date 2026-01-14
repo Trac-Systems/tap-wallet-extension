@@ -5,8 +5,9 @@ import {useNavigate} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useIsTabOpen, useOpenInTab} from '../../browser';
-import {getUiType} from '../../utils';
+import {getUiType, hasWalletsWithAccounts} from '../../utils';
 import {useApproval} from '../approval/hook';
+import browser from 'webextension-polyfill';
 
 const StartScreen = () => {
   //! State
@@ -43,7 +44,10 @@ const StartScreen = () => {
     }
 
     if (isUnlocked && !isInNotification) {
-      navigate('/home');
+      const hasWallets = await hasWalletsWithAccounts(wallet);
+      if (hasWallets) {
+        navigate('/home');
+      }
       return;
     }
     if (hasWallet && !isUnlocked) {
@@ -68,6 +72,18 @@ const StartScreen = () => {
   //! Function
   const handleCreateWallet = (check: string) => {
     navigate(`/create-password?check=${check}`);
+  };
+
+  const handleConnectLedger = async () => {
+    const _isTabOpen = await isTabOpen();
+    
+    if (_isTabOpen) {
+      navigate('/create-password?check=isLedger');
+    } else {
+      const url = browser.runtime.getURL('index.html#/create-password?check=isLedger');
+      await browser.tabs.create({url});
+      window.close();
+    }
   };
 
   //! Render
@@ -103,6 +119,11 @@ const StartScreen = () => {
             styleType="dark"
             title="Restore Existing Wallet"
             onClick={() => handleCreateWallet('isImport')}
+          />
+          <UX.Button
+            styleType="dark"
+            title="Connect Ledger Hardware Wallet"
+            onClick={handleConnectLedger}
           />
         </UX.Box>
       }

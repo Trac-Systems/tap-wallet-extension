@@ -22,12 +22,15 @@ import {colors} from '../../themes/color';
 import SpendableContainRuneAttentionModal from '@/src/ui/pages/home-flow/components/spendable-cotain-rune-attention-modal';
 import InscriptionList from './components/Inscription';
 import {useAutoLock} from '../../hook/use-auto-lock';
+import {useIsTabOpen} from '../../browser';
+import browser from 'webextension-polyfill';
 
 const Home = () => {
   //! Hooks
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
+  const isTabOpen = useIsTabOpen();
   const {getTapList, getInscriptionList} = useInscriptionHook();
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
@@ -189,9 +192,20 @@ const Home = () => {
     dispatch(GlobalActions.update({showPasswordUpdateModal: false, currentPassword: ''}));
     // Clear modal state
   };
-  const handleCreateWallet = (check: string) => {
+  const handleCreateWallet = async (check: string) => {
     if (check === 'isImport') {
       navigate('/restore-wallet-option');
+      return;
+    }
+    if (check === 'isConnectLedger') {
+      const _isTabOpen = await isTabOpen();
+      if (_isTabOpen) {
+        navigate('/connect-ledger');
+      } else {
+        const url = browser.runtime.getURL('index.html#/connect-ledger');
+        await browser.tabs.create({url});
+        window.close();
+      }
       return;
     }
     navigate('/note-step');
@@ -360,7 +374,13 @@ const Home = () => {
               <UX.Button
                 title="Import Existing Wallet"
                 styleType="dark"
+                customStyles={{marginBottom: '16px'}}
                 onClick={() => handleCreateWallet('isImport')}
+              />
+              <UX.Button
+                title="Connect Ledger Hardware Wallet"
+                styleType="dark"
+                onClick={() => handleCreateWallet('isConnectLedger')}
               />
             </UX.Box>
           </UX.DrawerCustom>

@@ -207,10 +207,39 @@ const MaxLengthInput: React.FC<MaxLengthInputProps> = ({
 }) => {
   const [valueInput, setValueInput] = useState<string>(String(value ?? ''));
 
+  // Sync internal state when prop value changes
+  useEffect(() => {
+    if (value !== undefined) {
+      setValueInput(String(value));
+    }
+  }, [value]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValueInput(e.target.value);
-    if (props.onChange) {
-      props.onChange(e);
+    const newValue = e.target.value;
+    // Enforce maxLength constraint
+    if (newValue.length <= maxLength) {
+      setValueInput(newValue);
+      if (props.onChange) {
+        props.onChange(e);
+      }
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const currentValue = String(value ?? valueInput);
+    const selectionStart = e.currentTarget.selectionStart ?? 0;
+    const selectionEnd = e.currentTarget.selectionEnd ?? 0;
+
+    // Calculate what the new value would be after paste
+    const newValue =
+      currentValue.slice(0, selectionStart) +
+      pastedText +
+      currentValue.slice(selectionEnd);
+
+    // If paste would exceed maxLength, prevent it
+    if (newValue.length > maxLength) {
+      e.preventDefault();
     }
   };
 
@@ -227,6 +256,7 @@ const MaxLengthInput: React.FC<MaxLengthInputProps> = ({
         value={value ?? valueInput}
         maxLength={maxLength}
         onChange={handleChange}
+        onPaste={handlePaste}
         style={{
           ...baseStyleInput,
           flex: 1,

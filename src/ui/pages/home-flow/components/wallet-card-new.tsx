@@ -1,15 +1,17 @@
 import {useMemo, useRef, useState, useEffect} from 'react';
 import {UX} from '@/src/ui/component';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
+import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
+import {WalletActions} from '@/src/ui/redux/reducer/wallet/slice';
 import {SVG} from '@/src/ui/svg';
-import {useAppSelector} from '@/src/ui/utils';
+import {useAppSelector, useAppDispatch} from '@/src/ui/utils';
+import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
-import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {formatNumberValue} from '@/src/shared/utils/btc-helper';
 
 interface IWalletCardNewProps {
@@ -23,6 +25,8 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
   //! State
   const {keyring, handleOpenDrawerEdit, handleOpenDrawerAccount, isLoadingUtxo} = props;
   const ref = useRef<HTMLDivElement>(null);
+  const wallet = useWalletProvider();
+  const dispatch = useAppDispatch();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
   const networkType = useAppSelector(GlobalSelector.networkType);
@@ -36,7 +40,6 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
 
   const {address} = activeAccount;
   const isActive = keyring.key === activeWallet.key;
-  const wallet = useWalletProvider();
 
   // TRAC balances
   const tracAddress = useActiveTracAddress();
@@ -169,8 +172,15 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                   title="View TRAC History"
                 />
                 <UX.Text
-                  onClick={() => {
+                  onClick={async () => {
                     setMenuOpen(false);
+                    // Set active wallet if this card is not already active
+                    if (keyring.key !== activeWallet.key) {
+                      await wallet.setActiveWallet(keyring);
+                      dispatch(WalletActions.setActiveWallet(keyring));
+                      const _activeAccount = await wallet.getActiveAccount();
+                      dispatch(AccountActions.setActiveAccount(_activeAccount));
+                    }
                     handleOpenDrawerEdit?.();
                   }}
                   styleType="body_14_bold"

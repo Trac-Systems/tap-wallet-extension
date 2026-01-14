@@ -38,9 +38,8 @@ const ModalEditWallet = (props: IModalEditWalletProps) => {
   };
 
   useEffect(() => {
-    if (walletName === '') {
-      setWalletName(activeWallet?.name);
-    }
+    // Always update wallet name when activeWallet changes
+    setWalletName(activeWallet?.name ?? '');
   }, [activeWallet?.name]);
 
   //! Render

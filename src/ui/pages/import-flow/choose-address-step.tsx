@@ -382,9 +382,7 @@ const ChooseAddress = () => {
                   '/0';
                 const address = previewAddresses?.[index] ?? '';
                 const assets = addressAssets[address];
-                const hasVault = Boolean(
-                  assets?.satoshis && assets?.satoshis > 0,
-                );
+                const hasVault = parseFloat(assets?.totalBtc || '0') > 0;
 
                 return (
                   <UX.CardAddress

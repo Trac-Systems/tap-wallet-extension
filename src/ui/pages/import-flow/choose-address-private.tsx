@@ -173,9 +173,7 @@ const ChooseAddressPrivate = () => {
               {derivationPathOptions.map((item, index) => {
                 const address = previewAddresses[index];
                 const assets = addressAssets[address];
-                const hasVault = Boolean(
-                  assets?.satoshis && assets?.satoshis > 0,
-                );
+                const hasVault = parseFloat(assets?.totalBtc || '0') > 0;
                 return (
                   <UX.CardAddress
                     key={index}

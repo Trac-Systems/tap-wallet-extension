@@ -7,6 +7,7 @@ import {SVG} from '@/src/ui/svg';
 import {useAppSelector} from '@/src/ui/utils';
 import {AddressTokenSummary} from '@/src/wallet-instance';
 import React, {useMemo, useRef, useState} from 'react';
+import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 interface TapBalanceItemProps {
   ticker: string;
@@ -28,18 +29,33 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
   const tokenInfoMap = useAppSelector(state => state.inscriptionReducer.tokenInfoMap);
   const tokenInfo = tokenInfoMap[ticker];
   const decimal = tokenInfo?.dec;
+
   const balance = useMemo(() => {
     if (!tokenInfo || !overallBalance || decimal === undefined) {
       return null;
     }
-    
+
     const balanceNumber = parseFloat(overallBalance);
     if (isNaN(balanceNumber)) {
       return null;
     }
-    
+
     return formatNumberValue(calculateAmount(overallBalance, decimal));
   }, [overallBalance, decimal]);
+
+  const balanceNumeric = useMemo(() => {
+    if (!tokenInfo || !overallBalance || decimal === undefined) {
+      return 0;
+    }
+    const calculated = calculateAmount(overallBalance, decimal);
+    return parseFloat(calculated);
+  }, [overallBalance, decimal, tokenInfo]);
+
+  // Use custom hook for USD price fetching
+  const { usdValue, isLoading: isLoadingUsd, isSupported } = useTokenUSDPrice({
+    ticker,
+    amount: balanceNumeric,
+  });
 
  
 
@@ -109,12 +125,13 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
         cursor: 'pointer',
         borderRadius: '10px',
       }}>
-      <UX.Box layout="row_between" style={{width: '100%'}}>
+      <UX.Box layout="row" style={{width: '100%', alignItems: 'center'}}>
         <UX.Box
           layout="row"
           style={{
             justifyItems: 'center',
             alignItems: 'center',
+            flex: 1,
           }}>
           <UX.Box
             layout="row"
@@ -144,34 +161,61 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           </UX.Tooltip>
         </UX.Box>
 
-        <UX.Tooltip text={balance ?? ''} isText>
+        <UX.Box layout="row" style={{alignItems: 'center'}}>
+          {!balance ? (
+            <UX.Box style={{alignItems: 'flex-end'}}>
+              <span style={{width: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}>
+                <SVG.LoadingIcon />
+              </span>
+            </UX.Box>
+          ) : (
+            <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+              <UX.Tooltip text={balance ?? ''} isText>
+                <UX.Text
+                  title={`${balance}`}
+                  styleType="body_16_normal"
+                  customStyles={{
+                    color: 'white',
+                    maxWidth: '100px',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right',
+                  }}
+                />
+              </UX.Tooltip>
+              {isSupported && (
+                <UX.Box layout="row" spacing="xss_s">
+                  {isLoadingUsd ? (
+                    <UX.Text
+                      title="..."
+                      styleType="body_12_normal"
+                      customStyles={{color: '#FFFFFFB0'}}
+                    />
+                  ) : (
+                    <>
+                      <UX.Text title="≈" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                      <UX.Text
+                        title={`${usdValue}`}
+                        styleType="body_12_normal"
+                        customStyles={{color: '#FFFFFFB0'}}
+                      />
+                      <UX.Text title="USD" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                    </>
+                  )}
+                </UX.Box>
+              )}
+            </UX.Box>
+          )}
+
           <UX.Box
-            layout="row"
-            style={{cursor: 'pointer', overflow: 'hidden'}}
+            style={{cursor: 'pointer', marginLeft: '4px'}}
             onClick={(e: React.ChangeEvent<HTMLInputElement>) =>
               handleShowDetailList(ticker, e)
             }>
-            {!balance ? (
-              <span style={{width: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}>
-                <SVG.LoadingIcon   />
-              </span>
-            ): (
-              <UX.Text
-                title={`${balance}`}
-                styleType="body_16_normal"
-                customStyles={{
-                  color: 'white',
-                  maxWidth: '100px',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                }}
-              />
-            )}
             <SVG.ArrowDownIcon />
           </UX.Box>
-        </UX.Tooltip>
+        </UX.Box>
       </UX.Box>
       {isExpandView ? (
         <>

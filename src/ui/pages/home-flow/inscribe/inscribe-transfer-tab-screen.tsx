@@ -32,6 +32,7 @@ import {
 import TransferApps from '../../authority/component/trac-apps'
 import { useTracAppsLogic } from '../../authority/hook/use-trac-apps-logic'
 import { dta } from '@/src/ui/interfaces'
+import { useTokenUSDPrice } from '@/src/ui/hook/use-token-usd-price';
 
 interface ContextData {
   ticker: string;
@@ -89,6 +90,13 @@ const InscribeTransferTapScreen = () => {
 
   const {onUpdateState, getComponentState} = useTracAppsLogic()
   const {isExpanded, selectedApp} = getComponentState(0);
+
+  // Use custom hook for USD price
+  const inputAmountNumeric = parseFloat(inputAmount) || 0;
+  const { usdValue, isLoading: isLoadingUsd, isSupported } = useTokenUSDPrice({
+    ticker,
+    amount: inputAmountNumeric,
+  });
 
   const updateContextData = useCallback(
     (params: UpdateContextDataParams) => {
@@ -160,8 +168,8 @@ const InscribeTransferTapScreen = () => {
     }
 
     if (isExpanded && !selectedApp?.address) return;
-    
-    
+
+
     if (feeRate <= 0) {
       return;
     }
@@ -178,6 +186,7 @@ const InscribeTransferTapScreen = () => {
 
     setDisabled(false);
   }, [inputAmount, feeRate, outputValue, contextData.tokenBalance, isExpanded, selectedApp]);
+
 
   //! Function
   const handleGoBack = () => {
@@ -313,6 +322,27 @@ const InscribeTransferTapScreen = () => {
                   customStyles={{color: colors.red_700}}
                   title={inputError}
                 />
+              )}
+              {isSupported && inputAmount && (
+                <UX.Box layout="row" spacing="xss_s" style={{marginTop: '4px'}}>
+                  {isLoadingUsd ? (
+                    <UX.Text
+                      title="Loading..."
+                      styleType="body_12_normal"
+                      customStyles={{color: '#FFFFFFB0'}}
+                    />
+                  ) : (
+                    <>
+                      <UX.Text title="≈" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                      <UX.Text
+                        title={`${usdValue}`}
+                        styleType="body_12_normal"
+                        customStyles={{color: '#FFFFFFB0'}}
+                      />
+                      <UX.Text title="USD" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                    </>
+                  )}
+                </UX.Box>
               )}
             </UX.Box>
 

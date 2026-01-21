@@ -25,6 +25,8 @@ import { useAccountBalance, useInscriptionHook, useTokenInfo, useAllInscriptions
 import { useHardwareWalletMismatch } from '@/src/ui/pages/send-receive/hook';
 import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
+import { useTokenUSDPrice } from '@/src/ui/hook/use-token-usd-price';
+import { useBtcUsdPrice } from '@/src/ui/hook/use-btc-usd-price';
 
 interface TapListChildProps {
   onOpenFilter?: () => void;
@@ -74,6 +76,14 @@ const TapListChild = (props: TapListChildProps) => {
   const {isMismatched, expectedNetwork} = useHardwareWalletMismatch();
 
   const currentAccountRef = useRef<string>('');
+
+  // Use custom hook for TNK (TRAC) USD price
+  const tracBalanceNumeric = parseFloat(tracBalance);
+  const { usdValue: tnkUsdValue, isLoading: isLoadingTnkUsd } = useTokenUSDPrice({
+    ticker: 'TNK', // Display name, will be converted to TRAC internally
+    amount: tracBalanceNumeric,
+    enabled: !!tracAddress && !isNaN(tracBalanceNumeric),
+  });
 
   const fetchAuthorityOrders = async () => {
     const orders = await walletProvider.getAuthorityOrders(
@@ -153,6 +163,15 @@ const TapListChild = (props: TapListChildProps) => {
   const balanceValue = useMemo(() => {
     return satoshisToAmount(accountBalance.amount);
   }, [accountBalance.amount]);
+
+  const btcBalanceNumeric = useMemo(() => {
+    return parseFloat(balanceValue) || 0;
+  }, [balanceValue]);
+
+  // BTC USD price
+  const {usdValue: btcUsdValue, isLoading: isLoadingBtcUsd} = useBtcUsdPrice({
+    amount: btcBalanceNumeric,
+  });
 
   const handleClickOutside = (event: MouseEvent) => {
     if (showDetailItemId !== null) {
@@ -289,6 +308,7 @@ const TapListChild = (props: TapListChildProps) => {
     fetchSequentially();
   }, [displayData, tokenInfoMap, loadingTicker]);
 
+
   //! Render
   if (loading) {
     return (
@@ -378,19 +398,40 @@ const TapListChild = (props: TapListChildProps) => {
                 <UX.Text
                   title={'BTC'}
                   styleType="body_16_normal"
-                  customStyles={{ color: 'white', marginLeft: '8px' }}
+                  customStyles={{ color: 'white', marginLeft: '8px', marginRight: '4px' }}
                 />
               </UX.Box>
 
-              <UX.Text
-                title={
-                  isMismatched && expectedNetwork
-                    ? '0'
-                    : `${balanceValue}`
-                }
-                styleType="body_16_normal"
-                customStyles={{ color: 'white' }}
-              />
+              <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+                <UX.Text
+                  title={
+                    isMismatched && expectedNetwork
+                      ? '0'
+                      : `${balanceValue}`
+                  }
+                  styleType="body_16_normal"
+                  customStyles={{ color: 'white' }}
+                />
+                <UX.Box layout="row" spacing="xss_s">
+                  {isLoadingBtcUsd ? (
+                    <UX.Text
+                      title="..."
+                      styleType="body_12_normal"
+                      customStyles={{color: '#FFFFFFB0'}}
+                    />
+                  ) : (
+                    <>
+                      <UX.Text title="≈" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                      <UX.Text
+                        title={`${btcUsdValue}`}
+                        styleType="body_12_normal"
+                        customStyles={{color: '#FFFFFFB0'}}
+                      />
+                      <UX.Text title="USD" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                    </>
+                  )}
+                </UX.Box>
+              </UX.Box>
             </UX.Box>
           </UX.Box>
         )}
@@ -412,13 +453,34 @@ const TapListChild = (props: TapListChildProps) => {
                 />
               </UX.Box>
 
-              <UX.Tooltip text={tracBalance} isText>
-                <UX.Text
-                  title={formatTracBalance(tracBalance)}
-                  styleType="body_16_normal"
-                  customStyles={{ color: 'white' }}
-                />
-              </UX.Tooltip>
+              <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+                <UX.Tooltip text={tracBalance} isText>
+                  <UX.Text
+                    title={formatTracBalance(tracBalance)}
+                    styleType="body_16_normal"
+                    customStyles={{ color: 'white' }}
+                  />
+                </UX.Tooltip>
+                <UX.Box layout="row" spacing="xss_s">
+                  {isLoadingTnkUsd ? (
+                    <UX.Text
+                      title="..."
+                      styleType="body_12_normal"
+                      customStyles={{color: '#FFFFFFB0'}}
+                    />
+                  ) : (
+                    <>
+                      <UX.Text title="≈" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                      <UX.Text
+                        title={`${tnkUsdValue}`}
+                        styleType="body_12_normal"
+                        customStyles={{color: '#FFFFFFB0'}}
+                      />
+                      <UX.Text title="USD" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                    </>
+                  )}
+                </UX.Box>
+              </UX.Box>
             </UX.Box>
           </UX.Box>
         )}

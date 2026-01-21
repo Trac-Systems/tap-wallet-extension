@@ -26,6 +26,7 @@ import {
 import { dta, Inscription } from '../interfaces';
 import { ConnectedSite } from '../../background/service/permission.service';
 import { bitcoin } from '../../background/utils';
+import { SupportedToken } from '@/src/shared/constants/token-price';
 
 export interface IWalletProvider {
   unlockApp(pin: string): Promise<void>;
@@ -268,7 +269,7 @@ export interface IWalletProvider {
   removeTracConnection(origin: string): Promise<void>;
   getCurrentConnectedSite(id: string): Promise<ConnectedSite>;
   getUSDPrice(bits: number): Promise<any>;
-  getTracUSDPrice(tracAmount: number): Promise<string>;
+  getTokenUSDPrice(ticker: SupportedToken, amount: number): Promise<string>;
   setAccountSpendableInscriptions(
     account: IDisplayAccount,
     inscriptions: Inscription[],

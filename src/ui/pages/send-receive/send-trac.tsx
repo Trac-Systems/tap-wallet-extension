@@ -2,7 +2,7 @@ import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {colors} from '@/src/ui/themes/color';
 import {SVG} from '@/src/ui/svg';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
 import Text from '../../component/text-custom';
 import {useCustomToast} from '../../component/toast-custom';
@@ -13,6 +13,7 @@ import {TracApiService} from '../../../background/service/trac-api.service';
 import {useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {Network} from '../../../wallet-instance';
+import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 const SendTrac = () => {
   //! State
@@ -29,10 +30,6 @@ const SendTrac = () => {
   const [feeLoading, setFeeLoading] = useState(true);
   const wallet = useWalletProvider();
   const networkType = useAppSelector(GlobalSelector.networkType);
-  // USD states
-  const [usdConfirmed, setUsdConfirmed] = useState('');
-  const [usdTotal, setUsdTotal] = useState('');
-  const [usdFee, setUsdFee] = useState('');
 
   // Fetch fee when component mounts
   useEffect(() => {
@@ -52,49 +49,28 @@ const SendTrac = () => {
     fetchFee();
   }, [networkType]);
 
-  // Update USD for confirmed
-  useEffect(() => {
-    let ignore = false;
-    if (Number(confirmed) > 0) {
-      wallet.getTracUSDPrice(Number(confirmed)).then(val => {
-        if (!ignore) setUsdConfirmed(val);
-      });
-    } else {
-      setUsdConfirmed('0.00');
-    }
-    return () => { ignore = true; };
-  }, [confirmed]);
-
-  // Update USD for total
-  useEffect(() => {
-    let ignore = false;
-    if (Number(total) > 0) {
-      wallet.getTracUSDPrice(Number(total)).then(val => {
-        if (!ignore) setUsdTotal(val);
-      });
-    } else {
-      setUsdTotal('0.00');
-    }
-    return () => { ignore = true; };
-  }, [total]);
-
-  // Update USD for fee
-  useEffect(() => {
-    let ignore = false;
-    if (fee) {
-      const feeAmount = parseFloat(TracApiService.balanceToDisplay(fee));
-      if (feeAmount > 0) {
-        wallet.getTracUSDPrice(feeAmount).then(val => {
-          if (!ignore) setUsdFee(val);
-        });
-      } else {
-        setUsdFee('0.00');
-      }
-    } else {
-      setUsdFee('0.00');
-    }
-    return () => { ignore = true; };
+  // Use custom hook for USD prices
+  const confirmedNumeric = parseFloat(confirmed) || 0;
+  const totalNumeric = parseFloat(total) || 0;
+  const feeNumeric = useMemo(() => {
+    if (!fee) return 0;
+    return parseFloat(TracApiService.balanceToDisplay(fee)) || 0;
   }, [fee]);
+
+  const { usdValue: usdConfirmed } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: confirmedNumeric,
+  });
+
+  const { usdValue: usdTotal } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: totalNumeric,
+  });
+
+  const { usdValue: usdFee } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: feeNumeric,
+  });
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});

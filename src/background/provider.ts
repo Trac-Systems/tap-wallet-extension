@@ -32,6 +32,7 @@ import {
 import { IResponseAddressBalance, PaidApi } from './requests/paid-api';
 import { TracApi } from './requests/trac-api';
 import { mempoolApi, paidApi, tapApi, inscribeApi, usdApi } from './requests';
+import { SupportedToken } from '@/src/shared/constants/token-price';
 import {
   AddressType,
   IDisplayAccount,
@@ -187,7 +188,8 @@ export class Provider {
     this.mempoolApi.changeNetwork(network);
     this.tapApi.changeNetwork(network);
     this.inscribeApi.changeNetwork(network);
-    
+    usdApi.changeNetwork(network);
+
     // Mark all hardware wallets as mismatch if network changed
     if (oldNetwork !== network) {
       const wallets = this.getWallets();
@@ -1551,21 +1553,21 @@ export class Provider {
     return 0;
   };
 
-  getTracUSDPrice = async (tracAmount: number) => {
-    if (tracAmount === 0 || isNaN(tracAmount)) {
+  getTokenUSDPrice = async (ticker: SupportedToken, amount: number): Promise<string> => {
+    if (amount === 0 || isNaN(amount)) {
       return '0.00';
     }
 
     try {
-      const tracPrice = await usdApi.getTracUSDPrice();
-      if (tracPrice === 0) {
+      const tokenPrice = await usdApi.getTokenUSDPrice(ticker);
+      if (tokenPrice === 0) {
         return '0.00';
       }
 
-      const usdValue = tracPrice * tracAmount;
+      const usdValue = tokenPrice * amount;
       return usdValue.toFixed(2);
     } catch (error) {
-      console.error('Error calculating TRAC USD price:', error);
+      console.error(`Error calculating ${ticker} USD price:`, error);
       return '0.00';
     }
   };

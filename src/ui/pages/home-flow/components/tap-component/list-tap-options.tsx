@@ -18,6 +18,7 @@ import {isEmpty} from 'lodash';
 import {useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import CoinCount from '../coin-count';
+import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 const ListTapOptions = () => {
   //! Hooks
@@ -127,6 +128,25 @@ const ListTapOptions = () => {
     return formatNumberValue(balanceNumber.toString());
   }, [tokenSummary, transferableBalance]);
 
+  const balanceNumeric = useMemo(() => {
+    if (!tokenSummary) {
+      return 0;
+    }
+    return Number(tokenSummary?.tokenBalance.availableBalance) + transferableBalance;
+  }, [tokenSummary, transferableBalance]);
+
+  // Use custom hook for USD price
+  const { usdValue, isLoading: isLoadingUsd, isSupported } = useTokenUSDPrice({
+    ticker: id,
+    amount: balanceNumeric,
+  });
+
+  // Use custom hook for USD price of transferable balance
+  const { usdValue: transferableUsdValue, isLoading: isLoadingTransferableUsd } = useTokenUSDPrice({
+    ticker: id,
+    amount: transferableBalance,
+  });
+
   const enableTransfer = useMemo(() => {
     let enable = false;
     if (
@@ -189,17 +209,40 @@ const ListTapOptions = () => {
               styleType="body_16_normal"
               customStyles={{marginBottom: 8, textAlign: 'center'}}
             />
-            <UX.Box layout="row_center" style={{marginBottom: 20}}>
-              <UX.Text
-                title={balance}
-                styleType="body_20_extra_bold"
-                customStyles={{color: colors.white, marginRight: '8px'}}
-              />
-              <UX.Text
-                title={formatTicker(id)}
-                styleType="body_20_extra_bold"
-                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
-              />
+            <UX.Box layout="column_center" style={{marginBottom: 20}} spacing="xss">
+              <UX.Box layout="row_center">
+                <UX.Text
+                  title={balance}
+                  styleType="body_20_extra_bold"
+                  customStyles={{color: colors.white, marginRight: '8px'}}
+                />
+                <UX.Text
+                  title={formatTicker(id)}
+                  styleType="body_20_extra_bold"
+                  customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                />
+              </UX.Box>
+              {isSupported && (
+                <UX.Box layout="row" spacing="xss_s">
+                  {isLoadingUsd ? (
+                    <UX.Text
+                      title="..."
+                      styleType="body_14_normal"
+                      customStyles={{color: '#FFFFFFB0'}}
+                    />
+                  ) : (
+                    <>
+                      <UX.Text title="≈" styleType="body_14_normal" customStyles={{color: '#FFFFFFB0'}} />
+                      <UX.Text
+                        title={`${usdValue}`}
+                        styleType="body_14_normal"
+                        customStyles={{color: '#FFFFFFB0'}}
+                      />
+                      <UX.Text title="USD" styleType="body_14_normal" customStyles={{color: '#FFFFFFB0'}} />
+                    </>
+                  )}
+                </UX.Box>
+              )}
             </UX.Box>
             {isValidToken && (
               <>
@@ -264,17 +307,40 @@ const ListTapOptions = () => {
                 styleType="body_14_normal"
                 customStyles={{color: colors.white}}
               />
-              <UX.Box layout="row" spacing="xs">
-                <UX.Text
-                  title={`${transferableBalance}`}
-                  styleType="body_12_bold"
-                  customStyles={{color: colors.white}}
-                />
-                <UX.Text
-                  title={formatTicker(id)}
-                  styleType="body_12_bold"
-                  customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
-                />
+              <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
+                <UX.Box layout="row" spacing="xs">
+                  <UX.Text
+                    title={`${transferableBalance}`}
+                    styleType="body_12_bold"
+                    customStyles={{color: colors.white}}
+                  />
+                  <UX.Text
+                    title={formatTicker(id)}
+                    styleType="body_12_bold"
+                    customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+                  />
+                </UX.Box>
+                {isSupported && (
+                  <UX.Box layout="row" spacing="xss_s">
+                    {isLoadingTransferableUsd ? (
+                      <UX.Text
+                        title="..."
+                        styleType="body_12_normal"
+                        customStyles={{color: '#FFFFFFB0'}}
+                      />
+                    ) : (
+                      <>
+                        <UX.Text title="≈" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                        <UX.Text
+                          title={`${transferableUsdValue}`}
+                          styleType="body_12_normal"
+                          customStyles={{color: '#FFFFFFB0'}}
+                        />
+                        <UX.Text title="USD" styleType="body_12_normal" customStyles={{color: '#FFFFFFB0'}} />
+                      </>
+                    )}
+                  </UX.Box>
+                )}
               </UX.Box>
             </UX.Box>
             {!isEmpty(dataForList) ? (

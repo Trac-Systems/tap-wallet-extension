@@ -1553,7 +1553,7 @@ export class Provider {
     return 0;
   };
 
-  getTokenUSDPrice = async (ticker: SupportedToken, amount: number): Promise<string> => {
+  getTokenUSDPrice = async (ticker: SupportedToken, amount: number, precision: number = 2): Promise<string> => {
     if (amount === 0 || isNaN(amount)) {
       return '0.00';
     }
@@ -1565,7 +1565,14 @@ export class Provider {
       }
 
       const usdValue = tokenPrice * amount;
-      return usdValue.toFixed(2);
+
+      // If precision is -1, return full precision without rounding
+      if (precision === -1) {
+        return usdValue.toString();
+      }
+
+      // Otherwise, round to specified precision (default 2 decimal places)
+      return usdValue.toFixed(precision);
     } catch (error) {
       console.error(`Error calculating ${ticker} USD price:`, error);
       return '0.00';

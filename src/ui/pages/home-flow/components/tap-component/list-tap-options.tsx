@@ -1,4 +1,4 @@
-import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
+import {formatNumberValue, formatTicker, formatPriceWithSubscript} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
@@ -145,6 +145,13 @@ const ListTapOptions = () => {
   const { usdValue: transferableUsdValue, isLoading: isLoadingTransferableUsd } = useTokenUSDPrice({
     ticker: id,
     amount: transferableBalance,
+  });
+
+  // Use custom hook for single token price (amount = 1) with full precision
+  const { usdValue: tokenPrice, isLoading: isLoadingTokenPrice } = useTokenUSDPrice({
+    ticker: id,
+    amount: 1,
+    precision: -1, // Use -1 for full precision (no rounding)
   });
 
   const enableTransfer = useMemo(() => {
@@ -417,10 +424,28 @@ const ListTapOptions = () => {
                 <UX.Text title="Supply" styleType="body_14_normal" />
                 <UX.Text title={tokenSummary.tokenInfo.totalSupply ? formatNumberValue(tokenSummary.tokenInfo.totalSupply) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
               </UX.Box>
-              <UX.Box layout="row_between">
+              <UX.Box layout="row_between" style={{marginBottom: 16}}>
                 <UX.Text title="Decimal" styleType="body_14_normal" />
                 <UX.Text title={tokenSummary.tokenInfo.decimal?.toString() || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
               </UX.Box>
+              {isSupported && (
+                <UX.Box layout="row_between">
+                  <UX.Text title="Price" styleType="body_14_normal" />
+                  {isLoadingTokenPrice ? (
+                    <UX.Text
+                      title="..."
+                      styleType="body_14_normal"
+                      customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
+                    />
+                  ) : (
+                    <UX.Text
+                      title={`$${formatPriceWithSubscript(tokenPrice)}`}
+                      styleType="body_14_normal"
+                      customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
+                    />
+                  )}
+                </UX.Box>
+              )}
             </UX.Box>
           </UX.Box>
         </UX.Box>

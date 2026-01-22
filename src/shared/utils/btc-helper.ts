@@ -161,9 +161,9 @@ export const formatPriceWithSubscript = (price: string | number): string => {
     }
   }
 
-  // If less than 4 zeros, use normal format
+  // If less than 4 zeros, use normal format with comma separator
   if (zeroCount < 4) {
-    return priceString;
+    return Number(integerPart).toLocaleString('en-US') + '.' + decimalPart;
   }
 
   // Get the significant digits after zeros (max 5 chars)
@@ -177,5 +177,5 @@ export const formatPriceWithSubscript = (price: string | number): string => {
 
   const subscriptZeroCount = zeroCount.toString().split('').map(d => subscriptMap[d]).join('');
 
-  return `${integerPart}.0${subscriptZeroCount}${significantPart}`;
+  return `${Number(integerPart).toLocaleString('en-US')}.0${subscriptZeroCount}${significantPart}`;
 };

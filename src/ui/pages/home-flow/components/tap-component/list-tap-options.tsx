@@ -1,4 +1,4 @@
-import {formatNumberValue, formatTicker, formatPriceWithSubscript} from '@/src/shared/utils/btc-helper';
+import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import LayoutTap from '@/src/ui/layouts/tap';
@@ -147,11 +147,10 @@ const ListTapOptions = () => {
     amount: transferableBalance,
   });
 
-  // Use custom hook for single token price (amount = 1) with full precision
+  // Use custom hook for single token price (amount = 1)
   const { usdValue: tokenPrice, isLoading: isLoadingTokenPrice } = useTokenUSDPrice({
     ticker: id,
     amount: 1,
-    precision: -1, // Use -1 for full precision (no rounding)
   });
 
   const enableTransfer = useMemo(() => {
@@ -439,7 +438,7 @@ const ListTapOptions = () => {
                     />
                   ) : (
                     <UX.Text
-                      title={`$${formatPriceWithSubscript(tokenPrice)}`}
+                      title={`$${tokenPrice}`}
                       styleType="body_14_normal"
                       customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
                     />

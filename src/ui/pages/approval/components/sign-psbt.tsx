@@ -1,5 +1,4 @@
 import {
-  formatNumberValue,
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
@@ -366,7 +365,7 @@ const SignPsbt = ({
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text
-                title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
+                title={`${usdPriceSpendAmount} USD`}
                 styleType="body_14_normal"
               />
             </UX.Box>

@@ -269,7 +269,7 @@ export interface IWalletProvider {
   removeTracConnection(origin: string): Promise<void>;
   getCurrentConnectedSite(id: string): Promise<ConnectedSite>;
   getUSDPrice(bits: number): Promise<any>;
-  getTokenUSDPrice(ticker: SupportedToken, amount: number, precision?: number): Promise<string>;
+  getTokenUSDPrice(ticker: SupportedToken, amount: number): Promise<string>;
   setAccountSpendableInscriptions(
     account: IDisplayAccount,
     inscriptions: Inscription[],

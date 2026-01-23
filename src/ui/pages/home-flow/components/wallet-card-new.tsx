@@ -12,7 +12,6 @@ import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
-import {formatNumberValue} from '@/src/shared/utils/btc-helper';
 import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 interface IWalletCardNewProps {
@@ -165,21 +164,16 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
               <UX.Text
                 styleType="heading_20"
                 title={tracTotal && tracTotal.length > 16 ? tracTotal.substring(0, 15) + '..' : (tracTotal || '0')}
-                customStyles={{lineHeight: '32px', fontSize: 24}}
+                customStyles={{lineHeight: '28px', fontSize: 20}}
               />
             </UX.Tooltip>
-            <UX.Text styleType="heading_20" customStyles={{lineHeight: '32px', fontSize: 24}} title={'TNK'} />
+            <UX.Text styleType="heading_20" customStyles={{lineHeight: '28px', fontSize: 20}} title={'TNK'} />
           </UX.Box>
           <UX.Box layout="row" spacing="xss_s">
             <UX.Text title="≈" styleType="body_16_normal" />
-            <UX.Tooltip text={formatNumberValue(tracUsdTotal)} isText>
-              <UX.Text
-                title={formatNumberValue(tracUsdTotal)}
-                styleType="body_16_normal"
-                className="textBalance"
-              />
+            <UX.Tooltip text={tracUsdTotal} isText>
+              <UX.Text title={`$${tracUsdTotal}`} styleType="body_16_normal" className="textBalance" />
             </UX.Tooltip>
-            <UX.Text title="USD" styleType="body_16_normal" />
           </UX.Box>
         </UX.Box>
 
@@ -205,14 +199,9 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                 </UX.Box>
                 <UX.Box layout="row" spacing="xss_s">
                   <UX.Text title="≈" styleType="body_16_normal" />
-                  <UX.Tooltip text={formatNumberValue(tracUsdConfirmed)} isText>
-                    <UX.Text
-                      title={formatNumberValue(tracUsdConfirmed)}
-                      styleType="body_16_normal"
-                      className="textBalance"
-                    />
+                  <UX.Tooltip text={tracUsdConfirmed} isText>
+                    <UX.Text title={`$${tracUsdConfirmed}`} styleType="body_16_normal" className="textBalance" />
                   </UX.Tooltip>
-                  <UX.Text title="USD" styleType="body_16_normal" />
                 </UX.Box>
               </>
             )}

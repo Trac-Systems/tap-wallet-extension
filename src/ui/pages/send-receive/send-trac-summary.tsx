@@ -15,7 +15,6 @@ import {useWalletProvider} from '../../gateway/wallet-provider';
 import {TracApiService} from '../../../background/service/trac-api.service';
 import {TracApi} from '../../../background/requests/trac-api';
 import {Network} from '../../../wallet-instance';
-import {formatNumberValue} from '@/src/shared/utils/btc-helper';
 import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 interface TracSummaryData {
@@ -155,7 +154,7 @@ const SendTracSummary = () => {
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text
-                title={`${formatNumberValue(usdPriceSpendAmount)} USD`}
+                title={`${usdPriceSpendAmount} USD`}
                 styleType="body_14_normal"
               />
             </UX.Box>

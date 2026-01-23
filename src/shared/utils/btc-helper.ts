@@ -139,9 +139,9 @@ export const formatPriceWithSubscript = (price: string | number): string => {
 
   if (isNaN(num) || num === 0) return '0.00';
 
-  // Convert to string with enough precision
-  const priceString = num.toFixed(20).replace(/\.?0+$/, '');
-  const parts = priceString.split('.');
+  // Use the string directly if available, otherwise convert number to string
+  // This avoids floating-point precision issues with toFixed
+  const parts = priceStr.split('.');
 
   if (parts.length === 1) {
     // No decimal part, format as integer
@@ -161,13 +161,14 @@ export const formatPriceWithSubscript = (price: string | number): string => {
     }
   }
 
-  // If less than 4 zeros, use normal format with comma separator
+  // If less than 4 zeros, use normal format with comma separator (max 4 chars after last zero)
   if (zeroCount < 4) {
-    return Number(integerPart).toLocaleString('en-US') + '.' + decimalPart;
+    const limitedDecimal = decimalPart.substring(0, zeroCount + 4);
+    return Number(integerPart).toLocaleString('en-US') + '.' + limitedDecimal;
   }
 
-  // Get the significant digits after zeros (max 5 chars)
-  const significantPart = decimalPart.substring(zeroCount, zeroCount + 5);
+  // Get the significant digits after zeros (max 4 chars)
+  const significantPart = decimalPart.substring(zeroCount, zeroCount + 4);
 
   // Map digits to subscript Unicode characters
   const subscriptMap: { [key: string]: string } = {

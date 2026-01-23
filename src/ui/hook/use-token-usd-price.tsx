@@ -6,7 +6,6 @@ interface UseTokenUSDPriceOptions {
   ticker: string;
   amount: number;
   enabled?: boolean;
-  precision?: number; // Precision for rounding. Default: 2, use -1 for full precision
 }
 
 interface UseTokenUSDPriceReturn {
@@ -42,7 +41,6 @@ export function useTokenUSDPrice({
   ticker,
   amount,
   enabled = true,
-  precision = 2,
 }: UseTokenUSDPriceOptions): UseTokenUSDPriceReturn {
   const wallet = useWalletProvider();
   const [usdValue, setUsdValue] = useState<string>('0.00');
@@ -69,7 +67,7 @@ export function useTokenUSDPrice({
     setError(null);
 
     wallet
-      .getTokenUSDPrice(apiTicker as 'TAP' | 'DMT-NAT' | 'TRAC', amount, precision)
+      .getTokenUSDPrice(apiTicker as 'TAP' | 'DMT-NAT' | 'TRAC', amount)
       .then((val) => {
         if (!cancelled) {
           setUsdValue(val);
@@ -91,7 +89,7 @@ export function useTokenUSDPrice({
     return () => {
       cancelled = true;
     };
-  }, [ticker, apiTicker, amount, isSupported, enabled, precision, wallet]);
+  }, [ticker, apiTicker, amount, isSupported, enabled, wallet]);
 
   return {
     usdValue,

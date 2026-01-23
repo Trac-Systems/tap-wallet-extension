@@ -1,6 +1,5 @@
 import {getUtxoDustThreshold} from '@/src/background/utils';
 import {
-  formatNumberValue,
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
@@ -459,7 +458,7 @@ export const Step3 = ({
         <UX.Box layout="row_center" spacing="xss_s">
           <UX.Text title="≈" styleType="body_14_normal" />
           <UX.Text
-            title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
+            title={`${usdPriceSpendAmount} USD`}
             styleType="body_14_normal"
           />
         </UX.Box>

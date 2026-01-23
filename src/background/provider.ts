@@ -13,6 +13,7 @@ import {
 import {getLedgerService} from './service/ledger.service';
 import * as hdkey from 'hdkey';
 import * as bip39 from 'bip39';
+import BigNumber from 'bignumber.js';
 import {
   ACCOUNT_TYPE_TEXT,
   ADDRESS_TYPES,
@@ -48,7 +49,7 @@ import {
   InscribeOrder,
 } from '../wallet-instance';
 import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371';
-import { convertScriptToAddress } from '../shared/utils/btc-helper';
+import { convertScriptToAddress, formatPriceWithSubscript } from '../shared/utils/btc-helper';
 import { MempoolApi } from './requests/mempool-api';
 import { TapApi } from './requests/tap-api';
 import { ConnectedSite } from './service/permission.service';
@@ -1543,17 +1544,17 @@ export class Provider {
   };
   getUSDPrice = async (bits: number) => {
     if (bits === 0) {
-      return 0;
+      return '0.00';
     }
     const res = await usdApi.getUSDPrice();
     if (res) {
       const price = Number(res) * bits;
-      return price?.toFixed(2);
+      return formatPriceWithSubscript(price);
     }
-    return 0;
+    return '0.00';
   };
 
-  getTokenUSDPrice = async (ticker: SupportedToken, amount: number, precision: number = 2): Promise<string> => {
+  getTokenUSDPrice = async (ticker: SupportedToken, amount: number): Promise<string> => {
     if (amount === 0 || isNaN(amount)) {
       return '0.00';
     }
@@ -1564,15 +1565,15 @@ export class Provider {
         return '0.00';
       }
 
-      const usdValue = tokenPrice * amount;
+      // Use BigNumber to avoid floating point precision issues and scientific notation
+      const usdValue = new BigNumber(tokenPrice).multipliedBy(amount);
 
-      // If precision is -1, return full precision without rounding
-      if (precision === -1) {
-        return usdValue.toString();
-      }
+      // Use toFixed() to force decimal notation (no scientific notation)
+      // toFixed without parameter keeps all significant digits
+      const usdValueString = usdValue.toFixed();
 
-      // Otherwise, round to specified precision (default 2 decimal places)
-      return usdValue.toFixed(precision);
+      // Always use formatPriceWithSubscript for consistent formatting
+      return formatPriceWithSubscript(usdValueString);
     } catch (error) {
       console.error(`Error calculating ${ticker} USD price:`, error);
       return '0.00';

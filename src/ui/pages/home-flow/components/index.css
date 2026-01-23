@@ -211,9 +211,10 @@
 .textBalance {
   display: block;
   color: white;
-  /* max-width: 100px; */
-  /* text-overflow: ellipsis; */
-  /* overflow: hidden; */
+  max-width: 100px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 @media only screen and (min-width: 600px) {
   .modal-edit-wallet {

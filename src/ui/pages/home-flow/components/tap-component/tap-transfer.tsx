@@ -19,7 +19,8 @@ import InscribeAttentionModal from '../inscribe-attention-modal';
 import {formatNumberValue, formatTicker} from '@/src/shared/utils/btc-helper';
 import { getInscriptionName } from '@/src/shared/utils/inscription-app-name'
 import {UX} from '@/src/ui/component';
-import { SVG } from '@/src/ui/svg'
+import { SVG } from '@/src/ui/svg';
+import { useTokenUSDPrice } from '@/src/ui/hook/use-token-usd-price';
 
 type AppIconComponent = React.FC<any> | undefined;
 interface EnrichedTokenTransfer extends TokenTransfer {
@@ -106,6 +107,13 @@ const TapTransfer = () => {
   const disabled = useMemo(() => {
     return new BigNumber(contextData.transferAmount).lte(0);
   }, [contextData.transferAmount]);
+
+  // Use custom hook for USD price
+  const transferAmountNumeric = parseFloat(contextData.transferAmount) || 0;
+  const { usdValue, isLoading: isLoadingUsd, isSupported } = useTokenUSDPrice({
+    ticker,
+    amount: transferAmountNumeric,
+  });
 
   //! Function
   useEffect(() => {
@@ -203,16 +211,39 @@ const TapTransfer = () => {
       body={
         <UX.Box>
           <UX.Text title="Transfer Amount" styleType="heading_16" />
-          <UX.Box layout="row_center" style={{margin: '20px 0'}} spacing="xs">
-            <UX.Text
-              title={contextData.transferAmount}
-              styleType="heading_16"
-            />
-            <UX.Text
-              title={formatTicker(contextData?.tokenBalance?.ticker)}
-              styleType="body_16_bold"
-              customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
-            />
+          <UX.Box layout="column_center" style={{margin: '20px 0'}} spacing="xss">
+            <UX.Box layout="row" spacing="xs">
+              <UX.Text
+                title={contextData.transferAmount}
+                styleType="heading_16"
+              />
+              <UX.Text
+                title={formatTicker(contextData?.tokenBalance?.ticker)}
+                styleType="body_16_bold"
+                customStyles={{color: colors.main_500, whiteSpace: 'pre'}}
+              />
+            </UX.Box>
+            {isSupported && (
+              <UX.Box layout="row" spacing="xss_s">
+                {isLoadingUsd ? (
+                  <UX.Text
+                    title="Loading..."
+                    styleType="body_14_normal"
+                    customStyles={{color: '#FFFFFFB0'}}
+                  />
+                ) : (
+                  <>
+                    <UX.Text title="≈" styleType="body_14_normal" customStyles={{color: '#FFFFFFB0'}} />
+                    <UX.Text
+                      title={`${usdValue}`}
+                      styleType="body_14_normal"
+                      customStyles={{color: '#FFFFFFB0'}}
+                    />
+                    <UX.Text title="USD" styleType="body_14_normal" customStyles={{color: '#FFFFFFB0'}} />
+                  </>
+                )}
+              </UX.Box>
+            )}
           </UX.Box>
           <UX.Text
             title={`

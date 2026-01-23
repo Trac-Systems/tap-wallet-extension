@@ -113,15 +113,70 @@ export const formatTicker = (ticker: string) => {
  */
 export const formatTracBalance = (balance: string | undefined): string => {
   if (!balance || balance === '0') return '0';
-  
+
   const num = parseFloat(balance);
   if (isNaN(num)) return '0';
-  
+
   // Check if has more than 8 decimal places
   const decimalPart = balance.split('.')[1];
   if (decimalPart && decimalPart.length > 8) {
     return num.toFixed(8) + '...';
   }
-  
+
   return balance;
+};
+
+/**
+ * Format price with subscript notation for consecutive zeros
+ * If there are 4 or more consecutive zeros after decimal point, use subscript notation
+ * Example: 0.00003773 -> 0.0₄3773 (max 5 chars after zeros)
+ * @param price - Price string
+ * @returns Formatted price string
+ */
+export const formatPriceWithSubscript = (price: string | number): string => {
+  const priceStr = typeof price === 'number' ? price.toString() : price;
+  const num = parseFloat(priceStr);
+
+  if (isNaN(num) || num === 0) return '0.00';
+
+  // Use the string directly if available, otherwise convert number to string
+  // This avoids floating-point precision issues with toFixed
+  const parts = priceStr.split('.');
+
+  if (parts.length === 1) {
+    // No decimal part, format as integer
+    return formatNumberValue(parts[0]);
+  }
+
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+
+  // Count consecutive zeros at the start of decimal part
+  let zeroCount = 0;
+  for (let i = 0; i < decimalPart.length; i++) {
+    if (decimalPart[i] === '0') {
+      zeroCount++;
+    } else {
+      break;
+    }
+  }
+
+  // If less than 4 zeros, use normal format with comma separator (max 4 chars after last zero)
+  if (zeroCount < 4) {
+    const limitedDecimal = decimalPart.substring(0, zeroCount + 4);
+    return Number(integerPart).toLocaleString('en-US') + '.' + limitedDecimal;
+  }
+
+  // Get the significant digits after zeros (max 4 chars)
+  const significantPart = decimalPart.substring(zeroCount, zeroCount + 4);
+
+  // Map digits to subscript Unicode characters
+  const subscriptMap: { [key: string]: string } = {
+    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+    '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+  };
+
+  const subscriptZeroCount = zeroCount.toString().split('').map(d => subscriptMap[d]).join('');
+
+  return `${Number(integerPart).toLocaleString('en-US')}.0${subscriptZeroCount}${significantPart}`;
 };

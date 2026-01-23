@@ -1,24 +1,40 @@
 import { AxiosRequest } from './axios';
+import {
+  SupportedToken,
+  TOKEN_PRICE_API
+} from '@/src/shared/constants/token-price';
+import { INSCRIBE_API_MAINNET, INSCRIBE_API_TESTNET } from './inscribe-api';
+import { Network } from '@/src/wallet-instance';
+import { networkConfig } from '../service/singleton';
 
 const API_BTC_USD = 'https://api.coinbase.com/v2/prices/BTC-USD/spot';
-const API_TRAC_USD = 'https://inscriber.trac.network/v1/trac-price';
-
-// Cache for TRAC price to avoid multiple API calls
-interface TracPriceCache {
-  price: number;
-  timestamp: number;
-}
 
 export class UsdAPI {
   api_btc!: AxiosRequest;
-  private tracPriceCache: TracPriceCache | null = null;
-  private readonly CACHE_DURATION = 60000; // 60 seconds
-  private isFetchingTracPrice = false;
-  private tracPricePromise: Promise<number> | null = null;
+  api_token!: AxiosRequest;
 
   constructor() {
     this.api_btc = new AxiosRequest({
       baseUrl: API_BTC_USD,
+    });
+    if (!this.api_token) {
+      this.init();
+    }
+  }
+
+  private init() {
+    this.changeNetwork();
+  }
+
+  changeNetwork(network?: Network) {
+    if (!network) {
+      network = networkConfig.getActiveNetwork();
+    }
+    this.api_token = new AxiosRequest({
+      baseUrl:
+        network === Network.MAINNET
+          ? INSCRIBE_API_MAINNET
+          : INSCRIBE_API_TESTNET,
     });
   }
 
@@ -27,65 +43,41 @@ export class UsdAPI {
     return response?.data?.data?.amount;
   }
 
-  async getTracUSDPrice(): Promise<number> {
-    // Check if cache is valid
-    if (this.tracPriceCache) {
-      const now = Date.now();
-      const cacheAge = now - this.tracPriceCache.timestamp;
-      if (cacheAge < this.CACHE_DURATION) {
-        return this.tracPriceCache.price;
-      }
-    }
-
-    if (this.isFetchingTracPrice && this.tracPricePromise) {
-      return this.tracPricePromise;
-    }
-
-    this.isFetchingTracPrice = true;
-    this.tracPricePromise = this.fetchTracPrice();
-
+  async getTokenUSDPrice(ticker: SupportedToken): Promise<number> {
     try {
-      const price = await this.tracPricePromise;
-      return price;
-    } finally {
-      this.isFetchingTracPrice = false;
-      this.tracPricePromise = null;
-    }
-  }
+      const response = await this.api_token.get(
+        `${TOKEN_PRICE_API.PATH}/${ticker}`,
+        {},
+      );
 
-  private async fetchTracPrice(): Promise<number> {
-    try {
-      const response = await fetch(API_TRAC_USD);
-      if (!response.ok) {
-        throw new Error(`TRAC API error: ${response.status}`);
+      if (!response?.data) {
+        throw new Error('Token price API error: No response data');
       }
 
-      const result = await response.json();
+      const result = response.data;
 
       if (result?.statusCode !== 200) {
-        throw new Error(`TRAC API error: ${result?.message || 'Unknown error'}`);
+        throw new Error(`Token price API error: ${result?.message || 'Unknown error'}`);
       }
 
-      const price = result?.data?.price_usd;
+      const priceValue = result?.data?.price_usd;
 
-      if (typeof price !== 'number' || isNaN(price)) {
-        throw new Error('Invalid price data from TRAC API');
+      // Handle both string and number formats
+      let price: number;
+      if (typeof priceValue === 'string') {
+        price = parseFloat(priceValue);
+      } else if (typeof priceValue === 'number') {
+        price = priceValue;
+      } else {
+        throw new Error('Invalid price data from token price API');
       }
 
-      // Update cache
-      this.tracPriceCache = {
-        price,
-        timestamp: Date.now(),
-      };
+      if (isNaN(price)) {
+        throw new Error('Invalid price data from token price API');
+      }
 
       return price;
     } catch (error) {
-      if (this.tracPriceCache) {
-        console.warn('Failed to fetch TRAC price, using cached value:', error);
-        return this.tracPriceCache.price;
-      }
-
-      console.error('Failed to fetch TRAC price and no cache available:', error);
       return 0;
     }
   }

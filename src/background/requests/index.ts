@@ -16,5 +16,6 @@ export const loadApi = async () => {
     mempoolApi.changeNetwork(),
     tapApi.changeNetwork(),
     inscribeApi.changeNetwork(),
+    usdApi.changeNetwork(),
   ]);
 };

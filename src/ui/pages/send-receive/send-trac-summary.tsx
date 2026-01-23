@@ -2,7 +2,7 @@ import {UX} from '@/src/ui/component/index';
 import LayoutSendReceive from '@/src/ui/layouts/send-receive';
 import {colors} from '@/src/ui/themes/color';
 import {SVG} from '@/src/ui/svg';
-import {useState, useEffect} from 'react';
+import {useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useCustomToast} from '../../component/toast-custom';
 import Text from '../../component/text-custom';
@@ -15,7 +15,7 @@ import {useWalletProvider} from '../../gateway/wallet-provider';
 import {TracApiService} from '../../../background/service/trac-api.service';
 import {TracApi} from '../../../background/requests/trac-api';
 import {Network} from '../../../wallet-instance';
-import {formatNumberValue} from '@/src/shared/utils/btc-helper';
+import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 interface TracSummaryData {
   to: string;
@@ -36,8 +36,6 @@ const SendTracSummary = () => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const networkType = useAppSelector(GlobalSelector.networkType);
   const {showToast} = useCustomToast();
-  const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState('0.00');
-  const [usdPriceFee, setUsdPriceFee] = useState('0.00');
 
   // Convert fee from hex to decimal (dec 18)
   const formatFee = (feeHex: string) => {
@@ -50,36 +48,22 @@ const SendTracSummary = () => {
     }
   };
 
-  // Fetch USD price for spend amount
-  useEffect(() => {
-    const fetchUSDPrice = async () => {
-      if (Number(summaryData.amount) > 0) {
-        const usdPrice = await wallet.getTracUSDPrice(Number(summaryData.amount));
-        setUsdPriceSpendAmount(usdPrice);
-      } else {
-        setUsdPriceSpendAmount('0.00');
-      }
-    };
-    fetchUSDPrice();
-  }, [summaryData.amount]);
-
-  // Fetch USD price for fee
-  useEffect(() => {
-    const fetchUSDPriceFee = async () => {
-      if (summaryData.fee) {
-        const feeAmount = parseFloat(TracApiService.balanceToDisplay(summaryData.fee));
-        if (feeAmount > 0) {
-          const usdPrice = await wallet.getTracUSDPrice(feeAmount);
-          setUsdPriceFee(usdPrice);
-        } else {
-          setUsdPriceFee('0.00');
-        }
-      } else {
-        setUsdPriceFee('0.00');
-      }
-    };
-    fetchUSDPriceFee();
+  // Use custom hook for USD prices
+  const spendAmountNumeric = parseFloat(summaryData.amount) || 0;
+  const feeNumeric = useMemo(() => {
+    if (!summaryData.fee) return 0;
+    return parseFloat(TracApiService.balanceToDisplay(summaryData.fee)) || 0;
   }, [summaryData.fee]);
+
+  const { usdValue: usdPriceSpendAmount } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: spendAmountNumeric,
+  });
+
+  const { usdValue: usdPriceFee } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: feeNumeric,
+  });
 
   const handleGoBack = () => {
     navigate(-1);
@@ -170,7 +154,7 @@ const SendTracSummary = () => {
             <UX.Box layout="row_center" spacing="xss_s">
               <UX.Text title="≈" styleType="body_14_normal" />
               <UX.Text
-                title={`${formatNumberValue(usdPriceSpendAmount)} USD`}
+                title={`${usdPriceSpendAmount} USD`}
                 styleType="body_14_normal"
               />
             </UX.Box>

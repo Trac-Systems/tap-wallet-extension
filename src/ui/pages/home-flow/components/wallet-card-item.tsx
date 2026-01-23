@@ -1,7 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {
-  formatNumberValue,
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {UX} from '@/src/ui/component';
@@ -279,9 +278,9 @@ const WalletCard = (props: IWalletCardProps) => {
           </UX.Box>
           <UX.Box layout="row" spacing="xss_s">
             <UX.Text title="≈" styleType="body_16_normal" />
-            <UX.Tooltip text={formatNumberValue(String(usdPrice))} isText>
+            <UX.Tooltip text={String(usdPrice)} isText>
               <UX.Text
-                title={`${formatNumberValue(String(usdPrice))}`}
+                title={`${usdPrice}`}
                 styleType="body_16_normal"
                 className="textBalance"
               />

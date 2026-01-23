@@ -1,4 +1,4 @@
-import {useMemo, useRef, useState, useEffect} from 'react';
+import {useMemo, useRef, useState} from 'react';
 import {UX} from '@/src/ui/component';
 import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
@@ -12,7 +12,7 @@ import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
 import {useActiveTracAddress, useTracBalances} from '../hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
-import {formatNumberValue} from '@/src/shared/utils/btc-helper';
+import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
 interface IWalletCardNewProps {
   keyring: WalletDisplay;
@@ -47,9 +47,21 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
     tracAddress,
   );
 
-  // USD values for TRAC balances
-  const [tracUsdTotal, setTracUsdTotal] = useState<string>('0.00');
-  const [tracUsdConfirmed, setTracUsdConfirmed] = useState<string>('0.00');
+  // USD values for TRAC balances using custom hook
+  const tracTotalNumeric = parseFloat(tracTotal) || 0;
+  const tracConfirmedNumeric = parseFloat(tracConfirmed) || 0;
+
+  const { usdValue: tracUsdTotal } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: tracTotalNumeric,
+    enabled: isActive && tracTotalNumeric > 0,
+  });
+
+  const { usdValue: tracUsdConfirmed } = useTokenUSDPrice({
+    ticker: 'TRAC',
+    amount: tracConfirmedNumeric,
+    enabled: isActive && tracConfirmedNumeric > 0,
+  });
 
 
   //! Function
@@ -68,78 +80,6 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
     setMenuOpen(false);
     return window.open(url, '_blank')?.focus();
   };
-
-  // Fetch USD value for total balance
-  useEffect(() => {
-    let cancelled = false;
-    if (!isActive) {
-      setTracUsdTotal('0.00');
-      return;
-    }
-    if (!tracTotal || tracTotal === '0' || tracTotal === '') {
-      setTracUsdTotal('0.00');
-      return;
-    }
-
-    const parsedTotal = parseFloat(tracTotal);
-    if (isNaN(parsedTotal) || parsedTotal === 0) {
-      setTracUsdTotal('0.00');
-      return;
-    }
-
-    wallet
-      .getTracUSDPrice(parsedTotal)
-      .then(val => {
-        if (!cancelled) {
-          setTracUsdTotal(val || '0.00');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setTracUsdTotal('0.00');
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tracTotal, isActive, wallet]);
-
-  // Fetch USD value for confirmed balance
-  useEffect(() => {
-    let cancelled = false;
-    if (!isActive) {
-      setTracUsdConfirmed('0.00');
-      return;
-    }
-    if (!tracConfirmed || tracConfirmed === '0' || tracConfirmed === '') {
-      setTracUsdConfirmed('0.00');
-      return;
-    }
-
-    const parsedConfirmed = parseFloat(tracConfirmed);
-    if (isNaN(parsedConfirmed) || parsedConfirmed === 0) {
-      setTracUsdConfirmed('0.00');
-      return;
-    }
-
-    wallet
-      .getTracUSDPrice(parsedConfirmed)
-      .then(val => {
-        if (!cancelled) {
-          setTracUsdConfirmed(val || '0.00');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setTracUsdConfirmed('0.00');
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tracConfirmed, isActive, wallet]);
 
   //! Render
   return (
@@ -224,21 +164,16 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
               <UX.Text
                 styleType="heading_20"
                 title={tracTotal && tracTotal.length > 16 ? tracTotal.substring(0, 15) + '..' : (tracTotal || '0')}
-                customStyles={{lineHeight: '32px', fontSize: 24}}
+                customStyles={{lineHeight: '28px', fontSize: 20}}
               />
             </UX.Tooltip>
-            <UX.Text styleType="heading_20" customStyles={{lineHeight: '32px', fontSize: 24}} title={'TNK'} />
+            <UX.Text styleType="heading_20" customStyles={{lineHeight: '28px', fontSize: 20}} title={'TNK'} />
           </UX.Box>
           <UX.Box layout="row" spacing="xss_s">
             <UX.Text title="≈" styleType="body_16_normal" />
-            <UX.Tooltip text={formatNumberValue(tracUsdTotal)} isText>
-              <UX.Text
-                title={formatNumberValue(tracUsdTotal)}
-                styleType="body_16_normal"
-                className="textBalance"
-              />
+            <UX.Tooltip text={tracUsdTotal} isText>
+              <UX.Text title={`$${tracUsdTotal}`} styleType="body_16_normal" className="textBalance" />
             </UX.Tooltip>
-            <UX.Text title="USD" styleType="body_16_normal" />
           </UX.Box>
         </UX.Box>
 
@@ -264,14 +199,9 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                 </UX.Box>
                 <UX.Box layout="row" spacing="xss_s">
                   <UX.Text title="≈" styleType="body_16_normal" />
-                  <UX.Tooltip text={formatNumberValue(tracUsdConfirmed)} isText>
-                    <UX.Text
-                      title={formatNumberValue(tracUsdConfirmed)}
-                      styleType="body_16_normal"
-                      className="textBalance"
-                    />
+                  <UX.Tooltip text={tracUsdConfirmed} isText>
+                    <UX.Text title={`$${tracUsdConfirmed}`} styleType="body_16_normal" className="textBalance" />
                   </UX.Tooltip>
-                  <UX.Text title="USD" styleType="body_16_normal" />
                 </UX.Box>
               </>
             )}

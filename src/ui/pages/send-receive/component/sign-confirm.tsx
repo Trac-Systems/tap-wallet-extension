@@ -21,8 +21,6 @@ import {
   useAppSelector,
 } from '@/src/ui/utils';
 import {
-  formatNumberValue,
-  formatTicker,
   satoshisToAmount,
 } from '@/src/shared/utils/btc-helper';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
@@ -218,7 +216,7 @@ const SignConfirm = ({
               <UX.Box layout="row_center" spacing="xss_s">
                 <UX.Text title="≈" styleType="body_14_normal" />
                 <UX.Text
-                  title={`${formatNumberValue(String(usdPriceSpendAmount))} USD`}
+                  title={`${usdPriceSpendAmount} USD`}
                   styleType="body_14_normal"
                 />
               </UX.Box>

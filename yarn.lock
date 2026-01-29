@@ -5904,10 +5904,10 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-trac-crypto-api@^0.1.2:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/trac-crypto-api/-/trac-crypto-api-0.1.3.tgz#db517daa7390966267b58f838ea449692dbdc3bd"
-  integrity sha512-wiPW8IhQjahGwNG/rr+ynZo8E7ugKUq2xILicJ3LH86spax9fA6PFaupIaqafnKILPATd/f4Xwtl2llbBEJOsg==
+trac-crypto-api@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/trac-crypto-api/-/trac-crypto-api-0.1.4.tgz#5fc78eaee0d6d5150d48c974771a1ef68d638fe2"
+  integrity sha512-CI+Pxbn0SwTBa7rmmgBvLyz2E65dT9M06TmD64KM2Ub9EsSWSk+pnW+tDMTdzKPVoJx8rHPdm5B4eoMQovBTzA==
   dependencies:
     "@metamask/key-tree" "10.1.1"
     "@tracsystems/blake3" "0.0.15"
@@ -6162,10 +6162,10 @@ vite-plugin-svgr@^4.2.0:
     "@svgr/core" "^8.1.0"
     "@svgr/plugin-jsx" "^8.1.0"
 
-vite@^5.4.0:
-  version "5.4.19"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.19.tgz#20efd060410044b3ed555049418a5e7d1998f959"
-  integrity sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==
+vite@^5.4.21:
+  version "5.4.21"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.21.tgz#84a4f7c5d860b071676d39ba513c0d598fdc7027"
+  integrity sha512-o5a9xKjbtuhY6Bi5S3+HvbRERmouabWbyUcpXXUA1u+GNUKoROi9byOJ8M0nHbHYHkYICiMlqxkg1KkYmm25Sw==
   dependencies:
     esbuild "^0.21.3"
     postcss "^8.4.43"

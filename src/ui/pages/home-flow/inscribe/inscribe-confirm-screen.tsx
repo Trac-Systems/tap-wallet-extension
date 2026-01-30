@@ -11,7 +11,7 @@ import {
   RawTxInfo,
   TokenBalance,
 } from '@/src/wallet-instance/types';
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useAppSelector} from '@/src/ui/utils';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
@@ -121,15 +121,24 @@ const InscribeConfirmScreen = () => {
     });
   };
 
-  const isFormDirty = true;
-  // this function only work for expand view, but not for popup view
-  // please do that for popup extension
-  window.addEventListener('beforeunload', function (e) {
-    if (isFormDirty) {
-      e.preventDefault();
-      e.returnValue = ''; // Trigger the popup
-    }
-  });
+  // Warn user before leaving page with unsaved changes
+  // Note: This only works in expanded view, not in popup extension
+  useEffect(() => {
+    const isFormDirty = true;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isFormDirty) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages and show default warning
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const previewJsonData = useMemo(() => {
     return (

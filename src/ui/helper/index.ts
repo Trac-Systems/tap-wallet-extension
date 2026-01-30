@@ -4,6 +4,7 @@ export const copyToClipboard = (textToCopy: string | number) => {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(textToCopy.toString());
   } else {
+    // Fallback for older browsers or non-secure contexts
     const textArea = document.createElement('textarea');
     textArea.value = textToCopy.toString();
     textArea.style.position = 'absolute';
@@ -14,12 +15,19 @@ export const copyToClipboard = (textToCopy: string | number) => {
     textArea.focus();
     textArea.select();
     return new Promise<void>((res, rej) => {
-      if (document.execCommand('copy')) {
-        res();
-      } else {
-        rej();
+      try {
+        // Note: execCommand is deprecated but necessary for backward compatibility
+        const successful = document.execCommand('copy');
+        if (successful) {
+          res();
+        } else {
+          rej(new Error('Copy command was unsuccessful'));
+        }
+      } catch (err) {
+        rej(err);
+      } finally {
+        textArea.remove();
       }
-      textArea.remove();
     });
   }
 };

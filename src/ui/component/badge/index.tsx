@@ -28,6 +28,7 @@ const Badge: FC<BadgeProps> = ({ text, className, customStyles, status = 'defaul
                 backgroundColor: colors.yellow_500,
                 color: colors.white
             }
+            break;
         default:
             badgeStyles = {
                 backgroundColor: colors.gray,

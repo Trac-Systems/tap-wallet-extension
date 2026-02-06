@@ -81,6 +81,7 @@ const SignPsbt = ({
   //! State
   const {showToast} = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
   const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
   // const [usdPriceAmount, setUsdPriceAmount] = useState(0);
@@ -110,12 +111,45 @@ const SignPsbt = ({
     rejectApproval();
   };
 
-  let handleConfirm = () => {
-    resolveApproval({
-      psbtHex: rawTxInfo?.psbtHex,
-      spendUtxos,
-      signed: type !== TxType.SIGN_TX,
-    });
+  let handleConfirm: () => void | Promise<void> = async () => {
+    try {
+      setIsLoading(true);
+
+      let finalPsbtHex = rawTxInfo?.psbtHex;
+      const activeWallet = await walletProvider.getActiveWallet();
+      const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+
+      // For hardware wallets (Ledger), we need to sign the PSBT first
+      if (isHardwareWallet && type !== TxType.SIGN_TX) {
+        if (!inputsForSign || inputsForSign.length === 0) {
+          throw new Error('No inputs to sign');
+        }
+
+        // Show message to user to check their Ledger device
+        setLoadingMessage('Please confirm the transaction on your Ledger device');
+
+        // Sign PSBT with Ledger
+        finalPsbtHex = await walletProvider.signPsbtFromHex(
+          rawTxInfo.psbtHex,
+          inputsForSign,
+          true // autoFinalized
+        );
+      }
+
+      resolveApproval({
+        psbtHex: finalPsbtHex,
+        spendUtxos,
+        signed: type !== TxType.SIGN_TX,
+      });
+    } catch (error) {
+      console.error('Error signing PSBT:', error);
+      showToast({
+        type: 'error',
+        title: error.message || 'Failed to sign transaction with Ledger',
+      });
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
   };
 
   if (customHandleCancel) {
@@ -245,11 +279,22 @@ const SignPsbt = ({
   }, [toAddress, satoshis, feeRate, type]);
 
   useEffect(() => {
-    walletProvider
-      .extractTransactionFromPsbtHex(rawTxInfo?.psbtHex, true)
-      .then(data => {
-        setExtractTx(data);
-      });
+    const extractTransaction = async () => {
+      if (!rawTxInfo?.psbtHex) return;
+
+      const activeWallet = await walletProvider.getActiveWallet();
+      const isHardwareWallet = activeWallet?.type === 'Hardware Wallet';
+
+      // For hardware wallets, PSBT is not signed yet (Provider.sendBTC skips signing)
+      // For software wallets, PSBT is already signed (Provider.sendBTC auto-signs)
+      const data = await walletProvider.extractTransactionFromPsbtHex(
+        rawTxInfo.psbtHex,
+        !isHardwareWallet
+      );
+      setExtractTx(data);
+    };
+
+    extractTransaction();
   }, [rawTxInfo?.psbtHex && type !== TxType.SIGN_TX]);
 
   useEffect(() => {
@@ -335,6 +380,38 @@ const SignPsbt = ({
 
     return () => clearTimeout(timer);
   }, [receiveSatoshis, spendSatoshis]);
+
+  if (isLoading && loadingMessage) {
+    return (
+      <LayoutApprove
+        header={<WebsiteBar session={session} />}
+        body={
+          <UX.Box
+            layout="column"
+            style={{
+              height: '400px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '16px',
+            }}>
+            <div style={{width: 32, height: 32}}>
+              <SVG.LoadingIcon />
+            </div>
+            <UX.Text
+              title={loadingMessage}
+              styleType="body_14_normal"
+              customStyles={{
+                color: colors.gray,
+                textAlign: 'center',
+              }}
+            />
+          </UX.Box>
+        }
+      />
+    );
+  }
 
   if (isLoading) {
     return <UX.Loading />;

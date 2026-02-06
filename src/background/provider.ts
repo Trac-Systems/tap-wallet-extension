@@ -1136,7 +1136,9 @@ export class Provider {
       }
     });
 
+    // Calculate fee and feeRate
     if (signed) {
+      // For signed PSBT, use built-in methods
       extractData.fee = psbt.getFee();
       extractData.feeRate = psbt.getFeeRate();
 
@@ -1152,8 +1154,26 @@ export class Provider {
         }
       }
       extractData.features.rbf = rbf;
-    }
+    } else {
+      // For unsigned PSBT (hardware wallets), calculate fee manually
+      const inputValue = extractData.inputs.reduce((sum, input) => {
+        return sum + (input.value || 0);
+      }, 0);
+      const outputValue = extractData.outputs.reduce((sum, output) => {
+        return sum + (output.value || 0);
+      }, 0);
+      extractData.fee = inputValue - outputValue;
 
+      // Calculate fee rate if we have fee and tx size estimate
+      if (extractData.fee > 0) {
+        // Estimate tx size (simplified - actual size may vary slightly)
+        const inputCount = extractData.inputs.length;
+        const outputCount = extractData.outputs.length;
+        // Rough estimate: each input ~150 bytes, each output ~35 bytes, overhead ~10 bytes
+        const estimatedSize = inputCount * 150 + outputCount * 35 + 10;
+        extractData.feeRate = Math.ceil(extractData.fee / estimatedSize);
+      }
+    }
     return extractData;
   };
 

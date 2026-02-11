@@ -1,5 +1,5 @@
 import { UX } from '@/src/ui/component/index';
-import { useApproval } from '../hook';
+import { useApproval, useFee } from '../hook';
 import LayoutApprove from '../layouts';
 import WebsiteBar from '@/src/ui/component/website-bar';
 import { useState } from 'react';
@@ -19,6 +19,7 @@ interface Props {
 
 export default function SignContractTxApproval({ params: { session, data } }: Props) {
   const [, resolveApproval, rejectApproval] = useApproval();
+  const fee = useFee();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleApprove = () => {
@@ -93,6 +94,18 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
               >
                 {isExpanded ? jsonString : previewString}
               </pre>
+            </UX.Box>
+
+            {/* Network Fee Section */}
+            <UX.Box layout="box_border">
+              <UX.Box layout="row_between" style={{ width: '100%' }}>
+                <UX.Text title="Network fee" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                <UX.Text
+                  title={`${fee} TNK`}
+                  styleType="body_14_normal"
+                  customStyles={{ color: 'white' }}
+                />
+              </UX.Box>
             </UX.Box>
           </UX.Box>
 

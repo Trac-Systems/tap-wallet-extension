@@ -574,17 +574,17 @@ export class TracNetworkProvider extends EventEmitter {
     });
   };
 
-  signTracTx = async (txData: any) => {
-    return this._request({
-      method: 'tracSignTx',
-      params: { txData },
-    });
-  };
-
   pushTracTx = async (txPayload: string) => {
     return this._request({
       method: 'tracPushTx',
       params: { txPayload },
+    });
+  };
+
+  signTracTx = async (contractTx: any) => {
+    return this._request({
+      method: 'tracSignTx',
+      params: { contractTx },
     });
   };
 }

@@ -1,7 +1,31 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {useNavigate} from 'react-router-dom';
-import {getUiType} from '@/src/ui/utils';
+import {getUiType, useAppSelector} from '@/src/ui/utils';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {TracApi} from '@/src/background/requests/trac-api';
+import {TracApiService} from '@/src/background/service/trac-api.service';
+
+export const useFee = () => {
+  const networkType = useAppSelector(GlobalSelector.networkType);
+  const [fee, setFee] = useState<string>('0');
+
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        const feeHex = await TracApi.fetchTransactionFee(networkType);
+        const feeDisplay = TracApiService.balanceToDisplay(feeHex);
+        setFee(parseFloat(feeDisplay).toFixed(8));
+      } catch (error) {
+        console.error('Error fetching fee:', error);
+        setFee('0');
+      }
+    };
+    fetchFee();
+  }, [networkType]);
+
+  return fee;
+};
 
 export const useApproval = () => {
   const wallet = useWalletProvider();

@@ -737,13 +737,7 @@ class InternalProvider {
         throw new Error('Not connected. Please call requestAccount() first.');
       }
 
-      const { requester, tx: txData } = contractTx;
-
-      if (!requester || !txData) {
-        throw new Error('Missing requester or tx data in walletRequest');
-      }
-
-      const { prepared_command, nonce, context } = txData;
+      const { prepared_command, nonce, context } = contractTx;
 
       if (!prepared_command || typeof prepared_command !== 'object') {
         throw new Error('Missing or invalid prepared_command');

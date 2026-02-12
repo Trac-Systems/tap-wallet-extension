@@ -10,7 +10,7 @@ import {useAppSelector, useAppDispatch} from '@/src/ui/utils';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import './index.css';
-import {useActiveTracAddress, useTracBalances} from '../hook';
+import {useActiveTracAddress, useTracBalances, useIsTracSingleWallet} from '../hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
 import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
@@ -43,6 +43,8 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
 
   // TRAC balances
   const tracAddress = useActiveTracAddress();
+  const hasTrac = !!tracAddress;
+  const isTracSingle = useIsTracSingleWallet();
   const {total: tracTotal, confirmed: tracConfirmed} = useTracBalances(
     tracAddress,
   );
@@ -99,18 +101,22 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
             </UX.Box>
             {menuOpen && (
               <div className="containerOption">
-                <UX.Text
-                  onClick={handleShowHistoryBTC}
-                  styleType="body_14_bold"
-                  customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="View BTC History"
-                />
-                <UX.Text
-                  onClick={handleShowHistoryTRAC}
-                  styleType="body_14_bold"
-                  customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="View TRAC History"
-                />
+                {!isTracSingle && (
+                  <UX.Text
+                    onClick={handleShowHistoryBTC}
+                    styleType="body_14_bold"
+                    customStyles={{cursor: 'pointer', color: 'white'}}
+                    title="View BTC History"
+                  />
+                )}
+                {hasTrac && (
+                  <UX.Text
+                    onClick={handleShowHistoryTRAC}
+                    styleType="body_14_bold"
+                    customStyles={{cursor: 'pointer', color: 'white'}}
+                    title="View TRAC History"
+                  />
+                )}
                 <UX.Text
                   onClick={async () => {
                     setMenuOpen(false);

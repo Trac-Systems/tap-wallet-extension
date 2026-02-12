@@ -41,6 +41,8 @@ import FailScreen from './pages/send-receive/transaction-fail';
 import SuccessScreen from './pages/send-receive/transaction-success-screen';
 import DappPage from './pages/dapp';
 import SettingPage from './pages/settings';
+import ActivityPage from './pages/activity';
+import TransactionDetail from './pages/activity/transaction-detail';
 import ChooseAddressType from './pages/settings/choose-address-type';
 import ConnectSite from './pages/settings/connect-site';
 import NetWorkType from './pages/settings/network-type';
@@ -233,6 +235,10 @@ function App() {
 
         {/* Dapp */}
         <Route path="/dapp" element={<DappPage />} />
+
+        {/* Activity */}
+        <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/activity/transaction-detail" element={<TransactionDetail />} />
 
         {/* Setting */}
         <Route path="/setting" element={<SettingPage />} />

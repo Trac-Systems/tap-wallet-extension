@@ -320,7 +320,7 @@ const TransactionDetail = () => {
                     wordBreak: 'break-word',
                   }}
                 >
-                  {JSON.stringify(transaction, null, 2)}
+                  {JSON.stringify(transaction.rawData || transaction, null, 2)}
                 </pre>
               </UX.Box>
             </UX.Box>

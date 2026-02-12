@@ -20,6 +20,7 @@ export interface ProcessedTracTransaction {
   sender: string;
   recipient: string;
   isConfirmed: boolean;
+  rawData?: any; // Original raw transaction data from API
 }
 
 export function processTracTransaction(
@@ -103,5 +104,6 @@ export function processTracTransaction(
     sender,
     recipient,
     isConfirmed,
+    rawData: tx, // Store original raw transaction data
   };
 }

@@ -3,13 +3,13 @@
  * Shows detailed information for a selected transaction
  */
 
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UX } from '@/src/ui/component';
 import { colors } from '@/src/ui/themes/color';
 import LayoutScreenSettings from '../../layouts/settings';
 import { SVG } from '@/src/ui/svg';
 import { useAppSelector } from '@/src/ui/utils';
-import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 import { Network } from '@/src/wallet-instance';
 
@@ -17,8 +17,8 @@ const TransactionDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { transaction, type } = location.state || {};
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const networkType = useAppSelector(GlobalSelector.networkType);
 
   if (!transaction) {
@@ -70,7 +70,10 @@ const TransactionDetail = () => {
 
   // Get amount display
   const getAmountDisplay = () => {
-    const sign = isSent || isContract ? '-' : '+';
+    if (isContract) {
+      return `0 ${transaction.currency}`;
+    }
+    const sign = isSent ? '-' : '+';
     return `${sign}${transaction.amount} ${transaction.currency}`;
   };
 
@@ -79,14 +82,6 @@ const TransactionDetail = () => {
     if (transaction.status === 'confirmed') return colors.green_500;
     if (transaction.status === 'pending') return colors.yellow_500;
     return colors.red_500;
-  };
-
-  // Get interacting with text
-  const getInteractingWith = () => {
-    if (!isTrac) return 'Wallet';
-    if (transaction.rawType === 3) return 'Network System';
-    if (transaction.rawType === 12) return 'Contract';
-    return 'Wallet';
   };
 
   // View on explorer
@@ -231,7 +226,11 @@ const TransactionDetail = () => {
                   customStyles={{ color: '#9E9E9E' }}
                 />
                 <UX.Text
-                  title={`${transaction.amount} ${transaction.currency}`}
+                  title={
+                    isContract
+                      ? `${transaction.fee && transaction.fee !== '0' ? transaction.fee : '0.03'} TNK`
+                      : `${transaction.amount} ${transaction.currency}`
+                  }
                   styleType="body_14_normal"
                   customStyles={{ color: colors.white, textAlign: 'right' }}
                 />
@@ -268,7 +267,7 @@ const TransactionDetail = () => {
             </UX.Box>
           </UX.Box>
 
-          {/* Extra Info for Contract */}
+          {/* Transaction Data for Contract */}
           {isTrac && isContract && (
             <UX.Box
               layout="column"
@@ -280,74 +279,49 @@ const TransactionDetail = () => {
                 marginTop: '12px',
               }}
             >
-              {/* Network */}
-              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
+              {/* Header with Expand button */}
+              <UX.Box layout="row_between" spacing="xs" style={{ alignItems: 'center' }}>
                 <UX.Text
-                  title="Network"
-                  styleType="body_14_normal"
-                  customStyles={{ color: '#9E9E9E' }}
+                  title="Transaction Data"
+                  styleType="body_14_bold"
+                  customStyles={{ color: colors.white }}
                 />
                 <UX.Text
-                  title="Trac Network"
-                  styleType="body_14_normal"
-                  customStyles={{ color: colors.white, textAlign: 'right' }}
-                />
-              </UX.Box>
-
-              {/* Request from */}
-              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
-                <UX.Text
-                  title="Request from"
-                  styleType="body_14_normal"
-                  customStyles={{ color: '#9E9E9E' }}
-                />
-                <UX.Text
-                  title="Direct Transaction"
-                  styleType="body_14_normal"
-                  customStyles={{ color: colors.white, textAlign: 'right' }}
+                  title={isExpanded ? 'Collapse' : 'Expand'}
+                  styleType="body_12_normal"
+                  customStyles={{
+                    color: colors.green_500,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                  onClick={() => setIsExpanded(!isExpanded)}
                 />
               </UX.Box>
 
-              {/* Interacting with */}
-              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
-                <UX.Text
-                  title="Interacting with"
-                  styleType="body_14_normal"
-                  customStyles={{ color: '#9E9E9E' }}
-                />
-                <UX.Text
-                  title={getInteractingWith()}
-                  styleType="body_14_normal"
-                  customStyles={{ color: colors.white, textAlign: 'right' }}
-                />
-              </UX.Box>
-
-              {/* Method */}
-              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
-                <UX.Text
-                  title="Method"
-                  styleType="body_14_normal"
-                  customStyles={{ color: '#9E9E9E' }}
-                />
-                <UX.Text
-                  title={transaction.method || 'Transfer'}
-                  styleType="body_14_normal"
-                  customStyles={{ color: colors.white, textAlign: 'right' }}
-                />
-              </UX.Box>
-
-              {/* Signing with */}
-              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
-                <UX.Text
-                  title="Signing with"
-                  styleType="body_14_normal"
-                  customStyles={{ color: '#9E9E9E' }}
-                />
-                <UX.Text
-                  title={activeAccount?.name || 'Primary Account'}
-                  styleType="body_14_normal"
-                  customStyles={{ color: colors.white, textAlign: 'right' }}
-                />
+              {/* JSON Content */}
+              <UX.Box
+                style={{
+                  marginTop: '12px',
+                  backgroundColor: '#0A0A0A',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  maxHeight: isExpanded ? '600px' : '200px',
+                  overflow: 'auto',
+                }}
+              >
+                <pre
+                  style={{
+                    margin: 0,
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    lineHeight: '1.5',
+                    color: '#E0E0E0',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {JSON.stringify(transaction, null, 2)}
+                </pre>
               </UX.Box>
             </UX.Box>
           )}

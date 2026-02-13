@@ -1,5 +1,5 @@
 import { ethErrors } from 'eth-rpc-errors';
-import { permissionService, sessionService, networkConfig } from '../service/singleton';
+import { permissionService, sessionService, networkConfig, notificationService } from '../service/singleton';
 import { bitcoin, getBitcoinNetwork } from '../utils';
 import walletProvider from '../provider';
 import { NETWORK_TYPES, Network } from '../../wallet-instance';
@@ -523,7 +523,46 @@ class InternalProvider {
     throw new Error('User rejected signature request');
   };
 
-  @Reflect.metadata('APPROVAL', ['SendTNKApproval'])
+  @Reflect.metadata('APPROVAL', ['SendTNKApproval', (request) => {
+    // Resolve 'from' before showing approval
+    const { from, to, amount } = request.data.params;
+
+    if (!to || typeof to !== 'string') {
+      return false; // Will trigger approval and fail with validation error
+    }
+
+    if (!amount || (typeof amount !== 'string' && typeof amount !== 'number')) {
+      return false;
+    }
+
+    // Resolve from address
+    let fromAddress: string;
+    if (from && typeof from === 'string') {
+      const indices = walletProvider.getIndicesByTracAddress(from);
+      if (indices) {
+        fromAddress = from;
+      } else {
+        return false; // Address not found
+      }
+    } else {
+      const _account = walletProvider.getActiveAccount();
+      const _wallet = walletProvider.getActiveWallet();
+      if (_account && _wallet) {
+        const addr = walletProvider.getTracAddress(_wallet.index, _account.index ?? 0);
+        if (addr) {
+          fromAddress = addr;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
+    // Update params with resolved from address
+    request.data.params.from = fromAddress;
+    return false; // Continue to show approval
+  }])
   tracSendTNK = async ({ session: { origin }, data: { params }, approvalRes }) => {
     if (approvalRes) {
       return approvalRes;
@@ -535,45 +574,12 @@ class InternalProvider {
 
     const { from, to, amount } = params;
 
-    if (!to || typeof to !== 'string') {
-      throw new Error('Invalid recipient address.');
-    }
-
-    if (!amount || (typeof amount !== 'string' && typeof amount !== 'number')) {
-      throw new Error('Invalid amount.');
-    }
-
-    // Resolve 'from' address - either use provided or get from active account
-    let fromAddress: string;
-
-    if (from && typeof from === 'string') {
-      // Validate that address exists in wallet
-      const indices = walletProvider.getIndicesByTracAddress(from);
-      if (!indices) {
-        throw new Error(`Address ${from} not found in wallet.`);
-      }
-      fromAddress = from;
-    } else {
-      const _account = walletProvider.getActiveAccount();
-      const _wallet = walletProvider.getActiveWallet();
-
-      if (!_account || !_wallet) {
-        throw new Error('No active account or wallet found.');
-      }
-
-      const addr = walletProvider.getTracAddress(_wallet.index, _account.index ?? 0);
-      if (!addr) {
-        throw new Error('No TRAC address found for active account.');
-      }
-      fromAddress = addr;
-    }
-
-    return { from: fromAddress, to, amount: amount.toString() };
+    return { from, to, amount: amount.toString() };
   };
 
   // Advanced transaction methods
   @Reflect.metadata('SAFE', true)
-  tracBuildTx = async ({ session: { origin }, data: { params } }) => {
+  tracBuildTx = async ({ session: { origin, name, icon }, data: { params } }) => {
     // Check if origin has TRAC permission
     if (!permissionService.hasTracPermission(origin)) {
       throw new Error('Not connected. Please call requestAccount() first.');
@@ -621,95 +627,183 @@ class InternalProvider {
     const network = networkConfig.getActiveNetwork();
     const validity = await TracApi.fetchTransactionValidity(network);
 
-    // Pre-build transaction
+    // Pre-build transaction to get all details (including fee)
     const networkId = network === Network.MAINNET ? 918 : 9180;
     const txData = await TracApiService.preBuildTransaction(
       { from: fromAddress, to, amountHex, validityHex: validity },
       networkId
     );
 
-    const serializedTxData = {
-      ...txData,
-      amountHex,
-      validityHex: validity,
-      chainId: networkId,
-      hash: txData.hash ? Buffer.from(txData.hash).toString('hex') : null,
-      nonce: txData.nonce ? Buffer.from(txData.nonce).toString('hex') : null,
-      _bufferFields: ['hash', 'nonce']
-    };
+    // Manually request approval with full transaction details
+    const approvalRes = await notificationService.requestApproval(
+      {
+        approvalComponent: 'SignTracTxApproval',
+        params: {
+          session: { origin, name, icon },
+          data: {
+            from: fromAddress,
+            to,
+            amount: amountHex,
+            amountDisplay: amount.toString(),
+            validity,
+            nonce: txData.nonce ? Buffer.from(txData.nonce).toString('hex') : null,
+            hash: txData.hash ? Buffer.from(txData.hash).toString('hex') : null,
+            networkId,
+          },
+          _builtTxData: txData,
+        },
+        origin,
+      },
+      { height: 600 },
+    );
 
-    return serializedTxData;
+    // User approved, now sign
+    if (!approvalRes || !approvalRes.approved) {
+      throw new Error('User rejected transaction signing');
+    }
+
+    const { _builtTxData } = approvalRes;
+
+    if (!_builtTxData) {
+      throw new Error('Transaction data not found');
+    }
+
+    // Convert buffer fields back to Buffers (they were serialized through approval flow)
+    if (_builtTxData.hash && !(_builtTxData.hash instanceof Buffer)) {
+      if (typeof _builtTxData.hash === 'string') {
+        _builtTxData.hash = Buffer.from(_builtTxData.hash, 'hex');
+      } else if (typeof _builtTxData.hash === 'object') {
+        _builtTxData.hash = Buffer.from(Object.values(_builtTxData.hash));
+      }
+    }
+
+    if (_builtTxData.nonce && !(_builtTxData.nonce instanceof Buffer)) {
+      if (typeof _builtTxData.nonce === 'string') {
+        _builtTxData.nonce = Buffer.from(_builtTxData.nonce, 'hex');
+      } else if (typeof _builtTxData.nonce === 'object') {
+        _builtTxData.nonce = Buffer.from(Object.values(_builtTxData.nonce));
+      }
+    }
+
+    // Get keypair for signing
+    const indices = walletProvider.getIndicesByTracAddress(fromAddress);
+    if (!indices) {
+      throw new Error(`Address ${fromAddress} not found in wallet.`);
+    }
+
+    const wallets = walletProvider.getWallets();
+    const _wallet = wallets.find(w => w.index === indices.walletIndex);
+    if (!_wallet) {
+      throw new Error('Wallet not found');
+    }
+
+    const mnemonicData = await walletProvider.getMnemonicsUnlocked(_wallet);
+    const mnemonic = mnemonicData.mnemonic;
+
+    const keypair = await TracApiService.generateKeypairFromMnemonic(
+      mnemonic,
+      indices.accountIndex
+    );
+
+    // Sign the pre-built transaction
+    const secretBuffer = TracApiService.toSecretBuffer(keypair.secretKey);
+    const txPayload = TracApiService.buildTransaction(_builtTxData, secretBuffer);
+
+    // Validate txPayload
+    if (!txPayload || typeof txPayload !== 'string') {
+      throw new Error('Failed to build transaction: invalid payload');
+    }
+
+    // Verify it's valid base64
+    try {
+      atob(txPayload);
+    } catch (e) {
+      throw new Error('Failed to build transaction: invalid payload format');
+    }
+
+    return txPayload;
   };
 
-  @Reflect.metadata('APPROVAL', ['SignTracTxApproval'])
+  @Reflect.metadata('APPROVAL', ['SignContractTxApproval'])
   tracSignTx = async ({ session: { origin }, data: { params }, approvalRes }) => {
-    // If user approved in popup
     if (approvalRes && approvalRes.approved) {
-      const { txData } = params;
+      const { contractTx } = params;
 
-      if (!txData || typeof txData !== 'object') {
-        throw new Error('Invalid transaction data');
+      if (!contractTx || typeof contractTx !== 'object') {
+        throw new Error('Invalid contract transaction data');
       }
+
       if (!permissionService.hasTracPermission(origin)) {
         throw new Error('Not connected. Please call requestAccount() first.');
       }
-      const fromAddress = txData.from;
-      if (!fromAddress) {
-        throw new Error('Transaction data missing "from" address');
+
+      const { prepared_command, nonce, context } = contractTx;
+
+      if (!prepared_command || typeof prepared_command !== 'object') {
+        throw new Error('Missing or invalid prepared_command');
       }
-      const indices = walletProvider.getIndicesByTracAddress(fromAddress);
-      if (!indices) {
-        throw new Error(`Address ${fromAddress} not found in wallet.`);
+      if (!nonce || typeof nonce !== 'string') {
+        throw new Error('Missing or invalid nonce');
       }
-      const wallets = walletProvider.getWallets();
-      const _wallet = wallets.find(w => w.index === indices.walletIndex);
-      if (!_wallet) {
-        throw new Error('Wallet not found');
+      if (!context || typeof context !== 'object') {
+        throw new Error('Missing or invalid context');
       }
 
+      const _account = walletProvider.getActiveAccount();
+      const _wallet = walletProvider.getActiveWallet();
+
+      if (!_account || !_wallet) {
+        throw new Error('No active account found');
+      }
+
+      const accountIndex = _account.index ?? 0;
       const mnemonicData = await walletProvider.getMnemonicsUnlocked(_wallet);
-      const mnemonic = mnemonicData.mnemonic;
-
       const keypair = await TracApiService.generateKeypairFromMnemonic(
-        mnemonic,
-        indices.accountIndex
+        mnemonicData.mnemonic,
+        accountIndex
       );
 
-      if (txData._bufferFields && Array.isArray(txData._bufferFields)) {
-        txData._bufferFields.forEach(fieldName => {
-          const value = txData[fieldName];
-          if (value && typeof value === 'string') {
-            txData[fieldName] = Buffer.from(value, 'hex');
-          } else if (value && typeof value === 'object' && !(value instanceof Buffer)) {
-            txData[fieldName] = Buffer.from(Object.values(value));
-          }
-        });
-        delete txData._bufferFields;
-      } else {
-        if (txData.hash && !(txData.hash instanceof Buffer) && !(txData.hash instanceof Uint8Array)) {
-          if (typeof txData.hash === 'string') {
-            txData.hash = Buffer.from(txData.hash, 'hex');
-          } else {
-            txData.hash = Buffer.from(Object.values(txData.hash));
-          }
+      try {
+        const networkId = context.networkId;
+        const txv = context.txv;
+        const mbs = context.mbs;
+        const bs = context.bs;
+        const iw = context.iw;
+
+        if (!networkId || !txv || !mbs || !iw) {
+          throw new Error('Invalid context - missing required fields');
         }
 
-        if (txData.nonce && !(txData.nonce instanceof Buffer) && !(txData.nonce instanceof Uint8Array)) {
-          if (typeof txData.nonce === 'string') {
-            txData.nonce = Buffer.from(txData.nonce, 'hex');
-          } else {
-            txData.nonce = Buffer.from(Object.values(txData.nonce));
-          }
-        }
+        const commandJson = JSON.stringify(prepared_command);
+        const commandHash = await TracApiService.blake3HashFromString(commandJson);
+
+        const bsBuffer = bs ? Buffer.from(bs, 'hex') : Buffer.alloc(32).fill(0);
+        const serialized = TracApiService.serialize(
+          networkId,
+          Buffer.from(txv, 'hex'),
+          Buffer.from(iw, 'hex'),
+          commandHash,
+          bsBuffer,
+          Buffer.from(mbs, 'hex'),
+          Buffer.from(nonce, 'hex'),
+          12
+        );
+
+        const txHash = await TracApiService.blake3Hash(serialized);
+        const secretBuffer = TracApiService.toSecretBuffer(keypair.secretKey);
+        const signature = TracApiService.signHash(txHash, secretBuffer);
+
+        return {
+          tx: txHash.toString('hex'),
+          signature: signature.toString('hex')
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to sign contract transaction: ${errorMessage}`);
       }
-
-      const secretBuffer = TracApiService.toSecretBuffer(keypair.secretKey);
-      const txPayload = TracApiService.buildTransaction(txData, secretBuffer);
-
-      return txPayload;
     }
 
-    throw new Error('User rejected transaction signing');
+    throw new Error('User rejected contract transaction signing');
   };
 
   @Reflect.metadata('SAFE', true)
@@ -742,6 +836,7 @@ class InternalProvider {
       success: true
     };
   };
+
 }
 
 export default new InternalProvider();

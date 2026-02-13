@@ -11,3 +11,4 @@ export { default as TracConnect } from './trac-connect';
 export { default as SendTNKApproval } from './send-tnk-approval';
 export { default as TracSignMessage } from './trac-sign-message';
 export { default as SignTracTxApproval } from './sign-trac-tx-approval';
+export { default as SignContractTxApproval } from './sign-contract-tx-approval';

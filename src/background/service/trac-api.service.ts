@@ -3,6 +3,10 @@
  */
 
 import TracCrypto from 'trac-crypto-api';
+import * as Blake3Module from '@tracsystems/blake3';
+
+type Blake3Fn = (data: string | Buffer | Uint8Array) => Promise<Uint8Array>;
+const blake3Raw = (Blake3Module as any).blake3 as Blake3Fn;
 
 export interface TracCryptoInstance {
   address: {
@@ -388,5 +392,53 @@ export class TracApiService {
     }
 
     return { valid: true };
+  }
+
+  static async blake3Hash(data: Buffer | Uint8Array): Promise<Buffer> {
+    const tracCrypto = TracCrypto as any;
+    if (!tracCrypto?.hash?.blake3) {
+      throw new Error("TracCryptoApi.hash.blake3 not available");
+    }
+
+    const hash = await tracCrypto.hash.blake3(data);
+    return Buffer.from(hash);
+  }
+
+  static async blake3HashFromString(str: string): Promise<Buffer> {
+    if (!blake3Raw) {
+      throw new Error("Raw blake3 function not available");
+    }
+
+    const hash = await blake3Raw(str);
+    return Buffer.from(hash);
+  }
+
+  static serialize(...args: (Buffer | Uint8Array | number)[]): Buffer {
+    const tracCrypto = TracCrypto as any;
+    if (!tracCrypto?.utils?.serialize) {
+      throw new Error("TracCryptoApi.utils.serialize not available");
+    }
+
+    const convertedArgs = args.map(arg => {
+      if (arg instanceof Uint8Array && !(arg instanceof Buffer)) {
+        return Buffer.from(arg);
+      }
+      return arg;
+    });
+
+    return Buffer.from(tracCrypto.utils.serialize(...convertedArgs));
+  }
+
+  static signHash(hash: Buffer | Uint8Array, secretKey: Buffer | Uint8Array): Buffer {
+    const tracCrypto = TracCrypto as any;
+    if (!tracCrypto?.signature?.sign) {
+      throw new Error("TracCryptoApi.signature.sign not available");
+    }
+
+    const hashBuffer = Buffer.from(hash);
+    const secretBuffer = Buffer.from(secretKey);
+    const signature = tracCrypto.signature.sign(hashBuffer, secretBuffer);
+
+    return Buffer.from(signature);
   }
 }

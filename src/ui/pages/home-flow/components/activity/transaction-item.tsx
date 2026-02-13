@@ -97,16 +97,20 @@ const TransactionItem = ({
           <UX.Text
             title={
               type === 'sent'
-                ? 'Sent:'
+                ? 'Sent'
                 : type === 'contract'
                 ? 'Contract interaction'
-                : 'Received:'
+                : 'Received'
             }
             styleType="body_16_bold"
             customStyles={{ color: colors.white }}
           />
           <UX.Text
-            title={truncateAddress(address)}
+            title={
+              type === 'contract'
+                ? truncateAddress(transaction.hash || transaction.txid || address)
+                : truncateAddress(address)
+            }
             styleType="body_12_normal"
             customStyles={{ color: colors.smoke }}
           />

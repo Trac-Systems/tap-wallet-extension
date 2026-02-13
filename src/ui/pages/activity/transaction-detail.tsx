@@ -268,6 +268,37 @@ const TransactionDetail = () => {
                 </div>
               </div>
             </UX.Box>
+
+            {/* Subnet - only show for contract interactions */}
+            {isTrac && isContract && (transaction.rawData?.bs || transaction.bs) && (
+              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
+                <UX.Text
+                  title="Subnet"
+                  styleType="body_14_normal"
+                  customStyles={{ color: '#9E9E9E', flex: '0 0 auto' }}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+                  <UX.Text
+                    title={transaction.rawData?.bs || transaction.bs}
+                    styleType="body_14_normal"
+                    customStyles={{
+                      color: colors.white,
+                      textAlign: 'right',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '150px',
+                    }}
+                  />
+                  <div
+                    onClick={() => copyToClipboard(transaction.rawData?.bs || transaction.bs)}
+                    style={{ cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    <SVG.CopyPink />
+                  </div>
+                </div>
+              </UX.Box>
+            )}
           </UX.Box>
 
           {/* Transaction Data for Contract */}

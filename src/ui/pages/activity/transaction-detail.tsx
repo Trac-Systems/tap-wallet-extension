@@ -227,9 +227,12 @@ const TransactionDetail = () => {
                 />
                 <UX.Text
                   title={
-                    isContract
-                      ? `${transaction.fee && transaction.fee !== '0' ? transaction.fee : '0.03'} TNK`
-                      : `${transaction.amount} ${transaction.currency}`
+                    (() => {
+                      const fee = transaction.fee && transaction.fee !== '0' ? parseFloat(transaction.fee) : 0.03;
+                      const amount = transaction.amount ? parseFloat(transaction.amount) : 0;
+                      const total = amount + fee;
+                      return `${total.toFixed(8)} ${isContract ? 'TNK' : transaction.currency}`;
+                    })()
                   }
                   styleType="body_14_normal"
                   customStyles={{ color: colors.white, textAlign: 'right' }}

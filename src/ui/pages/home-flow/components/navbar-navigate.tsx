@@ -4,7 +4,7 @@ import {colors} from '@/src/ui/themes/color';
 import {useNavigate} from 'react-router-dom';
 
 interface INavbar {
-  isActive?: 'home' | 'dapp' | 'setting';
+  isActive?: 'home' | 'dapp' | 'activity' | 'setting';
 }
 const Navbar = (props: INavbar) => {
   const navigate = useNavigate();
@@ -37,6 +37,20 @@ const Navbar = (props: INavbar) => {
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'dapp' ? colors.main_500 : colors.white,
+          }}
+        />
+      </UX.Box>
+      <UX.Box
+        onClick={() => navigate('/activity')}
+        layout="column_center"
+        spacing="xss_s"
+        style={{cursor: 'pointer'}}>
+        <SVG.ActivityIcon fillColor={isActive === 'activity' ? '#D16B7C' : 'white'} />
+        <UX.Text
+          title="Activity"
+          styleType="body_12_normal"
+          customStyles={{
+            color: isActive === 'activity' ? colors.main_500 : colors.white,
           }}
         />
       </UX.Box>

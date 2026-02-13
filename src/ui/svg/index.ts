@@ -1,4 +1,5 @@
 import AddIcon from './Add';
+import ActivityIcon from './ActivityIcon';
 import ArrowBackIcon from './ArrowBack';
 import ArrowDownIcon from './ArrowDown';
 import ArrowUpIcon from './ArrowUp';
@@ -40,10 +41,15 @@ import HyperfunIcon from './Hyperfun';
 import HypermallIcon from './Hypermall';
 import TracIcon from './Trac';
 import PasteIcon from './Paste';
+import TransactionReceivedIcon from './TransactionReceived';
+import TransactionSentIcon from './TransactionSent';
+import TransactionFailedIcon from './TransactionFailed';
+import TransactionContractIcon from './TransactionContract';
 
 export const SVG = {
+  ActivityIcon,
   ArrowBackIcon,
-  QuestionMark, 
+  QuestionMark,
   RefreshIcon,
   CloseIcon,
   TransferIcon,
@@ -84,5 +90,9 @@ export const SVG = {
   HyperfunIcon,
   HypermallIcon,
   TracIcon,
-  PasteIcon
+  PasteIcon,
+  TransactionReceivedIcon,
+  TransactionSentIcon,
+  TransactionFailedIcon,
+  TransactionContractIcon
 };

@@ -70,4 +70,13 @@ export class MempoolApi {
     this.rawTxCache.set(txid, rawWithWitness);
     return rawWithWitness;
   }
+
+  async getAddressTransactions(address: string, afterTxid?: string): Promise<any[]> {
+    let url = `/api/address/${address}/txs`;
+    if (afterTxid) {
+      url += `?after_txid=${afterTxid}`;
+    }
+    const response = await this.api_mempool.get(url, {});
+    return response.data;
+  }
 }

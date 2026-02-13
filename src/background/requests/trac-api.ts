@@ -119,4 +119,69 @@ export class TracApi {
       throw error;
     }
   }
+
+  /**
+   * Fetch transaction history for a TRAC address
+   */
+  static async getTransactionHistory(
+    address: string,
+    offset: number = 0,
+    limit: number = 50,
+    network: Network = Network.MAINNET
+  ): Promise<any> {
+    try {
+      const explorerUrl = network === Network.TESTNET
+        ? 'https://explorer-testnet.trac.network'
+        : 'https://explorer.trac.network';
+
+      const url = `${explorerUrl}/api/transactions?address=${address}&offset=${offset}&max=${limit}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Explorer API failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Handle different response formats
+      let transactions: any[] = [];
+      if (data && typeof data.transactions === 'string') {
+        transactions = JSON.parse(data.transactions);
+      } else if (data && Array.isArray(data.transactions)) {
+        transactions = data.transactions;
+      } else if (Array.isArray(data)) {
+        transactions = data;
+      }
+
+      return {
+        transactions,
+        total: transactions.length
+      };
+    } catch (error) {
+      console.error('[TracApi] getTransactionHistory error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Convert TRAC balance from wei (18 decimals) to display format
+   */
+  static balanceToDisplay(balance: string): string {
+    if (!balance || balance === '0') return '0';
+    try {
+      const balanceBigInt = BigInt(balance);
+      const divisor = BigInt('1000000000000000000'); // 10^18
+      const quotient = balanceBigInt / divisor;
+      const remainder = balanceBigInt % divisor;
+      const decimalPart = remainder.toString().padStart(18, '0');
+      const trimmedDecimal = decimalPart.replace(/0+$/, '');
+
+      return trimmedDecimal === ''
+        ? quotient.toString()
+        : `${quotient.toString()}.${trimmedDecimal}`;
+    } catch (error) {
+      console.error('Error converting balance:', error);
+      return '0';
+    }
+  }
 }

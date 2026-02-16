@@ -216,7 +216,7 @@ const SendTrac = () => {
                   />
                 </UX.Box>
                 <Text
-                  title={`≈ ${Number(usdConfirmed).toLocaleString()} USD`}
+                  title={`≈ ${usdConfirmed} USD`}
                   styleType="body_12_normal"
                   customStyles={{color: colors.smoke, marginTop: 2}}
                 />
@@ -297,7 +297,7 @@ const SendTrac = () => {
                     <UX.Text title="TNK" styleType="body_14_bold" />
                   </UX.Box>
                   <Text
-                    title={`≈ ${Number(usdTotal).toLocaleString()} USD`}
+                    title={`≈ ${usdTotal} USD`}
                     styleType="body_12_normal"
                     customStyles={{color: colors.smoke, marginTop: 2}}
                   />
@@ -360,7 +360,7 @@ const SendTrac = () => {
               />
               {!feeLoading && fee && (
                 <Text
-                  title={`≈ ${Number(usdFee).toLocaleString()} USD`}
+                  title={`≈ ${usdFee} USD`}
                   styleType="body_12_normal"
                   customStyles={{color: colors.smoke, marginTop: 2}}
                 />

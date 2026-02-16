@@ -189,7 +189,7 @@ const SendTracSummary = () => {
                   customStyles={{color: 'white'}}
                 />
                 <Text
-                  title={`≈ ${Number(usdPriceFee).toLocaleString()} USD`}
+                  title={`≈ ${usdPriceFee} USD`}
                   styleType="body_12_normal"
                   customStyles={{color: colors.smoke, marginTop: 2}}
                 />

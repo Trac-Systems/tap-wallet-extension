@@ -222,7 +222,7 @@ const SendBTC = () => {
                   />
                 </UX.Box>
                 <Text
-                  title={`≈ ${Number(usdAvailable).toLocaleString()} USD`}
+                  title={`≈ ${usdAvailable} USD`}
                   styleType="body_12_normal"
                   customStyles={{color: colors.smoke, marginTop: 2}}
                 />
@@ -267,7 +267,7 @@ const SendBTC = () => {
                     <UX.Text title="BTC" styleType="body_14_bold" />
                   </UX.Box>
                   <Text
-                    title={`≈ ${Number(usdTotal).toLocaleString()} USD`}
+                    title={`≈ ${usdTotal} USD`}
                     styleType="body_12_normal"
                     customStyles={{color: colors.smoke, marginTop: 2}}
                   />

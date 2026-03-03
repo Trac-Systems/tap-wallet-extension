@@ -304,6 +304,9 @@ export interface IWalletProvider {
   updateNetworkFilter(network: 'bitcoin' | 'trac', enabled: boolean, walletIndex?: number): Promise<void>;
   // Ledger methods
   isLedgerConnected(): Promise<boolean>;
+  // Trac contract log methods
+  saveTracContractLog(dto: { bs: string; contractName: string; peerUrl: string; txHash: string; method: string }): Promise<void>;
+  getTracContractLog(bs: string, txHash: string): Promise<{ contractName: string; peerUrl: string; method: string } | null>;
 }
 
 const WalletContext = createContext<{

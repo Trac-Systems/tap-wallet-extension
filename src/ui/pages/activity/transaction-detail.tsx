@@ -3,7 +3,7 @@
  * Shows detailed information for a selected transaction
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UX } from '@/src/ui/component';
 import { colors } from '@/src/ui/themes/color';
@@ -12,14 +12,35 @@ import { SVG } from '@/src/ui/svg';
 import { useAppSelector } from '@/src/ui/utils';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 import { Network } from '@/src/wallet-instance';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 
 const TransactionDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { transaction, type } = location.state || {};
   const [isExpanded, setIsExpanded] = useState(false);
+  const [cachedContractName, setCachedContractName] = useState<string | null>(null);
+  const [cachedMethod, setCachedMethod] = useState<string | null>(null);
 
   const networkType = useAppSelector(GlobalSelector.networkType);
+  const walletProvider = useWalletProvider();
+
+  const isTrac = type === 'trac';
+  const isContract = isTrac && transaction?.type === 'contract';
+
+  useEffect(() => {
+    if (!isContract || !transaction) return;
+    const bs = transaction.rawData?.bs;
+    const txHash = transaction.hash;
+    if (!bs || !txHash) return;
+
+    walletProvider.getTracContractLog(bs, txHash)
+      .then(data => {
+        if (data?.contractName) setCachedContractName(data.contractName);
+        if (data?.method) setCachedMethod(data.method);
+      })
+      .catch(() => {});
+  }, [isContract, transaction?.rawData?.bs, transaction?.hash]);
 
   if (!transaction) {
     return (
@@ -38,8 +59,6 @@ const TransactionDetail = () => {
     );
   }
 
-  const isTrac = type === 'trac';
-  const isContract = isTrac && transaction.type === 'contract';
   const isSent = transaction.type === 'sent';
 
   // Format date
@@ -297,6 +316,38 @@ const TransactionDetail = () => {
                     <SVG.CopyPink />
                   </div>
                 </div>
+              </UX.Box>
+            )}
+
+            {/* Contract Name - only show if cached */}
+            {isContract && cachedContractName && (
+              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
+                <UX.Text
+                  title="Interacting with"
+                  styleType="body_14_normal"
+                  customStyles={{ color: '#9E9E9E', flex: '0 0 auto' }}
+                />
+                <UX.Text
+                  title={cachedContractName}
+                  styleType="body_14_normal"
+                  customStyles={{ color: colors.white, textAlign: 'right' }}
+                />
+              </UX.Box>
+            )}
+
+            {/* Method - only show if cached */}
+            {isContract && cachedMethod && (
+              <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
+                <UX.Text
+                  title="Method"
+                  styleType="body_14_normal"
+                  customStyles={{ color: '#9E9E9E', flex: '0 0 auto' }}
+                />
+                <UX.Text
+                  title={cachedMethod}
+                  styleType="body_14_normal"
+                  customStyles={{ color: colors.white, textAlign: 'right' }}
+                />
               </UX.Box>
             )}
           </UX.Box>

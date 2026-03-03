@@ -1436,6 +1436,23 @@ export class Provider {
     return await this.inscribeApi.getAuthorityOrders(address);
   };
 
+  saveTracContractLog = async (dto: {
+    bs: string;
+    contractName: string;
+    peerUrl: string;
+    txHash: string;
+    method: string;
+  }): Promise<void> => {
+    await this.inscribeApi.saveTracContractLog(dto);
+  };
+
+  getTracContractLog = async (
+    bs: string,
+    txHash: string,
+  ): Promise<{ contractName: string; peerUrl: string; method: string } | null> => {
+    return await this.inscribeApi.getTracContractLog(bs, txHash);
+  };
+
   getOrderReadyToTap = async (address: string, orderType: OrderType) => {
     return await this.inscribeApi.getReadyToTap(address, orderType);
   };

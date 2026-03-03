@@ -158,4 +158,25 @@ export class InscribeApi {
     }
     return res?.data?.data?.scriptInscription || null;
   }
+
+  async saveTracContractLog(dto: {
+    bs: string;
+    contractName: string;
+    peerUrl: string;
+    txHash: string;
+    method: string;
+  }): Promise<void> {
+    await this.api.post('/v1/trac-contract-log', dto);
+  }
+
+  async getTracContractLog(
+    bs: string,
+    txHash: string,
+  ): Promise<{ contractName: string; peerUrl: string; method: string } | null> {
+    const res = await this.api.get(
+      `/v1/trac-contract-log?bs=${bs}&txHash=${txHash}`,
+      {},
+    );
+    return res?.data?.data || null;
+  }
 }

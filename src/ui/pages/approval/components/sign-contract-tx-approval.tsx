@@ -2,7 +2,9 @@ import { UX } from '@/src/ui/component/index';
 import { useApproval, useFee } from '../hook';
 import LayoutApprove from '../layouts';
 import WebsiteBar from '@/src/ui/component/website-bar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { TracApiService } from '@/src/background/service/trac-api.service';
+import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 
 interface Props {
   params: {
@@ -19,10 +21,59 @@ interface Props {
 
 export default function SignContractTxApproval({ params: { session, data } }: Props) {
   const [, resolveApproval, rejectApproval] = useApproval();
+  const walletProvider = useWalletProvider();
   const fee = useFee();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [contractName, setContractName] = useState<string>('Unknown Contract');
+  const [isLoadingSchema, setIsLoadingSchema] = useState(false);
 
-  const handleApprove = () => {
+  const txParams = data?.contractTx || {};
+  const methodName = txParams?.prepared_command?.type || 'Unknown Method';
+  const peerUrl = txParams?.peerUrl;
+
+  useEffect(() => {
+    if (!peerUrl) return;
+    setIsLoadingSchema(true);
+    fetch(`${peerUrl}/v1/contract/schema`)
+      .then(r => r.json())
+      .then(schema => {
+        const name = schema?.contract?.contractClass;
+        if (name) setContractName(name);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingSchema(false));
+  }, [peerUrl]);
+
+  const handleApprove = async () => {
+    const { prepared_command, nonce, context } = txParams || {};
+    const { networkId, txv, iw, bs, mbs } = context || {};
+
+    // Compute txHash and save to backend
+    if (bs && prepared_command && nonce && networkId && txv && iw && mbs) {
+      try {
+        const commandHash = await TracApiService.blake3HashFromString(JSON.stringify(prepared_command));
+        const bsBuffer = Buffer.from(bs, 'hex');
+        const serialized = TracApiService.serialize(
+          networkId,
+          Buffer.from(txv, 'hex'),
+          Buffer.from(iw, 'hex'),
+          commandHash,
+          bsBuffer,
+          Buffer.from(mbs, 'hex'),
+          Buffer.from(nonce, 'hex'),
+          12
+        );
+        const txHashBuf = await TracApiService.blake3Hash(serialized);
+        await walletProvider.saveTracContractLog({
+          bs,
+          contractName,
+          peerUrl: peerUrl || '',
+          txHash: txHashBuf.toString('hex'),
+          method: methodName,
+        });
+      } catch {}
+    }
+
     resolveApproval({ approved: true });
   };
 
@@ -30,7 +81,6 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
     rejectApproval('User rejected contract transaction signing');
   };
 
-  const txParams = data?.contractTx || {};
   const jsonString = JSON.stringify(txParams, null, 2);
   const previewString = isExpanded ? jsonString : JSON.stringify(txParams, null, 2).slice(0, 200) + '...';
 
@@ -53,6 +103,22 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
           </UX.Box>
 
           <UX.Box spacing="sm" style={{ marginTop: '12px' }}>
+            {/* Contract Info Section */}
+            <UX.Box layout="box_border" style={{ flexDirection: 'column', gap: '12px' }}>
+              <UX.Box layout="row_between" style={{ width: '100%' }}>
+                <UX.Text title="Interacting with" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                <UX.Text
+                  title={isLoadingSchema ? 'Loading...' : contractName}
+                  styleType="body_14_normal"
+                  customStyles={{ color: 'white' }}
+                />
+              </UX.Box>
+              <UX.Box layout="row_between" style={{ width: '100%' }}>
+                <UX.Text title="Method" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                <UX.Text title={methodName} styleType="body_14_normal" customStyles={{ color: 'white' }} />
+              </UX.Box>
+            </UX.Box>
+
             <UX.Box
               layout="box_border"
               style={{

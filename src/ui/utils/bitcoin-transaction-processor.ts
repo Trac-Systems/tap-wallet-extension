@@ -60,11 +60,13 @@ export function processBitcoinTransaction(
         }
       }
     });
-    // If no counterparty found (self-transfer), use user's address
+    // If no counterparty found (self-transfer), use user's address and only charge fee
     if (!counterpartyAddress || amount === 0) {
       counterpartyAddress = userAddress;
-      // For self-transfer, use the output value
-      amount = tx.vout?.[0]?.value || 0;
+      amount = tx.fee || 0;
+    } else {
+      // Normal sent: add fee to show total balance decrease
+      amount += tx.fee || 0;
     }
   } else {
     // For received: sum outputs going to user

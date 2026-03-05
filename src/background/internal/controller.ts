@@ -1,5 +1,5 @@
 import { ethErrors } from 'eth-rpc-errors';
-import { permissionService, sessionService, networkConfig, notificationService } from '../service/singleton';
+import { permissionService, sessionService, networkConfig, notificationService, authService } from '../service/singleton';
 import { bitcoin, getBitcoinNetwork } from '../utils';
 import walletProvider from '../provider';
 import { NETWORK_TYPES, Network } from '../../wallet-instance';
@@ -47,6 +47,10 @@ class InternalProvider {
   @Reflect.metadata('SAFE', true)
   getAccounts = async ({ session: { origin } }) => {
     if (!permissionService.hasPermission(origin)) {
+      return [];
+    }
+
+    if (!authService.memStore.getState().isUnlocked) {
       return [];
     }
 

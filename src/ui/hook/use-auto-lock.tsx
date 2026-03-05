@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useWalletProvider } from '../gateway/wallet-provider';
 import { useAppSelector } from '../utils';
 import { GlobalSelector } from '../redux/reducer/global/selector';
+import browser from 'webextension-polyfill';
 
 const DEFAULT_LOCK_TIMEOUT = 300; // 5 minutes in seconds
 const DEFAULT_CHECK_INTERVAL = 30; // 30 seconds
 
-const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll'] as const; 
+const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll'] as const;
 
 /**
  * Hook to automatically lock wallet after inactivity period.
@@ -16,18 +17,59 @@ const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll'] as const;
  * @param {number} checkIntervalSeconds - Interval in seconds between checks. Default is 30 seconds.
  */
 export function useAutoLock(
-  lockTimeoutSeconds = DEFAULT_LOCK_TIMEOUT, 
+  lockTimeoutSeconds = DEFAULT_LOCK_TIMEOUT,
   checkIntervalSeconds = DEFAULT_CHECK_INTERVAL
 ) {
   const navigate = useNavigate();
   const wallet = useWalletProvider();
   const isUnlocked = useAppSelector(GlobalSelector.isUnlocked);
-  
+
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const timeLeftRef = useRef<number>(lockTimeoutSeconds);
   const lastActivityRef = useRef<number>(Date.now());
   const isTabVisibleRef = useRef<boolean>(true);
   const isLockingRef = useRef<boolean>(false);
+
+  // Sync timeout value to storage so the background alarm uses the correct delay
+  useEffect(() => {
+    browser.storage.local.set({ LOCK_TIMEOUT_SECONDS: lockTimeoutSeconds });
+  }, [lockTimeoutSeconds]);
+
+  // When popup reopens and wallet is still unlocked, check if it was closed past the timeout.
+  // Needed for short timeouts where the background alarm (min 1 min) hasn't fired yet.
+  useEffect(() => {
+    if (!isUnlocked) return;
+
+    const checkPopupCloseLock = async () => {
+      const result = await browser.storage.local.get(['POPUP_CLOSE_TIME', 'SW_START_TIME']);
+      const closeTime = result['POPUP_CLOSE_TIME'] as number | null;
+      const swStartTime = result['SW_START_TIME'] as number | null;
+      await browser.storage.local.remove('POPUP_CLOSE_TIME');
+
+      if (!closeTime) return;
+
+      // If POPUP_CLOSE_TIME is older than the current SW session it's stale — ignore.
+      // This avoids false locks after an extension update or SW restart.
+      if (swStartTime && closeTime <= swStartTime) return;
+
+      const elapsed = (Date.now() - closeTime) / 1000;
+      if (elapsed >= lockTimeoutSeconds) {
+        if (isLockingRef.current) return;
+        isLockingRef.current = true;
+        try {
+          await wallet.lockWallet();
+        } catch (e) {
+          console.error('❌ AutoLock (popup closed):', e);
+        } finally {
+          isLockingRef.current = false;
+          navigate('/login');
+        }
+      }
+    };
+
+    checkPopupCloseLock();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUnlocked]);
 
   /**
    * Function to clean up countdown timer.
@@ -47,7 +89,7 @@ export function useAutoLock(
     if (isLockingRef.current) {
       return;
     }
-    
+
     isLockingRef.current = true;
     try {
       await wallet.lockWallet();
@@ -68,11 +110,11 @@ export function useAutoLock(
     if (isUnlocked) {
       timeLeftRef.current = lockTimeoutSeconds;
       lastActivityRef.current = Date.now();
-      
+
       countdownRef.current = setInterval(async () => {
         const now = Date.now();
         const timeSinceLastActivity = (now - lastActivityRef.current) / 1000;
-        
+
         // If tab is visible, use normal countdown
         if (isTabVisibleRef.current) {
           timeLeftRef.current -= checkIntervalSeconds;
@@ -81,7 +123,7 @@ export function useAutoLock(
           timeLeftRef.current -= timeSinceLastActivity;
           lastActivityRef.current = now;
         }
-        
+
         if (timeLeftRef.current <= 0) {
           clearTimers();
           // Double-check unlock status before locking

@@ -51,7 +51,7 @@ class InternalProvider {
     }
 
     if (!authService.memStore.getState().isUnlocked) {
-      return [];
+      return null;
     }
 
     const _account = await walletProvider.getActiveAccount();
@@ -369,6 +369,10 @@ class InternalProvider {
 
   @Reflect.metadata('SAFE', true)
   tracGetAddress = async ({ session: { origin } }) => {
+    if (!authService.memStore.getState().isUnlocked) {
+      return null;
+    }
+
     // Check if origin has TRAC permission
     if (!permissionService.hasTracPermission(origin)) {
       throw new Error('Not connected. Please call requestAccount() first.');

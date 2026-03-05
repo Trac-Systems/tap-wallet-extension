@@ -95,7 +95,7 @@ const flowContext = flow
 
     // TRAC auto-connect check (for methods other than tracRequestAccount)
     if (['tracGetAddress', 'tracGetBalance', 'tracGetPublicKey', 'tracSignMessage', 'tracSendTNK', 'tracBuildTx', 'tracSignTx', 'tracPushTx'].includes(mapMethod)) {
-      if (!permissionService.hasTracPermission(origin)) {
+      if (!permissionService.hasTracPermission(origin) && authService.memStore.getState().isUnlocked) {
         ctx.request.requestedApproval = true;
         ctx.approvalRes = await notificationService.requestApproval(
           {

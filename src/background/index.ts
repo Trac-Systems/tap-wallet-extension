@@ -19,13 +19,30 @@ import {getLedgerService} from './service/ledger.service';
 // Set Buffer globally
 globalThis.Buffer = Buffer;
 
+const LOCK_ALARM_NAME = 'walletAutoLock';
+const SW_START_TIME = Date.now();
+
 let isStorageLoaded = false;
+let walletStoreReady: Promise<void>;
+let resolveWalletStore: () => void;
+walletStoreReady = new Promise(resolve => {
+  resolveWalletStore = resolve;
+});
 
 loadAllStorage();
+
+browser.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === LOCK_ALARM_NAME) {
+    if (walletProvider.isUnlocked()) {
+      await walletProvider.lockWallet();
+    }
+  }
+});
 
 async function init() {
   const walletStorage = await storage.get('WALLET_STORAGE');
   walletService.init(walletStorage);
+  resolveWalletStore();
   walletService.store.subscribe(async value => {
     await storage.set('WALLET_STORAGE', value);
   });
@@ -42,6 +59,9 @@ browser.runtime.onConnect.addListener(port => {
     port.name === 'notification' ||
     port.name === 'tab'
   ) {
+    storage.set('SW_START_TIME', SW_START_TIME);
+    browser.alarms.clear(LOCK_ALARM_NAME);
+
     // check if popup closed
     port.onDisconnect.addListener(async () => {
       // check list pending orders
@@ -71,6 +91,14 @@ browser.runtime.onConnect.addListener(port => {
           }
         }
       }
+
+      if (walletProvider.isUnlocked()) {
+        const lockTimeoutSeconds = (await storage.get('LOCK_TIMEOUT_SECONDS') as number) ?? 300;
+        await storage.set('POPUP_CLOSE_TIME', Date.now());
+        await browser.alarms.create(LOCK_ALARM_NAME, {
+          delayInMinutes: Math.max(1, Math.ceil(lockTimeoutSeconds / 60)),
+        });
+      }
     });
 
     const pm = new PortMessage(port);
@@ -83,6 +111,11 @@ browser.runtime.onConnect.addListener(port => {
           case 'provider':
           default:
             if (data.method && walletProvider[data.method]) {
+              if (!walletService.store) {
+                return walletStoreReady.then(() =>
+                  walletProvider[data.method].apply(null, data.params)
+                );
+              }
               return walletProvider[data.method].apply(null, data.params);
             } else {
               throw new Error(`Method not found: ${data.method}`);

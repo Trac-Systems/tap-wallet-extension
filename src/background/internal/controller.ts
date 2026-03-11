@@ -1,5 +1,5 @@
 import { ethErrors } from 'eth-rpc-errors';
-import { permissionService, sessionService, networkConfig, notificationService } from '../service/singleton';
+import { permissionService, sessionService, networkConfig, notificationService, authService } from '../service/singleton';
 import { bitcoin, getBitcoinNetwork } from '../utils';
 import walletProvider from '../provider';
 import { NETWORK_TYPES, Network } from '../../wallet-instance';
@@ -48,6 +48,10 @@ class InternalProvider {
   getAccounts = async ({ session: { origin } }) => {
     if (!permissionService.hasPermission(origin)) {
       return [];
+    }
+
+    if (!authService.memStore.getState().isUnlocked) {
+      return null;
     }
 
     const _account = await walletProvider.getActiveAccount();
@@ -365,6 +369,10 @@ class InternalProvider {
 
   @Reflect.metadata('SAFE', true)
   tracGetAddress = async ({ session: { origin } }) => {
+    if (!authService.memStore.getState().isUnlocked) {
+      return null;
+    }
+
     // Check if origin has TRAC permission
     if (!permissionService.hasTracPermission(origin)) {
       throw new Error('Not connected. Please call requestAccount() first.');

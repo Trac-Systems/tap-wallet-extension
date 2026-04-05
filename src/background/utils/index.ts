@@ -96,6 +96,11 @@ export function extractAddressFromScript({
   finalScriptWitness?: Buffer;
   network: bitcoin.Network;
 }) {
+  // Intercept OP_RETURN (opcode 0x6a / 106) before forcing parse as an address
+  if (script && script.length > 0 && script[0] === bitcoin.opcodes.OP_RETURN) {
+    return 'OP_RETURN';
+  }
+
   // For P2TR address
   if (tapInternalKey) {
     try {

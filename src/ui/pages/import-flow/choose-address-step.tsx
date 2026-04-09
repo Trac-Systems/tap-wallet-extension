@@ -13,8 +13,9 @@ import LayoutScreenImport from '../../layouts/import-export';
 import {GlobalActions} from '../../redux/reducer/global/slice';
 import {SVG} from '../../svg';
 import {colors} from '../../themes/color';
-import {TracApiService} from '@/src/background/service/trac-api.service';
-import {useAppDispatch} from '../../utils';
+import {TracApiService, getTracDerivationPath} from '@/src/background/service/trac-api.service';
+import {useAppDispatch, useAppSelector} from '../../utils';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {CreateWalletContext} from './services/wallet-service-create';
 import {IResponseAddressBalance} from '../../../background/requests/paid-api';
 
@@ -54,6 +55,7 @@ const ChooseAddress = () => {
   const {showToast} = useCustomToast();
   const walletProvider = useWalletProvider();
   const dispatch = useAppDispatch();
+  const networkType = useAppSelector(GlobalSelector.networkType);
   const queryParams = new URLSearchParams(location.search);
   const isImport = queryParams.get('type');
   const CreateWalletContextHandler = useContext(CreateWalletContext);
@@ -139,7 +141,7 @@ const ChooseAddress = () => {
 
   const generateTracAddress = async (mnemonic: string, accountIndex: number = 0) => {
     try {
-      const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex);
+      const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex, networkType);
       return result?.address || '';
     } catch (error) {
       console.error('Error generating TRAC address:', error);
@@ -250,7 +252,7 @@ const ChooseAddress = () => {
         const walletIndex = activeWallet?.index ?? 0;
         const accountIndex = 0; // first account for new wallet
         if (tracAddress) {
-          walletProvider.setTracAddress(walletIndex, accountIndex, tracAddress);
+          walletProvider.setTracAddress(walletIndex, accountIndex, tracAddress, networkType);
         }
       } catch (err) {
         console.log('persist TRAC address after wallet creation failed:', err);
@@ -359,7 +361,7 @@ const ChooseAddress = () => {
               <UX.CardAddress
                 isActive={true}
                 nameCardAddress="TRAC Network (TRAC)"
-                path="m/918'/0'/0'/0'"
+                path={getTracDerivationPath(0, networkType)}
                 address={tracAddress}
                 hasVault={tracBalance && parseFloat(tracBalance) > 0}
                 assets={tracBalance && parseFloat(tracBalance) > 0 ? { totalBtc: formatTracBalance(tracBalance), satoshis: 0, totalInscription: 0 } : undefined}

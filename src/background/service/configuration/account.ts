@@ -2,6 +2,7 @@ import {
   EVENTS,
   IDisplayAccount,
   Inscription,
+  Network,
   UnspentOutput,
 } from '@/src/wallet-instance';
 import createPersistStore from '../../storage/persistStore';
@@ -211,18 +212,30 @@ export class AccountConfigService {
     return this.store?.tracAddressMap || {};
   }
 
-  getTracAddress(walletIndex: number, accountIndex: number): string | null {
+  getTracAddress(walletIndex: number, accountIndex: number, network?: Network): string | null {
     const tracMap = this.getTracAddressMap();
-    const key = `wallet_${walletIndex}#${accountIndex}`;
-    return tracMap[key] || null;
+    if (network) {
+      const networkKey = `wallet_${walletIndex}#${accountIndex}@${network}`;
+      if (tracMap[networkKey]) return tracMap[networkKey];
+      // Fallback to legacy key only for MAINNET (old addresses stored without network suffix)
+      if (network === Network.MAINNET) {
+        const legacyKey = `wallet_${walletIndex}#${accountIndex}`;
+        return tracMap[legacyKey] || null;
+      }
+      return null;
+    }
+    const legacyKey = `wallet_${walletIndex}#${accountIndex}`;
+    return tracMap[legacyKey] || null;
   }
 
-  setTracAddress(walletIndex: number, accountIndex: number, address: string) {
+  setTracAddress(walletIndex: number, accountIndex: number, address: string, network?: Network) {
     if (!this.store?.tracAddressMap) {
       this.store.tracAddressMap = {};
     }
 
-    const key = `wallet_${walletIndex}#${accountIndex}`;
+    const key = network
+      ? `wallet_${walletIndex}#${accountIndex}@${network}`
+      : `wallet_${walletIndex}#${accountIndex}`;
     this.store.tracAddressMap = Object.assign({}, this.store.tracAddressMap, {
       [key]: address,
     });
@@ -230,14 +243,14 @@ export class AccountConfigService {
 
   getIndicesByTracAddress(address: string): { walletIndex: number; accountIndex: number } | null {
     const tracMap = this.getTracAddressMap();
-    const entry = Object.entries(tracMap).find(([key, addr]) => addr === address);
+    const entry = Object.entries(tracMap).find(([, addr]) => addr === address);
 
     if (!entry) {
       return null;
     }
 
-    const [key] = entry;
-    const match = key.match(/wallet_(\d+)#(\d+)/);
+    const [entryKey] = entry;
+    const match = entryKey.match(/wallet_(\d+)#(\d+)/);
 
     if (match) {
       return {
@@ -249,14 +262,31 @@ export class AccountConfigService {
   }
 
 
-  getWalletTracAddresses(walletIndex: number): {[accountIndex: string]: string} {
+  getWalletTracAddresses(walletIndex: number, network?: Network): {[accountIndex: string]: string} {
     const tracMap = this.getTracAddressMap();
     const result: {[accountIndex: string]: string} = {};
+    const suffix = network ? `@${network}` : '';
 
     Object.keys(tracMap).forEach(key => {
       if (key.startsWith(`wallet_${walletIndex}#`)) {
-        const accountIndex = key.split('#')[1];
-        result[accountIndex] = tracMap[key];
+        if (network) {
+          // Network-specific key matches
+          if (key.endsWith(suffix)) {
+            const accountIndex = key.split('#')[1].split('@')[0];
+            result[accountIndex] = tracMap[key];
+          } else if (network === Network.MAINNET && !key.includes('@')) {
+            // Legacy mainnet keys (no suffix) — backward compatible
+            const accountIndex = key.split('#')[1];
+            if (!result[accountIndex]) {
+              result[accountIndex] = tracMap[key];
+            }
+          }
+        } else {
+          if (!key.includes('@')) {
+            const accountIndex = key.split('#')[1];
+            result[accountIndex] = tracMap[key];
+          }
+        }
       }
     });
 
@@ -268,9 +298,15 @@ export class AccountConfigService {
       return;
     }
 
-    const key = `wallet_${walletIndex}#${accountIndex}`;
-    const updatedTracMap = {...this.store.tracAddressMap};
-    delete updatedTracMap[key];
+    const tracMap = this.getTracAddressMap();
+    const updatedTracMap = {...tracMap};
+    const keyPrefix = `wallet_${walletIndex}#${accountIndex}`;
+
+    Object.keys(tracMap).forEach(key => {
+      if (key === keyPrefix || key.startsWith(`${keyPrefix}@`)) {
+        delete updatedTracMap[key];
+      }
+    });
 
     this.store.tracAddressMap = updatedTracMap;
   }

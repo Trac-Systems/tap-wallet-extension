@@ -92,7 +92,8 @@ const SendTracPin = () => {
         
         const generated = await TracApiService.generateKeypairFromMnemonic(
           mnemonicData.mnemonic,
-          activeAccount.index
+          activeAccount.index,
+          networkType
         );
         
         secret = TracApiService.toSecretBuffer(generated.secretKey);

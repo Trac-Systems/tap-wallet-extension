@@ -1797,16 +1797,16 @@ export class Provider {
   };
 
 
-  getTracAddress = (walletIndex: number, accountIndex: number): string | null => {
-    return accountConfig.getTracAddress(walletIndex, accountIndex);
+  getTracAddress = (walletIndex: number, accountIndex: number, network?: Network): string | null => {
+    return accountConfig.getTracAddress(walletIndex, accountIndex, network ?? this.getActiveNetwork());
   };
 
-  setTracAddress = (walletIndex: number, accountIndex: number, address: string) => {
-    accountConfig.setTracAddress(walletIndex, accountIndex, address);
+  setTracAddress = (walletIndex: number, accountIndex: number, address: string, network?: Network) => {
+    accountConfig.setTracAddress(walletIndex, accountIndex, address, network ?? this.getActiveNetwork());
   };
 
-  getWalletTracAddresses = (walletIndex: number): { [accountIndex: string]: string } => {
-    return accountConfig.getWalletTracAddresses(walletIndex);
+  getWalletTracAddresses = (walletIndex: number, network?: Network): { [accountIndex: string]: string } => {
+    return accountConfig.getWalletTracAddresses(walletIndex, network ?? this.getActiveNetwork());
   };
 
   removeTracAddress = (walletIndex: number, accountIndex: number) => {

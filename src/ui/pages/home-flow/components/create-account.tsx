@@ -9,6 +9,7 @@ import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {TracApiService} from '@/src/background/service/trac-api.service';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 
 const CreateAccount = () => {
   //! State
@@ -19,6 +20,7 @@ const CreateAccount = () => {
   const [newAccountName, setNewAccountName] = useState<string>('');
   const [defaultName, setDefaultName] = useState<string>('');
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const networkType = useAppSelector(GlobalSelector.networkType);
 
   const init = async () => {
     const accountName = await wallet.getNextAccountName(activeWallet);
@@ -36,9 +38,9 @@ const CreateAccount = () => {
     mnemonic: string
   ) => {
     try {
-      const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex);
+      const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex, networkType);
       if (result?.address) {
-        wallet.setTracAddress(walletIndex, accountIndex, result.address);
+        wallet.setTracAddress(walletIndex, accountIndex, result.address, networkType);
       }
     } catch (error) {
       console.error('Error generating TRAC address:', error);

@@ -75,10 +75,12 @@ export function useAccountBalance() {
 
 
 // Derive active TRAC address from active wallet/account indices
+// Lazy-generates address for the current network if not yet stored
 export function useActiveTracAddress() {
   const wallet = useWalletProvider();
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
+  const networkType = useAppSelector(GlobalSelector.networkType);
   const [tracAddress, setTracAddress] = useState<string>('');
 
   useEffect(() => {
@@ -89,10 +91,36 @@ export function useActiveTracAddress() {
           typeof activeWallet?.index === 'number' &&
           typeof activeAccount?.index === 'number'
         ) {
-          const addr = await wallet.getTracAddress(
+          let addr = await wallet.getTracAddress(
             activeWallet.index,
             activeAccount.index,
+            networkType,
           );
+
+          // Lazy generate: if no address for this network, derive and store it
+          if (!addr) {
+            // Try HD wallet path (mnemonic)
+            try {
+              const mnemonicData = await wallet.getMnemonicsUnlocked(activeWallet);
+              if (mnemonicData?.mnemonic) {
+                const result = await TracApiService.generateKeypairFromMnemonic(
+                  mnemonicData.mnemonic,
+                  activeAccount.index ?? 0,
+                  networkType,
+                );
+                if (result?.address) {
+                  wallet.setTracAddress(activeWallet.index, activeAccount.index ?? 0, result.address, networkType);
+                  addr = result.address;
+                }
+              }
+            } catch {
+              // Mnemonic not available
+            }
+
+            // Single Wallet TRAC: private key belongs to one network only,
+            // cannot derive correct address for another network
+          }
+
           if (!ignore) setTracAddress(addr || '');
         } else if (!ignore) {
           setTracAddress('');
@@ -105,7 +133,7 @@ export function useActiveTracAddress() {
     return () => {
       ignore = true;
     };
-  }, [wallet, activeWallet?.index, activeAccount?.index]);
+  }, [wallet, activeWallet?.index, activeAccount?.index, networkType]);
 
   return tracAddress;
 }

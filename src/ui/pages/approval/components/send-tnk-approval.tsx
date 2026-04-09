@@ -148,6 +148,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
                 const generated = await TracApiService.generateKeypairFromMnemonic(
                     mnemonicData.mnemonic,
                     accountIndex,
+                    networkType,
                 );
                 secret = TracApiService.toSecretBuffer(generated.secretKey);
             }

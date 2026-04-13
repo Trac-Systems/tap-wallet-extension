@@ -12,7 +12,7 @@
     "jsx": "react-jsx", // For React 17+ to use the new JSX transform.
     "lib": ["es2015", "dom"], // Changed to es2015 for better compatibility
     "moduleResolution": "node", // Resolves modules using Node's resolution algorithm.
-    "types": ["chrome", "node", "react", "react-dom"],
+    "types": ["chrome", "node", "react", "react-dom", "jest"],
     "baseUrl": ".", // Base directory for non-relative module names.
     "paths": {
       "@/*": ["./*"]
@@ -29,6 +29,6 @@
     "dist", // Excludes the output directory for builds.
     "babel.config.js", // Excludes Babel configuration file.
     "metro.config.js", // Excludes Metro configuration file.
-    "jest.config.js" // Excludes Jest configuration file if it's present.
+    "jest.config.cjs" // Excludes Jest configuration file if it's present.
   ]
 }

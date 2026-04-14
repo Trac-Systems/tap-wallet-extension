@@ -6,7 +6,7 @@ import {SVG} from '../../svg';
 import {useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {useCustomToast} from '../../component/toast-custom';
-import {useReloadAccounts} from '../home-flow/hook';
+import {useReloadAccounts, useIsTracSingleWallet} from '../home-flow/hook';
 import {Network} from '@/src/wallet-instance';
 import {useChangeNetworkCallback} from './hooks';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
@@ -19,6 +19,7 @@ const NetWorkType = () => {
   const {showToast} = useCustomToast();
   const reloadAccounts = useReloadAccounts();
   const walletProvider = useWalletProvider();
+  const isTracSingleWallet = useIsTracSingleWallet();
 
   //! Function
   const handleChangeNetwork = async (network: Network) => {
@@ -67,7 +68,8 @@ const NetWorkType = () => {
         <UX.Box spacing="xl" style={{padding: '0 24px'}}>
           <UX.Box
             layout="box_border"
-            onClick={() => handleChangeNetwork(Network.TESTNET)}>
+            onClick={() => !isTracSingleWallet && handleChangeNetwork(Network.TESTNET)}
+            style={isTracSingleWallet && networkType !== Network.TESTNET ? {opacity: 0.4, cursor: 'not-allowed'} : {}}>
             <UX.Text
               title="TESTNET"
               styleType="body_16_bold"
@@ -77,7 +79,8 @@ const NetWorkType = () => {
           </UX.Box>
           <UX.Box
             layout="box_border"
-            onClick={() => handleChangeNetwork(Network.MAINNET)}>
+            onClick={() => !isTracSingleWallet && handleChangeNetwork(Network.MAINNET)}
+            style={isTracSingleWallet && networkType !== Network.MAINNET ? {opacity: 0.4, cursor: 'not-allowed'} : {}}>
             <UX.Text
               title="LIVENET"
               styleType="body_16_bold"
@@ -85,6 +88,13 @@ const NetWorkType = () => {
             />
             {networkType === Network.MAINNET && <SVG.CheckIcon />}
           </UX.Box>
+          {isTracSingleWallet && (
+            <UX.Text
+              title="Network switching is disabled for TRAC-only wallets imported with private key."
+              styleType="body_12_normal"
+              customStyles={{color: '#888', textAlign: 'center'}}
+            />
+          )}
         </UX.Box>
       }
       footer={<Navbar />}

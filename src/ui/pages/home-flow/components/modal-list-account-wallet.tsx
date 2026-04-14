@@ -8,6 +8,8 @@ import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {IDisplayAccount} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
+import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
+import {getTracDerivationPath} from '@/src/background/service/trac-api.service';
 import {useReloadAccounts} from '../hook';
 import {SVG} from '@/src/ui/svg';
 
@@ -24,6 +26,7 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
   const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
   const reloadAccounts = useReloadAccounts();
+  const networkType = useAppSelector(GlobalSelector.networkType);
   const [tracAddressMap, setTracAddressMap] = useState<{
     [accountIndex: string]: string;
   }>({});
@@ -41,7 +44,7 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
       try {
         const map =
           (await Promise.resolve(
-            wallet.getWalletTracAddresses(activeWallet.index),
+            wallet.getWalletTracAddresses(activeWallet.index, networkType),
           )) || {};
         if (!ignore) {
           setTracAddressMap(map);
@@ -57,11 +60,11 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
     return () => {
       ignore = true;
     };
-  }, [wallet, activeWallet?.index, activeWallet?.accounts?.length]);
+  }, [wallet, activeWallet?.index, activeWallet?.accounts?.length, networkType]);
 
   const deriveTracPath = (accountIndex?: number) => {
     const index = accountIndex ?? 0;
-    return `m/918'/0'/0'/${index}'`;
+    return getTracDerivationPath(index, networkType);
   };
 
   //! Function

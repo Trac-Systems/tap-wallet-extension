@@ -4,6 +4,7 @@
 
 import TracCrypto from 'trac-crypto-api';
 import * as Blake3Module from '@tracsystems/blake3';
+import { Network } from '../../wallet-instance';
 
 type Blake3Fn = (data: string | Buffer | Uint8Array) => Promise<Uint8Array>;
 const blake3Raw = (Blake3Module as any).blake3 as Blake3Fn;
@@ -39,6 +40,18 @@ export interface GeneratedKeypair {
   publicKey: string;
 }
 
+export const TRAC_HRP_MAINNET = 'trac';
+export const TRAC_HRP_TESTNET = 'testtrac';
+
+export function getTracHrp(network: Network): string {
+  return network === Network.TESTNET ? TRAC_HRP_TESTNET : TRAC_HRP_MAINNET;
+}
+
+export function getTracDerivationPath(accountIndex: number, network: Network = Network.MAINNET): string {
+  const coinType = network === Network.TESTNET ? 919 : 918;
+  return `m/${coinType}'/0'/0'/${accountIndex}'`;
+}
+
 export class TracApiService {
   /**
    * Get trac-crypto-api instance
@@ -56,15 +69,17 @@ export class TracApiService {
    */
   static async generateKeypairFromMnemonic(
     mnemonic: string,
-    accountIndex: number
+    accountIndex: number,
+    network: Network = Network.MAINNET
   ): Promise<GeneratedKeypair> {
     const tracCrypto = this.getTracCryptoInstance();
     if (!tracCrypto) {
       throw new Error("TracCryptoApi not available");
     }
 
-    const tracDerivationPath = `m/918'/0'/0'/${accountIndex}'`;
-    const generated = await tracCrypto.address.generate('trac', mnemonic, tracDerivationPath);
+    const hrp = getTracHrp(network);
+    const tracDerivationPath = getTracDerivationPath(accountIndex, network);
+    const generated = await tracCrypto.address.generate(hrp, mnemonic, tracDerivationPath);
 
     if (!generated || !generated.secretKey) {
       throw new Error("Failed to generate keypair from mnemonic");
@@ -144,13 +159,14 @@ export class TracApiService {
   /**
    * Derive address from secret key bytes
    */
-  static async addressFromSecretKey(secretBytes: Uint8Array | Buffer): Promise<{address: string}> {
+  static async addressFromSecretKey(secretBytes: Uint8Array | Buffer, network: Network = Network.MAINNET): Promise<{address: string}> {
     const tracCrypto = TracCrypto as any;
     if (!tracCrypto?.address?.fromSecretKey) {
       throw new Error("TracCryptoApi.address.fromSecretKey not available");
     }
-    
-    const result = await tracCrypto.address.fromSecretKey('trac', secretBytes);
+
+    const hrp = getTracHrp(network);
+    const result = await tracCrypto.address.fromSecretKey(hrp, secretBytes);
     if (!result?.address) {
       throw new Error("Failed to derive address from secret key");
     }
@@ -327,29 +343,25 @@ export class TracApiService {
   /**
    * Validate TRAC address format with improved checks
    */
+  static readonly VALID_TRAC_HRPS = [TRAC_HRP_MAINNET, TRAC_HRP_TESTNET];
+
   static isValidTracAddress(addr: string): boolean {
     const a = addr.trim();
     if (!a) return false;
 
-    // Basic format check: must start with 'trac' and be lowercase alphanumeric
-    if (!/^trac[0-9a-z]+$/.test(a)) return false;
+    if (!/^(trac|testtrac)[0-9a-z]+$/.test(a)) return false;
 
-    // Check if it's a valid bech32m format
-    // TRAC addresses use bech32m encoding with variable HRP length
-    const separatorIndex = a.indexOf('1');
+    const separatorIndex = a.lastIndexOf('1');
     if (separatorIndex === -1) return false;
 
     const prefix = a.slice(0, separatorIndex);
     const suffix = a.slice(separatorIndex + 1);
 
-    // HRP must be 'trac' (4 characters)
-    if (prefix !== 'trac') return false;
+    if (!this.VALID_TRAC_HRPS.includes(prefix)) return false;
 
-    // Suffix must be valid bech32 characters and have correct length
     const bech32Chars = /^[qpzry9x8gf2tvdw0s3jn54khce6mua7l]+$/;
     if (!bech32Chars.test(suffix)) return false;
 
-    // Suffix length should be: Math.ceil((32 * 8) / 5) + 6 = 58 characters
     const expectedSuffixLength = Math.ceil((32 * 8) / 5) + 6; // 58
     if (suffix.length !== expectedSuffixLength) return false;
 
@@ -364,12 +376,11 @@ export class TracApiService {
 
     if (!a) return { valid: false, error: 'Address cannot be empty' };
 
-    if (!/^trac[0-9a-z]+$/.test(a)) {
-      return { valid: false, error: 'Invalid TRAC address format. Must start with "trac" and contain only lowercase letters and numbers' };
+    if (!/^(trac|testtrac)[0-9a-z]+$/.test(a)) {
+      return { valid: false, error: 'Invalid TRAC address format. Must start with "trac" or "testtrac" and contain only lowercase letters and numbers' };
     }
 
-    // Check bech32m format
-    const separatorIndex = a.indexOf('1');
+    const separatorIndex = a.lastIndexOf('1');
     if (separatorIndex === -1) {
       return { valid: false, error: 'Invalid TRAC address format. Must contain separator "1"' };
     }
@@ -377,8 +388,8 @@ export class TracApiService {
     const prefix = a.slice(0, separatorIndex);
     const suffix = a.slice(separatorIndex + 1);
 
-    if (prefix !== 'trac') {
-      return { valid: false, error: 'Invalid TRAC address prefix. Must start with "trac"' };
+    if (!this.VALID_TRAC_HRPS.includes(prefix)) {
+      return { valid: false, error: 'Invalid TRAC address prefix. Must be "trac" or "testtrac"' };
     }
 
     const bech32Chars = /^[qpzry9x8gf2tvdw0s3jn54khce6mua7l]+$/;

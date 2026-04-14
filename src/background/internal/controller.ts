@@ -448,7 +448,8 @@ class InternalProvider {
     // Generate keypair to get public key
     const keypair = await TracApiService.generateKeypairFromMnemonic(
       mnemonic,
-      _account.index ?? 0
+      _account.index ?? 0,
+      networkConfig.getActiveNetwork()
     );
 
     // Convert publicKey to hex string
@@ -502,7 +503,8 @@ class InternalProvider {
       // Generate keypair
       const keypair = await TracApiService.generateKeypairFromMnemonic(
         mnemonic,
-        _account.index ?? 0
+        _account.index ?? 0,
+        networkConfig.getActiveNetwork()
       );
 
       // Sign message
@@ -636,7 +638,8 @@ class InternalProvider {
     const validity = await TracApi.fetchTransactionValidity(network);
 
     // Pre-build transaction to get all details (including fee)
-    const networkId = network === Network.MAINNET ? 918 : 9180;
+    const tracCrypto = TracApiService.getTracCryptoInstance();
+    const networkId = network === Network.MAINNET ? tracCrypto?.MAINNET_ID ?? 918 : tracCrypto?.TESTNET_ID ?? 919;
     const txData = await TracApiService.preBuildTransaction(
       { from: fromAddress, to, amountHex, validityHex: validity },
       networkId
@@ -710,7 +713,8 @@ class InternalProvider {
 
     const keypair = await TracApiService.generateKeypairFromMnemonic(
       mnemonic,
-      indices.accountIndex
+      indices.accountIndex,
+      network
     );
 
     // Sign the pre-built transaction
@@ -768,7 +772,8 @@ class InternalProvider {
       const mnemonicData = await walletProvider.getMnemonicsUnlocked(_wallet);
       const keypair = await TracApiService.generateKeypairFromMnemonic(
         mnemonicData.mnemonic,
-        accountIndex
+        accountIndex,
+        networkConfig.getActiveNetwork()
       );
 
       try {

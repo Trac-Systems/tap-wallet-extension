@@ -291,9 +291,9 @@ export interface IWalletProvider {
   // TRAC Address Management Methods
   getTracAddressMap(): Promise<{ [key: string]: string }>;
   getIndicesByTracAddress(address: string): Promise<{ walletIndex: number; accountIndex: number } | null>;
-  getTracAddress(walletIndex: number, accountIndex: number): Promise<string | null>;
-  setTracAddress(walletIndex: number, accountIndex: number, address: string): void;
-  getWalletTracAddresses(walletIndex: number): { [accountIndex: string]: string };
+  getTracAddress(walletIndex: number, accountIndex: number, network?: Network): Promise<string | null>;
+  setTracAddress(walletIndex: number, accountIndex: number, address: string, network?: Network): void;
+  getWalletTracAddresses(walletIndex: number, network?: Network): { [accountIndex: string]: string };
   removeTracAddress(walletIndex: number, accountIndex: number): void;
   removeWalletTracAddresses(walletIndex: number): number;
   clearAllTracAddresses(): number;

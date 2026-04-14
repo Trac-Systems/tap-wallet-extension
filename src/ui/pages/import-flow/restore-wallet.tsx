@@ -8,8 +8,9 @@ import {SVG} from '../../svg';
 import {CreateWalletContext} from './services/wallet-service-create';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {AddressType} from '@/src/wallet-instance';
-import {useAppDispatch} from '../../utils';
+import {useAppDispatch, useAppSelector} from '../../utils';
 import {WalletActions} from '../../redux/reducer/wallet/slice';
+import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {AccountActions} from '../../redux/reducer/account/slice';
 import {TracApiService} from '@/src/background/service/trac-api.service';
 
@@ -21,6 +22,7 @@ const RestoreWallet = () => {
   const CreateWalletContextHandler = useContext(CreateWalletContext);
   const {showToast} = useCustomToast();
   const dispatch = useAppDispatch();
+  const networkType = useAppSelector(GlobalSelector.networkType);
   const [disabled, setDisabled] = useState(true);
   const [restoreInput, setRestoreInput] = useState('');
   const queryParams = new URLSearchParams(location.search);
@@ -90,7 +92,7 @@ const RestoreWallet = () => {
           // 1) Derive TRAC address from provided secretKey first to check for duplicates
           let tracAddress = '';
           try {
-            const result = await TracApiService.addressFromSecretKey(secretBytes);
+            const result = await TracApiService.addressFromSecretKey(secretBytes, networkType);
             tracAddress = result.address;
           } catch (error) {
             console.log('Error deriving TRAC address:', error);
@@ -153,7 +155,7 @@ const RestoreWallet = () => {
             const wallets = await walletProvider.getWallets();
             const newWallet = wallets[wallets.length - 1];
             if (newWallet) {
-              walletProvider.setTracAddress(newWallet.index, 0, tracAddress);
+              walletProvider.setTracAddress(newWallet.index, 0, tracAddress, networkType);
             }
           } catch (error) {
             console.log('Error setting TRAC address:', error);

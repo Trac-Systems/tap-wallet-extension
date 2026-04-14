@@ -8,10 +8,12 @@ import WebsiteBar from '@/src/ui/component/website-bar';
 import { WalletSelector } from '@/src/ui/redux/reducer/wallet/selector';
 import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
+import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 import { WalletActions } from '@/src/ui/redux/reducer/wallet/slice';
 import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
 import { useApproval } from '../hook';
 import LayoutApprove from '../layouts';
+import { getTracDerivationPath } from '@/src/background/service/trac-api.service';
 
 interface AccountItemProps {
     account?: IDisplayAccount;
@@ -71,7 +73,7 @@ export default function TracConnect({ params: { session } }: Props) {
     const handleConnect = async () => {
         const _wallet = await walletProvider.getActiveWallet();
         const _account = await walletProvider.getActiveAccount();
-        const address = await walletProvider.getTracAddress(_wallet.index, _account.index ?? 0);
+        const address = await walletProvider.getTracAddress(_wallet.index, _account.index ?? 0, networkType);
         resolveApproval(address);
     };
 
@@ -80,6 +82,7 @@ export default function TracConnect({ params: { session } }: Props) {
 
     const activeWallet = useAppSelector(WalletSelector.activeWallet);
     const activeAccount = useAppSelector(AccountSelector.activeAccount);
+    const networkType = useAppSelector(GlobalSelector.networkType);
 
     const dispatch = useAppDispatch();
 
@@ -95,7 +98,7 @@ export default function TracConnect({ params: { session } }: Props) {
             for (const wallet of wallets) {
                 if (typeof wallet.index === 'number') {
                     try {
-                        const addresses = await walletProvider.getWalletTracAddresses(wallet.index);
+                        const addresses = await walletProvider.getWalletTracAddresses(wallet.index, networkType);
                         map[wallet.key] = addresses || {};
                     } catch (error) {
                         map[wallet.key] = {};
@@ -116,7 +119,7 @@ export default function TracConnect({ params: { session } }: Props) {
 
     const deriveTracPath = (accountIndex?: number) => {
         const index = accountIndex ?? 0;
-        return `m/918'/0'/0'/${index}'`;
+        return getTracDerivationPath(index, networkType);
     };
 
     return (

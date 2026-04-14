@@ -14,11 +14,11 @@ import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {GlobalActions} from '../../redux/reducer/global/slice';
 import {useIsTracSingleWallet} from '../home-flow/hook';
 import {TracApiService} from '@/src/background/service/trac-api.service';
-import {RestoreTypes} from '@/src/wallet-instance';
+import {Network, RestoreTypes} from '@/src/wallet-instance';
 
 // Function to derive TRAC private key from mnemonic
-const deriveTracPrivateKeyFromMnemonic = async (mnemonic: string, accountIndex: number): Promise<string> => {
-  const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex);
+const deriveTracPrivateKeyFromMnemonic = async (mnemonic: string, accountIndex: number, network: Network = Network.MAINNET): Promise<string> => {
+  const result = await TracApiService.generateKeypairFromMnemonic(mnemonic, accountIndex, network);
   if (!result?.secretKey) {
     throw new Error('Failed to derive TRAC private key');
   }
@@ -40,6 +40,7 @@ const SecuritySetting = () => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
   const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
+  const networkType = useAppSelector(GlobalSelector.networkType);
   const dispatch = useAppDispatch();
   const isTracSingleWallet = useIsTracSingleWallet();
 
@@ -80,7 +81,7 @@ const SecuritySetting = () => {
       } else {
         // For TRAC HD wallet, derive from mnemonic
         const mnemonicData = await wallet.getMnemonics(pinString, activeWallet);
-        tracPrivateKey = await deriveTracPrivateKeyFromMnemonic(mnemonicData.mnemonic, activeAccount.index);
+        tracPrivateKey = await deriveTracPrivateKeyFromMnemonic(mnemonicData.mnemonic, activeAccount.index, networkType);
       }
       
       _res = {

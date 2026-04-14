@@ -9,7 +9,7 @@ import {useCustomToast} from '../../component/toast-custom';
 import {useActiveTracAddress, useTracBalances} from '../home-flow/hook';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {TracApi} from '../../../background/requests/trac-api';
-import {TracApiService} from '../../../background/service/trac-api.service';
+import {TracApiService, getTracHrp} from '../../../background/service/trac-api.service';
 import {useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {Network} from '../../../wallet-instance';
@@ -85,7 +85,15 @@ const SendTrac = () => {
     if (!validation.valid) {
       setAddressError('Invalid TRAC address format');
     } else {
-      setAddressError('');
+      // Cross-network check: prevent sending to wrong network address
+      const expectedHrp = getTracHrp(networkType);
+      const separatorIndex = address.trim().lastIndexOf('1');
+      const addrPrefix = separatorIndex > 0 ? address.trim().slice(0, separatorIndex) : '';
+      if (addrPrefix !== expectedHrp) {
+        setAddressError(`This is a ${addrPrefix === 'trac' ? 'mainnet' : 'testnet'} address. You are on ${networkType === Network.MAINNET ? 'mainnet' : 'testnet'}.`);
+      } else {
+        setAddressError('');
+      }
     }
   };
 

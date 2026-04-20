@@ -90,7 +90,7 @@ const TransactionDetail = () => {
 
     if (isTrac) {
       const explorerUrl = networkType === Network.TESTNET
-        ? 'https://explorer-testnet.trac.network'
+        ? 'http://78.47.119.188:3001'
         : 'https://explorer.trac.network';
       url = `${explorerUrl}/tx/${transaction.hash}`;
     } else {

@@ -16,7 +16,7 @@ export const useTracHistory = (address: string) => {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
 
-  const LIMIT = 50;
+  const LIMIT = 20;
 
   const networkType = useAppSelector(GlobalSelector.networkType);
 

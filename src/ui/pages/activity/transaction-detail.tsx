@@ -12,12 +12,15 @@ import { SVG } from '@/src/ui/svg';
 import { useAppSelector } from '@/src/ui/utils';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 import { Network } from '@/src/wallet-instance';
+import { useCustomToast } from '../../component/toast-custom';
+import { copyToClipboard } from '../../helper';
 
 const TransactionDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { transaction, type } = location.state || {};
   const [isExpanded, setIsExpanded] = useState(false);
+  const { showToast } = useCustomToast();
 
   const networkType = useAppSelector(GlobalSelector.networkType);
 
@@ -90,7 +93,7 @@ const TransactionDetail = () => {
 
     if (isTrac) {
       const explorerUrl = networkType === Network.TESTNET
-        ? 'https://explorer-testnet.trac.network'
+        ? 'https://testnet.trac.network'
         : 'https://explorer.trac.network';
       url = `${explorerUrl}/tx/${transaction.hash}`;
     } else {
@@ -104,9 +107,13 @@ const TransactionDetail = () => {
     window.open(url, '_blank');
   };
 
-  // Copy to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = (text: string) => {
+    copyToClipboard(text).then(() => {
+      showToast({
+        type: 'copied',
+        title: 'Copied',
+      });
+    });
   };
 
   return (
@@ -261,7 +268,7 @@ const TransactionDetail = () => {
                   }}
                 />
                 <div
-                  onClick={() => copyToClipboard(transaction.hash)}
+                  onClick={() => handleCopy(transaction.hash)}
                   style={{ cursor: 'pointer', flexShrink: 0 }}
                 >
                   <SVG.CopyPink />
@@ -291,7 +298,7 @@ const TransactionDetail = () => {
                     }}
                   />
                   <div
-                    onClick={() => copyToClipboard(transaction.rawData?.bs || transaction.bs)}
+                    onClick={() => handleCopy(transaction.rawData?.bs || transaction.bs)}
                     style={{ cursor: 'pointer', flexShrink: 0 }}
                   >
                     <SVG.CopyPink />

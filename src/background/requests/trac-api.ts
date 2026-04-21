@@ -126,12 +126,12 @@ export class TracApi {
   static async getTransactionHistory(
     address: string,
     offset: number = 0,
-    limit: number = 50,
+    limit: number = 20,
     network: Network = Network.MAINNET
   ): Promise<any> {
     try {
       const explorerUrl = network === Network.TESTNET
-        ? 'https://explorer-testnet.trac.network'
+        ? 'https://testnet.trac.network'
         : 'https://explorer.trac.network';
 
       const url = `${explorerUrl}/api/transactions?address=${address}&offset=${offset}&max=${limit}`;

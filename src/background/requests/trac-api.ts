@@ -131,7 +131,7 @@ export class TracApi {
   ): Promise<any> {
     try {
       const explorerUrl = network === Network.TESTNET
-        ? 'http://78.47.119.188:3001'
+        ? 'https://testnet.trac.network'
         : 'https://explorer.trac.network';
 
       const url = `${explorerUrl}/api/transactions?address=${address}&offset=${offset}&max=${limit}`;

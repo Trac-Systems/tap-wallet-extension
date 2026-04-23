@@ -1,4 +1,3 @@
-// import './index.css';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {
@@ -201,7 +200,7 @@ const WalletCard = (props: IWalletCardProps) => {
             </UX.Box>
             <UX.Box layout="row" style={{alignItems: 'center', gap: '8px'}}>
               <UX.Text 
-                styleType="body_12_bold" 
+                styleType="body_12_bold"
                 title={networkType === NETWORK_TYPES.MAINNET.label ? 'MAINNET' : 'TESTNET'} 
                 customStyles={{ 
                   color: networkType === NETWORK_TYPES.MAINNET.label ? 'white' : '#d3d3d3',

@@ -6,13 +6,12 @@ import {AccountSelector} from '@/src/ui/redux/reducer/account/selector';
 import {AccountActions} from '@/src/ui/redux/reducer/account/slice';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
-import {IDisplayAccount} from '@/src/wallet-instance';
+import {IDisplayAccount, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {getTracDerivationPath} from '@/src/background/service/trac-api.service';
 import {useReloadAccounts} from '../hook';
 import {SVG} from '@/src/ui/svg';
-import {WalletDisplay} from '@/src/wallet-instance';
 
 interface IModalListAccountWalletProps {
   handleClose?: () => void;

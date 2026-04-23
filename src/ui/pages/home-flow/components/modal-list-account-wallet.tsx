@@ -16,8 +16,8 @@ import {SVG} from '@/src/ui/svg';
 interface IModalListAccountWalletProps {
   handleClose?: () => void;
 }
+
 const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
-  //! State
   const {handleClose} = props;
   const navigate = useNavigate();
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
@@ -33,10 +33,14 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
 
   useEffect(() => {
     reloadAccounts();
-  }, [reloadAccounts]);
+  }, [reloadAccounts, networkType]);
 
   useEffect(() => {
     let ignore = false;
+    let retryTimeout: NodeJS.Timeout;
+    let retries = 0;
+    const MAX_RETRIES = 4;
+
     const fetchTracAddresses = async () => {
       if (typeof activeWallet?.index !== 'number') {
         if (!ignore) {
@@ -50,8 +54,19 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
           (await Promise.resolve(
             wallet.getWalletTracAddresses(activeWallet.index, networkType),
           )) || {};
+        
         if (!ignore) {
           setTracAddressMap(map);
+
+          const totalAccounts = activeWallet?.accounts?.length || 0;
+          const fetchedTracCount = Object.keys(map).length;
+
+          if (fetchedTracCount > 0 && fetchedTracCount < totalAccounts && retries < MAX_RETRIES) {
+            retries++;
+            retryTimeout = setTimeout(() => {
+              if (!ignore) fetchTracAddresses();
+            }, 300);
+          }
         }
       } catch (error) {
         if (!ignore) {
@@ -61,17 +76,18 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
     };
 
     fetchTracAddresses();
+    
     return () => {
       ignore = true;
+      clearTimeout(retryTimeout);
     };
-  }, [wallet, activeWallet?.index, activeWallet?.accounts?.length, networkType]);
+  }, [wallet, activeWallet?.index, networkType, JSON.stringify(activeWallet?.accounts)]);
 
   const deriveTracPath = (accountIndex?: number) => {
     const index = accountIndex ?? 0;
     return getTracDerivationPath(index, networkType);
   };
 
-  //! Function
   const handleChangeAccount = async (account: IDisplayAccount) => {
     if (activeAccount.pubkey !== account.pubkey) {
       await wallet.changeWallet(activeWallet, account.index);
@@ -86,7 +102,6 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
     }
   };
 
-  //! Render
   return (
     <UX.Box
       style={{
@@ -120,7 +135,7 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
               isAccount
               onClick={() => handleChangeAccount(item)}
               isActive={item.index === activeAccount.index}
-              key={item.index}
+              key={`${networkType}-${item.index}`}
               nameCardAddress={item.name}
               path={btcPath}
               address={item.address}
@@ -132,11 +147,6 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
           );
         })}
       </UX.Box>
-      {/* <UX.Button
-        title="Create account"
-        styleType="primary"
-        onClick={() => navigate('/home/create-account')}
-      /> */}
     </UX.Box>
   );
 };

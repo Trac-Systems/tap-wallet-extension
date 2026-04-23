@@ -12,6 +12,7 @@ import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 import {getTracDerivationPath} from '@/src/background/service/trac-api.service';
 import {useReloadAccounts} from '../hook';
 import {SVG} from '@/src/ui/svg';
+import {WalletDisplay} from '@/src/wallet-instance';
 
 interface IModalListAccountWalletProps {
   handleClose?: () => void;
@@ -27,22 +28,39 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
   const {showToast} = useCustomToast();
   const reloadAccounts = useReloadAccounts();
   const networkType = useAppSelector(GlobalSelector.networkType);
+  const [displayWallet, setDisplayWallet] = useState<WalletDisplay | null>(null);
   const [tracAddressMap, setTracAddressMap] = useState<{
     [accountIndex: string]: string;
   }>({});
 
   useEffect(() => {
-    reloadAccounts();
-  }, [reloadAccounts, networkType]);
+    let ignore = false;
+
+    const syncWalletState = async () => {
+      await reloadAccounts();
+      const nextWallet = await wallet.getActiveWallet();
+
+      if (!ignore) {
+        setDisplayWallet(nextWallet);
+      }
+    };
+
+    syncWalletState();
+
+    return () => {
+      ignore = true;
+    };
+  }, [reloadAccounts, wallet, networkType, activeWallet?.index]);
 
   useEffect(() => {
     let ignore = false;
-    let retryTimeout: NodeJS.Timeout;
+    let retryTimeout: ReturnType<typeof setTimeout>;
     let retries = 0;
     const MAX_RETRIES = 4;
+    const currentWallet = displayWallet || activeWallet;
 
     const fetchTracAddresses = async () => {
-      if (typeof activeWallet?.index !== 'number') {
+      if (typeof currentWallet?.index !== 'number') {
         if (!ignore) {
           setTracAddressMap({});
         }
@@ -52,13 +70,13 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
       try {
         const map =
           (await Promise.resolve(
-            wallet.getWalletTracAddresses(activeWallet.index, networkType),
+            wallet.getWalletTracAddresses(currentWallet.index, networkType),
           )) || {};
-        
+
         if (!ignore) {
           setTracAddressMap(map);
 
-          const totalAccounts = activeWallet?.accounts?.length || 0;
+          const totalAccounts = currentWallet?.accounts?.length || 0;
           const fetchedTracCount = Object.keys(map).length;
 
           if (fetchedTracCount > 0 && fetchedTracCount < totalAccounts && retries < MAX_RETRIES) {
@@ -68,7 +86,7 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
             }, 300);
           }
         }
-      } catch (error) {
+      } catch {
         if (!ignore) {
           setTracAddressMap({});
         }
@@ -76,12 +94,12 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
     };
 
     fetchTracAddresses();
-    
+
     return () => {
       ignore = true;
       clearTimeout(retryTimeout);
     };
-  }, [wallet, activeWallet?.index, networkType, JSON.stringify(activeWallet?.accounts)]);
+  }, [wallet, activeWallet, displayWallet, networkType]);
 
   const deriveTracPath = (accountIndex?: number) => {
     const index = accountIndex ?? 0;
@@ -89,11 +107,19 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
   };
 
   const handleChangeAccount = async (account: IDisplayAccount) => {
+    const currentWallet = displayWallet || activeWallet;
+
+    if (!currentWallet) {
+      return;
+    }
+
     if (activeAccount.pubkey !== account.pubkey) {
-      await wallet.changeWallet(activeWallet, account.index);
+      await wallet.changeWallet(currentWallet, account.index);
+      await reloadAccounts();
       const _activeAccount = await wallet.getActiveAccount();
+      const _activeWallet = await wallet.getActiveWallet();
       dispatch(AccountActions.setActiveAccount(_activeAccount));
-      reloadAccounts();
+      setDisplayWallet(_activeWallet);
       showToast({
         title: 'Account changed',
         type: 'success',
@@ -125,8 +151,10 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
           padding: '10px 0',
           overflowY: 'scroll',
         }}>
-        {activeWallet?.accounts?.map(item => {
-          const btcPath = `${activeWallet.derivationPath}/${item.index}`;
+        {(displayWallet?.accounts || activeWallet?.accounts || []).map(item => {
+          const derivationPath =
+            (displayWallet || activeWallet)?.derivationPath || '';
+          const btcPath = `${derivationPath}/${item.index}`;
           const accountIndexKey = String(item?.index ?? 0);
           const tracAddress = tracAddressMap?.[accountIndexKey];
 

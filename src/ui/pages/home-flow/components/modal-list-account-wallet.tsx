@@ -32,6 +32,10 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
   }>({});
 
   useEffect(() => {
+    reloadAccounts();
+  }, [reloadAccounts]);
+
+  useEffect(() => {
     let ignore = false;
     const fetchTracAddresses = async () => {
       if (typeof activeWallet?.index !== 'number') {

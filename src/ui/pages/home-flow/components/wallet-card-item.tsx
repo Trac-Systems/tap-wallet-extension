@@ -1,3 +1,4 @@
+// import './index.css';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {
@@ -15,7 +16,6 @@ import {useAppSelector, useAppDispatch} from '@/src/ui/utils';
 import {NETWORK_TYPES, Network, WalletDisplay} from '@/src/wallet-instance';
 import {useNavigate} from 'react-router-dom';
 import {useAccountBalance, useActiveTracAddress, useIsTracSingleWallet} from '../hook';
-import './index.css';
 import {debounce} from 'lodash';
 import {useSafeBalance, useHardwareWalletMismatch} from '@/src/ui/pages/send-receive/hook';
 import {getTracExplorerUrl} from '../../../../background/constants/trac-api';
@@ -109,17 +109,18 @@ const WalletCard = (props: IWalletCardProps) => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (
         ref.current &&
-        !ref.current.contains(event.target as Node) &&
-        menuOpen
+        !ref.current.contains(event.target as Node)
       ) {
         setMenuOpen(false);
       }
     };
 
-    document.addEventListener('click', handleOutsideClick);
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
 
     return () => {
-      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, [menuOpen]);
 
@@ -162,48 +163,63 @@ const WalletCard = (props: IWalletCardProps) => {
   //! Render
   return (
     <>
-        <div className="cardSliderContainer" style={{position: 'relative'}}>
-          {showOverlay && (
-            <UX.Box
-              layout="column_center"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(138, 47, 61, 0.3)',
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)',
-                zIndex: 6,
-                borderRadius: 16,
-                textAlign: 'center',
-                padding: '0 16px',
-              }}>
+      <div className="cardSliderContainer" style={{position: 'relative'}}>
+        {showOverlay && (
+          <UX.Box
+            layout="column_center"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(138, 47, 61, 0.3)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              zIndex: 6,
+              borderRadius: 16,
+              textAlign: 'center',
+              padding: '0 16px',
+            }}>
+            <UX.Text
+              styleType="body_16_bold"
+              customStyles={{color: 'white'}}
+            title={`Wallet only available on ${
+              expectedNetwork === Network.TESTNET ? 'testnet' : 'mainnet'
+            }`}
+            />
+          </UX.Box>
+        )}
+        <div className="cardSlider">
+          <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center'}}>
+            <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
               <UX.Text
-                styleType="body_16_bold"
-                customStyles={{color: 'white'}}
-              title={`Wallet only available on ${
-                expectedNetwork === Network.TESTNET ? 'testnet' : 'mainnet'
-              }`}
+                styleType="body_14_normal"
+                title={keyring?.name ?? 'Error'}
+                className="nameHdWallet"
               />
             </UX.Box>
-          )}
-          <div className="cardSlider">
-            <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center'}}>
-              <UX.Box layout="row" spacing="xs" style={{alignItems: 'center'}}>
-                <UX.Text
-                  styleType="body_14_normal"
-                  title={keyring?.name ?? 'Error'}
-                  className="nameHdWallet"
-                />
-              </UX.Box>
-              <UX.Box ref={ref}>
+            <UX.Box layout="row" style={{alignItems: 'center', gap: '8px'}}>
+              <UX.Text 
+                styleType="body_12_bold" 
+                title={networkType === NETWORK_TYPES.MAINNET.label ? 'MAINNET' : 'TESTNET'} 
+                customStyles={{ 
+                  color: networkType === NETWORK_TYPES.MAINNET.label ? 'white' : '#d3d3d3',
+                  fontSize: '10px',
+                  letterSpacing: '0.5px',
+                  padding: '2px 6px',
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '4px'
+                }} 
+              />
+
+              <div ref={ref} style={{ position: 'relative', display: 'flex' }}>
                 <UX.Box
-                  onClick={() => setMenuOpen(true)}
-                  style={{cursor: 'pointer', position: 'relative'}}>
+                  onClick={() => setMenuOpen(prev => !prev)}
+                  style={{cursor: 'pointer'}}>
                   <SVG.DotIcon />
                 </UX.Box>
+                
                 {menuOpen && (
                   <div className="containerOption">
                     {!isTracSingle && (
@@ -225,7 +241,6 @@ const WalletCard = (props: IWalletCardProps) => {
                     <UX.Text
                       onClick={async () => {
                         setMenuOpen(false);
-                        // Set active wallet if this card is not already active
                         if (keyring.key !== activeWallet.key) {
                           await wallet.setActiveWallet(keyring);
                           dispatch(WalletActions.setActiveWallet(keyring));
@@ -240,8 +255,9 @@ const WalletCard = (props: IWalletCardProps) => {
                     />
                   </div>
                 )}
-              </UX.Box>
+              </div>
             </UX.Box>
+          </UX.Box>
         </div>
         <div>
         {checkIsSingleWallet ? (
@@ -330,7 +346,6 @@ const WalletCard = (props: IWalletCardProps) => {
           </UX.Box>
         </UX.Box>
       </div>
-
     </>
   );
 };

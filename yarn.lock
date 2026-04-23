@@ -7456,10 +7456,10 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-trac-crypto-api@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/trac-crypto-api/-/trac-crypto-api-0.1.4.tgz#5fc78eaee0d6d5150d48c974771a1ef68d638fe2"
-  integrity sha512-CI+Pxbn0SwTBa7rmmgBvLyz2E65dT9M06TmD64KM2Ub9EsSWSk+pnW+tDMTdzKPVoJx8rHPdm5B4eoMQovBTzA==
+trac-crypto-api@0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/trac-crypto-api/-/trac-crypto-api-0.1.5.tgz#e715c94a9f8674ae6c5c5f977a525f5f097eb5a6"
+  integrity sha512-3z+isJdpjJ+uSFd+TH93O72xrxEm7tJbGVRxQZtlYUOOU/FVq/mAo8E3Kwyf9dfMB3F/em1hPNdF7qloc6DFzQ==
   dependencies:
     "@metamask/key-tree" "10.1.1"
     "@tracsystems/blake3" "0.0.15"

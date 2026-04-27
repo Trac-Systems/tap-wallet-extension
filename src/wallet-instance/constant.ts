@@ -67,15 +67,15 @@ export const ADDRESS_TYPES: {
 export const NETWORK_TYPES = {
   MAINNET: {
     value: Network.MAINNET,
-    label: 'MAINNET',
-    name: 'livenet',
-    validNames: [0, 'livenet', 'mainnet'],
+    label: Network.MAINNET,
+    name: Network.MAINNET.toLowerCase(),
+    validNames: [0, Network.MAINNET.toLowerCase()],
   },
   TESTNET: {
     value: Network.TESTNET,
-    label: 'TESTNET',
-    name: 'testnet',
-    validNames: ['testnet'],
+    label: Network.TESTNET,
+    name: Network.TESTNET.toLowerCase(),
+    validNames: [Network.TESTNET.toLowerCase()],
   },
 };
 

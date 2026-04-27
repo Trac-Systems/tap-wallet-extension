@@ -183,6 +183,14 @@ browser.runtime.onInstalled.addListener(params => {
   if (params.reason === 'install') {
     openInNewTab();
   }
+
+  if (params.reason === 'update') {
+    storage.set('EXTENSION_UPDATE_AVAILABLE_VERSION', '');
+  }
+});
+
+browser.runtime.onUpdateAvailable.addListener(details => {
+  storage.set('EXTENSION_UPDATE_AVAILABLE_VERSION', details.version);
 });
 
 // Ledger message handler

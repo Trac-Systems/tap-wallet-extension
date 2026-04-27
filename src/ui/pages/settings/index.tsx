@@ -3,22 +3,45 @@ import {UX} from '../../component';
 import {SVG} from '../../svg';
 import Navbar from '../home-flow/components/navbar-navigate';
 import LayoutScreenSettings from '../../layouts/settings';
-import {useAppSelector} from '../../utils';
+import {
+  getCurrentExtensionVersion,
+  getStoredExtensionUpdateVersion,
+  requestExtensionUpdateCheck,
+  useAppDispatch,
+  useAppSelector,
+} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {GlobalActions} from '../../redux/reducer/global/slice';
 import {WalletSelector} from '../../redux/reducer/wallet/selector';
-import {useEffect, useMemo, useState} from 'react';
-import {ADDRESS_TYPES, NETWORK_TYPES, WALLET_TYPE} from '@/src/wallet-instance';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {ADDRESS_TYPES, Network, NETWORK_TYPES, WALLET_TYPE} from '@/src/wallet-instance';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useIsTabOpen, useOpenInTab} from '../../browser';
 import {useResetReduxState} from '../../hook/reset-redux-state';
 import {ConnectedSite} from '@/src/background/service/permission.service';
 import {useIsTracSingleWallet} from '../home-flow/hook';
+import {useCustomToast} from '../../component/toast-custom';
 
 const SettingPage = () => {
+  type SettingsItem = {
+    title: string;
+    desc?: string;
+    link?: string;
+    type?: string;
+    onClick?: () => void | Promise<void>;
+    loading?: boolean;
+  };
+
   //! State
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const {showToast} = useCustomToast();
   const networkType = useAppSelector(GlobalSelector.networkType);
+  const hasExtensionUpdate = useAppSelector(GlobalSelector.hasExtensionUpdate);
+  const extensionUpdateVersion = useAppSelector(
+    GlobalSelector.extensionUpdateVersion,
+  );
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const currentAuthority = useAppSelector(AccountSelector.currentAuthority);
@@ -26,6 +49,8 @@ const SettingPage = () => {
   const openInTab = useOpenInTab();
   const [isExtensionInTab, setIsExtensionInTab] = useState(false);
   const [sitesConnected, setSitesConnected] = useState<ConnectedSite[]>([]);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const currentExtensionVersion = getCurrentExtensionVersion();
 
   const getSites = async () => {
     const sites = await wallet.getConnectedSites();
@@ -39,16 +64,64 @@ const SettingPage = () => {
   const resetReduxState = useResetReduxState();
   const isTracSingleWallet = useIsTracSingleWallet();
 
-  useMemo(async () => {
-    setIsExtensionInTab(await isTabOpen());
+  useEffect(() => {
+    const syncExtensionTabState = async () => {
+      setIsExtensionInTab(await isTabOpen());
+    };
+
+    syncExtensionTabState();
   }, [isTabOpen]);
 
   useEffect(() => {
     getSites();
   }, []);
 
+  const handleCheckForUpdates = useCallback(async () => {
+    if (isCheckingUpdate) {
+      return;
+    }
+
+    setIsCheckingUpdate(true);
+
+    try {
+      const storedVersion = await getStoredExtensionUpdateVersion();
+      if (storedVersion) {
+        dispatch(
+          GlobalActions.update({
+            hasExtensionUpdate: true,
+            extensionUpdateVersion: storedVersion,
+          }),
+        );
+        return;
+      }
+
+      const {status, version} = await requestExtensionUpdateCheck();
+      if (status === 'update_available' && version) {
+        dispatch(
+          GlobalActions.update({
+            hasExtensionUpdate: true,
+            extensionUpdateVersion: version,
+          }),
+        );
+        return;
+      }
+
+      showToast({
+        type: 'success',
+        title: 'You are on the latest version.',
+      });
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Unable to check for updates.',
+      });
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  }, [dispatch, isCheckingUpdate, showToast]);
+
   //! Function
-  const settingsFunction = useMemo(() => {
+  const settingsFunction = useMemo<SettingsItem[]>(() => {
     let descAddress: string;
     const item = ADDRESS_TYPES[activeWallet.addressType];
     const hdPath = activeWallet.derivationPath || item?.derivationPath;
@@ -70,6 +143,16 @@ const SettingPage = () => {
 
     const functions = [
       {
+        title: 'App Version',
+        desc: isCheckingUpdate
+          ? 'Checking for updates...'
+          : hasExtensionUpdate
+            ? `Update available: ${extensionUpdateVersion}`
+            : `Installed version: ${currentExtensionVersion}`,
+        onClick: handleCheckForUpdates,
+        loading: isCheckingUpdate,
+      },
+      {
         title: 'Bitcoin Address Type',
         desc: descAddress,
         link: '/setting/choose-address',
@@ -87,7 +170,7 @@ const SettingPage = () => {
       {
         title: 'Network',
         desc:
-          networkType === NETWORK_TYPES.MAINNET.label ? 'LIVENET' : networkType,
+          networkType === NETWORK_TYPES.MAINNET.label ? Network.MAINNET : networkType,
         link: '/setting/network-type',
       },
       {
@@ -126,6 +209,11 @@ const SettingPage = () => {
     sitesConnected,
     currentAuthority,
     isTracSingleWallet,
+    hasExtensionUpdate,
+    extensionUpdateVersion,
+    currentExtensionVersion,
+    isCheckingUpdate,
+    handleCheckForUpdates,
   ]);
 
   const handleExpandView = async () => {
@@ -150,11 +238,27 @@ const SettingPage = () => {
                 <UX.Box
                   key={item.title}
                   layout="box_border"
-                  style={{cursor: 'pointer'}}
+                  style={{
+                    cursor: item.onClick || item.link ? 'pointer' : 'default',
+                    opacity: item.loading ? 0.7 : 1,
+                  }}
                   onClick={() => {
+                    if (item.loading) {
+                      return;
+                    }
+                    if (item.onClick) {
+                      item.onClick();
+                      return;
+                    }
                     if (item.type) {
-                      navigate(`${item.link}?type=${item.type}`);
-                    } else navigate(item.link);
+                      if (item.link) {
+                        navigate(`${item.link}?type=${item.type}`);
+                      }
+                      return;
+                    }
+                    if (item.link) {
+                      navigate(item.link);
+                    }
                   }}>
                   <UX.Box>
                     <UX.Text

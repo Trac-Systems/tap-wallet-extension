@@ -12,5 +12,7 @@ export const GlobalSelector = {
   auth: (state: AppState) => state.globalReducer.auth,
   showPasswordUpdateModal: (state: AppState) => state.globalReducer.showPasswordUpdateModal,
   currentPassword: (state: AppState) => state.globalReducer.currentPassword,
-  isLegacyUser: (state: AppState) => state.globalReducer.isLegacyUser
+  isLegacyUser: (state: AppState) => state.globalReducer.isLegacyUser,
+  hasExtensionUpdate: (state: AppState) => state.globalReducer.hasExtensionUpdate,
+  extensionUpdateVersion: (state: AppState) => state.globalReducer.extensionUpdateVersion,
 };

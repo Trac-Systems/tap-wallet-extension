@@ -14,6 +14,8 @@ export interface GlobalState {
   currentPassword: string;
   passwordUpgraded: boolean;
   isLegacyUser: boolean;
+  hasExtensionUpdate: boolean;
+  extensionUpdateVersion: string;
 }
 
 export const initialState: GlobalState = {
@@ -29,7 +31,9 @@ export const initialState: GlobalState = {
   showPasswordUpdateModal: false,
   currentPassword: '',
   passwordUpgraded: false,
-  isLegacyUser: false
+  isLegacyUser: false,
+  hasExtensionUpdate: false,
+  extensionUpdateVersion: '',
 };
 
 const GlobalSlice = createSlice({
@@ -39,12 +43,14 @@ const GlobalSlice = createSlice({
     update(
       state,
       action: {
-        payload: {
+      payload: {
           isUnlocked?: boolean;
           isReady?: boolean;
           isBooted?: boolean;
           showPasswordUpdateModal?: boolean;
           currentPassword?: string;
+          hasExtensionUpdate?: boolean;
+          extensionUpdateVersion?: string;
         };
       },
     ) {

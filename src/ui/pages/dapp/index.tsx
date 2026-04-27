@@ -98,7 +98,7 @@ const DappPage = () => {
             ) : (
               <UX.Box>
                 <UX.Text
-                  title={'Please change network to LIVENET'}
+                  title={'Please change network to MAINNET'}
                   styleType="body_16_bold"
                   customStyles={{color: 'white', marginBottom: '20px'}}
                 />

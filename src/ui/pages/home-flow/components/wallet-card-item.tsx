@@ -184,7 +184,9 @@ const WalletCard = (props: IWalletCardProps) => {
               styleType="body_16_bold"
               customStyles={{color: 'white'}}
             title={`Wallet only available on ${
-              expectedNetwork === Network.TESTNET ? 'testnet' : 'mainnet'
+              expectedNetwork === Network.TESTNET 
+                ? Network.TESTNET.toLowerCase() 
+                : Network.MAINNET.toLowerCase()
             }`}
             />
           </UX.Box>
@@ -201,7 +203,7 @@ const WalletCard = (props: IWalletCardProps) => {
             <UX.Box layout="row" style={{alignItems: 'center', gap: '8px'}}>
               <UX.Text 
                 styleType="body_12_bold"
-                title={networkType === NETWORK_TYPES.MAINNET.label ? 'MAINNET' : 'TESTNET'} 
+                title={networkType === NETWORK_TYPES.MAINNET.label ? Network.MAINNET : Network.TESTNET} 
                 customStyles={{ 
                   color: networkType === NETWORK_TYPES.MAINNET.label ? 'white' : '#d3d3d3',
                   fontSize: '10px',

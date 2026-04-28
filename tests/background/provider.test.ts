@@ -24,7 +24,7 @@ jest.mock('webextension-polyfill', () => {
 
 // MOCK 3: Singleton Services
 jest.mock('../../src/background/service/singleton', () => ({
-  networkConfig: { getActiveNetwork: jest.fn().mockReturnValue('MAINNET') },
+  networkConfig: { getActiveNetwork: jest.fn().mockReturnValue(Network.MAINNET) },
   walletConfig: {},
   accountConfig: {},
   walletService: {},
@@ -45,6 +45,7 @@ jest.mock('@noble/secp256k1', () => ({
 
 import * as bitcoin from 'bitcoinjs-lib';
 import Provider from '../../src/background/provider'; 
+import { Network } from '@/src/wallet-instance'
 
 describe('Provider PSBT Extraction Integration', () => {
   it('should successfully extract a full transaction from a PSBT containing an OP_RETURN output', async () => {

@@ -71,7 +71,7 @@ const NetWorkType = () => {
             onClick={() => !isTracSingleWallet && handleChangeNetwork(Network.TESTNET)}
             style={isTracSingleWallet && networkType !== Network.TESTNET ? {opacity: 0.4, cursor: 'not-allowed'} : {}}>
             <UX.Text
-              title="TESTNET"
+              title={Network.TESTNET}
               styleType="body_16_bold"
               customStyles={{color: 'white'}}
             />
@@ -82,7 +82,7 @@ const NetWorkType = () => {
             onClick={() => !isTracSingleWallet && handleChangeNetwork(Network.MAINNET)}
             style={isTracSingleWallet && networkType !== Network.MAINNET ? {opacity: 0.4, cursor: 'not-allowed'} : {}}>
             <UX.Text
-              title="LIVENET"
+              title={Network.MAINNET}
               styleType="body_16_bold"
               customStyles={{color: 'white'}}
             />

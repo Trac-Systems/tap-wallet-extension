@@ -26,6 +26,7 @@ import PinInput from './pin-input';
 import RefreshButton from './refresh-button';
 import AuthInput from './auth-input';
 import PasswordUpdateModal from './password-update-modal';
+import ExtensionUpdateModal from './extension-update-modal';
 import {Section} from './section-custom';
 import SwitchCustom from './switch-button';
 import Tabs from './tab-bar';
@@ -69,5 +70,6 @@ export const UX = {
   Dropdown,
   Badge,
   AuthInput,
-  PasswordUpdateModal
+  PasswordUpdateModal,
+  ExtensionUpdateModal,
 };

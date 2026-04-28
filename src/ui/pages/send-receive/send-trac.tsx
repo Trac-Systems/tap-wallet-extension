@@ -90,7 +90,7 @@ const SendTrac = () => {
       const separatorIndex = address.trim().lastIndexOf('1');
       const addrPrefix = separatorIndex > 0 ? address.trim().slice(0, separatorIndex) : '';
       if (addrPrefix !== expectedHrp) {
-        setAddressError(`This is a ${addrPrefix === 'trac' ? 'mainnet' : 'testnet'} address. You are on ${networkType === Network.MAINNET ? 'mainnet' : 'testnet'}.`);
+        setAddressError(`This is a ${addrPrefix === 'trac' ? Network.MAINNET.toLowerCase() : Network.TESTNET.toLowerCase()} address. You are on ${networkType === Network.MAINNET ? Network.MAINNET.toLowerCase() : Network.TESTNET.toLowerCase()}.`);
       } else {
         setAddressError('');
       }

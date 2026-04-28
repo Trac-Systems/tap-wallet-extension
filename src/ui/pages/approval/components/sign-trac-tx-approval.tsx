@@ -3,6 +3,7 @@ import { TracApiService } from '@/src/background/service/trac-api.service';
 import { useApproval, useFee } from '../hook';
 import LayoutApprove from '../layouts';
 import WebsiteBar from '@/src/ui/component/website-bar';
+import { Network } from '@/src/wallet-instance'
 
 interface Props {
   params: {
@@ -155,7 +156,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
                 <UX.Box layout="row_between" style={{ width: '100%' }}>
                   <UX.Text title="Network" styleType="body_12_bold" customStyles={{ color: '#888' }} />
                   <UX.Text
-                    title={txData.networkId === 918 ? 'Mainnet' : 'Testnet'}
+                    title={txData.networkId === 918 ? Network.MAINNET : Network.TESTNET}
                     styleType="body_12_normal"
                     customStyles={{ color: 'white' }}
                   />

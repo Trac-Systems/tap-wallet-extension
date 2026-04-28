@@ -55,6 +55,7 @@ import {AccountActions} from './redux/reducer/account/slice';
 import {GlobalSelector} from './redux/reducer/global/selector';
 import {GlobalActions} from './redux/reducer/global/slice';
 import {generateUniqueColors, useAppDispatch} from './utils';
+import {UX} from './component';
 import SendInscription from '@/src/ui/pages/send-receive/send-inscription';
 import SendInscriptionConfirm from '@/src/ui/pages/send-receive/send-inscription-confirm';
 import DmtList from './pages/home-flow/components/dmt-list';
@@ -67,11 +68,22 @@ import HandleTappingAuthority from './pages/authority/handle/tapping';
 import CancelAuthorityDetail from '@/src/ui/pages/authority/cancel-authority-detail';
 import {AuthorityWarning} from '@/src/ui/pages/authority/authority-warning';
 import LedgerSignModalHost from './component/ledger-sign-modal/host';
+import {
+  getCurrentExtensionVersion,
+  getStoredExtensionUpdateVersion,
+  requestExtensionUpdateCheck,
+} from './utils/extension-update';
 
 function App() {
   const walletProvider = useWalletProvider();
   const isUnlocked = useSelector(GlobalSelector.isUnlocked);
+  const hasExtensionUpdate = useSelector(GlobalSelector.hasExtensionUpdate);
+  const extensionUpdateVersion = useSelector(
+    GlobalSelector.extensionUpdateVersion,
+  );
   const dispatch = useAppDispatch();
+  const didCheckExtensionUpdate = useRef(false);
+  const currentExtensionVersion = getCurrentExtensionVersion();
 
   const selfRef = useRef({
     settingsLoaded: false,
@@ -134,6 +146,43 @@ function App() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (didCheckExtensionUpdate.current) {
+      return;
+    }
+
+    didCheckExtensionUpdate.current = true;
+
+    const runUpdateCheck = async () => {
+      try {
+        const pendingVersion = await getStoredExtensionUpdateVersion();
+
+        if (pendingVersion) {
+          dispatch(
+            GlobalActions.update({
+              hasExtensionUpdate: true,
+              extensionUpdateVersion: pendingVersion,
+            }),
+          );
+        }
+
+        const {status, version} = await requestExtensionUpdateCheck();
+        if (status === 'update_available' && version) {
+          dispatch(
+            GlobalActions.update({
+              hasExtensionUpdate: true,
+              extensionUpdateVersion: version,
+            }),
+          );
+        }
+      } catch (error) {
+        console.log('extension update check error', error);
+      }
+    };
+
+    runUpdateCheck();
+  }, [dispatch]);
 
   return (
     <HashRouter>
@@ -280,6 +329,18 @@ function App() {
         <Route path="/authority-warning" element={<AuthorityWarning />} />
       </Routes>
       <LedgerSignModalHost />
+      <UX.ExtensionUpdateModal
+        isOpen={hasExtensionUpdate}
+        currentVersion={currentExtensionVersion}
+        availableVersion={extensionUpdateVersion || undefined}
+        onClose={() =>
+          dispatch(
+            GlobalActions.update({
+              hasExtensionUpdate: false,
+            }),
+          )
+        }
+      />
       </>
     </HashRouter>
   );

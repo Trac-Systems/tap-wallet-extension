@@ -302,3 +302,5 @@ export const hasWalletsWithAccounts = async (wallet: any): Promise<boolean> => {
     return false;
   }
 };
+
+export * from './extension-update';

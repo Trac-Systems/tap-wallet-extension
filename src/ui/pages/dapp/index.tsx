@@ -6,28 +6,31 @@ import LayoutScreenSettings from '../../layouts/settings';
 import {useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {NETWORK_TYPES} from '@/src/wallet-instance';
+import {DappItem} from './types';
 
-const dappList = [
+
+
+const dappList: DappItem[] = [
   {
-    logo: './images/inscribe-logo.png',
+    logo: './images/inscribeContainer.svg',
     title: 'Inscribe',
     desc: 'TaparooInscriber',
     link: 'https://inscribe.taparooswap.com/',
   },
   {
-    logo: './images/market-logo.png',
+    logo: './images/tradeContainer.svg',
     title: 'Market',
     desc: 'TaparooMarket',
     link: 'https://market.taparooswap.com/',
   },
   {
-    logo: './images/swap-logo.png',
+    logo: './images/swapContainer.svg',
     title: 'Swap',
     desc: 'TaparooSwap',
     link: 'https://swap.taparooswap.com/',
   },
   {
-    logo: './images/bridge-logo.png',
+    logo: './images/bridgeContainer.svg',
     title: 'Bridge',
     desc: 'TaparooBridge',
     link: 'https://bridge.taparooswap.com/',

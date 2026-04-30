@@ -23,7 +23,6 @@
     "useDefineForClassFields": false,
     "downlevelIteration": true,
     "importHelpers": false,
-    "ignoreDeprecations": "6.0"
   },
   "include": ["**/*.ts", "**/*.tsx", "global.d.ts"],
   "exclude": [

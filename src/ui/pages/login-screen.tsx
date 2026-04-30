@@ -11,6 +11,7 @@ import {GlobalSelector} from '../redux/reducer/global/selector';
 import {SVG} from '../svg';
 import {useAppDispatch, isValidAuthInput, isLegacyPin, useAppSelector, hasWalletsWithAccounts} from '../utils';
 import {useApproval} from './approval/hook';
+import { useI18n } from '../i18n'
 
 const LoginPage = () => {
   //! State
@@ -19,6 +20,7 @@ const LoginPage = () => {
   const dispatch = useAppDispatch();
   const [, resolveApproval] = useApproval();
   const {showToast} = useCustomToast();
+  const {t} = useI18n()
 
   const pinInputRef = useRef<AuthInputRef>(null);
   const legacyPinInputRef = useRef<PinInputRef>(null);
@@ -113,7 +115,7 @@ const LoginPage = () => {
             }}
           />
           <UX.Text
-            title={isLegacyUser ? "Enter your PIN to login" : "Enter your password to login"}
+            title={isLegacyUser ? t('password.enterPin') : t('password.enter')}
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
@@ -125,7 +127,7 @@ const LoginPage = () => {
             />
           ) : (
             <UX.AuthInput
-              placeholderKey={isLegacyUser ? 'password.enterPin' : 'password.enter'}
+              placeholderKey={isLegacyUser ? t('password.enterPin') : t('password.enter')}
               onChange={handleOnChange}
               onKeyUp={e => handleOnKeyUp(e)}
               ref={pinInputRef}

@@ -1,34 +1,36 @@
 {
   "compilerOptions": {
-    "allowJs": true, // Allows JavaScript files to be compiled.
-    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export.
-    "esModuleInterop": true, // Enables emit interoperability between CommonJS and ES Modules.
-    "isolatedModules": true, // Ensures each file can be transpiled separately (necessary for Vite).
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
     "noImplicitAny": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strict": false, // Enables all strict type-checking options.
-    "skipLibCheck": true, // Skips type checking of declaration files.
-    "jsx": "react-jsx", // For React 17+ to use the new JSX transform.
-    "lib": ["es2015", "dom"], // Changed to es2015 for better compatibility
-    "moduleResolution": "node", // Resolves modules using Node's resolution algorithm.
+    "strict": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "lib": ["es2015", "dom"],
+    "moduleResolution": "node",
     "types": ["chrome", "node", "react", "react-dom", "jest"],
-    "baseUrl": ".", // Base directory for non-relative module names.
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     },
-    "noEmit": true, // Prevents TypeScript from emitting files.
-    "resolveJsonModule": true, // Allows importing JSON files.
-    "target": "es2015", // Changed to es2015 for better compatibility
-    "useDefineForClassFields": false, // Disable this to avoid WeakMap issues with private fields
-    "downlevelIteration": true, // Enable downlevel iteration for better ES5 compatibility
-    "importHelpers": false // Disable importing helpers to avoid dependency issues
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "target": "es2015",
+    "useDefineForClassFields": false,
+    "downlevelIteration": true,
+    "importHelpers": false,
+    "ignoreDeprecations": "6.0"
   },
+  "include": ["**/*.ts", "**/*.tsx", "global.d.ts"],
   "exclude": [
     "node_modules",
-    "dist", // Excludes the output directory for builds.
-    "babel.config.js", // Excludes Babel configuration file.
-    "metro.config.js", // Excludes Metro configuration file.
-    "jest.config.cjs" // Excludes Jest configuration file if it's present.
+    "dist",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.cjs"
   ]
 }

@@ -98,5 +98,3 @@ export function adjustDerivationPathForNetwork(path: string, network: Network): 
   }
   return path;
 }
-
-export const INITIAL_LANGUAGE: Language = "en-US"

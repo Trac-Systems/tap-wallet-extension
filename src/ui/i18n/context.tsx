@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import {getStoredLanguage, setStoredLanguage} from './storage';
+import { getStoredLanguage, setStoredLanguage } from './storage';
 import {
   DEFAULT_LANGUAGE,
   SUPPORTED_LANGUAGES,
@@ -16,7 +16,7 @@ import {
   type TranslatePlural,
   type TranslationParams,
 } from './types';
-import {translate, translatePlural} from './translator';
+import { translate, translatePlural } from './translator';
 
 interface I18nContextValue {
   language: Language;
@@ -31,26 +31,28 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 interface I18nProviderProps {
   children: ReactNode;
-  initialLanguage?: Language;
+  initialLanguage: Language;
 }
 
 export const I18nProvider = ({
   children,
   initialLanguage,
 }: I18nProviderProps) => {
-  const [language, setLanguageState] = useState<Language>(initialLanguage);
+  const [language, setLanguage] = useState<Language>(initialLanguage);
 
   useEffect(() => {
     const storedLanguage = getStoredLanguage();
-    setLanguageState(storedLanguage);
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
   }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
-  const setLanguage = useCallback((nextLanguage: Language) => {
-    setLanguageState(nextLanguage);
+  const handleSetLanguage = useCallback((nextLanguage: Language) => {
+    setLanguage(nextLanguage);
     setStoredLanguage(nextLanguage);
   }, []);
 
@@ -68,29 +70,26 @@ export const I18nProvider = ({
 
   const languageLabels = useMemo(
     () =>
-      SUPPORTED_LANGUAGES.reduce(
-        (labels, supportedLanguage) => ({
-          ...labels,
-          [supportedLanguage]: translate(
-            language,
-            `language.${supportedLanguage}`,
-          ),
-        }),
-        {} as Record<Language, string>,
-      ),
+      SUPPORTED_LANGUAGES.reduce((labels, supportedLanguage) => {
+        labels[supportedLanguage] = translate(
+          language,
+          `language.${supportedLanguage}`,
+        );
+        return labels;
+      }, {} as Record<Language, string>),
     [language],
   );
 
   const value = useMemo<I18nContextValue>(
     () => ({
       language,
-      setLanguage,
+      setLanguage: handleSetLanguage,
       supportedLanguages: SUPPORTED_LANGUAGES,
       languageLabels,
       t,
       tp,
     }),
-    [language, languageLabels, setLanguage, t, tp],
+    [language, languageLabels, handleSetLanguage, t, tp],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

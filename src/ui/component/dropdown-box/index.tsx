@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {SVG} from '../../svg';
 import Text from '../text-custom';
-import { i18n } from 'webextension-polyfill'
 import { useI18n } from '../../i18n'
 
 type Option = {

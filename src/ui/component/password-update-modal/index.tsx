@@ -2,6 +2,7 @@ import React from 'react';
 import {UX} from '../index';
 import {SVG} from '../../svg';
 import {colors} from '../../themes/color';
+import {fontFamilies} from '../../themes/font';
 
 interface PasswordUpdateModalProps {
   visible: boolean;
@@ -32,12 +33,12 @@ const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
         spacing="xl">
         {/* Title */}
         <UX.Text
-          title="Update your password"
+          titleKey="password.updateYourPassword"
           styleType="heading_24"
           customStyles={{
             color: '#FFF',
             textAlign: 'center',
-            fontFamily: 'Exo',
+            fontFamily: fontFamilies.main,
             fontSize: '24px',
             fontStyle: 'normal',
             fontWeight: '600',
@@ -50,7 +51,7 @@ const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
           <div
             style={{
               color: '#B0B0B0',
-              fontFamily: 'Exo',
+              fontFamily: fontFamilies.main,
               fontSize: '16px',
               fontStyle: 'normal',
               fontWeight: '400',
@@ -64,7 +65,7 @@ const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
           <div
             style={{
               color: '#B0B0B0',
-              fontFamily: 'Exo',
+              fontFamily: fontFamilies.main,
               fontSize: '16px',
               fontStyle: 'normal',
               fontWeight: '400',
@@ -80,7 +81,7 @@ const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
         <UX.Button
           styleType="primary"
           onClick={onUpdatePassword}
-          title="Update Password"
+          titleKey="password.update"
         />
       </UX.Box>
     </UX.CustomModal>

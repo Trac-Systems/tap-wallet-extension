@@ -280,7 +280,7 @@ const ListWallets = (props: ListWalletsProps) => {
             onClick={() => {
               if (isMismatched) {
                 showToast({
-                  title: 'Please reconnect Ledger and sync network before sending.',
+                  titleKey: 'ledger.reconnectBeforeSending',
                   type: 'error',
                 });
                 return;
@@ -291,7 +291,7 @@ const ListWallets = (props: ListWalletsProps) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 if (isMismatched) {
                   showToast({
-                    title: 'Please reconnect Ledger and sync network before sending.',
+                    titleKey: 'ledger.reconnectBeforeSending',
                     type: 'error',
                   });
                   return;
@@ -307,7 +307,7 @@ const ListWallets = (props: ListWalletsProps) => {
           >
             <SVG.ArrowSendIcon />
             <UX.Text
-              title="Send"
+              titleKey="common.send"
               styleType="body_14_bold"
               customStyles={{color: 'white'}}
             />
@@ -325,7 +325,7 @@ const ListWallets = (props: ListWalletsProps) => {
           >
             <SVG.ArrowReceiveIcon />
             <UX.Text
-              title="Receive"
+              titleKey="send.receive"
               styleType="body_14_bold"
               customStyles={{color: 'white'}}
             />

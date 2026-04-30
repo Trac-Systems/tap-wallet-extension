@@ -41,12 +41,12 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
         <UX.Box spacing="sm" style={{ flex: 1, padding: '0 20px' }}>
           <UX.Box spacing="xs">
             <UX.Text
-              title="Sign Contract Transaction"
+              titleKey="approval.signContract.title"
               styleType="heading_18"
               customStyles={{ color: 'white', textAlign: 'center' }}
             />
             <UX.Text
-              title="Review the transaction data below"
+              titleKey="approval.signContract.reviewData"
               styleType="body_14_normal"
               customStyles={{ color: '#888', textAlign: 'center' }}
             />
@@ -65,12 +65,12 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
             >
               <UX.Box layout="row_between" style={{ width: '100%' }}>
                 <UX.Text
-                  title="Transaction Data"
+                  titleKey="transaction.data"
                   styleType="body_12_bold"
                   customStyles={{ color: '#888' }}
                 />
                 <UX.Text
-                  title={isExpanded ? 'Collapse' : 'Expand'}
+                  titleKey={isExpanded ? 'common.collapse' : 'common.expand'}
                   styleType="body_12_bold"
                   customStyles={{
                     color: '#4CAF50',
@@ -99,7 +99,7 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
             {/* Network Fee Section */}
             <UX.Box layout="box_border">
               <UX.Box layout="row_between" style={{ width: '100%' }}>
-                <UX.Text title="Network fee" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                <UX.Text titleKey="transaction.networkFee" styleType="body_12_bold" customStyles={{ color: '#888' }} />
                 <UX.Text
                   title={`${fee} TNK`}
                   styleType="body_14_normal"
@@ -120,12 +120,12 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
           >
             <UX.Box spacing="xs">
               <UX.Text
-                title="⚠️ Security Warning"
+                titleKey="approval.securityWarning"
                 styleType="body_12_bold"
                 customStyles={{ color: '#ff6b6b' }}
               />
               <UX.Text
-                title="Verify all transaction data carefully. This is a contract transaction with custom parameters."
+                titleKey="approval.signContract.securityWarning"
                 styleType="body_12_normal"
                 customStyles={{ color: 'rgba(255, 255, 255, 0.6)' }}
               />
@@ -137,13 +137,13 @@ export default function SignContractTxApproval({ params: { session, data } }: Pr
         <UX.Box layout="row" spacing="sm" style={{ padding: '0 20px 20px' }}>
           <UX.Button
             styleType="dark"
-            title="Cancel"
+            titleKey="common.cancel"
             onClick={handleCancel}
             customStyles={{ flex: 1 }}
           />
           <UX.Button
             styleType="primary"
-            title="Sign"
+            titleKey="common.sign"
             onClick={handleApprove}
             customStyles={{ flex: 1 }}
           />

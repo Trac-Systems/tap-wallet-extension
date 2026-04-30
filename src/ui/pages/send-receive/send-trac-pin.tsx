@@ -16,6 +16,7 @@ import type {AuthInputRef} from '../../component/auth-input';
 import {TracApi} from '../../../background/requests/trac-api';
 import {TracApiService} from '../../../background/service/trac-api.service';
 import {Network} from '../../../wallet-instance';
+import {useI18n} from '@/src/ui/i18n';
 
 interface TracSummaryData {
   to: string;
@@ -32,6 +33,7 @@ const SendTracPin = () => {
   
   const tracAddress = useActiveTracAddress();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const wallet = useWalletProvider();
   const dispatch = useAppDispatch();
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
@@ -122,12 +124,12 @@ const SendTracPin = () => {
       
       if (result.success) {
         const txHash = result.txid || TracApiService.decodePayload(txPayload);
-        showToast({title: 'Transaction sent successfully', type: 'success'});
+        showToast({titleKey: 'transaction.sentSuccessfully', type: 'success'});
         navigate('/home/send-trac-success', { 
           state: { txHash } 
         });
       } else {
-        showToast({title: result.error || 'Transaction failed', type: 'error'});
+        showToast({title: result.error || t('transaction.failed'), type: 'error'});
       }
       
       setPinValue('');
@@ -137,7 +139,12 @@ const SendTracPin = () => {
       pinRef.current?.clearPin();
       authInputRef.current?.clear();
       const err = e as Error;
-      showToast({title: err.message || `${isLegacyUser ? 'PIN' : 'Password'} invalid`, type: 'error'});
+      showToast({
+        title:
+          err.message ||
+          t(isLegacyUser ? 'common.pinInvalid' : 'password.invalid'),
+        type: 'error',
+      });
     } finally {
       setSending(false);
     }
@@ -164,14 +171,18 @@ const SendTracPin = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title={isLegacyUser ? "PIN" : "Password"}
+            titleKey={isLegacyUser ? 'common.pin' : 'common.password'}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title={isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction"}
+            titleKey={
+              isLegacyUser
+                ? 'settings.security.enterPinToConfirmTransaction'
+                : 'settings.security.enterPasswordToConfirmTransaction'
+            }
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
@@ -182,7 +193,7 @@ const SendTracPin = () => {
             />
           ) : (
             <UX.AuthInput
-              placeholder={isLegacyUser ? 'Enter your PIN' : 'Enter your password'}
+              placeholderKey={isLegacyUser ? 'password.enterPin' : 'password.enter'}
               onChange={handleOnChange}
               ref={authInputRef}
               autoFocus={true}
@@ -199,7 +210,7 @@ const SendTracPin = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={sending ? 'Sending...' : 'Confirm'}
+            titleKey={sending ? 'transaction.sending' : 'common.confirm'}
             onClick={onConfirmPin}
             isDisable={disabled || sending}
           />

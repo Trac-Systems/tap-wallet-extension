@@ -7,9 +7,11 @@ import { mempoolApi } from '@/src/background/requests';
 import { processBitcoinTransaction } from '@/src/ui/utils/bitcoin-transaction-processor';
 import { useAppSelector } from '@/src/ui/utils';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import {useI18n} from '@/src/ui/i18n/context';
 
 export const useBitcoinHistory = (address: string) => {
   const networkType = useAppSelector(GlobalSelector.networkType);
+  const {t} = useI18n();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -57,11 +59,11 @@ export const useBitcoinHistory = (address: string) => {
 
       // Handle specific error types
       if (err?.response?.status === 429) {
-        setError('Too many requests. Please wait a moment and try again.');
+        setError(t('activity.tooManyRequests'));
       } else if (err?.message?.includes('Network')) {
-        setError('Network error. Please check your connection.');
+        setError(t('activity.networkError'));
       } else {
-        setError('Failed to load Bitcoin transactions. Please try again.');
+        setError(t('activity.failedLoadBitcoinTransactions'));
       }
 
       setHasMore(false);

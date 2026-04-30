@@ -11,11 +11,13 @@ import { UX } from '@/src/ui/component';
 import BitcoinHistory from './bitcoin-history';
 import TracHistory from './trac-history';
 import { useActiveTracAddress, useIsTracSingleWallet } from '@/src/ui/pages/home-flow/hook';
+import {useI18n} from '@/src/ui/i18n';
 
 const ActivityList = () => {
   const tracAddress = useActiveTracAddress();
   const hasTrac = !!tracAddress;
   const isTracSingle = useIsTracSingleWallet();
+  const {t} = useI18n();
 
   // Build tabs array based on wallet type
   const tabItems = [];
@@ -23,7 +25,7 @@ const ActivityList = () => {
   // Add Bitcoin history tab if NOT Trac single wallet
   if (!isTracSingle) {
     tabItems.push({
-      label: 'Bitcoin history',
+      label: t('activity.bitcoinHistory'),
       content: <BitcoinHistory />,
     });
   }
@@ -31,7 +33,7 @@ const ActivityList = () => {
   // Add Trac history tab if has Trac address
   if (hasTrac) {
     tabItems.push({
-      label: 'Trac history',
+      label: t('activity.tracHistory'),
       content: <TracHistory />,
     });
   }

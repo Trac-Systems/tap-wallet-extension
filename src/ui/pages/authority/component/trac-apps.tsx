@@ -94,7 +94,7 @@ const TransferApps = ({
   const renderHeaderComponent = useCallback(() => {
     return (
       <UX.Text
-        title="Send to Apps"
+        titleKey="authority.sendToApps"
         styleType="body_16_extra_bold"
         customStyles={{ color: 'white' }}
       />

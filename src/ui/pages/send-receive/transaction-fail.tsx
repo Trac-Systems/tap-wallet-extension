@@ -14,7 +14,7 @@ const FailScreen = () => {
           <UX.Box layout="column_center" spacing="xl">
             <SVG.SendFailIcon />
             <UX.Text
-              title="Failed to send"
+              titleKey="transaction.failedToSend"
               styleType="heading_24"
               customStyles={{
                 marginTop: '16px',
@@ -37,7 +37,7 @@ const FailScreen = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Done"
+            titleKey="common.done"
             onClick={() => navigate('/home')}
           />
         </UX.Box>

@@ -6,15 +6,20 @@ import React, {
   useState,
 } from 'react';
 import {colors} from '../../themes/color';
+import {fontFamilies} from '../../themes/font';
 import Box from '../box-custom';
 import {SVG} from '../../svg';
 import Text from '../text-custom';
 import {Inscription} from '../../interfaces';
 import {useAppSelector, validateBtcAddress} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
+import {useOptionalI18n} from '../../i18n/context';
+import type {TranslationParams} from '../../i18n/types';
 
 interface InputProps {
   placeholder?: string;
+  placeholderKey?: string;
+  placeholderParams?: TranslationParams;
   style?: CSSProperties;
   disabled?: boolean;
   autoFocus?: boolean;
@@ -26,6 +31,8 @@ interface InputProps {
 
 interface TextAreaProps {
   placeholder?: string;
+  placeholderKey?: string;
+  placeholderParams?: TranslationParams;
   style?: CSSProperties;
   disabled?: boolean;
   autoFocus?: boolean;
@@ -41,10 +48,14 @@ interface TextAreaProps {
 interface MaxLengthInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   maxLength?: number;
+  placeholderKey?: string;
+  placeholderParams?: TranslationParams;
 }
 
 export interface InputProp {
   placeholder?: string;
+  placeholderKey?: string;
+  placeholderParams?: TranslationParams;
   children?: React.ReactNode;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   onKeyUp?: React.KeyboardEventHandler<HTMLInputElement>;
@@ -76,7 +87,7 @@ export interface InputProp {
 }
 
 const baseStyleInput: CSSProperties = {
-  fontFamily: 'Exo',
+  fontFamily: fontFamilies.main,
   fontStyle: 'normal',
   fontSize: '16px',
   fontWeight: 400,
@@ -90,6 +101,8 @@ const NonBorderInput = forwardRef<HTMLInputElement, InputProps>(
   (props, ref: ForwardedRef<HTMLInputElement>) => {
     const {
       placeholder,
+      placeholderKey,
+      placeholderParams,
       style,
       disabled,
       onChange,
@@ -99,9 +112,13 @@ const NonBorderInput = forwardRef<HTMLInputElement, InputProps>(
       ...rest
     } = props;
 
+    const i18n = useOptionalI18n();
+    const displayPlaceholder =
+      placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
+
     return (
       <input
-        placeholder={placeholder}
+        placeholder={displayPlaceholder}
         ref={ref}
         type={'text'}
         disabled={disabled}
@@ -120,6 +137,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   (props, ref: ForwardedRef<HTMLInputElement>) => {
     const {
       placeholder,
+      placeholderKey,
+      placeholderParams,
       style,
       disabled,
       onChange,
@@ -130,9 +149,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       ...rest
     } = props;
 
+    const i18n = useOptionalI18n();
+    const displayPlaceholder =
+      placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
+
     return (
       <input
-        placeholder={placeholder}
+        placeholder={displayPlaceholder}
         ref={ref}
         type={'text'}
         disabled={disabled}
@@ -158,6 +181,8 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (props, ref) => {
     const {
       placeholder,
+      placeholderKey,
+      placeholderParams,
       style,
       disabled,
       autoFocus,
@@ -170,12 +195,16 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       ...rest
     } = props;
 
+    const i18n = useOptionalI18n();
+    const displayPlaceholder =
+      placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
+
     return (
       <div style={style}>
         <textarea
           ref={ref}
           className={className}
-          placeholder={placeholder}
+          placeholder={displayPlaceholder}
           disabled={disabled}
           autoFocus={autoFocus}
           onFocus={onFocus}
@@ -203,9 +232,15 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 const MaxLengthInput: React.FC<MaxLengthInputProps> = ({
   maxLength = 24,
   value,
+  placeholder,
+  placeholderKey,
+  placeholderParams,
   ...props
 }) => {
+  const i18n = useOptionalI18n();
   const [valueInput, setValueInput] = useState<string>(String(value ?? ''));
+  const displayPlaceholder =
+    placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
 
   // Sync internal state when prop value changes
   useEffect(() => {
@@ -255,6 +290,7 @@ const MaxLengthInput: React.FC<MaxLengthInputProps> = ({
         {...props}
         value={value ?? valueInput}
         maxLength={maxLength}
+        placeholder={displayPlaceholder}
         onChange={handleChange}
         onPaste={handlePaste}
         style={{
@@ -282,6 +318,8 @@ const AmountInput = (props: InputProp) => {
   const {
     defaultValue,
     placeholder,
+    placeholderKey,
+    placeholderParams,
     onAmountInputChange,
     disabled,
     style: $inputStyleOverride,
@@ -294,6 +332,9 @@ const AmountInput = (props: InputProp) => {
     onChange,
     ...rest
   } = props;
+  const i18n = useOptionalI18n();
+  const displayPlaceholder =
+    placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
   const $style = Object.assign(
     {},
     $inputStyleOverride,
@@ -352,7 +393,7 @@ const AmountInput = (props: InputProp) => {
         backgroundColor: '#2727276b',
       }}>
       <input
-        placeholder={placeholder || '0'}
+        placeholder={displayPlaceholder || '0'}
         type={'text'}
         value={inputValue}
         onChange={handleInputAmount}
@@ -384,8 +425,18 @@ const AmountInput = (props: InputProp) => {
 };
 
 const AddressInput = (props: InputProp) => {
-  const {onAddressInputChange, addressInputData, placeholder, style, ...rest} =
-    props;
+  const {
+    onAddressInputChange,
+    addressInputData,
+    placeholder,
+    placeholderKey,
+    placeholderParams,
+    style,
+    ...rest
+  } = props;
+  const i18n = useOptionalI18n();
+  const displayPlaceholder =
+    placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
 
   if (!addressInputData || !onAddressInputChange) {
     return <div />;
@@ -437,7 +488,7 @@ const AddressInput = (props: InputProp) => {
     resetState();
     const isValid = validateBtcAddress(inputAddress, networkType);
     if (!isValid) {
-      setFormatError('Recipient address is invalid');
+      setFormatError(i18n?.t('send.receiveAddressInvalid') ?? 'Recipient address is invalid');
       return;
     }
     setValidAddress(inputAddress);
@@ -454,7 +505,7 @@ const AddressInput = (props: InputProp) => {
           backgroundColor: '#2727276b',
         }}>
         <input
-          placeholder={placeholder ?? 'Wallet address'}
+          placeholder={displayPlaceholder ?? i18n?.t('send.walletAddress') ?? 'Wallet address'}
           type={'text'}
           onChange={async e => {
             handleInputAddress(e);

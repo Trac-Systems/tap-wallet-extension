@@ -14,6 +14,7 @@ import {useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {Network} from '../../../wallet-instance';
 import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
+import {useI18n} from '@/src/ui/i18n';
 
 const SendTrac = () => {
   //! State
@@ -25,6 +26,7 @@ const SendTrac = () => {
   const [addressError, setAddressError] = useState('');
   const [tracInputError, setTracInputError] = useState('');
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const [tracSendNumberValue, setTracSendNumberValue] = useState('');
   const [fee, setFee] = useState('');
   const [feeLoading, setFeeLoading] = useState(true);
@@ -40,7 +42,7 @@ const SendTrac = () => {
         setFee(feeHex);
       } catch (error) {
         console.error('Failed to fetch fee:', error);
-        showToast({title: 'Failed to fetch transaction fee', type: 'error'});
+        showToast({titleKey: 'transaction.failedToFetchFee', type: 'error'});
       } finally {
         setFeeLoading(false);
       }
@@ -83,14 +85,25 @@ const SendTrac = () => {
     
     const validation = TracApiService.validateTracAddress(address);
     if (!validation.valid) {
-      setAddressError('Invalid TRAC address format');
+      setAddressError(t('send.invalidTracAddressFormat'));
     } else {
       // Cross-network check: prevent sending to wrong network address
       const expectedHrp = getTracHrp(networkType);
       const separatorIndex = address.trim().lastIndexOf('1');
       const addrPrefix = separatorIndex > 0 ? address.trim().slice(0, separatorIndex) : '';
       if (addrPrefix !== expectedHrp) {
-        setAddressError(`This is a ${addrPrefix === 'trac' ? Network.MAINNET.toLowerCase() : Network.TESTNET.toLowerCase()} address. You are on ${networkType === Network.MAINNET ? Network.MAINNET.toLowerCase() : Network.TESTNET.toLowerCase()}.`);
+        setAddressError(
+          t('send.wrongNetworkAddress', {
+            addressNetwork:
+              addrPrefix === 'trac'
+                ? Network.MAINNET.toLowerCase()
+                : Network.TESTNET.toLowerCase(),
+            currentNetwork:
+              networkType === Network.MAINNET
+                ? Network.MAINNET.toLowerCase()
+                : Network.TESTNET.toLowerCase(),
+          }),
+        );
       } else {
         setAddressError('');
       }
@@ -146,12 +159,17 @@ const SendTrac = () => {
     const availableAmount = confirmedAmount - feeAmount;
     
     if (sendAmount > availableAmount) {
-      setTracInputError(`Insufficient balance. Available: ${availableAmount.toFixed(8)} TNK (excluding fee)`);
+      setTracInputError(
+        t('send.insufficientBalanceAvailable', {
+          amount: availableAmount.toFixed(8),
+          ticker: 'TNK',
+        }),
+      );
       return;
     }
     
     if (sendAmount <= 0) {
-      setTracInputError('Amount must be greater than 0');
+      setTracInputError(t('send.amountGreaterThanZero'));
       return;
     }
   }, [toInfo, tracSendNumberValue, confirmed, fee, isFormValid, addressError]);
@@ -171,7 +189,11 @@ const SendTrac = () => {
       
       if (totalRequired > confirmedAmount) {
         showToast({
-          title: `Insufficient confirmed balance. Required: ${totalRequired.toFixed(8)} TNK (including fee), Available: ${confirmed || '0'} TNK`,
+          title: t('send.insufficientConfirmedBalance', {
+            required: totalRequired.toFixed(8),
+            available: confirmed || '0',
+            ticker: 'TNK',
+          }),
           type: 'error'
         });
         return;
@@ -194,7 +216,7 @@ const SendTrac = () => {
       navigate('/home/send-trac-summary', { state: { summaryData } });
     } catch (e) {
       const err = e as Error;
-      showToast({title: err.message || 'Failed to prepare transaction', type: 'error'});
+      showToast({title: err.message || t('transaction.failedToPrepare'), type: 'error'});
     }
   };
 
@@ -202,7 +224,7 @@ const SendTrac = () => {
   //! Render
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Send TNK" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="send.sendTnk" onBackClick={handleGoBack} />}
       body={
         <UX.Box spacing="xxl" style={{width: '100%'}}>
           <UX.Box layout="column" style={{width: '100%'}} spacing="xss">
@@ -210,11 +232,11 @@ const SendTrac = () => {
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
-                title="Send"
+                titleKey="common.send"
               />
               <UX.Box layout="column" style={{alignItems: 'flex-end', marginLeft: '25px' }}>
                 <UX.Box layout="row" spacing="xs">
-                  <UX.Text title="Confirmed:" styleType="body_14_bold" />
+                  <UX.Text titleKey="transaction.confirmedColon" styleType="body_14_bold" />
                   <UX.Text
                     title={`${confirmed || '0'} TNK`}
                     styleType="body_14_bold"
@@ -282,7 +304,7 @@ const SendTrac = () => {
             )}
             <UX.Box layout="column" style={{width: '100%', alignItems: 'flex-end'}}>
                 <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
-                    <UX.Text title="Unconfirmed:" styleType="body_14_bold" />
+                    <UX.Text titleKey="transaction.unconfirmedColon" styleType="body_14_bold" />
                     <UX.Text
                     title={`${unconfirmed || '0'} TNK`}
                     styleType="body_14_bold"
@@ -298,7 +320,7 @@ const SendTrac = () => {
             </UX.Box>
             <UX.Box layout="column" style={{width: '100%', alignItems: 'flex-end'}}>
               <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
-                <UX.Text styleType="body_14_bold" title="Total" />
+                <UX.Text styleType="body_14_bold" titleKey="transaction.total" />
                 <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
                   <UX.Box layout="row" spacing="xss_s">
                     <UX.Text title={total || '0'} styleType="body_14_bold" />
@@ -317,7 +339,7 @@ const SendTrac = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Receiver"
+              titleKey="transaction.receiver"
             />
             <UX.Box
               layout="row"
@@ -329,7 +351,7 @@ const SendTrac = () => {
               }}
             >
               <input
-                placeholder={'trac address'}
+                placeholder={t('send.tracAddressPlaceholder')}
                 type={'text'}
                 onChange={e => onAddressChange(e.target.value)}
                 style={{
@@ -359,10 +381,11 @@ const SendTrac = () => {
           
           {/* Network Fee Display */}
           <UX.Box layout="row_between" style={{width: '100%', alignItems: 'center', marginTop: '16px'}}>
-            <UX.Text title="Network Fee" styleType="heading_16" customStyles={{color: 'white'}} />
+            <UX.Text titleKey="transaction.networkFee" styleType="heading_16" customStyles={{color: 'white'}} />
             <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
               <UX.Text 
-                title={feeLoading ? "Loading..." : `${fee ? TracApiService.balanceToDisplay(fee) : '0'} TNK`} 
+                title={feeLoading ? undefined : `${fee ? TracApiService.balanceToDisplay(fee) : '0'} TNK`}
+                titleKey={feeLoading ? 'common.loading' : undefined}
                 styleType="body_14_bold" 
                 customStyles={{color: 'white'}} 
               />
@@ -387,7 +410,7 @@ const SendTrac = () => {
           <UX.Button
             styleType="primary"
             isDisable={!isFormValid}
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleNavigate}
           />
         </UX.Box>

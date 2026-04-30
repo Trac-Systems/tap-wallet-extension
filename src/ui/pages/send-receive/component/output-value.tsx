@@ -22,10 +22,12 @@ export function OutputValueBar({
   const options = [
     {
       title: 'Current',
+      titleKey: 'common.current',
       value: defaultValue,
     },
     {
       title: 'Custom',
+      titleKey: 'common.custom',
     },
   ];
   const [optionIndex, setOptionIndex] = useState(FeeRateType.CURRENT);
@@ -64,7 +66,7 @@ export function OutputValueBar({
                 if (defaultValue < minValue && index === 0) {
                   showToast({
                     type: 'error',
-                    title: 'Cannot change fee rate to a lower value',
+                    titleKey: 'fee.cannotLower',
                   });
                   return;
                 }
@@ -80,7 +82,7 @@ export function OutputValueBar({
                 border: `1px solid ${selected ? colors.white : colors.black}`,
               } as CSSProperties)}>
               <UX.Text
-                title={v.title}
+                titleKey={v.titleKey}
                 styleType="body_16_normal"
                 customStyles={{textAlign: 'center', color: colors.white}}
               />
@@ -99,7 +101,7 @@ export function OutputValueBar({
         <UX.AmountInput
           disableDecimal
           style={{fontSize: '14px', lineHeight: '22px'}}
-          placeholder={'sats'}
+          placeholder="sats"
           value={formatNumberValue(inputVal)}
           disableCoinSvg
           onAmountInputChange={val => {

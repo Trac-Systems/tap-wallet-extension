@@ -1,6 +1,5 @@
 import {useLocation, useNavigate} from 'react-router-dom';
 import {UX} from '../../component/index';
-import {useCustomToast} from '../../component/toast-custom';
 import {copyToClipboard} from '../../helper';
 import LayoutScreenSettings from '../../layouts/settings';
 import Navbar from '../home-flow/components/navbar-navigate';
@@ -10,6 +9,7 @@ import {RestoreTypes} from '@/src/wallet-instance';
 import {useAppSelector} from '../../utils';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {useIsTracSingleWallet} from '../home-flow/hook';
+import {useI18n, useTranslatedToast} from '../../i18n';
 
 const ShowKey = () => {
   //! State
@@ -21,6 +21,8 @@ const ShowKey = () => {
   const isMnemonics = type === 'recovery';
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const isTracSingleWallet = useIsTracSingleWallet();
+  const {t} = useI18n();
+  const {showTranslatedToast} = useTranslatedToast();
 
   const toHexString = (val: any): string => {
     if (!val) return '';
@@ -84,27 +86,29 @@ const ShowKey = () => {
 
   
 
-  const {showToast} = useCustomToast();
-  const appBarTitleText = isMnemonics ? 'Seed Phrase' : 'Private Keys';
+  const appBarTitleText = isMnemonics
+    ? t('settings.showKey.seedPhrase')
+    : t('settings.showKey.privateKeys');
   const contentTitleText = isMnemonics
-    ? 'These are the key to your wallet!'
-    : 'This is the key to your wallet!';
+    ? t('settings.showKey.seedPhraseTitle')
+    : t('settings.showKey.privateKeyTitle');
   const warningText = isMnemonics
-    ? 'Please write them down or store it anywhere safe.'
-    : 'Make sure you don\'t share it with anyone.';
+    ? t('settings.showKey.seedPhraseWarning')
+    : t('settings.showKey.privateKeyWarning');
   //! Function
   const handleGoBack = () => {
     navigate('/setting');
   };
 
-  const handleCopied = () => {
-    copyToClipboard(secretValue ?? '').then(() => {
-      showToast({
+  const handleCopy = (value: string) => {
+    copyToClipboard(value).then(() => {
+      showTranslatedToast({
         type: 'copied',
-        title: 'Copied',
+        titleKey: 'common.copied',
       });
     });
   };
+
   if (isEmpty(state)) {
     return <UX.Loading />;
   }
@@ -135,41 +139,45 @@ const ShowKey = () => {
           {isMnemonics ? (
             <>
               <UX.TextArea className="textareaWidth" disabled placeholder={secretValue ?? ''} />
-              <UX.Button styleType="copy" title="Copy to clipboard" copy onClick={() => copyToClipboard(String(secretValue ?? '')).then(() => showToast({type: 'copied', title: 'Copied'}))} />
+              <UX.Button styleType="copy" title={t('settings.showKey.copyToClipboard')} copy onClick={() => handleCopy(String(secretValue ?? ''))} />
             </>
           ) : (
             <>
               {/* Show Bitcoin Private Key if not TRAC single wallet */}
               {!isTracSingleWallet && (
                 <>
-                  <UX.Text title="Bitcoin Private Key" styleType="body_16_bold" />
+                  <UX.Text title={t('settings.showKey.bitcoinPrivateKey')} styleType="body_16_bold" />
                   <UX.TextArea className="textareaWidth" disabled placeholder={String(state?.btcHex ?? '')} />
-                  <UX.Button styleType="copy" title="Copy BTC key" copy onClick={() => copyToClipboard(String(state?.btcHex ?? '')).then(() => showToast({type: 'copied', title: 'Copied'}))} />
+                  <UX.Button styleType="copy" title={t('settings.showKey.copyBTCKey')} copy onClick={() => handleCopy(String(state?.btcHex ?? ''))} />
                   
                   <UX.Box style={{height: '20px'}} />
                 </>
               )}
               
               {/* Show TRAC Private Key */}
-              <UX.Text title="TRAC Private Key" styleType="body_16_bold" />
+              <UX.Text title={t('settings.showKey.tracPrivateKey')} styleType="body_16_bold" />
               <UX.TextArea className="textareaWidth" disabled placeholder={toHexString(state?.tracHex ?? '')} />
-              <UX.Button styleType="copy" title="Copy TRAC key" copy onClick={() => copyToClipboard(toHexString(state?.tracHex ?? '')).then(() => showToast({type: 'copied', title: 'Copied'}))} />
+              <UX.Button styleType="copy" title={t('settings.showKey.copyTRACKey')} copy onClick={() => handleCopy(toHexString(state?.tracHex ?? ''))} />
             </>
           )}
           {isMnemonics ? (
             <UX.Box layout="box" spacing="sm" style={{width: '100%'}}>
               <UX.Text
-                title="Advance Options"
+                title={t('settings.showKey.advancedOptions')}
                 styleType="body_14_bold"
                 customStyles={{color: 'white'}}
               />
               <UX.Text
-                title={`Derivation Path: ${state?.derivationPath ?? ''}/${activeAccount.index}`}
+                title={t('settings.showKey.derivationPath', {
+                  path: `${state?.derivationPath ?? ''}/${activeAccount.index}`,
+                })}
                 styleType="body_14_bold"
               />
               {state?.passphrase && (
                 <UX.Text
-                  title={`Passphrase: ${state.passphrase}`}
+                  title={t('settings.showKey.passphrase', {
+                    passphrase: state.passphrase,
+                  })}
                   styleType="body_14_bold"
                   customStyles={{color: 'white'}}
                 />

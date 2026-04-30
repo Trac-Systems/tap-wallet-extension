@@ -57,10 +57,10 @@ export default function ModalNetworkFilter(props: ModalNetworkFilterProps) {
       <UX.Box layout="row_center">
         <div style={{width: 36, height: 4, background: '#3F3F3F', borderRadius: 999}} />
       </UX.Box>
-      <UX.Text title="Network Filters" styleType="heading_20" />
+      <UX.Text titleKey="network.filters" styleType="heading_20" />
 
       <UX.Box layout="row_between" style={{paddingRight: '16px'}}>
-        <UX.Text title="Select all" styleType="body_16_bold" customStyles={{color: colors.gray}} />
+        <UX.Text titleKey="common.selectAll" styleType="body_16_bold" customStyles={{color: colors.gray}} />
         <UX.CheckBox
           checked={filters.bitcoin && (hasTrac ? filters.trac : true)}
           onChange={handleSelectAll}
@@ -79,7 +79,7 @@ export default function ModalNetworkFilter(props: ModalNetworkFilterProps) {
               <UX.Text title="Bitcoin" styleType="body_16_bold" />
             </UX.Box>
             <UX.Box layout="row_center" spacing="xs">
-              <UX.Text title="Bitcoin Network" styleType="body_14_normal" />
+              <UX.Text titleKey="network.bitcoinNetwork" styleType="body_14_normal" />
               <UX.CheckBox
                 checked={filters.bitcoin}
                 onChange={() => handleFilterChange('bitcoin')}
@@ -96,10 +96,10 @@ export default function ModalNetworkFilter(props: ModalNetworkFilterProps) {
           >
             <UX.Box layout="row_center" spacing="xs">
               <SVG.TracIcon width={28} height={28} />
-              <UX.Text title="Trac Network" styleType="body_16_bold" />
+              <UX.Text titleKey="network.tracNetwork" styleType="body_16_bold" />
             </UX.Box>
             <UX.Box layout="row_center" spacing="xs">
-              <UX.Text title="Trac Network" styleType="body_14_normal" />
+              <UX.Text titleKey="network.tracNetwork" styleType="body_14_normal" />
               <UX.CheckBox
                 checked={filters.trac}
                 onChange={() => handleFilterChange('trac')}
@@ -113,7 +113,7 @@ export default function ModalNetworkFilter(props: ModalNetworkFilterProps) {
         const noneSelected = !filters.bitcoin && (!hasTrac || !filters.trac);
         return (
           <UX.Button
-            title="Save"
+            titleKey="common.save"
             styleType={noneSelected ? 'dark' : 'primary'}
             customStyles={{marginBottom: '16px', opacity: noneSelected ? 0.6 : 1}}
             onClick={noneSelected ? () => {} : handleSave}

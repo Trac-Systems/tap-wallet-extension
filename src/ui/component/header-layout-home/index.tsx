@@ -3,9 +3,12 @@ import {spaces} from '../../themes/space';
 import Box from '../box-custom';
 import Text from '../text-custom';
 import {SVG} from '../../svg';
+import type {TranslationParams} from '../../i18n/types';
 
 interface TextHeaderProps {
   text?: string;
+  textKey?: string;
+  textParams?: TranslationParams;
   onBackClick?: () => void;
   disableIconBack?: boolean;
   styleIconBack?: CSSProperties;
@@ -14,6 +17,8 @@ interface TextHeaderProps {
 
 const TextHeader: React.FC<TextHeaderProps> = ({
   text = '',
+  textKey,
+  textParams,
   onBackClick,
   disableIconBack,
   styleIconBack,
@@ -36,7 +41,7 @@ const TextHeader: React.FC<TextHeaderProps> = ({
           <SVG.ArrowBackIcon />
         </div>
       )}
-      <Text styleType="heading_20" title={text} />
+      <Text styleType="heading_20" title={text} titleKey={textKey} titleParams={textParams} />
     </Box>
   );
 };

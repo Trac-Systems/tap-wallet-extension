@@ -12,7 +12,7 @@ import ActivityList from '../home-flow/components/activity/activity-list';
 const ActivityPage = () => {
   return (
     <LayoutScreenSettings
-      header={<UX.TextHeader text="Activity" disableIconBack />}
+      header={<UX.TextHeader textKey="activity.title" disableIconBack />}
       body={
         <UX.Box
           layout="column_center"

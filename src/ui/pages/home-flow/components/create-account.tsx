@@ -9,6 +9,7 @@ import {useAppDispatch, useAppSelector} from '@/src/ui/utils';
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {TracApiService} from '@/src/background/service/trac-api.service';
+import {useI18n} from '@/src/ui/i18n';
 import {GlobalSelector} from '@/src/ui/redux/reducer/global/selector';
 
 const CreateAccount = () => {
@@ -16,6 +17,7 @@ const CreateAccount = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const wallet = useWalletProvider();
   const [newAccountName, setNewAccountName] = useState<string>('');
   const [defaultName, setDefaultName] = useState<string>('');
@@ -56,14 +58,14 @@ const CreateAccount = () => {
           const isConnected = await wallet.isLedgerConnected();
           if (!isConnected) {
             showToast({
-              title: 'Ledger connection lost. Verify the device is unlocked and connected.',
+              titleKey: 'ledger.connectionLost',
               type: 'error',
             });
             return;
           }
         } catch (error: any) {
           showToast({
-            title: error?.message || 'Failed to check Ledger connection',
+            title: error?.message || t('ledger.failedConnectionCheck'),
             type: 'error',
           });
           return;
@@ -97,7 +99,7 @@ const CreateAccount = () => {
       dispatch(WalletActions.setActiveWallet(_activeWallet));
       dispatch(AccountActions.setActiveAccount(activeAccount));
       showToast({
-        title: 'Create account successfully',
+        titleKey: 'account.createdSuccessfully',
         type: 'success',
       });
       navigate('/home');
@@ -113,13 +115,13 @@ const CreateAccount = () => {
         errorMsg.includes('0x6982')
       ) {
         showToast({
-          title: 'Ledger connection lost. Verify the device is unlocked and connected.',
+          titleKey: 'ledger.connectionLost',
           type: 'error',
         });
       } else {
         // Other errors
         showToast({
-          title: errorMsg || 'Failed to create account',
+          title: errorMsg || t('account.failedCreate'),
           type: 'error',
         });
       }
@@ -134,7 +136,7 @@ const CreateAccount = () => {
   return (
     <LayoutSendReceive
       header={
-        <UX.TextHeader text="Create account" onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="account.create" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box style={{width: '100%'}}>
@@ -154,7 +156,7 @@ const CreateAccount = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Create a account"
+            titleKey="account.create"
             onClick={handleSubmit}
           />
         </UX.Box>

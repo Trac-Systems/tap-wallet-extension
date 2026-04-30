@@ -12,6 +12,7 @@ import { Network } from '@/src/wallet-instance';
 import { useApproval } from '../hook';
 import LayoutApprove from '../layouts';
 import WebsiteBar from '@/src/ui/component/website-bar';
+import { useI18n } from '@/src/ui/i18n';
 
 interface SendTNKParams {
     from: string;
@@ -35,6 +36,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
     const wallet = useWalletProvider();
     const networkType = useAppSelector(GlobalSelector.networkType);
     const { showToast } = useCustomToast();
+    const { t } = useI18n();
 
     const [loading, setLoading] = useState(false);
     const [fee, setFee] = useState<string>('0');
@@ -104,7 +106,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
             }
         } catch (error: any) {
             console.error('Error preparing transaction:', error);
-            setError(error?.message || 'Failed to prepare transaction');
+            setError(error?.message || t('transaction.failedToPrepare'));
             // Don't reject here - let user see the error and decide
         }
     };
@@ -115,7 +117,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
 
     const handleConfirm = async () => {
         if (!txData) {
-            showToast({ title: 'Transaction data not ready', type: 'error' });
+            showToast({ titleKey: 'transaction.dataNotReady', type: 'error' });
             return;
         }
 
@@ -158,14 +160,14 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
 
             if (result.success) {
                 const txHash = result.txid || TracApiService.decodePayload(txPayload);
-                showToast({ title: 'Transaction sent successfully', type: 'success' });
+                showToast({ titleKey: 'transaction.sentSuccessfully', type: 'success' });
                 resolveApproval({ txHash, success: true });
             } else {
                 throw new Error(result.error || 'Transaction failed');
             }
         } catch (err: any) {
-            showToast({ title: err?.message || 'Failed to send transaction', type: 'error' });
-            rejectApproval(err?.message || 'Failed to send transaction');
+            showToast({ title: err?.message || t('transaction.failedToSend'), type: 'error' });
+            rejectApproval(err?.message || t('transaction.failedToSend'));
         } finally {
             setLoading(false);
         }
@@ -193,7 +195,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
                             <SVG.ArrowUpRight />
                         </UX.Box>
                         <UX.Text
-                            title="Send TNK"
+                            titleKey="send.sendTnk"
                             styleType="body_16_normal"
                             customStyles={{ marginTop: '24px', marginBottom: '8px' }}
                         />
@@ -206,7 +208,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
 
                     <UX.Box layout="box" spacing="xl">
                         <UX.Box layout="row_between">
-                            <UX.Text title="From" styleType="body_14_normal" />
+                            <UX.Text titleKey="transaction.from" styleType="body_14_normal" />
                             <UX.Text
                                 title={formatAddressLongText(data.from, 8, 6)}
                                 styleType="body_14_normal"
@@ -214,7 +216,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
                             />
                         </UX.Box>
                         <UX.Box layout="row_between">
-                            <UX.Text title="To" styleType="body_14_normal" />
+                            <UX.Text titleKey="transaction.to" styleType="body_14_normal" />
                             <UX.Text
                                 title={formatAddressLongText(data.to, 8, 6)}
                                 styleType="body_14_normal"
@@ -225,7 +227,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
 
                     <UX.Box layout="box" spacing="xl">
                         <UX.Box layout="row_between">
-                            <UX.Text title="Network fee" styleType="body_14_normal" />
+                            <UX.Text titleKey="transaction.networkFee" styleType="body_14_normal" />
                             <UX.Text
                                 title={`${fee} TNK`}
                                 styleType="body_14_normal"
@@ -242,7 +244,7 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
                                 background: colors.red_100,
                             }}>
                             <UX.Text
-                                title="Error"
+                                titleKey="common.error"
                                 styleType="body_14_bold"
                                 customStyles={{ color: '#FF6B6B', marginBottom: '4px' }}
                             />
@@ -258,14 +260,14 @@ export default function SendTNKApproval({ params: { session, data } }: Props) {
             footer={
                 <UX.Box layout="row" spacing="sm">
                     <UX.Button
-                        title="Cancel"
+                        titleKey="common.cancel"
                         styleType="dark"
                         customStyles={{ flex: 1 }}
                         onClick={handleCancel}
                         isDisable={loading}
                     />
                     <UX.Button
-                        title={loading ? 'Sending...' : 'Confirm'}
+                        titleKey={loading ? 'transaction.sending' : 'common.confirm'}
                         styleType="primary"
                         customStyles={{ flex: 1 }}
                         onClick={handleConfirm}

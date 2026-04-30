@@ -160,7 +160,7 @@ const StepSelectAssets = ({
       header={<WebsiteBar session={contextData.session} />}
       body={
         <UX.Box>
-          <UX.Text title="Transfer Amount" styleType="heading_16" />
+          <UX.Text titleKey="tap.transferAmount" styleType="heading_16" />
           <UX.Box layout="row_center" style={{margin: '20px 0'}} spacing="xs">
             <UX.Text
               title={contextData.transferAmount}
@@ -173,9 +173,8 @@ const StepSelectAssets = ({
             />
           </UX.Box>
           <UX.Text
-            title={`
-                Transfer Inscription
-                (${selectedCount}/${totalInscription})`}
+            titleKey="tap.transferInscriptionCount"
+            titleParams={{selectedCount, totalInscription}}
             styleType="heading_16"
           />
           <UX.Box
@@ -250,14 +249,14 @@ const StepSelectAssets = ({
               onClick={handleSelectAll}>
               <UX.CheckBox checked={allSelected} />
               <UX.Text
-                title="Select All"
+                titleKey="common.selectAll"
                 styleType="body_16_bold"
                 customStyles={{color: colors.white}}
               />
             </UX.Box>
           </UX.Box>
           <UX.Text
-            title="* To send TAP, you have to inscribe a TRANSFER inscription first"
+            titleKey="tap.inscribeTransferFirst"
             styleType="body_12_normal"
             customStyles={{
               color: colors.white,
@@ -270,7 +269,7 @@ const StepSelectAssets = ({
       footer={
         <UX.Box layout="row" spacing="sm">
           <UX.Button
-            title="Reject"
+            titleKey="common.reject"
             styleType="dark"
             onClick={() => {
               rejectApproval();
@@ -278,7 +277,7 @@ const StepSelectAssets = ({
             customStyles={{flex: 1}}
           />
           <UX.Button
-            title="Next"
+            titleKey="common.next"
             styleType="primary"
             isDisable={disabled}
             onClick={handleNext}
@@ -315,11 +314,11 @@ const StepSend = ({
       body={
         <UX.Box spacing="xl" style={{width: '100%'}}>
           <UX.Box spacing="xs">
-            <UX.Text title="send" styleType="heading_14" />
+            <UX.Text titleKey="common.send" styleType="heading_14" />
             <UX.Input value={`${transferAmount} ${ticker}`} disabled />
           </UX.Box>
           <UX.Box spacing="xs">
-            <UX.Text title="receiver" styleType="heading_14" />
+            <UX.Text titleKey="transaction.receiver" styleType="heading_14" />
             <UX.AddressInput
               style={{
                 fontSize: '16px',
@@ -335,7 +334,7 @@ const StepSend = ({
             />
           </UX.Box>
           <UX.Box spacing="xs">
-            <UX.Text title="Fee rate" styleType="heading_14" />
+            <UX.Text titleKey="transaction.feeRate" styleType="heading_14" />
             <FeeRateBar
               onChange={val => {
                 updateContextData({feeRate: val});
@@ -347,7 +346,7 @@ const StepSend = ({
       footer={
         <UX.Box layout="row" spacing="sm">
           <UX.Button
-            title="Back"
+            titleKey="common.back"
             styleType="dark"
             onClick={() => {
               updateContextData({tabKey: TabKey.STEP1});
@@ -355,7 +354,7 @@ const StepSend = ({
             customStyles={{flex: 1}}
           />
           <UX.Button
-            title="Next"
+            titleKey="common.next"
             styleType="primary"
             isDisable={disabled}
             onClick={() => {

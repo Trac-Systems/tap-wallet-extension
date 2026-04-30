@@ -7,6 +7,7 @@ import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
 import {WalletSelector} from '@/src/ui/redux/reducer/wallet/selector';
 import {SVG} from '@/src/ui/svg';
 import {colors} from '@/src/ui/themes/color';
+import {fontFamilies} from '@/src/ui/themes/font';
 import {useAppSelector} from '@/src/ui/utils';
 import {
   AddressTokenSummary,
@@ -202,7 +203,7 @@ const ListTapOptions = () => {
       header={
         <UX.Box>
           <UX.TextHeader
-            text="Transfer"
+            textKey="common.transfer"
             onBackClick={() => navigate('/home')}
           />
         </UX.Box>
@@ -211,7 +212,7 @@ const ListTapOptions = () => {
         <UX.Box layout="column" style={{height: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column'}}>
           <UX.Box style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
             <UX.Text
-              title="Total balance"
+              titleKey="wallet.totalBalance"
               styleType="body_16_normal"
               customStyles={{marginBottom: 8, textAlign: 'center'}}
             />
@@ -254,7 +255,7 @@ const ListTapOptions = () => {
               <>
                 <UX.Box layout="row" spacing="xl">
                   <UX.Button
-                    title={'1-TX Transfer'}
+                    titleKey="tap.oneTxTransfer"
                     isDisable={!enableTransfer}
                     onClick={() => {
                       navigate('/transfer-authority', {
@@ -271,7 +272,7 @@ const ListTapOptions = () => {
                 </UX.Box>
                 <UX.Text
                   onClick={handleNavigate}
-                  title="Use Native Transfer"
+                  titleKey="tap.useNativeTransfer"
                   styleType="body_16_bold"
                   customStyles={{
                     margin: '20px 0',
@@ -286,7 +287,7 @@ const ListTapOptions = () => {
             {!isValidToken && (
               <UX.Box layout="row" spacing="xl">
                 <UX.Button
-                  title={'Transfer'}
+                  titleKey="common.transfer"
                   isDisable={!enableTransfer}
                   onClick={() => {
                     handleNavigate();
@@ -309,7 +310,7 @@ const ListTapOptions = () => {
             {/* Transferable */}
             <UX.Box layout="row_between">
               <UX.Text
-                title="Transferable"
+                titleKey="tap.transferable"
                 styleType="body_14_normal"
                 customStyles={{color: colors.white}}
               />
@@ -351,7 +352,7 @@ const ListTapOptions = () => {
             </UX.Box>
             {!isEmpty(dataForList) ? (
               <UX.Text
-                title="Click on the inscription for details. To transfer, click on the Transfer button above."
+                titleKey="tap.transferInstruction"
                 styleType="body_14_normal"
                 customStyles={{marginTop: '16px'}}
               />
@@ -387,10 +388,10 @@ const ListTapOptions = () => {
             <UX.Box>
               <UX.Divider color="#fff" />
             </UX.Box>
-            <UX.Text title="Token details" styleType="body_14_normal" customStyles={{color: colors.white, marginBottom: 16, textAlign: 'left'}} />
+            <UX.Text titleKey="tap.tokenDetails" styleType="body_14_normal" customStyles={{color: colors.white, marginBottom: 16, textAlign: 'left'}} />
             <UX.Box style={{background: colors.black_2, borderRadius: 16, padding: 16}}>
               <UX.Box layout="row_between" style={{marginBottom: 16}}>
-                <UX.Text title="Deploy Inscription" styleType="body_14_normal" />
+                <UX.Text titleKey="tap.deployInscription" styleType="body_14_normal" />
                 <UX.Text 
                   title={tokenSummary.tokenInfo.inscriptionId ? `${tokenSummary.tokenInfo.inscriptionId.slice(0,6)}...${tokenSummary.tokenInfo.inscriptionId.slice(-6)}` : '—'} 
                   styleType="body_14_normal" 
@@ -398,7 +399,7 @@ const ListTapOptions = () => {
                     color: colors.white, 
                     textAlign: 'right', 
                     fontWeight: 500, 
-                    fontFamily: 'Exo', 
+                    fontFamily: fontFamilies.main, 
                     fontSize: 14, 
                     lineHeight: '22px', 
                     letterSpacing: 0,
@@ -412,35 +413,35 @@ const ListTapOptions = () => {
                 />
               </UX.Box>
               <UX.Box layout="row_between" style={{marginBottom: 16}}>
-                <UX.Text title="Ticker" styleType="body_14_normal" />
-                <UX.Text title={tokenSummary.tokenBalance.ticker || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+                <UX.Text titleKey="tap.ticker" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenBalance.ticker || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: fontFamilies.main, fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
               </UX.Box>
               <UX.Box layout="row_between" style={{marginBottom: 16}}>
-                <UX.Text title="Minted" styleType="body_14_normal" />
-                <UX.Text title={tokenSummary.tokenInfo.totalMinted ? formatNumberValue(tokenSummary.tokenInfo.totalMinted) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+                <UX.Text titleKey="tap.minted" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenInfo.totalMinted ? formatNumberValue(tokenSummary.tokenInfo.totalMinted) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: fontFamilies.main, fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
               </UX.Box>
               <UX.Box layout="row_between" style={{marginBottom: 16}}>
-                <UX.Text title="Supply" styleType="body_14_normal" />
-                <UX.Text title={tokenSummary.tokenInfo.totalSupply ? formatNumberValue(tokenSummary.tokenInfo.totalSupply) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+                <UX.Text titleKey="tap.supply" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenInfo.totalSupply ? formatNumberValue(tokenSummary.tokenInfo.totalSupply) : '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: fontFamilies.main, fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
               </UX.Box>
               <UX.Box layout="row_between" style={{marginBottom: 16}}>
-                <UX.Text title="Decimal" styleType="body_14_normal" />
-                <UX.Text title={tokenSummary.tokenInfo.decimal?.toString() || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
+                <UX.Text titleKey="tap.decimal" styleType="body_14_normal" />
+                <UX.Text title={tokenSummary.tokenInfo.decimal?.toString() || '—'} styleType="body_14_normal" customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: fontFamilies.main, fontSize: 14, lineHeight: '22px', letterSpacing: 0}} />
               </UX.Box>
               {isSupported && (
                 <UX.Box layout="row_between">
-                  <UX.Text title="Price" styleType="body_14_normal" />
+                  <UX.Text titleKey="tap.price" styleType="body_14_normal" />
                   {isLoadingTokenPrice ? (
                     <UX.Text
                       title="..."
                       styleType="body_14_normal"
-                      customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
+                      customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: fontFamilies.main, fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
                     />
                   ) : (
                     <UX.Text
                       title={`$${tokenPrice}`}
                       styleType="body_14_normal"
-                      customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: 'Exo', fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
+                      customStyles={{color: colors.white, textAlign: 'right', fontWeight: 500, fontFamily: fontFamilies.main, fontSize: 14, lineHeight: '22px', letterSpacing: 0}}
                     />
                   )}
                 </UX.Box>

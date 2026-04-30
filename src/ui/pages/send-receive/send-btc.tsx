@@ -23,6 +23,7 @@ import {
   useUpdateTxStateInfo,
 } from './hook';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {useI18n} from '@/src/ui/i18n';
 
 const SendBTC = () => {
   //! State
@@ -41,6 +42,7 @@ const SendBTC = () => {
   const inputAmount = txStateInfo.inputAmount;
   const [feeRate, setFeeRate] = useState(5);
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const [btcSendNumberValue, setBTCSendNumberValue] = useState('');
   // USD states
   const [usdAvailable, setUsdAvailable] = useState('');
@@ -98,13 +100,13 @@ const SendBTC = () => {
     }
     if (toSatoshis < COIN_DUST) {
       setBTCInputError(
-        `Amount must be at least ${satoshisToAmount(COIN_DUST)} BTC`,
+        t('send.amountMinBtc', {amount: satoshisToAmount(COIN_DUST)}),
       );
       return;
     }
 
     if (toSatoshis > availableSatoshis + spendUnavailableSatoshis) {
-      setBTCInputError('Amount exceeds your available balance');
+      setBTCInputError(t('send.amountExceedsAvailable'));
       return;
     }
 
@@ -202,7 +204,7 @@ const SendBTC = () => {
   //! Render
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Send BTC" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="send.sendBtc" onBackClick={handleGoBack} />}
       body={
         <UX.Box spacing="xxl" style={{width: '100%'}}>
           <UX.Box layout="column" style={{width: '100%'}} spacing="xss">
@@ -210,11 +212,11 @@ const SendBTC = () => {
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
-                title="Send"
+                titleKey="common.send"
               />
               <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
                 <UX.Box layout="row" spacing="xs">
-                  <UX.Text title="Available:" styleType="body_14_bold" />
+                  <UX.Text titleKey="transaction.availableColon" styleType="body_14_bold" />
                   <UX.Text
                     title={`${availableAmount} BTC`}
                     styleType="body_14_bold"
@@ -246,7 +248,7 @@ const SendBTC = () => {
             />
             <UX.Box>
               <UX.Box layout="row_between" style={{width: '100%'}}>
-                <UX.Text styleType="body_14_bold" title="Unavailable:" />
+                <UX.Text styleType="body_14_bold" titleKey="transaction.unavailableColon" />
                 <UX.Box layout="row" spacing="xss_s">
                   <UX.Text
                     title={
@@ -260,7 +262,7 @@ const SendBTC = () => {
                 </UX.Box>
               </UX.Box>
               <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
-                <UX.Text styleType="body_14_bold" title="Total" />
+                <UX.Text styleType="body_14_bold" titleKey="transaction.total" />
                 <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
                   <UX.Box layout="row" spacing="xss_s">
                     <UX.Text title={totalAmount} styleType="body_14_bold" />
@@ -279,7 +281,7 @@ const SendBTC = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Receiver"
+              titleKey="transaction.receiver"
             />
             <UX.AddressInput
               style={{
@@ -299,7 +301,7 @@ const SendBTC = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Fee rate"
+              titleKey="transaction.feeRate"
             />
             <FeeRateBar
               onChange={val => {
@@ -325,7 +327,7 @@ const SendBTC = () => {
           <UX.Button
             styleType="primary"
             isDisable={disabled}
-            title="Continue"
+            titleKey="common.continue"
             onClick={handleNavigate}
           />
         </UX.Box>

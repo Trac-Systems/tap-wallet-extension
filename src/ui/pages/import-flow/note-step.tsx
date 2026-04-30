@@ -35,7 +35,7 @@ const NoteStep = () => {
           <SVG.PenIcon />
           <UX.Box layout="column_center">
             <UX.Text
-              title="Take a pen and paper"
+              titleKey="onboarding.takePenPaper"
               styleType="heading_24"
               customStyles={{
                 marginTop: '16px',
@@ -43,7 +43,7 @@ const NoteStep = () => {
             />
           </UX.Box>
           <UX.Text
-            title="Get ready to write down the secret key. This is the only way to regain access to the wallet. It is safest not to store the key on the devices."
+            titleKey="onboarding.seedWriteWarning"
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
@@ -58,7 +58,7 @@ const NoteStep = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Continue"
+            titleKey="common.continue"
             onClick={handleNavigate}
           />
         </UX.Box>

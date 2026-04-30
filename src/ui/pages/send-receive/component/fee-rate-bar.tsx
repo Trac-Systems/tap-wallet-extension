@@ -22,7 +22,7 @@ export function FeeRateBar({
   const wallet = useWalletProvider();
 
   const [feeOptions, setFeeOptions] = useState<
-    {title: string; desc?: string; feeRate: number}[]
+    {title: string; titleKey: string; desc?: string; descKey?: string; feeRate: number}[]
   >([]);
 
   const [feeOptionIndex, setFeeOptionIndex] = useState(FeeRateType.AVG);
@@ -33,49 +33,61 @@ export function FeeRateBar({
       .then(v => {
         const slowFee = {
           title: 'Slow',
+          titleKey: 'fee.slow',
           feeRate: v?.hourFee || 1,
           desc: '≈ 1 hour',
+          descKey: 'fee.oneHour',
         };
         const avgFee = {
           title: 'Avg',
+          titleKey: 'fee.avg',
           feeRate: v?.halfHourFee || 2,
           desc: '≈ 30 mins',
+          descKey: 'fee.thirtyMins',
         };
         const fastestFee = {
           title: 'Fast',
+          titleKey: 'fee.fast',
           feeRate: v?.fastestFee || 3,
           desc: '≈ 10 mins',
+          descKey: 'fee.tenMins',
         };
         const updatedList = [slowFee, avgFee, fastestFee];
 
         if (readonly) {
           setFeeOptions(updatedList);
         } else {
-          setFeeOptions([...updatedList, {title: 'Custom', feeRate: 0}]);
+          setFeeOptions([...updatedList, {title: 'Custom', titleKey: 'common.custom', feeRate: 0}]);
         }
       })
       .catch(() => {
         const slowFee = {
           title: 'Slow',
+          titleKey: 'fee.slow',
           feeRate: 1,
           desc: '≈ 1 hour',
+          descKey: 'fee.oneHour',
         };
         const avgFee = {
           title: 'Avg',
+          titleKey: 'fee.avg',
           feeRate: 2,
           desc: '≈ 30 mins',
+          descKey: 'fee.thirtyMins',
         };
         const fastestFee = {
           title: 'Fast',
+          titleKey: 'fee.fast',
           feeRate: 3,
           desc: '≈ 10 mins',
+          descKey: 'fee.tenMins',
         };
         const updatedList = [slowFee, avgFee, fastestFee];
 
         if (readonly) {
           setFeeOptions(updatedList);
         } else {
-          setFeeOptions([...updatedList, {title: 'Custom', feeRate: 0}]);
+          setFeeOptions([...updatedList, {title: 'Custom', titleKey: 'common.custom', feeRate: 0}]);
         }
       });
   }, []);
@@ -139,7 +151,7 @@ export function FeeRateBar({
               } as CSSProperties)}>
               <UX.Text
                 styleType="body_12_bold"
-                title={v.title}
+                titleKey={v.titleKey}
                 customStyles={{color: colors.white, textAlign: 'center'}}
               />
               {v.title !== 'Custom' && (
@@ -150,7 +162,7 @@ export function FeeRateBar({
                 />
               )}
               {v.title !== 'Custom' && (
-                <UX.Text styleType="body_10_normal" title={`${v.desc}`} />
+                <UX.Text styleType="body_10_normal" title={v.desc} titleKey={v.descKey} />
               )}
             </UX.Box>
           );
@@ -159,7 +171,7 @@ export function FeeRateBar({
       {feeOptionIndex === FeeRateType.CUSTOM && (
         <UX.Box spacing="xs">
           <UX.AmountInput
-            placeholder={'sat/vB'}
+            placeholder="sat/vB"
             disableCoinSvg
             value={feeRateInputVal}
             onAmountInputChange={amount => {
@@ -192,7 +204,7 @@ export function FeeRateBar({
             <UX.Text
               styleType="body_12_bold"
               customStyles={{color: colors.red_700}}
-              title={'Not enough money to pay'}
+              titleKey="fee.notEnoughMoneyToPay"
             />
           )}
         </UX.Box>

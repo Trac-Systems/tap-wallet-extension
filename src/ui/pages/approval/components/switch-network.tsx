@@ -40,7 +40,7 @@ export default function SwitchNetwork({params: {data, session}}: Props) {
       body={
         <UX.Box spacing="xl">
           <UX.Text
-            title="Allow this site to switch network?"
+            titleKey="approval.switchNetwork.question"
             customStyles={{textAlign: 'center'}}
             styleType="heading_14"
           />
@@ -71,13 +71,13 @@ export default function SwitchNetwork({params: {data, session}}: Props) {
       footer={
         <UX.Box layout="row" spacing="sm">
           <UX.Button
-            title="Cancel"
+            titleKey="common.cancel"
             styleType="dark"
             onClick={handleCancel}
             customStyles={{flex: 1}}
           />
           <UX.Button
-            title="Switch Network"
+            titleKey="approval.switchNetwork.action"
             styleType="primary"
             onClick={handleConnect}
             customStyles={{flex: 1}}

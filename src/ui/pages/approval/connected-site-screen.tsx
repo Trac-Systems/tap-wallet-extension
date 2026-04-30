@@ -33,7 +33,7 @@ export default function ConnectedSitesScreen() {
           onBackClick={() => {
             navigate(-1);
           }}
-          text="Connected Sites"
+          textKey="settings.connectedSites.title"
         />
       }
       body={

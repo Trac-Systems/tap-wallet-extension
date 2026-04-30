@@ -95,12 +95,12 @@ const HandleCancelAuthority = () => {
   return (
     <LayoutSendReceive
       header={
-        <UX.TextHeader text="Cancel Authority" onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="authority.cancel" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
           <UX.Box layout="column" spacing="xss">
-            <UX.Text styleType="body_16_bold" title={'Preview'} />
+            <UX.Text styleType="body_16_bold" titleKey="transaction.preview" />
             <div
               style={{
                 wordBreak: 'break-all',
@@ -117,7 +117,7 @@ const HandleCancelAuthority = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Fee rate"
+              titleKey="transaction.feeRate"
             />
             <FeeRateBar onChange={handleUpdateFeeRate} />
           </UX.Box>
@@ -132,7 +132,7 @@ const HandleCancelAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={'Confirm'}
+            titleKey="common.confirm"
             onClick={handleNavigate}
             isDisable={loading}
           />

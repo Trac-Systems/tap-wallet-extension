@@ -79,7 +79,7 @@ const TransferTap = () => {
       
       // Return without inscriptions
       if (inscriptionIds.length === 0) {
-        showToast({ title: 'No inscription to transfer.', type: 'error' });
+        showToast({ titleKey: 'inscription.noneToTransfer', type: 'error' });
         return;
       }
 
@@ -206,11 +206,11 @@ const TransferTap = () => {
 
   return (
     <LayoutTap
-      header={<UX.TextHeader text="Transfer Tap" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="tap.transferTap" onBackClick={handleGoBack} />}
       body={
         <UX.Box spacing="xl" style={{width: '100%'}}>
           <UX.Box spacing="xs">
-            <UX.Text title="Send" styleType="heading_14" />
+            <UX.Text titleKey="common.send" styleType="heading_14" />
             <UX.Input
               style={{whiteSpace: 'pre'}}
               value={`${filteredAmount} ${formatTicker(ticker)}`}
@@ -219,7 +219,7 @@ const TransferTap = () => {
           </UX.Box>
           {!isExpanded && (
             <UX.Box spacing="xs">
-            <UX.Text title="Receiver" styleType="heading_14" />
+            <UX.Text titleKey="transaction.receiver" styleType="heading_14" />
             <UX.AddressInput
               style={{
                 fontSize: '16px',
@@ -245,7 +245,7 @@ const TransferTap = () => {
           {isExpanded && !selectedApp && dtaInscriptionsIds.length > 0 && (
             <UX.Box spacing="xl" className='' style={{backgroundColor: colors.gray, textAlign: "center", borderRadius: 20, padding: 10, paddingLeft: 50, paddingRight: 50}}>
               <UX.Text
-                  title="The inscriptions ready to transfer to a Trac App are set. Select an app to proceed."
+                  titleKey="tap.readyToTransferToApp"
                   styleType='body_12_bold'
               />
             </UX.Box>
@@ -266,7 +266,7 @@ const TransferTap = () => {
               <UX.Text
                 styleType="heading_14"
                 customStyles={{color: colors.white}}
-                title="Output Value"
+                titleKey="transaction.outputValue"
               />
               <OutputValueBar
                 defaultValue={defaultOutputValue}
@@ -285,7 +285,7 @@ const TransferTap = () => {
             </UX.Box>
           )}
           <UX.Box spacing="xs">
-            <UX.Text title="Fee rate" styleType="heading_14" />
+            <UX.Text titleKey="transaction.feeRate" styleType="heading_14" />
             <FeeRateBar
               onChange={val => {
                 setTxStateInfo({feeRate: val});
@@ -309,7 +309,7 @@ const TransferTap = () => {
           <UX.Button
             isDisable={disabled}
             styleType="primary"
-            title="Next"
+            titleKey="common.next"
             onClick={handleNavigate}
           />
         </UX.Box>

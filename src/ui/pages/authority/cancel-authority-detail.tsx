@@ -12,17 +12,17 @@ import {useLocation, useNavigate} from 'react-router-dom';
 
 const CancelAuthorityStatus = {
   UNCONFIRMED: {
-    title: 'Unconfirmed',
+    titleKey: 'activity.unconfirmed',
     status: 'default',
     btnDisable: true,
   },
   CONFIRMED: {
-    title: 'Confirmed',
+    titleKey: 'activity.confirmed',
     status: 'success',
     btnDisable: false,
   },
   TAPPING: {
-    title: 'Tapping',
+    titleKey: 'authority.tappingStatus',
     status: 'warning',
     btnDisable: true,
   },
@@ -128,7 +128,7 @@ const CancelAuthorityDetail = () => {
           }}
         />
         <UX.Badge
-          text={CancelAuthorityStatus[inscriptionStatus].title}
+          textKey={CancelAuthorityStatus[inscriptionStatus].titleKey}
           status={
             CancelAuthorityStatus[inscriptionStatus]
               .status as BadgeProps['status']
@@ -136,10 +136,10 @@ const CancelAuthorityDetail = () => {
           customStyles={{marginLeft: '16px'}}
         />
         <UX.Box layout="box" spacing="xl" style={{margin: '16px'}}>
-          <UX.Section title="ID" value={inscriptionInfo?.id} />
-          <UX.Section title="Address" value={inscriptionInfo?.address} />
+          <UX.Section titleKey="common.id" value={inscriptionInfo?.id} />
+          <UX.Section titleKey="common.address" value={inscriptionInfo?.address} />
           <UX.Section
-            title="Output value"
+            titleKey="transaction.outputValue"
             value={inscriptionInfo?.value?.toString()}
           />
         </UX.Box>
@@ -159,7 +159,7 @@ const CancelAuthorityDetail = () => {
               customStyles={{
                 margin: '0 24px',
               }}
-              title={'Tap'}
+              titleKey="authority.tap"
               isDisable={CancelAuthorityStatus[inscriptionStatus].btnDisable}
               onClick={handleOnClick}
             />

@@ -18,6 +18,7 @@ import {useAppDispatch, useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {CreateWalletContext} from './services/wallet-service-create';
 import {IResponseAddressBalance} from '../../../background/requests/paid-api';
+import {useI18n} from '../../i18n';
 
 interface IUpdateContextDataParams {
   mnemonics?: string;
@@ -53,6 +54,7 @@ const ChooseAddress = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const walletProvider = useWalletProvider();
   const dispatch = useAppDispatch();
   const networkType = useAppSelector(GlobalSelector.networkType);
@@ -114,7 +116,7 @@ const ChooseAddress = () => {
     } else {
       const isValid = bitcore.HDPrivateKey.isValidPath(text);
       if (!isValid) {
-        setInputDerivationPathError('Invalid derivation path.');
+        setInputDerivationPathError(t('wallet.invalidDerivationPath'));
         return;
       }
       setInputDerivationPathError('');
@@ -175,7 +177,7 @@ const ChooseAddress = () => {
       
     } catch {
       showToast({
-        title: 'Something went wrong with address generation',
+        titleKey: 'wallet.addressGenerationFailed',
         type: 'error',
       });
       return;
@@ -308,17 +310,17 @@ const ChooseAddress = () => {
   if (!mnemonicString) {
     return (
       <LayoutScreenImport
-        header={<UX.TextHeader disableIconBack text="Error" />}
+        header={<UX.TextHeader disableIconBack textKey="common.error" />}
         body={
           <UX.Box spacing="xl">
             <UX.Text
-              title="Can not find your seed phrase"
+              titleKey="onboarding.seedPhraseNotFound"
               styleType="heading_24"
               customStyles={{textAlign: 'center'}}
             />
-            <UX.Text title="Recommend" styleType="body_16_bold" />
+            <UX.Text titleKey="common.recommend" styleType="body_16_bold" />
             <UX.Text
-              title="Go back to generate new seed phrase"
+              titleKey="onboarding.goBackGenerateSeed"
               styleType="body_16_bold"
               customStyles={{color: 'white'}}
             />
@@ -326,7 +328,7 @@ const ChooseAddress = () => {
         }
         footer={
           <UX.Button
-            title="Go Back"
+            titleKey="common.goBack"
             onClick={() => navigate(-3)}
             styleType="primary"
           />
@@ -343,7 +345,7 @@ const ChooseAddress = () => {
           <UX.Box layout="column_center" spacing="xxl">
             <SVG.WalletIcon />
             <UX.Text
-              title="Choose your address type"
+              titleKey="wallet.chooseAddressType"
               styleType="heading_24"
               customStyles={{
                 textAlign: 'center',
@@ -354,7 +356,7 @@ const ChooseAddress = () => {
             {/* TRAC Network Section */}
             <UX.Box spacing="xs" style={{width: '100%'}}>
               <UX.Text
-                title="TRAC network address:"
+                titleKey="wallet.tracNetworkAddress"
                 styleType="body_16_bold"
                 customStyles={{color: 'white', marginBottom: '8px'}}
               />
@@ -374,7 +376,7 @@ const ChooseAddress = () => {
             {/* Bitcoin Addresses Section */}
             <UX.Box spacing="xs" style={{width: '100%'}}>
               <UX.Text
-                title="Bitcoin addresses:"
+                titleKey="wallet.bitcoinAddresses"
                 styleType="body_16_bold"
                 customStyles={{color: 'white', marginBottom: '8px'}}
               />
@@ -408,12 +410,12 @@ const ChooseAddress = () => {
 
             <UX.Box spacing="xss" style={{width: '100%'}}>
               <UX.Text
-                title="Custom HdPath (Optional)"
+                titleKey="wallet.customHdPathOptional"
                 styleType="body_16_bold"
                 customStyles={{color: 'white'}}
               />
               <UX.Input
-                placeholder="Custom Hd Wallet Derivation Path"
+                placeholderKey="wallet.customHdPathPlaceholder"
                 value={pathText}
                 onChange={e => {
                   setPathText(e.target.value);
@@ -433,13 +435,13 @@ const ChooseAddress = () => {
             </UX.Box>
             <UX.Box spacing="xss" style={{width: '100%'}}>
               <UX.Text
-                title="Phrase (Optional)"
+                titleKey="wallet.phraseOptional"
                 styleType="body_16_bold"
                 customStyles={{color: 'white'}}
               />
               <UX.Input
                 value={contextData.passphrase}
-                placeholder="Passphrase"
+                placeholderKey="settings.showKey.passphraseLabel"
                 onChange={e => {
                   updateContextData({
                     passphrase: e.target.value,
@@ -462,7 +464,7 @@ const ChooseAddress = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleNavigate}
           />
         </UX.Box>

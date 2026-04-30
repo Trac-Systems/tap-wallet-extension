@@ -228,7 +228,7 @@ const WalletCard = (props: IWalletCardProps) => {
                         onClick={handleShowHistoryBTC}
                         styleType="body_14_bold"
                         customStyles={{cursor: 'pointer', color: 'white'}}
-                        title="View BTC History"
+                        titleKey="wallet.viewBtcHistory"
                       />
                     )}
                     {hasTrac && (
@@ -236,7 +236,7 @@ const WalletCard = (props: IWalletCardProps) => {
                         onClick={handleShowHistoryTRAC}
                         styleType="body_14_bold"
                         customStyles={{cursor: 'pointer', color: 'white'}}
-                        title="View TRAC History"
+                        titleKey="wallet.viewTracHistory"
                       />
                     )}
                     <UX.Text
@@ -252,7 +252,7 @@ const WalletCard = (props: IWalletCardProps) => {
                       }}
                       styleType="body_14_bold"
                       customStyles={{cursor: 'pointer', color: 'white'}}
-                      title="Edit Wallet"
+                      titleKey="wallet.edit"
                     />
                   </div>
                 )}
@@ -312,7 +312,7 @@ const WalletCard = (props: IWalletCardProps) => {
           </UX.Box>
         </UX.Box>
         <UX.Box>
-          <UX.Text styleType="body_12_normal" title="Available balance:"  />
+          <UX.Text styleType="body_12_normal" titleKey="wallet.availableBalance"  />
           <UX.Box layout="row_between">
             {isLoadingUtxo || isLoadingUsd ? (
               <UX.Box layout="row_center" style={{ width: '100%'}}>

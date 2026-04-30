@@ -15,6 +15,7 @@ import {GlobalActions} from '../../redux/reducer/global/slice';
 import {useIsTracSingleWallet} from '../home-flow/hook';
 import {TracApiService} from '@/src/background/service/trac-api.service';
 import {Network, RestoreTypes} from '@/src/wallet-instance';
+import {useI18n} from '../../i18n';
 
 // Function to derive TRAC private key from mnemonic
 const deriveTracPrivateKeyFromMnemonic = async (mnemonic: string, accountIndex: number, network: Network = Network.MAINNET): Promise<string> => {
@@ -43,6 +44,7 @@ const SecuritySetting = () => {
   const networkType = useAppSelector(GlobalSelector.networkType);
   const dispatch = useAppDispatch();
   const isTracSingleWallet = useIsTracSingleWallet();
+  const {t} = useI18n();
 
   //! Function
   const checkUserType = async () => {
@@ -142,14 +144,14 @@ const SecuritySetting = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title={isLegacyUser ? "PIN" : "Password"}
+            title={isLegacyUser ? t('common.pin') : t('common.password')}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title={isLegacyUser ? "Enter your PIN" : "Enter your password"}
+            title={isLegacyUser ? t('password.enterPin') : t('password.enter')}
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
@@ -177,7 +179,7 @@ const SecuritySetting = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            title={t('common.confirm')}
             onClick={handleNavigate}
             isDisable={disabled}
           />

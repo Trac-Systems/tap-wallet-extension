@@ -12,8 +12,6 @@ const SpendableContainRuneAttentionModal = (
 ) => {
   const {onCancel, visible, inscriptionNum} = props;
 
-  const message = `This inscription (${inscriptionNum}) cannot be set as spendable because it shares the same UTXO with a Rune`;
-
   return (
     <UX.CustomModal isOpen={visible} onClose={onCancel}>
       <UX.Box spacing="xs">
@@ -24,14 +22,15 @@ const SpendableContainRuneAttentionModal = (
 
         {/* Warning Title */}
         <UX.Text
-          title="Cannot Set as Spendable"
+          titleKey="inscription.cannotSetSpendable"
           styleType="heading_16"
           customStyles={{color: colors.orange, textAlign: 'center'}}
         />
 
         {/* Dynamic Message */}
         <UX.Text
-          title={message}
+          titleKey="inscription.cannotSetSpendableRune"
+          titleParams={{inscriptionNum}}
           styleType="body_14_bold"
           customStyles={{
             color: colors.red_500,
@@ -45,7 +44,7 @@ const SpendableContainRuneAttentionModal = (
           <UX.Button
             styleType="primary"
             onClick={onCancel}
-            title="Understand"
+            titleKey="common.understand"
             customStyles={{flex: 1}}
           />
         </UX.Box> */}

@@ -9,10 +9,12 @@ import {
 } from '@/src/ui/utils';
 import {debounce, isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useI18n} from '@/src/ui/i18n';
 
 const DmtCollection = () => {
   //! State
   const dmtGroupMap = useAppSelector(AccountSelector.dmtGroupMap);
+  const {t} = useI18n();
   const randomColors = useAppSelector(GlobalSelector.randomColors);
   const [showDetailItemId, setShowDetailItemId] = useState(null);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -79,7 +81,7 @@ const DmtCollection = () => {
       <UX.Box layout="row" spacing="xs" className="search-box-token">
         <SVG.SearchIcon />
         <input
-          placeholder="Search for DMT collection"
+          placeholder={t('dmt.searchCollection')}
           className="search-box-token-input"
           onChange={handleChange}
           value={insValue}

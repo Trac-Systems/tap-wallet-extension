@@ -119,7 +119,7 @@ const Security = () => {
               />
             ) : (
               <UX.AuthInput
-                placeholder={isLegacyUser ? 'Enter your PIN' : 'Enter your password'}
+                placeholderKey={isLegacyUser ? 'password.enterPin' : 'password.enter'}
                 onChange={handleOnChange}
                 onKeyUp={e => handleOnKeyUp(e)}
                 ref={authInputRef}
@@ -138,7 +138,7 @@ const Security = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleNavigate}
             isDisable={disabled}
           />
@@ -149,4 +149,3 @@ const Security = () => {
 };
 
 export default Security;
-

@@ -27,7 +27,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
       <UX.Box layout="row_center">
         <div style={{width: 36, height: 4, background: '#3F3F3F', borderRadius: 999}} />
       </UX.Box>
-      <UX.Text title="Send Coins" styleType="heading_20" />
+      <UX.Text titleKey="send.sendCoins" styleType="heading_20" />
 
       <UX.Box spacing="xl">
         {isTracSingle ? null : (
@@ -42,7 +42,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
             <UX.Box layout="row_between" style={{width: '100%'}}>
               <UX.Box layout="row_center" spacing="xs">
                 <SVG.BitcoinIcon width={28} height={28} />
-                <UX.Text title="Send BTC" styleType="body_16_bold" />
+                <UX.Text titleKey="send.sendBtc" styleType="body_16_bold" />
               </UX.Box>
               <UX.Text title={btcBalance} styleType="body_16_bold" />
             </UX.Box>
@@ -61,7 +61,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
             <UX.Box layout="row_between" style={{width: '100%', alignItems: 'flex-start'}}>
               <UX.Box layout="row_center" spacing="xs">
                 <SVG.TracIcon width={28} height={28} />
-                <UX.Text title="Send TNK" styleType="body_16_bold"/>
+                <UX.Text titleKey="send.sendTnk" styleType="body_16_bold"/>
               </UX.Box>
               <UX.Tooltip text={tracBalance} isText>
                 <UX.Text 
@@ -79,7 +79,7 @@ export default function ModalSelectToken(props: ModalSelectTokenProps) {
         ) : null}
       </UX.Box>
 
-      <UX.Button styleType="dark" title="Close" onClick={handleClose} />
+      <UX.Button styleType="dark" titleKey="common.close" onClick={handleClose} />
     </UX.Box>
   );
 }

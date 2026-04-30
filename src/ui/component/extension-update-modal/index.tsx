@@ -28,27 +28,30 @@ const ExtensionUpdateModal = ({
       <Box layout="column" spacing="xl" style={{padding: '4px'}}>
         <Box layout="column" spacing="xs">
           <Text
-            title="New version available"
+            titleKey="extensionUpdate.title"
             styleType="heading_18"
             customStyles={{color: 'white'}}
           />
           <Text
-            title={`The current version is ${currentVersion}.${
-              availableVersion ? ` The new version is ${availableVersion}.` : ''
-            }`}
+            titleKey={
+              availableVersion
+                ? 'extensionUpdate.versionsAvailable'
+                : 'extensionUpdate.versionCurrent'
+            }
+            titleParams={{currentVersion, availableVersion}}
             styleType="body_12_normal"
           />
           <Text
-            title="Update now to keep using the wallet with the latest fixes."
+            titleKey="extensionUpdate.description"
             styleType="body_12_normal"
           />
         </Box>
 
         <Box layout="row" spacing="sm" style={{marginTop: '8px'}}>
-          <Button styleType="dark" title="Later" onClick={onClose} />
+          <Button styleType="dark" titleKey="common.later" onClick={onClose} />
           <Button
             styleType="primary"
-            title="Update now"
+            titleKey="extensionUpdate.updateNow"
             onClick={async () => {
               await browser.runtime.reload();
             }}

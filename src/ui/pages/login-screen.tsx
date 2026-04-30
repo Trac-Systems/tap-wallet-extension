@@ -125,7 +125,7 @@ const LoginPage = () => {
             />
           ) : (
             <UX.AuthInput
-              placeholder={isLegacyUser ? 'Enter your PIN' : 'Enter your password'}
+              placeholderKey={isLegacyUser ? 'password.enterPin' : 'password.enter'}
               onChange={handleOnChange}
               onKeyUp={e => handleOnKeyUp(e)}
               ref={pinInputRef}
@@ -143,7 +143,7 @@ const LoginPage = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleNavigate}
             isDisable={disabled}
           />

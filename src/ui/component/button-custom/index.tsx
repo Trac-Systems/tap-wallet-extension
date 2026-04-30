@@ -3,6 +3,7 @@ import Text from '../text-custom';
 import {colors} from '../../themes/color';
 import {SVG} from '../../svg';
 import { Loading } from '../loading-custom';
+import type {TranslationParams} from '../../i18n/types';
 
 const type: Record<string, CSSProperties> = {
   primary: {
@@ -78,6 +79,8 @@ const type: Record<string, CSSProperties> = {
 
 type ButtonProps = {
   title?: string;
+  titleKey?: string;
+  titleParams?: TranslationParams;
   styleType: keyof typeof type;
   customStyles?: React.CSSProperties;
   onClick?: () => void;
@@ -90,6 +93,8 @@ type ButtonProps = {
 
 const Button: React.FC<ButtonProps> = ({
   title,
+  titleKey,
+  titleParams,
   onClick,
   styleType,
   customStyles,
@@ -134,6 +139,8 @@ const Button: React.FC<ButtonProps> = ({
         <Text
           styleType="body_16_bold"
           title={title ?? ''}
+          titleKey={titleKey}
+          titleParams={titleParams}
           customStyles={{color: copy ? colors.main_500 : colors.white}}
         />
         {svgIcon}
@@ -149,6 +156,8 @@ const Button: React.FC<ButtonProps> = ({
       <Text
         styleType="body_16_bold"
         title={title ?? ''}
+        titleKey={titleKey}
+        titleParams={titleParams}
         customStyles={{
           color: copy || styleType === 'text' ? colors.main_500 : colors.white,
         }}

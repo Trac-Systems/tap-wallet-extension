@@ -90,7 +90,7 @@ const CreatePassWord = () => {
     } else {
       if (contextData.password2 && contextData.password !== contextData.password2) {
         showToast({
-          title: 'Please enter correct password',
+          titleKey: 'password.enterCorrect',
           type: 'error',
         });
         pinInputRef.current?.clear?.();
@@ -158,14 +158,18 @@ const CreatePassWord = () => {
         <UX.Box layout="column_center" spacing="xl" style={{width: '100%', maxWidth: '500px'}}>
           <SVG.UnlockIcon />
           <UX.Text
-            title={contextData.isStepSetPin ? 'Create Password' : 'Confirm Password'}
+            titleKey={
+              contextData.isStepSetPin
+                ? 'password.create'
+                : 'password.confirm'
+            }
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
             }}
           />
           <UX.Text
-            title="Create a password for your wallet."
+            titleKey="password.createForWallet"
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
@@ -196,7 +200,7 @@ const CreatePassWord = () => {
                   </g>
                 </svg>
               )}
-              <UX.Text title="Must have at least 12 characters" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
+              <UX.Text titleKey="password.requireLength" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
             </UX.Box>
             <UX.Box layout="row" spacing="xs" style={{gap: 8, alignItems: 'center'}}>
               {hasUppercase(contextData.isStepSetPin ? valueInput : contextData.password2 || '') ? (
@@ -218,7 +222,7 @@ const CreatePassWord = () => {
                   </g>
                 </svg>
               )}
-              <UX.Text title="Must have at least 1 uppercase letter" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
+              <UX.Text titleKey="password.requireUppercase" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
             </UX.Box>
             <UX.Box layout="row" spacing="xs" style={{gap: 8, alignItems: 'center'}}>
               {hasLowercase(contextData.isStepSetPin ? valueInput : contextData.password2 || '') ? (
@@ -240,7 +244,7 @@ const CreatePassWord = () => {
                   </g>
                 </svg>
               )}
-              <UX.Text title="Must have at least 1 lowercase letter" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
+              <UX.Text titleKey="password.requireLowercase" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
             </UX.Box>
             <UX.Box layout="row" spacing="xs" style={{gap: 8, alignItems: 'center'}}>
               {hasSpecial(contextData.isStepSetPin ? valueInput : contextData.password2 || '') ? (
@@ -262,7 +266,7 @@ const CreatePassWord = () => {
                   </g>
                 </svg>
               )}
-              <UX.Text title="Must have at least 1 special character" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
+              <UX.Text titleKey="password.requireSpecial" styleType="body_12_bold" customStyles={{color: '#FFFFFF'}} />
             </UX.Box>
           </UX.Box>
         </UX.Box>
@@ -276,7 +280,7 @@ const CreatePassWord = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleNavigate}
             isDisable={disabled}
           />

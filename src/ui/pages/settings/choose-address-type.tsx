@@ -6,6 +6,7 @@ import {useNavigate} from 'react-router-dom';
 import {UX} from '../../component';
 import {useCustomToast} from '../../component/toast-custom';
 import {useWalletProvider} from '../../gateway/wallet-provider';
+import {useI18n, useTranslatedToast} from '../../i18n';
 import LayoutScreenSettings from '../../layouts/settings';
 import {AccountSelector} from '../../redux/reducer/account/selector';
 import {WalletSelector} from '../../redux/reducer/wallet/selector';
@@ -19,8 +20,10 @@ const ChooseAddressType = () => {
   const activeWallet = useAppSelector(WalletSelector.activeWallet);
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const {showToast} = useCustomToast();
+  const {showTranslatedToast} = useTranslatedToast();
   const reloadAccounts = useReloadAccounts();
   const wallet = useWalletProvider();
+  const {t} = useI18n();
   const [addresses, setAddresses] = useState<string[]>([]);
   const [addressAssets, setAddressAssets] = useState<{
     [key: string]: {
@@ -113,8 +116,8 @@ const ChooseAddressType = () => {
         console.log('error', error);
       }
       reloadAccounts();
-      showToast({
-        title: 'Wallet address type is changed',
+      showTranslatedToast({
+        titleKey: 'settings.chooseAddress.changed',
         type: 'success',
       });
       navigate('/setting');
@@ -148,7 +151,7 @@ const ChooseAddressType = () => {
       header={
         <UX.Box style={{padding: '0 24px'}}>
           <UX.TextHeader
-            text="Choose Address"
+            text={t('settings.chooseAddress.title')}
             onBackClick={() => navigate('/setting')}
           />
         </UX.Box>

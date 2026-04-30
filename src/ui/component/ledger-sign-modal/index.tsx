@@ -39,12 +39,12 @@ const LedgerSignModal = ({isOpen}: LedgerSignModalProps) => {
             <SVG.LoadingSpinner width="42" height="42" />
           </Box>
           <Text
-            title="Confirm on Ledger"
+            titleKey="ledger.confirmOnLedger"
             styleType="heading_20"
             customStyles={{color: colors.white}}
           />
           <Text
-            title="Please review and approve the request on your Ledger device."
+            titleKey="ledger.reviewAndApprove"
             styleType="body_14_normal"
             customStyles={{
               color: colors.gray,
@@ -59,4 +59,3 @@ const LedgerSignModal = ({isOpen}: LedgerSignModalProps) => {
 };
 
 export default LedgerSignModal;
-

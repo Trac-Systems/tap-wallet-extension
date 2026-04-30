@@ -5,6 +5,7 @@ import WebsiteBar from '../../../component/website-bar';
 import LayoutApprove from '../layouts';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {SVG} from '@/src/ui/svg';
+import {fontFamilies} from '@/src/ui/themes/font';
 
 interface Props {
   params: {
@@ -66,17 +67,17 @@ export default function SignMessage({params: {data, session}}: Props) {
       header={<WebsiteBar session={session} />}
       body={
         <UX.Box style={{flex: 1}} spacing="sm">
-          <UX.Text title="Signature request" styleType="body_14_bold" />
+          <UX.Text titleKey="approval.signatureRequest.title" styleType="body_14_bold" />
           <UX.Text
-            title="Only sign this message if you fully understand the content and trust the requesting site."
+            titleKey="approval.signatureRequest.warning"
             styleType="body_12_normal"
           />
-          <UX.Text title="You are signing:" styleType="body_12_normal" />
+          <UX.Text titleKey="approval.signatureRequest.youAreSigningColon" styleType="body_12_normal" />
           <UX.Box>
             <div
               style={{
                 userSelect: 'text',
-                fontFamily: 'Exo-2-Regular',
+                fontFamily: fontFamilies.main,
                 fontStyle: 'normal',
                 fontSize: 14,
                 fontWeight: 400,
@@ -106,7 +107,7 @@ export default function SignMessage({params: {data, session}}: Props) {
                 <SVG.LoadingIcon />
               </div>
               <UX.Text
-                title="Please confirm on your Ledger device"
+                titleKey="ledger.confirmOnDevice"
                 styleType="body_12_normal"
                 customStyles={{color: '#F7931A'}}
               />
@@ -117,13 +118,13 @@ export default function SignMessage({params: {data, session}}: Props) {
       footer={
         <UX.Box layout="row" spacing="sm">
           <UX.Button
-            title="Reject"
+            titleKey="common.reject"
             styleType="dark"
             onClick={handleCancel}
             customStyles={{flex: 1}}
           />
           <UX.Button
-            title={loading ? 'Signing...' : 'Sign'}
+            titleKey={loading ? 'common.signing' : 'common.sign'}
             styleType="primary"
             onClick={handleConfirm}
             isDisable={loading}

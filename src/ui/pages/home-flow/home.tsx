@@ -24,6 +24,7 @@ import InscriptionList from './components/Inscription';
 import {useAutoLock} from '../../hook/use-auto-lock';
 import {useIsTabOpen} from '../../browser';
 import browser from 'webextension-polyfill';
+import {useI18n} from '../../i18n';
 
 const Home = () => {
   //! Hooks
@@ -31,6 +32,7 @@ const Home = () => {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const isTabOpen = useIsTabOpen();
+  const {t} = useI18n();
   const {getTapList, getInscriptionList} = useInscriptionHook();
   const inscriptions = useAppSelector(InscriptionSelector.listInscription);
   const totalInscription = useAppSelector(InscriptionSelector.totalInscription);
@@ -113,13 +115,13 @@ const Home = () => {
   });
 
   const tabItems = [
-    {label: 'Tokens', content: <TapList networkFilters={networkFilters} onFilterChange={async (filters) => {
+    {label: t('home.tokens'), content: <TapList networkFilters={networkFilters} onFilterChange={async (filters) => {
       setNetworkFilters(filters);
       const walletIndex = activeWallet?.index ?? 0;
       await walletProvider.setNetworkFilters(filters, walletIndex);
     }} />, parentIndex: 0},
     {
-      label: 'Inscriptions',
+      label: t('home.inscriptions'),
       content: (
         <InscriptionList
           setOpenDrawer={handleOpenDrawerIns}
@@ -349,7 +351,7 @@ const Home = () => {
       body={
         <>
           <UX.Box layout="row_between" style={{padding: '18px 24px'}}>
-            <UX.Text title="Your Wallets" styleType="heading_20" />
+            <UX.Text titleKey="wallet.yourWallets" styleType="heading_20" />
             <UX.Box
               onClick={() => setOpenDrawer(true)}
               style={{cursor: 'pointer'}}>
@@ -366,19 +368,19 @@ const Home = () => {
             onClose={() => setOpenDrawer(false)}>
             <UX.Box style={{padding: '16px'}}>
               <UX.Button
-                title="Create New Wallet"
+                titleKey="wallet.createNew"
                 styleType="primary"
                 customStyles={{marginBottom: '16px'}}
                 onClick={() => handleCreateWallet('isCreateNew')}
               />
               <UX.Button
-                title="Import Existing Wallet"
+                titleKey="wallet.importExisting"
                 styleType="dark"
                 customStyles={{marginBottom: '16px'}}
                 onClick={() => handleCreateWallet('isImport')}
               />
               <UX.Button
-                title="Connect Ledger Hardware Wallet"
+                titleKey="ledger.connectHardwareWallet"
                 styleType="dark"
                 onClick={() => handleCreateWallet('isConnectLedger')}
               />
@@ -394,14 +396,14 @@ const Home = () => {
                 height: '75vh',
               }}>
               <UX.Text
-                title="Mark inscriptions as spendable"
+                titleKey="inscription.markSpendable"
                 styleType="body_20_extra_bold"
               />
 
               <UX.Box
                 layout="row_between"
                 style={{paddingRight: '16px', margin: '8px 0'}}>
-                <UX.Text styleType="body_16_bold" title="Select All" />
+                <UX.Text styleType="body_16_bold" titleKey="common.selectAll" />
                 <UX.CheckBox
                   checked={isSelectAllChecked}
                   onChange={handleSelectAll}
@@ -418,7 +420,7 @@ const Home = () => {
               </UX.Box>
               <UX.Box>
                 <UX.Button
-                  title="Confirm"
+                  titleKey="common.confirm"
                   styleType="primary"
                   onClick={handleConfirm}
                 />

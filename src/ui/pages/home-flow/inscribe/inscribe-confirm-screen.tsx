@@ -144,7 +144,7 @@ const InscribeConfirmScreen = () => {
     return (
       <UX.Box spacing="xs" style={{margin: '16px 0'}}>
         <UX.Text
-          title="Preview"
+          titleKey="transaction.preview"
           styleType="body_16_normal"
           customStyles={{color: colors.smoke}}
         />
@@ -218,7 +218,7 @@ const InscribeConfirmScreen = () => {
             <UX.Box spacing="xs">
               <UX.Box layout="row_between">
                 <UX.Text
-                  title="Payment Network Fee"
+                  titleKey="transaction.paymentNetworkFee"
                   styleType="body_16_normal"
                 />
                 <UX.Text
@@ -230,7 +230,7 @@ const InscribeConfirmScreen = () => {
 
               <UX.Box layout="row_between">
                 <UX.Text
-                  title="Inscription Output Value"
+                  titleKey="transaction.inscriptionOutputValue"
                   styleType="body_16_normal"
                 />
                 <UX.Text
@@ -241,7 +241,7 @@ const InscribeConfirmScreen = () => {
               </UX.Box>
               <UX.Box layout="row_between">
                 <UX.Text
-                  title="Inscription Network Fee"
+                  titleKey="transaction.inscriptionNetworkFee"
                   styleType="body_16_normal"
                 />
                 <UX.Text
@@ -251,7 +251,7 @@ const InscribeConfirmScreen = () => {
                 />
               </UX.Box>
               <UX.Box layout="row_between">
-                <UX.Text title="Service Fee" styleType="body_16_normal" />
+                <UX.Text titleKey="transaction.serviceFee" styleType="body_16_normal" />
                 {Number(discountServiceFee) > 0 ? (
                   <UX.Text
                     title={`${discountServiceFee} BTC`}
@@ -271,7 +271,7 @@ const InscribeConfirmScreen = () => {
               </UX.Box>
 
               <UX.Box layout="row_between">
-                <UX.Text title="Total" styleType="body_16_normal" />
+                <UX.Text titleKey="transaction.total" styleType="body_16_normal" />
                 <UX.Text
                   title={`${totalFee} BTC`}
                   styleType="body_16_normal"
@@ -291,7 +291,7 @@ const InscribeConfirmScreen = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={'Next'}
+            titleKey="common.next"
             onClick={handleInscribeSign}
           />
         </UX.Box>

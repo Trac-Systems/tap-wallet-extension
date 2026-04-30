@@ -1,14 +1,26 @@
 import React, { CSSProperties, FC } from 'react';
 import { colors } from '../../themes/color';
+import {useOptionalI18n} from '../../i18n/context';
+import type {TranslationParams} from '../../i18n/types';
 
 export type BadgeProps = {
-    text: string;
+    text?: string;
+    textKey?: string;
+    textParams?: TranslationParams;
     className?: string;
     customStyles?: CSSProperties;
     status: 'default' | 'success' | 'warning' | 'error';
 };
 
-const Badge: FC<BadgeProps> = ({ text, className, customStyles, status = 'default' }) => {
+const Badge: FC<BadgeProps> = ({
+    text,
+    textKey,
+    textParams,
+    className,
+    customStyles,
+    status = 'default',
+}) => {
+    const i18n = useOptionalI18n();
     let badgeStyles: CSSProperties;
     switch (status) {
         case 'success':
@@ -40,7 +52,7 @@ const Badge: FC<BadgeProps> = ({ text, className, customStyles, status = 'defaul
 
     return (
         <div className={className} style={{ borderRadius: '24px', padding: '1px 8px', textAlign: 'center', width: 'fit-content', font: '12px', lineHeight: '18px', ...badgeStyles, ...customStyles }}>
-            {text}
+            {textKey && i18n ? i18n.t(textKey, textParams) : text}
         </div>
     );
 };

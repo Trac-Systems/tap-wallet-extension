@@ -8,6 +8,7 @@ import {useCustomToast} from '../../component/toast-custom';
 import {AppDispatch} from '../../redux/store';
 import {useDispatch} from 'react-redux';
 import {GlobalActions} from '../../redux/reducer/global/slice';
+import {useI18n, useTranslatedToast} from '../../i18n';
 
 const hasUppercase = (s: string) => /[A-Z]/.test(s);
 const hasLowercase = (s: string) => /[a-z]/.test(s);
@@ -18,7 +19,9 @@ const ChangePassword = () => {
   const location = useLocation();
   const wallet = useWalletProvider();
   const {showToast} = useCustomToast();
+  const {showTranslatedToast} = useTranslatedToast();
   const dispatch = useDispatch<AppDispatch>();
+  const {t} = useI18n();
 
   const currentRef = useRef<AuthInputRef>(null);
   const newRef = useRef<AuthInputRef>(null);
@@ -65,10 +68,10 @@ const ChangePassword = () => {
       // Mark password as upgraded
       await wallet.markPasswordUpgraded();
       
-      showToast({type: 'success', title: 'Password updated'});
+      showTranslatedToast({type: 'success', titleKey: 'password.updated'});
       navigate('/home');
     } catch (e) {
-      showToast({type: 'error', title: e?.message || 'Update failed'});
+      showToast({type: 'error', title: e?.message || t('password.updateFailed')});
     } finally {
       setLoading(false);
     }
@@ -76,7 +79,7 @@ const ChangePassword = () => {
 
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Change Password" onBackClick={() => navigate(-1)} />}
+      header={<UX.TextHeader text={t('settings.changePassword.title')} onBackClick={() => navigate(-1)} />}
       body={
         <UX.Box layout="column_center" style={{width: '100%'}}>
           <UX.Box
@@ -84,7 +87,7 @@ const ChangePassword = () => {
             spacing="xl"
             style={{width: '100%', maxWidth: '500px', margin: '0 auto'}}>
           <UX.Box layout="column" spacing="sm">
-            <UX.Text title="Current password" styleType="body_14_normal" customStyles={{color: '#FFFFFF'}} />
+            <UX.Text title={t('password.current')} styleType="body_14_normal" customStyles={{color: '#FFFFFF'}} />
             <UX.AuthInput
               ref={currentRef}
               onChange={setCurrent}
@@ -93,7 +96,7 @@ const ChangePassword = () => {
             />
           </UX.Box>
           <UX.Box layout="column" spacing="sm">
-            <UX.Text title="New password" styleType="body_14_normal" customStyles={{color: '#FFFFFF'}} />
+            <UX.Text title={t('password.new')} styleType="body_14_normal" customStyles={{color: '#FFFFFF'}} />
             <UX.AuthInput
               ref={newRef}
               onChange={setPwd}
@@ -112,7 +115,7 @@ const ChangePassword = () => {
                     <path d="M8.0002 12.9872C6.62308 12.9872 5.44753 12.5004 4.47353 11.5268C3.49964 10.5533 3.0127 9.37791 3.0127 8.00068C3.0127 6.62357 3.49947 5.44802 4.47303 4.47402C5.44658 3.50013 6.62197 3.01318 7.9992 3.01318C9.37631 3.01318 10.5519 3.49996 11.5259 4.47352C12.4998 5.44707 12.9867 6.62246 12.9867 7.99968C12.9867 9.37679 12.4999 10.5524 11.5264 11.5264C10.5528 12.5002 9.37742 12.9872 8.0002 12.9872ZM7.99953 11.2205C8.89042 11.2205 9.64992 10.9065 10.278 10.2785C10.906 9.65063 11.22 8.89124 11.22 8.00035C11.22 7.10946 10.906 6.34996 10.278 5.72185C9.65014 5.09385 8.89075 4.77985 7.99986 4.77985C7.10897 4.77985 6.34947 5.09385 5.72136 5.72185C5.09336 6.34974 4.77936 7.10913 4.77936 8.00002C4.77936 8.89091 5.09336 9.65041 5.72136 10.2785C6.34925 10.9065 7.10864 11.2205 7.99953 11.2205Z" fill="white" fillOpacity="0.69"/>
                   </svg>
                 )}
-                <UX.Text title="Must have at least 12 characters" styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
+                <UX.Text title={t('password.requireLength')} styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
               </UX.Box>
               <UX.Box layout="row" spacing="xs" style={{gap: 8, alignItems: 'center'}}>
                 {hasUppercase(pwd) ? (
@@ -124,7 +127,7 @@ const ChangePassword = () => {
                     <path d="M8.0002 12.9872C6.62308 12.9872 5.44753 12.5004 4.47353 11.5268C3.49964 10.5533 3.0127 9.37791 3.0127 8.00068C3.0127 6.62357 3.49947 5.44802 4.47303 4.47402C5.44658 3.50013 6.62197 3.01318 7.9992 3.01318C9.37631 3.01318 10.5519 3.49996 11.5259 4.47352C12.4998 5.44707 12.9867 6.62246 12.9867 7.99968C12.9867 9.37679 12.4999 10.5524 11.5264 11.5264C10.5528 12.5002 9.37742 12.9872 8.0002 12.9872ZM7.99953 11.2205C8.89042 11.2205 9.64992 10.9065 10.278 10.2785C10.906 9.65063 11.22 8.89124 11.22 8.00035C11.22 7.10946 10.906 6.34996 10.278 5.72185C9.65014 5.09385 8.89075 4.77985 7.99986 4.77985C7.10897 4.77985 6.34947 5.09385 5.72136 5.72185C5.09336 6.34974 4.77936 7.10913 4.77936 8.00002C4.77936 8.89091 5.09336 9.65041 5.72136 10.2785C6.34925 10.9065 7.10864 11.2205 7.99953 11.2205Z" fill="white" fillOpacity="0.69"/>
                   </svg>
                 )}
-                <UX.Text title="Must have at least 1 uppercase letter" styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
+                <UX.Text title={t('password.requireUppercase')} styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
               </UX.Box>
               <UX.Box layout="row" spacing="xs" style={{gap: 8, alignItems: 'center'}}>
                 {hasLowercase(pwd) ? (
@@ -136,7 +139,7 @@ const ChangePassword = () => {
                     <path d="M8.0002 12.9872C6.62308 12.9872 5.44753 12.5004 4.47353 11.5268C3.49964 10.5533 3.0127 9.37791 3.0127 8.00068C3.0127 6.62357 3.49947 5.44802 4.47303 4.47402C5.44658 3.50013 6.62197 3.01318 7.9992 3.01318C9.37631 3.01318 10.5519 3.49996 11.5259 4.47352C12.4998 5.44707 12.9867 6.62246 12.9867 7.99968C12.9867 9.37679 12.4999 10.5524 11.5264 11.5264C10.5528 12.5002 9.37742 12.9872 8.0002 12.9872ZM7.99953 11.2205C8.89042 11.2205 9.64992 10.9065 10.278 10.2785C10.906 9.65063 11.22 8.89124 11.22 8.00035C11.22 7.10946 10.906 6.34996 10.278 5.72185C9.65014 5.09385 8.89075 4.77985 7.99986 4.77985C7.10897 4.77985 6.34947 5.09385 5.72136 5.72185C5.09336 6.34974 4.77936 7.10913 4.77936 8.00002C4.77936 8.89091 5.09336 9.65041 5.72136 10.2785C6.34925 10.9065 7.10864 11.2205 7.99953 11.2205Z" fill="white" fillOpacity="0.69"/>
                   </svg>
                 )}
-                <UX.Text title="Must have at least 1 lowercase letter" styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
+                <UX.Text title={t('password.requireLowercase')} styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
               </UX.Box>
               <UX.Box layout="row" spacing="xs" style={{gap: 8, alignItems: 'center'}}>
                 {hasSpecial(pwd) ? (
@@ -148,12 +151,12 @@ const ChangePassword = () => {
                     <path d="M8.0002 12.9872C6.62308 12.9872 5.44753 12.5004 4.47353 11.5268C3.49964 10.5533 3.0127 9.37791 3.0127 8.00068C3.0127 6.62357 3.49947 5.44802 4.47303 4.47402C5.44658 3.50013 6.62197 3.01318 7.9992 3.01318C9.37631 3.01318 10.5519 3.49996 11.5259 4.47352C12.4998 5.44707 12.9867 6.62246 12.9867 7.99968C12.9867 9.37679 12.4999 10.5524 11.5264 11.5264C10.5528 12.5002 9.37742 12.9872 8.0002 12.9872ZM7.99953 11.2205C8.89042 11.2205 9.64992 10.9065 10.278 10.2785C10.906 9.65063 11.22 8.89124 11.22 8.00035C11.22 7.10946 10.906 6.34996 10.278 5.72185C9.65014 5.09385 8.89075 4.77985 7.99986 4.77985C7.10897 4.77985 6.34947 5.09385 5.72136 5.72185C5.09336 6.34974 4.77936 7.10913 4.77936 8.00002C4.77936 8.89091 5.09336 9.65041 5.72136 10.2785C6.34925 10.9065 7.10864 11.2205 7.99953 11.2205Z" fill="white" fillOpacity="0.69"/>
                   </svg>
                 )}
-                <UX.Text title="Must have at least 1 special character" styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
+                <UX.Text title={t('password.requireSpecial')} styleType="body_12_normal" customStyles={{color: '#FFFFFF'}} />
               </UX.Box>
             </UX.Box>
           </UX.Box>
           <UX.Box layout="column" spacing="sm">
-            <UX.Text title="Confirm new password" styleType="body_14_normal" customStyles={{color: '#FFFFFF'}} />
+            <UX.Text title={t('password.confirmNew')} styleType="body_14_normal" customStyles={{color: '#FFFFFF'}} />
             <UX.AuthInput
               ref={confirmRef}
               onChange={setConfirm}
@@ -169,7 +172,7 @@ const ChangePassword = () => {
         <UX.Box layout="column" spacing="xl" style={{padding: '10px 0'}}>
           <UX.Button
             styleType="primary"
-            title={loading ? 'Updating...' : 'Confirm'}
+            title={loading ? t('common.updating') : t('common.confirm')}
             isDisable={disabled || loading}
             onClick={handleSubmit}
           />
@@ -180,5 +183,3 @@ const ChangePassword = () => {
 };
 
 export default ChangePassword;
-
-

@@ -32,7 +32,7 @@ const ModalEditWallet = (props: IModalEditWalletProps) => {
     dispatch(WalletActions.updateWalletName(newWallet));
     closeModalWallet();
     showToast({
-      title: 'Wallet name updated successfully',
+      titleKey: 'wallet.nameUpdated',
       type: 'success',
     });
   };
@@ -54,7 +54,7 @@ const ModalEditWallet = (props: IModalEditWalletProps) => {
         style={{
           padding: '8px 0',
         }}>
-        <UX.Text title="Edit Wallet" styleType="body_20_extra_bold" />
+        <UX.Text titleKey="wallet.edit" styleType="body_20_extra_bold" />
         <UX.Box onClick={openModalWallet} style={{cursor: 'pointer'}}>
           <SVG.DeleteWalletIcon />
         </UX.Box>
@@ -78,14 +78,14 @@ const ModalEditWallet = (props: IModalEditWalletProps) => {
           <UX.AddressBar address={address} />
         </UX.Box>
         <UX.MaxLengthInput
-          placeholder="Name wallet"
+          placeholderKey="wallet.namePlaceholder"
           value={walletName}
           onChange={e => setWalletName(e.target.value)}
         />
       </UX.Box>
       <UX.Button
         isDisable={walletName.length === 0}
-        title="Save Change"
+        titleKey="common.saveChange"
         styleType="primary"
         onClick={handleSubmit}
       />

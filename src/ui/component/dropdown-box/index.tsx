@@ -1,6 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {SVG} from '../../svg';
 import Text from '../text-custom';
+import { i18n } from 'webextension-polyfill'
+import { useI18n } from '../../i18n'
 
 type Option = {
   label: string;
@@ -19,9 +21,10 @@ const CustomDropdown: React.FC<DropdownProps> = ({
   onChange,
 }) => {
   //! State
+  const { t } = useI18n()
   const [open, setOpen] = useState(false);
   const selectedLabel =
-    options.find(opt => opt.value === value)?.label || 'Select';
+    options.find(opt => opt.value === value)?.label || t('common.select');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   //! Effect

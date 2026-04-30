@@ -34,7 +34,7 @@ const EditAccountName = () => {
     dispatch(AccountActions.updateAccountName(newAccount));
     reloadAccounts();
     showToast({
-      title: 'Account name updated successfully',
+      titleKey: 'account.nameUpdated',
       type: 'success',
     });
     navigate('/home');
@@ -44,12 +44,12 @@ const EditAccountName = () => {
   return (
     <LayoutSendReceive
       header={
-        <UX.TextHeader text="Edit account name" onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="account.editName" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box style={{width: '100%'}}>
           <UX.Input
-            placeholder="Account name"
+            placeholderKey="account.namePlaceholder"
             onChange={e => setAccountName(e.target.value)}
             value={accountName}
           />
@@ -65,7 +65,7 @@ const EditAccountName = () => {
           <UX.Button
             styleType="primary"
             isDisable={validName}
-            title="Save change"
+            titleKey="common.saveChange"
             onClick={handleSubmit}
           />
         </UX.Box>

@@ -8,6 +8,7 @@ import {useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {FeeRateBar} from '../../../send-receive/component/fee-rate-bar';
 import { useCustomToast } from '@/src/ui/component/toast-custom';
+import {useI18n} from '@/src/ui/i18n';
 
 const HandleTappingAuthority = () => {
   //! State
@@ -16,6 +17,7 @@ const HandleTappingAuthority = () => {
   const prepareSendOrdinalsInscription =
     usePrepareSendOrdinalsInscriptionCallback();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   type LocationState = {
     inscriptionId: string;
     order?: InscribeOrder;
@@ -48,7 +50,7 @@ const HandleTappingAuthority = () => {
       });
     } catch (error) {
       showToast({
-        title: error.message || 'Failed to tap authority',
+        title: error.message || t('authority.tapFailed'),
         type: 'error',
       });
       console.log('error :>> ', error);
@@ -64,7 +66,7 @@ const HandleTappingAuthority = () => {
   return (
     <LayoutSendReceive
       header={
-        <UX.TextHeader text="Tapping Authority" onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="authority.tapping" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
@@ -72,7 +74,7 @@ const HandleTappingAuthority = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Fee rate"
+              titleKey="transaction.feeRate"
             />
             <FeeRateBar onChange={handleUpdateFeeRate} />
           </UX.Box>
@@ -87,7 +89,7 @@ const HandleTappingAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={'Confirm'}
+            titleKey="common.confirm"
             onClick={handleNavigate}
             isDisable={loading}
           />

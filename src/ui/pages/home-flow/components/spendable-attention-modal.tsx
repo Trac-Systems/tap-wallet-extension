@@ -15,11 +15,6 @@ const SpendableAssetAttentionModal = (
 ) => {
   const {onNext, onCancel, visible, extraInscriptionsCount, isSpendable} =
     props;
-
-  const message = isSpendable
-    ? `There are ${extraInscriptionsCount} more inscriptions connected with the one you selected. Do you want to spend them all?`
-    : `There are ${extraInscriptionsCount} more inscriptions connected with the one you want to de-select. Do you want de-select them all?”
-  `;
   return (
     <UX.CustomModal isOpen={visible} onClose={onCancel}>
       <UX.Box spacing="xs">
@@ -30,14 +25,19 @@ const SpendableAssetAttentionModal = (
 
         {/* Main Warning Title */}
         <UX.Text
-          title="There are multiple inscriptions connected with this UTXO!"
+          titleKey="inscription.multipleConnectedUtxo"
           styleType="heading_16"
           customStyles={{color: colors.orange, textAlign: 'center'}}
         />
 
         {/* Dynamic Message Showing Extra Inscriptions */}
         <UX.Text
-          title={message}
+          titleKey={
+            isSpendable
+              ? 'inscription.extraConnectedSpendable'
+              : 'inscription.extraConnectedDeselect'
+          }
+          titleParams={{count: extraInscriptionsCount}}
           styleType="body_14_bold"
           customStyles={{
             color: colors.red_500,
@@ -51,13 +51,13 @@ const SpendableAssetAttentionModal = (
           <UX.Button
             styleType="dark"
             onClick={onCancel}
-            title="Cancel"
+            titleKey="common.cancel"
             customStyles={{flex: 1}}
           />
           <UX.Button
             styleType="primary"
             onClick={onNext}
-            title="Continue"
+            titleKey="common.continue"
             customStyles={{flex: 1}}
           />
         </UX.Box>

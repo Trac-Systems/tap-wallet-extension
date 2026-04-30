@@ -41,7 +41,8 @@ export function AccountItem(
                         customStyles={{ color: 'white' }}
                     />
                     <UX.Text
-                        title={tracAddress ? `${shortAddress(tracAddress)}` : 'No TRAC address'}
+                        title={tracAddress ? `${shortAddress(tracAddress)}` : undefined}
+                        titleKey={!tracAddress ? 'approval.connect.noTracAddress' : undefined}
                         styleType="body_12_bold"
                         customStyles={{ color: tracAddress ? undefined : '#888' }}
                     />
@@ -128,17 +129,17 @@ export default function TracConnect({ params: { session } }: Props) {
             body={
                 <UX.Box spacing="sm" style={{ flex: 1 }}>
                     <UX.Text
-                        title="Connect with TRAC Network"
+                        titleKey="approval.connect.tracNetwork"
                         customStyles={{ textAlign: 'center', color: 'white' }}
                         styleType="body_14_normal"
                     />
                     <UX.Text
-                        title="Select the TRAC account to use on this site"
+                        titleKey="approval.connect.selectTracAccount"
                         customStyles={{ textAlign: 'center' }}
                         styleType="body_14_normal"
                     />
                     <UX.Text
-                        title="Only connect with sites you trust."
+                        titleKey="approval.connect.trustOnly"
                         customStyles={{ textAlign: 'center' }}
                         styleType="body_14_normal"
                     />
@@ -189,13 +190,13 @@ export default function TracConnect({ params: { session } }: Props) {
             footer={
                 <UX.Box layout="row" spacing="sm">
                     <UX.Button
-                        title="Cancel"
+                        titleKey="common.cancel"
                         styleType="dark"
                         customStyles={{ flex: 1 }}
                         onClick={handleCancel}
                     />
                     <UX.Button
-                        title="Connect"
+                        titleKey="common.connect"
                         styleType="primary"
                         customStyles={{ flex: 1 }}
                         onClick={handleConnect}

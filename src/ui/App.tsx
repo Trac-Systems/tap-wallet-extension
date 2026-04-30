@@ -51,6 +51,7 @@ import SettingAdvanced from './pages/settings/setting-advance';
 import ShowKey from './pages/settings/show-key';
 import TxSecurity from './pages/settings/tx-security';
 import ChangePassword from './pages/settings/change-password';
+import LanguageSettings from './pages/settings/language';
 import {AccountActions} from './redux/reducer/account/slice';
 import {GlobalSelector} from './redux/reducer/global/selector';
 import {GlobalActions} from './redux/reducer/global/slice';
@@ -295,6 +296,7 @@ function App() {
         <Route path="/setting/choose-address" element={<ChooseAddressType />} />
         <Route path="/setting/advanced" element={<SettingAdvanced />} />
         <Route path="/setting/connect-site" element={<ConnectSite />} />
+        <Route path="/setting/language" element={<LanguageSettings />} />
         <Route path="/setting/network-type" element={<NetWorkType />} />
         <Route path="/setting/change-password" element={<SettingPage />} />
         <Route path="/setting/show-key" element={<ShowKey />} />

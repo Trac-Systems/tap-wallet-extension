@@ -120,7 +120,7 @@ const MultiSignPsbt = ({
       body={
         <UX.Box layout="column_center" spacing="xl">
           <UX.Text
-            title="sign multiple transactions"
+            titleKey="approval.multiSign.title"
             styleType="heading_14"
             customStyles={{textTransform: 'capitalize'}}
           />
@@ -131,19 +131,20 @@ const MultiSignPsbt = ({
             {psbtHexs.map((item, index) => {
               const signState = signStates[index];
 
-              let text = 'View';
+              let textKey = 'common.view';
               if (signState == SignState.PENDING) {
-                text = 'View';
+                textKey = 'common.view';
               } else if (signState == SignState.SUCCESS) {
-                text = 'Signed';
+                textKey = 'approval.multiSign.signed';
               } else if (signState == SignState.FAILED) {
-                text = 'Rejected';
+                textKey = 'approval.multiSign.rejected';
               }
               return (
                 <UX.Box layout="box_border" key={index}>
                   <UX.Box layout="column" style={{flex: 1}}>
                     <UX.Text
-                      title={`Transaction ${index + 1}`}
+                      titleKey="approval.multiSign.transactionNumber"
+                      titleParams={{number: index + 1}}
                       styleType="body_14_bold"
                     />
                     <UX.Text
@@ -152,7 +153,7 @@ const MultiSignPsbt = ({
                     />
                   </UX.Box>
                   <UX.Button
-                    title={text}
+                    titleKey={textKey}
                     styleType="primary"
                     customStyles={{width: 'fit-content'}}
                     onClick={() => setViewingPsbtIndex(index)}
@@ -166,17 +167,14 @@ const MultiSignPsbt = ({
       footer={
         <UX.Box layout="row_center" spacing="sm">
           <UX.Button
-            title="Reject all"
+            titleKey="approval.multiSign.rejectAll"
             styleType="dark"
             customStyles={{flex: 1}}
             onClick={handleCancel}
           />
           <UX.Button
-            title={
-              isAllSigned
-                ? 'Submit'
-                : `(${signedCount}/${txInfo.psbtHexs.length}) Signed`
-            }
+            titleKey={isAllSigned ? 'common.submit' : 'approval.multiSign.signedCount'}
+            titleParams={{signedCount, total: txInfo.psbtHexs.length}}
             styleType="primary"
             customStyles={{flex: 1}}
             isDisable={!isAllSigned}

@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {UX} from '../../component';
+import {useI18n} from '../../i18n';
 import {SVG} from '../../svg';
 import {colors} from '../../themes/color';
 
@@ -12,6 +13,7 @@ const EnableSignDataModal = (props: EnableSignDataModalProps) => {
   //! State
   const {open, onNext, onCancel} = props;
   const [understand, setUnderstand] = useState(false);
+  const {t} = useI18n();
 
   return (
     <UX.CustomModal isOpen={open} onClose={onCancel}>
@@ -20,15 +22,13 @@ const EnableSignDataModal = (props: EnableSignDataModalProps) => {
           <SVG.CloseIcon />
         </UX.Box>
         <UX.Text
-          title="Use at your own risk"
+          title={t('settings.signDataModal.title')}
           styleType="heading_16"
           customStyles={{color: colors.orange, textAlign: 'center'}}
         />
 
         <UX.Text
-          title="Allowing signData requests can make you vulnerable to phishing
-          attacks. Always review the URL and be careful when signing messages
-          that contain code."
+          title={t('settings.signDataModal.description')}
           styleType="body_14_normal"
           customStyles={{color: colors.white}}
         />
@@ -41,7 +41,7 @@ const EnableSignDataModal = (props: EnableSignDataModalProps) => {
           <UX.Text
             styleType="body_14_bold"
             customStyles={{color: colors.white, maxWidth: '80%'}}
-            title={'If you\'ve been asked to turn this setting on, you might be getting scammed.'}
+            title={t('settings.signDataModal.scamWarning')}
           />
         </UX.Box>
 
@@ -51,8 +51,7 @@ const EnableSignDataModal = (props: EnableSignDataModalProps) => {
             onChange={() => setUnderstand(!understand)}
           />
           <UX.Text
-            title="I understand that I can lose all of my funds and NFTs if I enable
-            signData requests."
+            title={t('settings.signDataModal.checkbox')}
             styleType="body_12_normal"
             customStyles={{color: colors.white, maxWidth: '80%'}}
           />
@@ -62,14 +61,14 @@ const EnableSignDataModal = (props: EnableSignDataModalProps) => {
           <UX.Button
             styleType="dark"
             onClick={onCancel}
-            title="Cancel"
+            title={t('common.cancel')}
             customStyles={{flex: 1}}
           />
           <UX.Button
             styleType="primary"
             isDisable={!understand}
             onClick={onNext}
-            title="Continue"
+            title={t('common.continue')}
             customStyles={{flex: 1}}
           />
         </UX.Box>

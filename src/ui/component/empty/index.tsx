@@ -5,7 +5,7 @@ const Empty = () => {
   return (
     <Box layout="row_center" style={{height: '20vh'}}>
       <Text
-        title="Empty"
+        titleKey="common.empty"
         styleType="body_14_bold"
         customStyles={{color: 'white'}}
       />

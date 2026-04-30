@@ -206,11 +206,11 @@ const TapTransfer = () => {
   return (
     <LayoutTap
       header={
-        <UX.TextHeader text="Transfer" onBackClick={() => navigate(-1)} />
+        <UX.TextHeader textKey="common.transfer" onBackClick={() => navigate(-1)} />
       }
       body={
         <UX.Box>
-          <UX.Text title="Transfer Amount" styleType="heading_16" />
+          <UX.Text titleKey="tap.transferAmount" styleType="heading_16" />
           <UX.Box layout="column_center" style={{margin: '20px 0'}} spacing="xss">
             <UX.Box layout="row" spacing="xs">
               <UX.Text
@@ -227,7 +227,7 @@ const TapTransfer = () => {
               <UX.Box layout="row" spacing="xss_s">
                 {isLoadingUsd ? (
                   <UX.Text
-                    title="Loading..."
+                    titleKey="common.loading"
                     styleType="body_14_normal"
                     customStyles={{color: '#FFFFFFB0'}}
                   />
@@ -338,7 +338,7 @@ const TapTransfer = () => {
               onClick={handleSelectAll}>
               <UX.CheckBox checked={allSelected} />
               <UX.Text
-                title="Select All"
+                titleKey="common.selectAll"
                 styleType="body_16_bold"
                 customStyles={{color: colors.white}}
               />
@@ -352,10 +352,10 @@ const TapTransfer = () => {
               layout="box_border"
               spacing="xs"
               style={{flexDirection: 'column', minWidth: '300px'}}>
-              <UX.Text title="Inscribe Transfer" styleType="heading_12" />
+              <UX.Text titleKey="tap.inscribeTransfer" styleType="heading_12" />
               <UX.Box layout="row_center" spacing="xs">
                 <UX.Text
-                  title="Available"
+                  titleKey="transaction.available"
                   styleType="body_12_normal"
                   customStyles={{color: colors.white}}
                 />
@@ -375,7 +375,7 @@ const TapTransfer = () => {
             </UX.Box>
           </UX.Box>
           <UX.Text
-            title="* To send TAP, you have to inscribe a TRANSFER inscription first"
+            titleKey="tap.inscribeTransferFirst"
             styleType="body_12_normal"
             customStyles={{
               color: colors.white,
@@ -407,7 +407,7 @@ const TapTransfer = () => {
       }
       footer={
         <UX.Button
-          title="Next"
+          titleKey="common.next"
           styleType="primary"
           onClick={handleNavigate}
           isDisable={disabled}

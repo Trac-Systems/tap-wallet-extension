@@ -1,3 +1,4 @@
+import { Language } from '../ui/i18n'
 import {AddressType, Network} from './types';
 export const COIN_DUST = 1000;
 

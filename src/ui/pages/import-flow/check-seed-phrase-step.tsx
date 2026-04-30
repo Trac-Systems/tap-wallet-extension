@@ -71,7 +71,7 @@ const CheckSeedPhrase = () => {
       navigate('/choose-address');
     } else {
       showToast({
-        title: 'Wrong seed phrase',
+        titleKey: 'onboarding.wrongSeedPhrase',
         type: 'error',
       });
     }
@@ -98,9 +98,10 @@ const CheckSeedPhrase = () => {
         <UX.Box layout="column_center" spacing="xxl_lg">
           <SVG.SeedPhraseIcon />
           <UX.Box layout="column_center" spacing="xl">
-            <UX.Text title="Let's check" styleType="heading_24" />
+            <UX.Text titleKey="onboarding.letsCheck" styleType="heading_24" />
             <UX.Text
-              title={`To make sure you saved the words correctly, enter words ${formattedString}`}
+              titleKey="onboarding.enterSeedWords"
+              titleParams={{words: formattedString}}
               styleType="body_16_normal"
               customStyles={{textAlign: 'center'}}
             />
@@ -160,7 +161,7 @@ const CheckSeedPhrase = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleNavigate}
             isDisable={isDisabled}
           />

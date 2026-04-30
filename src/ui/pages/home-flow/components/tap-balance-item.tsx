@@ -223,7 +223,7 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
           {/* TransferAble of Items */}
           <UX.Box layout="row_between" style={{width: '100%', marginBottom: 8}}>
             <UX.Text
-              title={'Transferable'}
+              titleKey="tap.transferable"
               styleType="body_14_normal"
               customStyles={{
                 color: '#FFFFFFB0',

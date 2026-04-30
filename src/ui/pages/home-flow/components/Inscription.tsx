@@ -14,6 +14,7 @@ import DmtCollection from '@/src/ui/pages/home-flow/components/dmt-collection';
 import {isArray} from 'lodash';
 import {useInscriptionHook} from '@/src/ui/pages/home-flow/hook';
 import {InscriptionSelector} from '@/src/ui/redux/reducer/inscription/selector';
+import {useI18n} from '@/src/ui/i18n';
 interface IProps {
   setOpenDrawer: (data: boolean) => void;
   spendableInscriptionsMap: {[key: string]: Inscription};
@@ -26,6 +27,7 @@ interface IProps {
 const InscriptionList = (props: IProps) => {
   const walletProvider = useWalletProvider();
   const dispatch = useAppDispatch();
+  const {t} = useI18n();
   const {getInscriptionList} = useInscriptionHook();
 
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
@@ -208,7 +210,7 @@ const InscriptionList = (props: IProps) => {
   }
 
   const tabItems = [
-    {label: 'All', content: <InscriptionListChildren {...props} />},
+    {label: t('common.all'), content: <InscriptionListChildren {...props} />},
     {
       label: 'DMT',
       content: <DmtCollection />,

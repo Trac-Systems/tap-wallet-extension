@@ -36,7 +36,7 @@ const TokenSection = ({
   getComponentState,
   validateSection,
   updateTokenSectionErrors,
-  isSubmitted, // <--- NEW PROP
+  isSubmitted,
 }) => {
   const selectedOption = listTapList.find(
     option => option.value === section.selected,
@@ -62,7 +62,7 @@ const TokenSection = ({
     <UX.Box spacing="xl" style={{ width: '100%' }} key={section.id}>
       <UX.Box spacing="xss">
         <UX.Text
-          title="Token name"
+          titleKey="tap.tokenName"
           styleType="body_16_extra_bold"
           customStyles={{ color: 'white' }}
         />
@@ -97,7 +97,7 @@ const TokenSection = ({
         )}
         {section.selected && (
           <UX.Box layout="row_between">
-            <UX.Text title="Available:" styleType="body_14_bold" />
+            <UX.Text titleKey="transaction.availableColon" styleType="body_14_bold" />
             <UX.Text
               title={`${amount} ${section.selected}`}
               styleType="body_14_bold"
@@ -108,7 +108,7 @@ const TokenSection = ({
       </UX.Box>
       <UX.Box spacing="xss">
         <UX.Text
-          title="Amount"
+          titleKey="transaction.amount"
           styleType="body_16_extra_bold"
           customStyles={{ color: 'white' }}
         />
@@ -140,12 +140,12 @@ const TokenSection = ({
       {!isExpanded && (
         <UX.Box spacing="xss">
           <UX.Text
-            title="Receiver"
+            titleKey="transaction.receiver"
             styleType="body_16_extra_bold"
             customStyles={{ color: 'white' }}
           />
           <UX.Input
-            placeholder="Receiver address"
+            placeholderKey="send.receiverAddress"
             style={{
               fontSize: '16px',
               border: 'none',
@@ -547,7 +547,7 @@ const TransferAuthority = () => {
   //! Render
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="1-TX Transfer" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="tap.oneTxTransfer" onBackClick={handleGoBack} />}
       body={
         <UX.Box style={{ width: '100%', paddingBottom: isWaitingCancel ? '80px' : 0 }} spacing="xl">
           {tokenSections.map(section => (
@@ -563,7 +563,7 @@ const TransferAuthority = () => {
               getComponentState={getComponentState}
               validateSection={validateSection}
               updateTokenSectionErrors={updateTokenSectionErrors}
-              isSubmitted={isSubmitted} // <--- PASS DOWN isSubmitted
+              isSubmitted={isSubmitted}
             />
           ))}
 
@@ -575,13 +575,13 @@ const TransferAuthority = () => {
             <SVG.AddIcon color="#D16B7C" width={20} height={20} />
             <UX.Text
               styleType="body_14_bold"
-              title="Transfer more token"
+              titleKey="tap.transferMoreToken"
               customStyles={{ color: colors.main_500 }}
             />
           </UX.Box>
           <UX.Box spacing="xss">
             <UX.Text
-              title="Fee rate"
+              titleKey="transaction.feeRate"
               styleType="body_16_extra_bold"
               customStyles={{ color: 'white' }}
             />
@@ -594,7 +594,7 @@ const TransferAuthority = () => {
           </UX.Box>
           <UX.Button
             styleType="primary"
-            title={'Next'}
+            titleKey="common.next"
             customStyles={{zIndex: 2}}
             onClick={handleConfirm}
             isDisable={loading}

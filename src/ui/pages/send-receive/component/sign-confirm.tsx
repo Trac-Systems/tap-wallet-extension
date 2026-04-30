@@ -26,6 +26,7 @@ import {
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
 import {bitcoin} from '@/src/background/utils';
 import {ledgerSignManager} from '@/src/ui/utils/ledger-sign-manager';
+import {useI18n} from '@/src/ui/i18n';
 
 interface Props {
   params: {
@@ -57,6 +58,7 @@ const SignConfirm = ({
 }: Props) => {
   const navigate = useNavigate();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const [isPageLoading, setIsPageLoading] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [usdPriceSpendAmount, setUsdPriceSpendAmount] = useState(0);
@@ -73,7 +75,7 @@ const SignConfirm = ({
     copyToClipboard(text).then(() => {
       showToast({
         type: 'copied',
-        title: 'Copied',
+        titleKey: 'common.copied',
       });
     });
   };
@@ -181,7 +183,7 @@ const SignConfirm = ({
   //! Render
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Summary" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="transaction.summary" onBackClick={handleGoBack} />}
       body={
         isValidData && (
           <UX.Box layout="column" spacing="xl" style={{width: '100%'}}>
@@ -196,7 +198,7 @@ const SignConfirm = ({
                 <SVG.ArrowUpRight />
               </UX.Box>
               <UX.Text
-                title="Spend Amount"
+                titleKey="transaction.spendAmount"
                 styleType="body_16_normal"
                 customStyles={{marginTop: '24px', marginBottom: '8px'}}
               />
@@ -225,7 +227,7 @@ const SignConfirm = ({
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">
-                <UX.Text title="From" styleType="body_14_normal" />
+                <UX.Text titleKey="transaction.from" styleType="body_14_normal" />
                 <UX.Text
                   title={formatAddressLongText(activeAccountAddress, 8, 6)}
                   styleType="body_14_normal"
@@ -233,7 +235,7 @@ const SignConfirm = ({
                 />
               </UX.Box>
               <UX.Box layout="row_between">
-                <UX.Text title="To" styleType="body_14_normal" />
+                <UX.Text titleKey="transaction.to" styleType="body_14_normal" />
                 <UX.Text
                   title={formatAddressLongText(toAddress, 8, 6)}
                   styleType="body_14_normal"
@@ -243,7 +245,7 @@ const SignConfirm = ({
             </UX.Box>
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">
-                <UX.Text title="Network fee" styleType="body_14_normal" />
+                <UX.Text titleKey="transaction.networkFee" styleType="body_14_normal" />
                 <UX.Text
                   title={`${networkFee} BTC`}
                   styleType="body_14_normal"
@@ -251,7 +253,7 @@ const SignConfirm = ({
                 />
               </UX.Box>
               <UX.Box layout="row_between">
-                <UX.Text title="Network fee rate" styleType="body_14_normal" />
+                <UX.Text titleKey="transaction.networkFeeRate" styleType="body_14_normal" />
                 <UX.Text
                   title={`${rawTxInfo?.feeRate?.toString()} sat/vB`}
                   styleType="body_14_normal"
@@ -259,7 +261,7 @@ const SignConfirm = ({
                 />
               </UX.Box>
             </UX.Box>
-            <UX.Text title={'FEATURES'} styleType="heading_16" />
+            <UX.Text titleKey="transaction.features" styleType="heading_16" />
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">
                 <UX.Box layout="row" spacing="xss">
@@ -291,7 +293,8 @@ const SignConfirm = ({
               </UX.Box>
             </UX.Box>
             <UX.Text
-              title={`INPUT (${rawTxInfo?.inputs?.length})`}
+              titleKey="transaction.inputCount"
+              titleParams={{count: rawTxInfo?.inputs?.length ?? 0}}
               styleType="heading_16"
             />
             <UX.Box layout="box" spacing="xl">
@@ -314,7 +317,7 @@ const SignConfirm = ({
                         />
                         {isToSign && (
                           <UX.Text
-                            title="to sign"
+                            titleKey="transaction.toSign"
                             styleType="body_14_normal"
                             customStyles={{
                               color: colors.main_500,
@@ -337,7 +340,8 @@ const SignConfirm = ({
                 })}
             </UX.Box>
             <UX.Text
-              title={`OUTPUT (${rawTxInfo?.outputs?.length})`}
+              titleKey="transaction.outputCount"
+              titleParams={{count: rawTxInfo?.outputs?.length ?? 0}}
               styleType="heading_16"
             />
             <UX.Box layout="box" spacing="xl">
@@ -364,7 +368,7 @@ const SignConfirm = ({
                   );
                 })}
             </UX.Box>
-            <UX.Text title="PSBT Data" styleType="heading_16" />
+            <UX.Text titleKey="transaction.psbtData" styleType="heading_16" />
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">
                 <UX.Text
@@ -396,7 +400,7 @@ const SignConfirm = ({
           }}>
           <UX.Button
             styleType="primary"
-            title="Sign & Pay"
+            titleKey="transaction.signAndPay"
             onClick={async () => {
               let finalRawtx = rawTxInfo.rawtx;
 
@@ -409,14 +413,14 @@ const SignConfirm = ({
                     const isConnected = await wallet.isLedgerConnected();
                     if (!isConnected) {
                       showToast({
-                        title: 'Ledger is not connected. Please connect your Ledger device and open the Bitcoin app.',
+                        titleKey: 'ledger.notConnectedOpenBitcoin',
                         type: 'error',
                       });
                       return;
                     }
                   } catch (error: any) {
                     showToast({
-                      title: error?.message || 'Failed to check Ledger connection',
+                      title: error?.message || t('ledger.failedConnectionCheck'),
                       type: 'error',
                     });
                     return;
@@ -442,8 +446,8 @@ const SignConfirm = ({
                     throw new Error('No inputs to sign');
                   }
                 } catch (error: any) {
-                  showToast({
-                    title: error?.message || 'Failed to sign transaction with hardware wallet',
+                 showToast({
+                    title: error?.message || t('ledger.failedHardwareSign'),
                     type: 'error',
                   });
                   setIsSigning(false);
@@ -458,7 +462,7 @@ const SignConfirm = ({
               
               if (!finalRawtx) {
                 showToast({
-                  title: 'Transaction is not signed',
+                  titleKey: 'transaction.notSigned',
                   type: 'error',
                 });
                 return;
@@ -487,17 +491,17 @@ const SignConfirm = ({
                 } catch (error: any) {
                   // Transaction broadcast failed
                   showToast({
-                    title: error?.message || 'Failed to broadcast transaction',
+                    title: error?.message || t('transaction.failedToBroadcast'),
                     type: 'error',
                   });
 
                   if (type === TxType.INSCRIBE_TAP) {
                     navigate('/home/inscribe-result', {
-                      state: {error: error?.message || 'Failed to broadcast transaction'},
+                      state: {error: error?.message || t('transaction.failedToBroadcast')},
                     });
                   } else if (type === TxType.TAPPING) {
                     navigate('/home/send-fail', {
-                      state: {error: error?.message || 'Failed to broadcast transaction'},
+                      state: {error: error?.message || t('transaction.failedToBroadcast')},
                     });
                   }
                 }

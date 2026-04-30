@@ -26,6 +26,7 @@ import { useHardwareWalletMismatch } from '@/src/ui/pages/send-receive/hook';
 import { useWalletProvider } from '@/src/ui/gateway/wallet-provider';
 import { AccountActions } from '@/src/ui/redux/reducer/account/slice';
 import { useTokenUSDPrice } from '@/src/ui/hook/use-token-usd-price';
+import {useI18n} from '@/src/ui/i18n';
 import { useBtcUsdPrice } from '@/src/ui/hook/use-btc-usd-price';
 
 interface TapListChildProps {
@@ -36,6 +37,7 @@ interface TapListChildProps {
 const TapListChild = (props: TapListChildProps) => {
   const { onOpenFilter, networkFilters = { bitcoin: true, trac: true } } = props;
   const navigate = useNavigate();
+  const {t} = useI18n();
   const { getTapList } = useInscriptionHook();
   const { getTokenInfoAndStore, loadingTicker } = useTokenInfo();
   const { fetchAllInscriptions } = useAllInscriptions();
@@ -265,15 +267,15 @@ const TapListChild = (props: TapListChildProps) => {
 
   const mangeAuthorityTitle = useMemo(() => {
     if (isGettingAuthorityStatus) {
-      return 'Loading...';
+      return t('common.loading') + '...';
     }
     if (orderNeedTap) {
-      return 'Confirm your 1-TX Transfer NOW';
+      return t('tap.confirmOneTxTransfer');
     }
     if (currentAuthority || orderAuthorityPending) {
-      return 'Manage Authority';
+      return t('settings.manageAuthority');
     }
-    return 'Enable 1-TX Transfer';
+    return t('tap.enableOneTxTransfer');
   }, [
     currentAuthority,
     orderNeedTap,
@@ -325,7 +327,7 @@ const TapListChild = (props: TapListChildProps) => {
           <UX.Box layout="row" spacing="xs" className="search-box-token" style={{ flex: 1 }}>
             <SVG.SearchIcon />
             <input
-              placeholder="Search for token"
+              placeholder={t('tap.searchToken')}
               className="search-box-token-input"
               onChange={handleChange}
               value={tokenValue}
@@ -341,7 +343,7 @@ const TapListChild = (props: TapListChildProps) => {
         {currentAuthority && !isLedgerWallet && (
           <UX.Button
             styleType={'primary'}
-            title="1-TX Transfer"
+            titleKey="tap.oneTxTransfer"
             onClick={() => navigate('/transfer-authority')}
           />
         )}

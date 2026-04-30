@@ -12,7 +12,7 @@ interface Transaction {
   address: string;
   amount: string;
   currency: string;
-  status: 'confirmed' | 'pending' | 'failed';
+  status: string;
   txid: string;
   timestamp: number;
 }

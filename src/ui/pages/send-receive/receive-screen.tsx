@@ -23,7 +23,7 @@ const Receive = () => {
     copyToClipboard(address).then(() => {
       showToast({
         type: 'copied',
-        title: 'Copied',
+        titleKey: 'common.copied',
       });
     });
   };
@@ -31,12 +31,12 @@ const Receive = () => {
   //! Render
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Receive" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="send.receive" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column_center" spacing="xl">
           <UX.Box spacing="xlg">
             <UX.Text
-              title="Qr code"
+              titleKey="send.qrCode"
               styleType="heading_16"
               customStyles={{color: 'white', textTransform: 'uppercase'}}
             />
@@ -53,7 +53,7 @@ const Receive = () => {
           </UX.Box>
           <UX.Box spacing="xlg">
             <UX.Text
-              title="Wallet address"
+              titleKey="send.walletAddress"
               styleType="heading_16"
               customStyles={{color: 'white'}}
             />
@@ -80,7 +80,7 @@ const Receive = () => {
               flex: 1
             }}
             svgIcon={<SVG.CopyPink color="white" width={20} height={20} />}
-            title="Copy address"
+            titleKey="send.copyAddress"
             onClick={handleCopyAddress}
           />
        </UX.Box>

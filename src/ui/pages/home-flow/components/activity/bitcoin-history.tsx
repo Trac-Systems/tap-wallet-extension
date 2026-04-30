@@ -9,10 +9,13 @@ import { AccountSelector } from '@/src/ui/redux/reducer/account/selector';
 import TransactionGroup from './transaction-group';
 import { useBitcoinHistory } from '../../hooks/use-bitcoin-history';
 import { colors } from '@/src/ui/themes/color';
+import {useI18n, useLocaleFormat} from '@/src/ui/i18n';
 
 const BitcoinHistory = () => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const address = activeAccount?.address || '';
+  const {t} = useI18n();
+  const {formatDate} = useLocaleFormat();
 
   const { transactions, loading, loadingMore, error, hasMore, loadMore } = useBitcoinHistory(address);
 
@@ -31,14 +34,15 @@ const BitcoinHistory = () => {
 
       let label: string;
       if (txDay.getTime() === today.getTime()) {
-        label = 'Today';
+        label = t('activity.today');
       } else if (txDay.getTime() === yesterday.getTime()) {
-        label = 'Yesterday';
+        label = t('activity.yesterday');
       } else {
-        const day = String(txDate.getDate()).padStart(2, '0');
-        const month = String(txDate.getMonth() + 1).padStart(2, '0');
-        const year = txDate.getFullYear();
-        label = `${day}/${month}/${year}`;
+        label = formatDate(txDate, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
       }
 
       if (!groups[label]) {
@@ -57,7 +61,7 @@ const BitcoinHistory = () => {
     return (
       <UX.Box layout="column_center" spacing="xl" style={{ padding: '40px 20px' }}>
         <UX.Text
-          title="Loading transactions..."
+          titleKey="activity.loadingTransactions"
           styleType="body_14_normal"
           customStyles={{ color: colors.white, opacity: 0.6 }}
         />
@@ -83,7 +87,7 @@ const BitcoinHistory = () => {
     return (
       <UX.Box layout="column_center" spacing="xl" style={{ padding: '40px 20px' }}>
         <UX.Text
-          title="No transactions yet"
+          titleKey="activity.noTransactions"
           styleType="body_14_normal"
           customStyles={{ color: colors.white, opacity: 0.6 }}
         />
@@ -106,7 +110,7 @@ const BitcoinHistory = () => {
       {hasMore && !loading && transactions.length > 0 && (
         <UX.Box layout="column_center" spacing="sm" style={{ padding: '16px 0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <UX.Button
-            title={loadingMore ? 'Loading...' : 'Load More'}
+            titleKey={loadingMore ? 'common.loading' : 'activity.loadMore'}
             onClick={loadMore}
             isDisable={loadingMore}
             styleType="white"

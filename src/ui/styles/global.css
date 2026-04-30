@@ -4,9 +4,13 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-family: Exo, -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 :root {
   color-scheme: dark;
+  --font-main: Exo, -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   /* min-width: 100vw;
   min-height: 100vh; */
   justify-content: center;

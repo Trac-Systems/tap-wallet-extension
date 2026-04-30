@@ -8,6 +8,7 @@ import browser from 'webextension-polyfill';
 import {useAppSelector, getUiType} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {Network} from '@/src/wallet-instance';
+import {useI18n} from '../../i18n';
 
 const LEDGER_VENDOR_ID = 0x2c97;
 
@@ -19,8 +20,9 @@ const ConnectLedger = () => {
   //! State
   const navigate = useNavigate();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const networkType = useAppSelector(GlobalSelector.networkType);
-  const activeNetwork = networkType === 'TESTNET' ? Network.TESTNET : Network.MAINNET;
+  const activeNetwork = networkType === Network.TESTNET ? Network.TESTNET : Network.MAINNET;
   
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -39,10 +41,10 @@ const ConnectLedger = () => {
 
   const formatTransportError = (error: any): string => {
     const message = error?.message || String(error || '');
-    if (message.includes('No device selected')) return 'You canceled device selection.';
-    if (message.includes('The device is already open')) return 'The device is in use (Ledger Live may be running).';
-    if (message.includes('SecurityError')) return 'Browser blocked USB access. Please check extension permissions.';
-    return message || 'Unknown error';
+    if (message.includes('No device selected')) return t('ledger.deviceSelectionCanceled');
+    if (message.includes('The device is already open')) return t('ledger.deviceInUse');
+    if (message.includes('SecurityError')) return t('ledger.usbBlocked');
+    return message || t('common.unknownError');
   };
 
   const ensureUsbPermission = async () => {
@@ -66,12 +68,12 @@ const ConnectLedger = () => {
       const message = error?.message || String(error || '');
       if (message.includes('No device selected')) {
         showToast({
-          title: 'USB permission was cancelled. Please allow access to your Ledger device.',
+          titleKey: 'ledger.usbPermissionCanceled',
           type: 'error',
         });
       } else {
         showToast({
-          title: 'Unable to request USB permission. Please ensure you are using Chrome or a Chromium-based browser.',
+          titleKey: 'ledger.unableUsbPermission',
           type: 'error',
         });
       }
@@ -103,7 +105,11 @@ const ConnectLedger = () => {
       const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(() => {
           const appName = getExpectedAppName(activeNetwork);
-          reject(new Error(`Connection timeout. Make sure your Ledger is plugged in, unlocked, and the ${appName} app is open.`));
+          reject(
+            new Error(
+              t('ledger.connectionTimeout', {appName}),
+            ),
+          );
         }, 5000);
       });
       const resp: any = await Promise.race([connectPromise, timeoutPromise]);
@@ -154,7 +160,7 @@ const ConnectLedger = () => {
         return;
       } catch (error) {
         showToast({
-          title: 'Failed to open in new tab. Please try again.',
+          titleKey: 'ledger.failedOpenNewTab',
           type: 'error',
         });
         return;
@@ -170,19 +176,19 @@ const ConnectLedger = () => {
   //! Render
   return (
     <LayoutScreenImport
-      header={<UX.TextHeader text="Connect Ledger" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="ledger.connectLedger" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column_center" spacing="xl" style={{width: '100%'}}>
           {isConnected ? (
             <>
               <SVG.SuccessIcon width={96} height={96} />
               <UX.Text
-                title="Pairing successful"
+                titleKey="ledger.pairingSuccessful"
                 styleType="heading_20"
                 customStyles={{textAlign: 'center', marginTop: '16px', color: 'white'}}
               />
               <UX.Text
-                title="Your Ledger device has been successfully paired and connected!"
+                titleKey="ledger.pairingSuccessfulDesc"
                 styleType="body_14_normal"
                 customStyles={{
                   textAlign: 'center',
@@ -196,7 +202,7 @@ const ConnectLedger = () => {
             <>
               <SVG.SeedPhraseIcon />
               <UX.Text
-                title="Connect your Ledger hardware wallet"
+                titleKey="ledger.connectHardwareWallet"
                 styleType="heading_20"
                 customStyles={{textAlign: 'center', marginTop: '8px', color: 'white'}}
               />
@@ -235,12 +241,12 @@ const ConnectLedger = () => {
                 </UX.Box>
                 <UX.Box layout="column" style={{flex: 1}}>
                   <UX.Text
-                    title="Enable USB"
+                    titleKey="ledger.enableUsb"
                     styleType="body_16_bold"
                     customStyles={{color: 'white', marginBottom: '4px'}}
                   />
                   <UX.Text
-                    title="Allow permission to use USB"
+                    titleKey="ledger.allowUsbPermission"
                     styleType="body_14_normal"
                     customStyles={{color: '#aaa'}}
                   />
@@ -269,12 +275,12 @@ const ConnectLedger = () => {
                 </UX.Box>
                 <UX.Box layout="column" style={{flex: 1}}>
                   <UX.Text
-                    title="Connect your Ledger device"
+                    titleKey="ledger.connectDevice"
                     styleType="body_16_bold"
                     customStyles={{color: 'white', marginBottom: '4px'}}
                   />
                   <UX.Text
-                    title="Connect via USB cable"
+                    titleKey="ledger.connectUsbCable"
                     styleType="body_14_normal"
                     customStyles={{color: '#aaa'}}
                   />
@@ -303,12 +309,14 @@ const ConnectLedger = () => {
                 </UX.Box>
                 <UX.Box layout="column" style={{flex: 1}}>
                   <UX.Text
-                    title={`Connect ${getExpectedAppName(activeNetwork)} App`}
+                    titleKey="ledger.connectApp"
+                    titleParams={{appName: getExpectedAppName(activeNetwork)}}
                     styleType="body_16_bold"
                     customStyles={{color: 'white', marginBottom: '4px'}}
                   />
                   <UX.Text
-                    title={`Select ${getExpectedAppName(activeNetwork)} App to complete connection.`}
+                    titleKey="ledger.selectAppToComplete"
+                    titleParams={{appName: getExpectedAppName(activeNetwork)}}
                     styleType="body_14_normal"
                     customStyles={{color: '#aaa'}}
                   />
@@ -329,14 +337,14 @@ const ConnectLedger = () => {
           {!isConnected ? (
             <UX.Button
               styleType="primary"
-              title={isConnecting ? 'Connecting...' : 'Connect'}
+              titleKey={isConnecting ? 'ledger.connecting' : 'common.connect'}
               onClick={handleConnect}
               isDisable={isConnecting}
             />
           ) : (
             <UX.Button
               styleType="primary"
-              title="Continue"
+              titleKey="common.continue"
               onClick={() => navigate('/choose-ledger-address')}
             />
           )}
@@ -347,4 +355,3 @@ const ConnectLedger = () => {
 };
 
 export default ConnectLedger;
-

@@ -6,12 +6,14 @@ import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useEffect, useState} from 'react';
 import {ConnectedSite} from '@/src/background/service/permission.service';
 import {SVG} from '../../svg';
+import {useI18n} from '../../i18n';
 
 const ConnectSite = () => {
   //! State
   const navigate = useNavigate();
   const wallet = useWalletProvider();
   const [sites, setSites] = useState<ConnectedSite[]>([]);
+  const {t} = useI18n();
 
   const getSites = async () => {
     const sites = await wallet.getConnectedSites();
@@ -34,7 +36,7 @@ const ConnectSite = () => {
       header={
         <UX.Box style={{padding: '0 24px'}}>
           <UX.TextHeader
-            text="Connect Sites"
+            text={t('settings.connectedSites.titlePage')}
             onBackClick={() => navigate('/setting')}
           />
         </UX.Box>
@@ -78,7 +80,7 @@ const ConnectSite = () => {
           </UX.Box>
         ) : (
           <UX.Text
-            title="No connection"
+            title={t('settings.connectedSites.noConnection')}
             styleType="body_16_bold"
             customStyles={{margin: 'auto'}}
           />

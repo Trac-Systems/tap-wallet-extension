@@ -5,15 +5,18 @@ import {spaces} from '../../themes/space';
 import Box from '../box-custom';
 import Text from '../text-custom';
 import './index.css';
+import type {TranslationParams} from '../../i18n/types';
 
 interface ICardProps {
   isActive?: boolean;
-  text: string;
+  text?: string;
+  textKey?: string;
+  textParams?: TranslationParams;
   onClick?: () => void;
   style?: CSSProperties;
 }
 const Card = (props: ICardProps) => {
-  const {isActive, text, onClick, style} = props;
+  const {isActive, text, textKey, textParams, onClick, style} = props;
 
   return (
     <Box
@@ -26,7 +29,13 @@ const Card = (props: ICardProps) => {
         cursor: 'pointer',
       }}>
       <Box layout="row_between" style={style}>
-        <Text title={text} styleType="body_16_normal" className="widthText" />
+        <Text
+          title={text}
+          titleKey={textKey}
+          titleParams={textParams}
+          styleType="body_16_normal"
+          className="widthText"
+        />
         {isActive ? <SVG.CheckIcon /> : null}
       </Box>
     </Box>

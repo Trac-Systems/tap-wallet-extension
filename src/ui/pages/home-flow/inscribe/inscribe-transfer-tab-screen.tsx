@@ -33,6 +33,7 @@ import TransferApps from '../../authority/component/trac-apps'
 import { useTracAppsLogic } from '../../authority/hook/use-trac-apps-logic'
 import { dta } from '@/src/ui/interfaces'
 import { useTokenUSDPrice } from '@/src/ui/hook/use-token-usd-price';
+import {useI18n} from '@/src/ui/i18n';
 
 interface ContextData {
   ticker: string;
@@ -61,6 +62,7 @@ const InscribeTransferTapScreen = () => {
   //! Hooks
   const navigate = useNavigate();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const wallet = useWalletProvider();
   const fetchUtxos = useFetchUtxosCallback();
   const prepareSendBTC = usePrepareSendBTCCallback();
@@ -139,7 +141,7 @@ const InscribeTransferTapScreen = () => {
       const token_decimal = contextData.tokenInfo?.decimal || 0;
       if (decimal > token_decimal) {
         setInputError(
-          `This token only supports up to ${token_decimal} decimal places.`,
+          t('tap.decimalPlacesLimit', {decimal: token_decimal}),
         );
         return;
       }
@@ -163,7 +165,7 @@ const InscribeTransferTapScreen = () => {
     }
 
     if (amount.gt(contextData.tokenBalance.availableBalance)) {
-      setInputError('Insufficient Balance');
+      setInputError(t('transaction.insufficientBalance'));
       return;
     }
 
@@ -176,7 +178,7 @@ const InscribeTransferTapScreen = () => {
 
     const dust = getUtxoDustThreshold(activeWallet.addressType);
     if (outputValue < dust) {
-      setOutputValueError(`OutputValue must be at least ${dust}`);
+      setOutputValueError(t('tap.outputValueMin', {dust}));
       return;
     }
 
@@ -185,7 +187,17 @@ const InscribeTransferTapScreen = () => {
     }
 
     setDisabled(false);
-  }, [inputAmount, feeRate, outputValue, contextData.tokenBalance, isExpanded, selectedApp]);
+  }, [
+    activeWallet.addressType,
+    contextData.tokenBalance,
+    contextData.tokenInfo?.decimal,
+    feeRate,
+    inputAmount,
+    isExpanded,
+    outputValue,
+    selectedApp,
+    t,
+  ]);
 
 
   //! Function
@@ -199,7 +211,7 @@ const InscribeTransferTapScreen = () => {
       const token_decimal = contextData.tokenInfo?.decimal || 0;
       if (decimal > token_decimal) {
         setInputError(
-          `This token only supports up to ${token_decimal} decimal places.`,
+          t('tap.decimalPlacesLimit', {decimal: token_decimal}),
         );
         return;
       }
@@ -268,7 +280,7 @@ const InscribeTransferTapScreen = () => {
   return (
     <LayoutTap
       header={
-        <UX.TextHeader text={'Inscribe Transfer'} onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="tap.inscribeTransfer" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box style={{width: '100%'}}>
@@ -279,7 +291,7 @@ const InscribeTransferTapScreen = () => {
                   <UX.Text
                     styleType="heading_16"
                     customStyles={{color: 'white'}}
-                    title="Available"
+                    titleKey="transaction.available"
                   />
                   <UX.Box layout="row" spacing="xs">
                     <UX.Text
@@ -298,7 +310,7 @@ const InscribeTransferTapScreen = () => {
                 </UX.Box>
               ) : (
                 <UX.Text
-                  title={'Loading...'}
+                  titleKey="common.loading"
                   styleType="body_14_normal"
                   customStyles={{color: colors.smoke}}
                 />
@@ -314,7 +326,7 @@ const InscribeTransferTapScreen = () => {
                 disabled={inputDisabled}
                 value={formatAmountNumber(inputAmount)}
                 onAmountInputChange={amountOnChangeText}
-                placeholder="Amount"
+                placeholderKey="transaction.amount"
               />
               {inputError && (
                 <UX.Text
@@ -327,7 +339,7 @@ const InscribeTransferTapScreen = () => {
                 <UX.Box layout="row" spacing="xss_s" style={{marginTop: '4px'}}>
                   {isLoadingUsd ? (
                     <UX.Text
-                      title="Loading..."
+                      titleKey="common.loading"
                       styleType="body_12_normal"
                       customStyles={{color: '#FFFFFFB0'}}
                     />
@@ -357,7 +369,7 @@ const InscribeTransferTapScreen = () => {
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
-                title="Output Value"
+                titleKey="transaction.outputValue"
               />
               <OutputValueBar
                 defaultValue={defaultOutputValue}
@@ -376,7 +388,7 @@ const InscribeTransferTapScreen = () => {
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
-                title="Fee rate"
+                titleKey="transaction.feeRate"
               />
               <FeeRateBar
                 onChange={val => {
@@ -401,7 +413,7 @@ const InscribeTransferTapScreen = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={'Next'}
+            titleKey="common.next"
             isDisable={disabled}
             onClick={inscribeOnPressed}
           />

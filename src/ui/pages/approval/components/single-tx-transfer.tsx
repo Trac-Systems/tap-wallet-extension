@@ -327,7 +327,7 @@ export const Step1 = ({
         <UX.Text
           styleType="heading_16"
           customStyles={{color: 'white'}}
-          title="Fee rate"
+          titleKey="transaction.feeRate"
         />
         <FeeRateBar
           onChange={val => {
@@ -382,7 +382,7 @@ export const Step2 = ({
       </UX.Box> */}
       <UX.Box spacing="xs" style={{margin: '16px 0'}}>
         <UX.Text
-          title="Preview"
+          titleKey="transaction.preview"
           styleType="body_16_normal"
           customStyles={{color: colors.white}}
         />
@@ -411,7 +411,7 @@ export const Step2 = ({
       </UX.Box>
       <UX.Box spacing="xs">
         <UX.Box layout="row_between">
-          <UX.Text title="Payment method fee" styleType="body_16_normal" />
+          <UX.Text titleKey="transaction.paymentMethodFee" styleType="body_16_normal" />
           <UX.Text
             title={networkFee}
             styleType="body_16_normal"
@@ -421,7 +421,7 @@ export const Step2 = ({
 
         <UX.Box layout="row_between">
           <UX.Text
-            title="Inscription Output Value"
+            titleKey="transaction.inscriptionOutputValue"
             styleType="body_16_normal"
           />
           <UX.Text
@@ -431,7 +431,7 @@ export const Step2 = ({
           />
         </UX.Box>
         <UX.Box layout="row_between">
-          <UX.Text title="Inscription Network Fee" styleType="body_16_normal" />
+          <UX.Text titleKey="transaction.inscriptionNetworkFee" styleType="body_16_normal" />
           <UX.Text
             title={`${minerFee} BTC`}
             styleType="body_16_normal"
@@ -439,7 +439,7 @@ export const Step2 = ({
           />
         </UX.Box>
         <UX.Box layout="row_between">
-          <UX.Text title="Service fee" styleType="body_16_normal" />
+          <UX.Text titleKey="transaction.serviceFee" styleType="body_16_normal" />
           {Number(discountServiceFee) > 0 ? (
             <UX.Box layout="row_between">
               <UX.Text
@@ -460,7 +460,7 @@ export const Step2 = ({
           )}
         </UX.Box>
         <UX.Box layout="row_between">
-          <UX.Text title="Total" styleType="body_16_normal" />
+          <UX.Text titleKey="transaction.total" styleType="body_16_normal" />
           <UX.Text
             title={`${totalFee} BTC`}
             styleType="body_16_normal"
@@ -491,7 +491,7 @@ export const Step3 = ({
     copyToClipboard(text).then(() => {
       showToast({
         type: 'copied',
-        title: 'Copied',
+        titleKey: 'common.copied',
       });
     });
   };
@@ -541,7 +541,7 @@ export const Step3 = ({
           <SVG.ArrowUpRight />
         </UX.Box>
         <UX.Text
-          title="Spend Amount"
+          titleKey="transaction.spendAmount"
           styleType="body_16_normal"
           customStyles={{marginTop: '24px', marginBottom: '8px'}}
         />
@@ -556,7 +556,7 @@ export const Step3 = ({
       </UX.Box>
       <UX.Box layout="box" spacing="xl">
         <UX.Box layout="row_between">
-          <UX.Text title="From" styleType="body_14_normal" />
+          <UX.Text titleKey="transaction.from" styleType="body_14_normal" />
           <UX.Text
             title={formatAddressLongText(account.address, 8, 6)}
             styleType="body_14_normal"
@@ -564,7 +564,7 @@ export const Step3 = ({
           />
         </UX.Box>
         <UX.Box layout="row_between">
-          <UX.Text title="To" styleType="body_14_normal" />
+          <UX.Text titleKey="transaction.to" styleType="body_14_normal" />
           <UX.Text
             title={formatAddressLongText(order.payAddress, 8, 6)}
             styleType="body_14_normal"
@@ -574,7 +574,7 @@ export const Step3 = ({
       </UX.Box>
       <UX.Box layout="box" spacing="xl">
         <UX.Box layout="row_between">
-          <UX.Text title="Network fee" styleType="body_14_normal" />
+          <UX.Text titleKey="transaction.networkFee" styleType="body_14_normal" />
           <UX.Text
             title={`${networkFee} BTC`}
             styleType="body_14_normal"
@@ -582,7 +582,7 @@ export const Step3 = ({
           />
         </UX.Box>
         <UX.Box layout="row_between">
-          <UX.Text title="Network fee rate" styleType="body_14_normal" />
+          <UX.Text titleKey="transaction.networkFeeRate" styleType="body_14_normal" />
           <UX.Text
             title={`${rawTxInfo.feeRate} sat/vB`}
             styleType="body_14_normal"
@@ -591,7 +591,8 @@ export const Step3 = ({
         </UX.Box>
       </UX.Box>
       <UX.Text
-        title={`INPUT (${rawTxInfo?.inputs?.length})`}
+        titleKey="transaction.inputCount"
+        titleParams={{count: rawTxInfo?.inputs?.length ?? 0}}
         styleType="heading_16"
       />
       <UX.Box layout="box" spacing="xl">
@@ -614,7 +615,7 @@ export const Step3 = ({
                   />
                   {isToSign && (
                     <UX.Text
-                      title="to sign"
+                      titleKey="transaction.toSign"
                       styleType="body_14_normal"
                       customStyles={{
                         color: colors.main_500,
@@ -637,7 +638,8 @@ export const Step3 = ({
           })}
       </UX.Box>
       <UX.Text
-        title={`OUTPUT (${rawTxInfo?.outputs?.length})`}
+        titleKey="transaction.outputCount"
+        titleParams={{count: rawTxInfo?.outputs?.length ?? 0}}
         styleType="heading_16"
       />
       <UX.Box layout="box" spacing="xl">
@@ -662,7 +664,7 @@ export const Step3 = ({
             );
           })}
       </UX.Box>
-      <UX.Text title="PSBT Data" styleType="heading_16" />
+      <UX.Text titleKey="transaction.psbtData" styleType="heading_16" />
       <UX.Box layout="box" spacing="xl">
         <UX.Box layout="row_between">
           <UX.Text
@@ -760,7 +762,12 @@ export const Step4 = ({
         rejectApproval(error);
       }
     } catch (error) {
-      showToast({type: 'error', title: isLegacyUser ? 'wrong PIN' : 'wrong password'});
+      showToast({
+        type: 'error',
+        titleKey: isLegacyUser
+          ? 'settings.security.wrongPin'
+          : 'settings.security.wrongPassword',
+      });
       setValueInput('');
       pinInputRef.current?.clear?.();
     }
@@ -947,13 +954,13 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         return (
           <UX.Box layout="row" spacing="sm" style={{padding: '10px 0'}}>
             <UX.Button
-              title="Cancel"
+              titleKey="common.cancel"
               styleType="dark"
               onClick={() => rejectApproval('User rejected the request.')}
               customStyles={{flex: 1}}
             />
             <UX.Button
-              title="Next"
+              titleKey="common.next"
               styleType="primary"
               isDisable={
                 contextData.disableBtn ||
@@ -969,7 +976,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         return (
           <UX.Box layout="row" spacing="sm" style={{padding: '10px 0'}}>
             <UX.Button
-              title="Back"
+              titleKey="common.back"
               styleType="dark"
               onClick={() => {
                 updateContextData({tabKey: TabKey.STEP1});
@@ -977,7 +984,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
               customStyles={{flex: 1}}
             />
             <UX.Button
-              title="Next"
+              titleKey="common.next"
               styleType="primary"
               onClick={() => {
                 updateContextData({tabKey: TabKey.STEP3});
@@ -990,7 +997,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         return (
           <UX.Box layout="row" spacing="sm" style={{padding: '10px 0'}}>
             <UX.Button
-              title="Back"
+              titleKey="common.back"
               styleType="dark"
               onClick={() => {
                 updateContextData({tabKey: TabKey.STEP1});
@@ -998,7 +1005,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
               customStyles={{flex: 1}}
             />
             <UX.Button
-              title="Sign & Pay"
+              titleKey="transaction.signAndPay"
               styleType="primary"
               onClick={() => {
                 updateContextData({tabKey: TabKey.STEP4});
@@ -1011,7 +1018,7 @@ export default function SingleTxTransfer({params: {data, session}}: Props) {
         return (
           <UX.Box style={{padding: '10px 0'}}>
             <UX.Button
-              title="Confirm"
+            titleKey="common.confirm"
               styleType="primary"
               onClick={contextData.handleSubmitTx}
               customStyles={{flex: 1}}

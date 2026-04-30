@@ -3,10 +3,14 @@ import {toast, ToastPosition, ToastOptions} from 'react-toastify';
 import {colors} from '../../themes/color';
 import {SVG} from '../../svg';
 import Text from '../text-custom';
+import {useOptionalI18n} from '../../i18n/context';
+import type {TranslationParams} from '../../i18n/types';
 
 interface UseCustomToastProps {
   type: 'error' | 'success' | 'copied';
-  title: string;
+  title?: string;
+  titleKey?: string;
+  titleParams?: TranslationParams;
   position?: ToastPosition;
   duration?: number;
 }
@@ -38,12 +42,17 @@ const typeProperties = {
 
 export const useCustomToast = () => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const i18n = useOptionalI18n();
   const showToast = ({
     type = 'success',
     title,
+    titleKey,
+    titleParams,
     position = 'bottom-center',
   }: UseCustomToastProps) => {
     if (isVisible) return;
+    const displayTitle =
+      titleKey && i18n ? i18n.t(titleKey, titleParams) : title ?? '';
 
     setIsVisible(true);
     const toastContent = (
@@ -56,7 +65,7 @@ export const useCustomToast = () => {
           gap: '10px',
         }}>
         <Text
-          title={title}
+          title={displayTitle}
           customStyles={{
             color: type === 'copied' ? colors.green_700 : colors.white,
           }}

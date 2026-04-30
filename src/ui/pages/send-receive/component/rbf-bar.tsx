@@ -19,7 +19,7 @@ export function RBFBar({
     <UX.Box layout="row_between" style={{marginTop: '14px'}}>
       <UX.Box spacing="xss" layout="row">
         <UX.Text title="RBF" styleType="body_14_bold" />
-        <UX.Tooltip text="A feature allows the transaction to be replaced.">
+        <UX.Tooltip textKey="fee.rbfTooltip">
           <SVG.QuestionMark />
         </UX.Tooltip>
       </UX.Box>

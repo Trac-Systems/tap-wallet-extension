@@ -12,7 +12,7 @@ export const AuthorityWarning = () => {
   };
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Create Authority" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="authority.create" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
           <UX.Box spacing="xs">

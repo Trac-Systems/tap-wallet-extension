@@ -21,10 +21,11 @@ import {useIsTabOpen, useOpenInTab} from '../../browser';
 import {useResetReduxState} from '../../hook/reset-redux-state';
 import {ConnectedSite} from '@/src/background/service/permission.service';
 import {useIsTracSingleWallet} from '../home-flow/hook';
-import {useCustomToast} from '../../component/toast-custom';
+import {useI18n, useTranslatedToast} from '../../i18n';
 
 const SettingPage = () => {
   type SettingsItem = {
+    id: string;
     title: string;
     desc?: string;
     link?: string;
@@ -36,7 +37,7 @@ const SettingPage = () => {
   //! State
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const {showToast} = useCustomToast();
+  const {showTranslatedToast} = useTranslatedToast();
   const networkType = useAppSelector(GlobalSelector.networkType);
   const hasExtensionUpdate = useAppSelector(GlobalSelector.hasExtensionUpdate);
   const extensionUpdateVersion = useAppSelector(
@@ -51,6 +52,7 @@ const SettingPage = () => {
   const [sitesConnected, setSitesConnected] = useState<ConnectedSite[]>([]);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const currentExtensionVersion = getCurrentExtensionVersion();
+  const {language, languageLabels, t, tp} = useI18n();
 
   const getSites = async () => {
     const sites = await wallet.getConnectedSites();
@@ -106,19 +108,19 @@ const SettingPage = () => {
         return;
       }
 
-      showToast({
+      showTranslatedToast({
         type: 'success',
-        title: 'You are on the latest version.',
+        titleKey: 'settings.appVersion.latest',
       });
     } catch (error) {
-      showToast({
+      showTranslatedToast({
         type: 'error',
-        title: 'Unable to check for updates.',
+        titleKey: 'settings.appVersion.unableToCheck',
       });
     } finally {
       setIsCheckingUpdate(false);
     }
-  }, [dispatch, isCheckingUpdate, showToast]);
+  }, [dispatch, isCheckingUpdate, showTranslatedToast]);
 
   //! Function
   const settingsFunction = useMemo<SettingsItem[]>(() => {
@@ -134,70 +136,101 @@ const SettingPage = () => {
     let showWebsiteConnected: string;
 
     if (sitesConnected.length > 0 && sitesConnected.length === 1) {
-      showWebsiteConnected = `${sitesConnected[0].name ?? 'One website'} is connected `;
+      showWebsiteConnected = tp('settings.connectedSites.connected', 1, {
+        name: sitesConnected[0].name ?? t('settings.connectedSites.oneWebsite'),
+      });
     } else if (sitesConnected.length > 1) {
-      showWebsiteConnected = `${sitesConnected.length} sites are connected `;
+      showWebsiteConnected = tp(
+        'settings.connectedSites.connected',
+        sitesConnected.length,
+      );
     } else {
-      showWebsiteConnected = 'Not connected';
+      showWebsiteConnected = t('settings.connectedSites.notConnected');
     }
 
     const functions = [
       {
-        title: 'App Version',
+        id: 'appVersion',
+        title: t('settings.appVersion.title'),
         desc: isCheckingUpdate
-          ? 'Checking for updates...'
+          ? t('settings.appVersion.checking')
           : hasExtensionUpdate
-            ? `Update available: ${extensionUpdateVersion}`
-            : `Installed version: ${currentExtensionVersion}`,
+            ? t('settings.appVersion.updateAvailable', {
+                version: extensionUpdateVersion,
+              })
+            : t('settings.appVersion.installed', {
+                version: currentExtensionVersion,
+              }),
         onClick: handleCheckForUpdates,
         loading: isCheckingUpdate,
       },
       {
-        title: 'Bitcoin Address Type',
+        id: 'language',
+        title: t('settings.language.title'),
+        desc: languageLabels[language],
+        link: '/setting/language',
+      },
+      {
+        id: 'bitcoinAddressType',
+        title: t('settings.bitcoinAddressType.title'),
         desc: descAddress,
         link: '/setting/choose-address',
       },
       {
-        title: 'Advanced',
-        desc: 'Advanced Settings',
+        id: 'advanced',
+        title: t('settings.advanced.title'),
+        desc: t('settings.advanced.desc'),
         link: '/setting/advanced',
       },
       {
-        title: 'Connected Sites',
+        id: 'connectedSites',
+        title: t('settings.connectedSites.title'),
         desc: showWebsiteConnected,
         link: '/setting/connect-site',
       },
       {
-        title: 'Network',
+        id: 'network',
+        title: t('settings.network.title'),
         desc:
           networkType === NETWORK_TYPES.MAINNET.label ? Network.MAINNET : networkType,
         link: '/setting/network-type',
       },
       {
-        title: 'Change Password',
-        desc: 'Change your lockscreen password',
+        id: 'changePassword',
+        title: t('settings.changePassword.title'),
+        desc: t('settings.changePassword.desc'),
         link: '/change-password',
       },
       {
-        title: 'Show recovery phrase',
+        id: 'showRecoveryPhrase',
+        title: t('settings.security.showRecoveryPhrase'),
         type: 'recovery',
         link: '/setting/security',
       },
-      {title: 'Show private key', type: 'private', link: '/setting/security'},
-      {title: 'Manage Authority', link: '/authority-detail'},
+      {
+        id: 'showPrivateKey',
+        title: t('settings.security.showPrivateKey'),
+        type: 'private',
+        link: '/setting/security',
+      },
+      {
+        id: 'manageAuthority',
+        title: t('settings.manageAuthority'),
+        link: '/authority-detail',
+      },
     ];
 
     let settings = checkIsSingleWallet
-      ? functions.filter(item => item.title !== 'Show recovery phrase')
+      ? functions.filter(item => item.id !== 'showRecoveryPhrase')
       : functions;
 
     // Hide Bitcoin Address Type for TRAC single wallets
     if (isTracSingleWallet) {
-      settings = settings.filter(item => item.title !== 'Bitcoin Address Type');
+      settings = settings.filter(item => item.id !== 'bitcoinAddressType');
     }
 
     return settings.filter(item => {
-      if (item.title === 'Manage Authority') {
+      if (item.id === 'manageAuthority') {
         return !!currentAuthority;
       }
       return true;
@@ -214,6 +247,10 @@ const SettingPage = () => {
     currentExtensionVersion,
     isCheckingUpdate,
     handleCheckForUpdates,
+    language,
+    languageLabels,
+    t,
+    tp,
   ]);
 
   const handleExpandView = async () => {
@@ -226,7 +263,7 @@ const SettingPage = () => {
   //! Render
   return (
     <LayoutScreenSettings
-      header={<UX.TextHeader text="Settings" disableIconBack />}
+      header={<UX.TextHeader text={t('settings.title')} disableIconBack />}
       body={
         <UX.Box
           layout="column_center"
@@ -236,7 +273,7 @@ const SettingPage = () => {
             {settingsFunction.map(item => {
               return (
                 <UX.Box
-                  key={item.title}
+                  key={item.id}
                   layout="box_border"
                   style={{
                     cursor: item.onClick || item.link ? 'pointer' : 'default',
@@ -277,13 +314,13 @@ const SettingPage = () => {
             {!isExtensionInTab && (
               <UX.Button
                 styleType="text"
-                title="Expand View"
+                title={t('settings.expandView')}
                 onClick={handleExpandView}
               />
             )}
             <UX.Button
               styleType="text"
-              title="Lock Immediately"
+              title={t('settings.lockImmediately')}
               onClick={async () => {
                 await wallet.lockWallet();
                 resetReduxState();

@@ -20,6 +20,7 @@ import {
   TxInput,
   TxType,
 } from '../../../wallet-instance';
+import {useI18n} from '../../i18n';
 interface LocationState {
   rawtx: 'string';
   type: TxType;
@@ -47,6 +48,7 @@ const TxSecurity = () => {
   const [loading, setLoading] = useState(false);
   const isLegacyUser = useAppSelector(GlobalSelector.isLegacyUser);
   const dispatch = useAppDispatch();
+  const {t} = useI18n();
 
   //! Function
   const checkUserType = async () => {
@@ -105,7 +107,11 @@ const TxSecurity = () => {
       }
     } catch (e: any) {
       showToast({
-        title: e?.message || (isLegacyUser ? 'Wrong PIN' : 'Wrong Password'),
+        title:
+          e?.message ||
+          (isLegacyUser
+            ? t('settings.security.wrongPin')
+            : t('settings.security.wrongPassword')),
         type: 'error',
       });
       setLoading(false);
@@ -153,7 +159,7 @@ const TxSecurity = () => {
               await wallet.cancelOrder(order.id);
             }
             showToast({
-              title: e?.message || 'Unknown error',
+              title: e?.message || t('common.unknownError'),
               type: 'error',
             });
           }
@@ -186,7 +192,7 @@ const TxSecurity = () => {
       }
     } catch (error) {
       showToast({
-        title: error?.message || 'Unknown error',
+        title: error?.message || t('common.unknownError'),
         type: 'error',
       });
     } finally {
@@ -227,7 +233,13 @@ const TxSecurity = () => {
         <UX.Box layout="column_center" style={{marginTop: '5rem', width: '100%', maxWidth: '500px'}} spacing="xl">
           <SVG.UnlockIcon />
           <UX.Text
-            title={isUnlocked ? "Confirm Transaction" : (isLegacyUser ? "PIN" : "Password")}
+            title={
+              isUnlocked
+                ? t('settings.security.confirmTransaction')
+                : isLegacyUser
+                  ? t('common.pin')
+                  : t('common.password')
+            }
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
@@ -235,8 +247,10 @@ const TxSecurity = () => {
           />
           <UX.Text
             title={isUnlocked 
-              ? "Wallet is unlocked. Click confirm to proceed with the transaction." 
-              : (isLegacyUser ? "Enter your PIN to confirm the transaction" : "Enter your password to confirm the transaction")
+              ? t('settings.security.unlockedConfirmDescription')
+              : (isLegacyUser
+                ? t('settings.security.enterPinToConfirmTransaction')
+                : t('settings.security.enterPasswordToConfirmTransaction'))
             }
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
@@ -267,7 +281,7 @@ const TxSecurity = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            title={t('common.confirm')}
             onClick={handleSubmit}
             isDisable={disabled}
           />

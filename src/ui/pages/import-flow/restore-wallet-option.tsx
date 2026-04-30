@@ -30,7 +30,7 @@ const RestoreWalletOption = () => {
         <UX.Box layout="column_center" spacing="xxl">
           <SVG.SeedPhraseIcon />
           <UX.Text
-            title="Restore existing Wallet"
+            titleKey="wallet.restoreExisting"
             styleType="heading_24"
             customStyles={{
               textAlign: 'center',
@@ -39,14 +39,14 @@ const RestoreWalletOption = () => {
           />
           <UX.Box spacing="xss">
             <UX.Card
-              text="Restore from mnemonics (12-word or 24-word)"
+              textKey="wallet.restoreFromMnemonics"
               isActive={typeRestore === 'mnemonics'}
               onClick={() => handleChangeType('mnemonics')}
               style={{height: '50px', lineHeight: '50px'}}
             />
             <UX.Card
               isActive={typeRestore !== 'mnemonics'}
-              text="Restore from single private key"
+              textKey="wallet.restoreFromPrivateKey"
               onClick={() => handleChangeType('key')}
               style={{height: '50px', lineHeight: '50px'}}
             />
@@ -62,7 +62,7 @@ const RestoreWalletOption = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Restore Wallet"
+            titleKey="wallet.restore"
             onClick={handleNavigate}
           />
         </UX.Box>

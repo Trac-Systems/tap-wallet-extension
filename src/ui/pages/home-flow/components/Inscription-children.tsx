@@ -77,7 +77,7 @@ export function InscriptionListChildren(props: IProps) {
             }}
           />
           <UX.Text
-            title="Show spendable inscriptions only"
+            titleKey="inscription.showSpendableOnly"
             styleType="body_14_normal"
           />
         </UX.Box>
@@ -90,7 +90,7 @@ export function InscriptionListChildren(props: IProps) {
           {Object.values(spendableInscriptionsMap).length === 0 ? (
             <UX.Box layout="column_center" style={{minHeight: '100px'}}>
               <UX.Text
-                title="There is no spendable inscription."
+                titleKey="inscription.noSpendable"
                 styleType="body_16_normal"
               />
             </UX.Box>

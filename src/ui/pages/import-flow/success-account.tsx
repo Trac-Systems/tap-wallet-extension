@@ -9,7 +9,6 @@ const SuccessAccount = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const isImport = queryParams.get('isImport');
-  const text = isImport ? 'restored' : 'created';
 
   //! Function
   const handleNavigate = () => {
@@ -22,9 +21,9 @@ const SuccessAccount = () => {
         <UX.Box layout="column_center" spacing="xxl_lg">
           <SVG.SuccessIcon />
           <UX.Box layout="column_center" spacing="sm">
-            <UX.Text title="Congratulations!" styleType="heading_24" />
+            <UX.Text titleKey="onboarding.congratulations" styleType="heading_24" />
             <UX.Text
-              title={`Your wallet successfully ${text}.`}
+              titleKey={isImport ? 'wallet.restoredSuccessfully' : 'wallet.createdSuccessfully'}
               styleType="body_16_normal"
               customStyles={{textAlign: 'center'}}
             />
@@ -40,7 +39,7 @@ const SuccessAccount = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Go to wallet"
+            titleKey="wallet.goToWallet"
             onClick={handleNavigate}
           />
         </UX.Box>

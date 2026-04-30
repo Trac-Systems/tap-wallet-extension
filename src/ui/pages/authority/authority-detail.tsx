@@ -20,28 +20,28 @@ import {useLocation, useNavigate} from 'react-router-dom';
 
 const AuthorityStatus = {
   UNCONFIRMED: {
-    title: 'Unconfirmed',
+    titleKey: 'activity.unconfirmed',
     status: 'default',
     btnDisable: true,
-    btnTitle: 'Tap',
+    btnTitleKey: 'authority.tap',
   },
   CONFIRMED: {
-    title: 'Confirmed',
+    titleKey: 'activity.confirmed',
     status: 'success',
     btnDisable: false,
-    btnTitle: 'Tap',
+    btnTitleKey: 'authority.tap',
   },
   TAPPING: {
-    title: 'Tapping',
+    titleKey: 'authority.tappingStatus',
     status: 'warning',
     btnDisable: true,
-    btnTitle: 'Cancel',
+    btnTitleKey: 'common.cancel',
   },
   TAPPED: {
-    title: 'Tapped',
+    titleKey: 'authority.tapped',
     status: 'error',
     btnDisable: false,
-    btnTitle: 'Cancel',
+    btnTitleKey: 'common.cancel',
   },
 };
 
@@ -249,7 +249,7 @@ const AuthorityDetail = () => {
           }}
         />
         <UX.Badge
-          text={AuthorityStatus[inscriptionStatus].title}
+          textKey={AuthorityStatus[inscriptionStatus].titleKey}
           status={
             AuthorityStatus[inscriptionStatus].status as BadgeProps['status']
           }
@@ -291,17 +291,17 @@ const AuthorityDetail = () => {
               </>
             ) : (
               <UX.Text
-                title="Applied for all tokens"
+                titleKey="authority.appliedForAllTokens"
                 styleType="body_14_normal"
               />
             )}
           </UX.Box>
         )}
         <UX.Box layout="box" spacing="xl" style={{margin: '16px'}}>
-          <UX.Section title="ID" value={inscriptionInfo?.id} />
-          <UX.Section title="Address" value={inscriptionInfo?.address} />
+          <UX.Section titleKey="common.id" value={inscriptionInfo?.id} />
+          <UX.Section titleKey="common.address" value={inscriptionInfo?.address} />
           <UX.Section
-            title="Output value"
+            titleKey="transaction.outputValue"
             value={inscriptionInfo?.value?.toString()}
           />
         </UX.Box>
@@ -342,7 +342,7 @@ const AuthorityDetail = () => {
               customStyles={{
                 margin: '0 24px',
               }}
-              title={AuthorityStatus[inscriptionStatus].btnTitle}
+              titleKey={AuthorityStatus[inscriptionStatus].btnTitleKey}
               isDisable={AuthorityStatus[inscriptionStatus].btnDisable}
               onClick={handleOnClick}
             />

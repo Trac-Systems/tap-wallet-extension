@@ -31,14 +31,14 @@ const InscribeResultScreen = () => {
     return (
       <LayoutTap
         header={
-          <UX.TextHeader text={'INSCRIBE FAILED'} onBackClick={handleGoBack} />
+          <UX.TextHeader textKey="tap.inscribeFailed" onBackClick={handleGoBack} />
         }
         body={
           <UX.Box layout="column" style={{marginTop: '7rem'}} spacing="xl">
             <UX.Box layout="column_center" spacing="xl">
               <SVG.SendFailIcon />
               <UX.Text
-                title="Payment Failed"
+                titleKey="transaction.paymentFailed"
                 styleType="heading_24"
                 customStyles={{
                   marginTop: '16px',
@@ -58,27 +58,27 @@ const InscribeResultScreen = () => {
 
   return (
     <LayoutTap
-      header={<UX.TextHeader text={'INSCRIBE SUCCESS'} disableIconBack />}
+      header={<UX.TextHeader textKey="tap.inscribeSuccess" disableIconBack />}
       body={
         <UX.Box layout="column" style={{marginTop: '7rem'}} spacing="xl">
           <UX.Box layout="column_center" spacing="xl">
             <SVG.SendSuccessIcon />
             <UX.Text
-              title="Payment Sent"
+              titleKey="transaction.paymentSent"
               styleType="heading_24"
               customStyles={{
                 marginTop: '16px',
               }}
             />
             <UX.Text
-              title={'Your transaction has been successfully sent'}
+              titleKey="transaction.sentDescription"
               styleType="body_16_normal"
               customStyles={{textAlign: 'center'}}
             />
           </UX.Box>
           <UX.Button
             styleType="text"
-            title="View on block explorer"
+            titleKey="transaction.viewOnBlockExplorer"
             onClick={() => {
               const txLink = `${blockStreamURL}/tx/${txid}`;
               window.open(`${txLink}`);
@@ -93,7 +93,7 @@ const InscribeResultScreen = () => {
           style={{
             padding: '10px 0',
           }}>
-          <UX.Button styleType="primary" title={'Done'} onClick={onClickDone} />
+          <UX.Button styleType="primary" titleKey="common.done" onClick={onClickDone} />
         </UX.Box>
       }
     />

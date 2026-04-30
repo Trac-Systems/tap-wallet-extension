@@ -13,6 +13,7 @@ import {WalletActions} from '../../redux/reducer/wallet/slice';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
 import {AccountActions} from '../../redux/reducer/account/slice';
 import {TracApiService} from '@/src/background/service/trac-api.service';
+import {useI18n} from '../../i18n';
 
 const RestoreWallet = () => {
   //! State
@@ -21,6 +22,7 @@ const RestoreWallet = () => {
   const walletProvider = useWalletProvider();
   const CreateWalletContextHandler = useContext(CreateWalletContext);
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const dispatch = useAppDispatch();
   const networkType = useAppSelector(GlobalSelector.networkType);
   const [disabled, setDisabled] = useState(true);
@@ -28,13 +30,15 @@ const RestoreWallet = () => {
   const queryParams = new URLSearchParams(location.search);
   const restore = queryParams.get('restore');
   const isMnemonics = restore === 'mnemonics';
-  const text = isMnemonics ? 'mnemonics' : 'Private key';
-  const desc = isMnemonics
-    ? 'wallet mnemonics phrase'
-    : 'your single private key';
-  const placeholder = isMnemonics
-    ? 'wallet seed phrase'
-    : 'your single private key';
+  const restoreTypeLabel = t(
+    isMnemonics ? 'wallet.mnemonics' : 'wallet.privateKey',
+  );
+  const restoreDesc = t(
+    isMnemonics ? 'wallet.mnemonicsPhrase' : 'wallet.singlePrivateKey',
+  );
+  const placeholder = t(
+    isMnemonics ? 'wallet.seedPhrase' : 'wallet.singlePrivateKey',
+  );
 
   //! Function
   const handleGoBack = () => {
@@ -98,7 +102,7 @@ const RestoreWallet = () => {
             console.log('Error deriving TRAC address:', error);
             showToast({
               type: 'error',
-              title: 'Failed to derive TRAC address from secret key',
+              titleKey: 'wallet.failedDeriveTracAddress',
             });
             return;
           }
@@ -127,7 +131,7 @@ const RestoreWallet = () => {
           if (isDuplicate) {
             showToast({
               type: 'error',
-              title: 'TRAC address already exists in another wallet',
+              titleKey: 'wallet.tracAddressExists',
             });
             return;
           }
@@ -228,7 +232,8 @@ const RestoreWallet = () => {
         <UX.Box layout="column_center" spacing="xl">
           <SVG.SeedPhraseIcon />
           <UX.Text
-            title={`Restore from ${text}`}
+            titleKey="wallet.restoreFromType"
+            titleParams={{type: restoreTypeLabel}}
             styleType="heading_24"
             customStyles={{
               marginTop: '16px',
@@ -236,7 +241,8 @@ const RestoreWallet = () => {
             }}
           />
           <UX.Text
-            title={`Enter ${desc} below. This will restore your existing wallet.`}
+            titleKey="wallet.restoreEnterDescription"
+            titleParams={{description: restoreDesc}}
             styleType="body_16_normal"
             customStyles={{textAlign: 'center'}}
           />
@@ -246,14 +252,14 @@ const RestoreWallet = () => {
                 color: #FFFFFFB0 !important;
                 font-size: 16px !important;
                 font-weight: 400 !important;
-                font-family: Exo !important;
+                font-family: var(--font-main) !important;
                 line-height: 24px !important;
               }
               .textareaWidth::placeholder {
                 color: #FFFFFFB0 !important;
                 font-size: 16px !important;
                 font-weight: 400 !important;
-                font-family: Exo !important;
+                font-family: var(--font-main) !important;
                 line-height: 24px !important;
               }
             `}
@@ -261,7 +267,7 @@ const RestoreWallet = () => {
           <UX.TextArea
             className="textareaWidth"
             onChange={e => handleOnChange(e.target.value)}
-            placeholder={`Enter/paste ${placeholder} here `}
+            placeholder={t('wallet.enterPasteHere', {value: placeholder})}
             customStyles={{width: '100%'}}
             style={{display: 'flex', width: '100%'}}
           />
@@ -277,7 +283,7 @@ const RestoreWallet = () => {
           <UX.Button
             isDisable={disabled}
             styleType="primary"
-            title="Restore Wallet"
+            titleKey="wallet.restore"
             onClick={handleNavigate}
           />
         </UX.Box>
@@ -287,4 +293,3 @@ const RestoreWallet = () => {
 };
 
 export default RestoreWallet;
-

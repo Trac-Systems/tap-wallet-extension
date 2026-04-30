@@ -48,7 +48,7 @@ const DappPage = () => {
 
   return (
     <LayoutScreenSettings
-      header={<UX.TextHeader text="Dapps" disableIconBack />}
+      header={<UX.TextHeader textKey="dapp.title" disableIconBack />}
       body={
         <UX.Box
           layout="column_center"
@@ -98,13 +98,13 @@ const DappPage = () => {
             ) : (
               <UX.Box>
                 <UX.Text
-                  title={'Please change network to MAINNET'}
+                  titleKey="dapp.changeNetworkToMainnet"
                   styleType="body_16_bold"
                   customStyles={{color: 'white', marginBottom: '20px'}}
                 />
                 <UX.Button
                   styleType="text"
-                  title="Go to network setting"
+                  titleKey="dapp.goToNetworkSetting"
                   onClick={() => {
                     navigate('/setting/network-type');
                   }}

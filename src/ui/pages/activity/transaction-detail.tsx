@@ -14,6 +14,8 @@ import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
 import { Network } from '@/src/wallet-instance';
 import { useCustomToast } from '../../component/toast-custom';
 import { copyToClipboard } from '../../helper';
+import {useLocaleFormat} from '../../i18n';
+import {getActivityStatusText} from '../home-flow/components/activity/activity-labels';
 
 const TransactionDetail = () => {
   const location = useLocation();
@@ -21,17 +23,18 @@ const TransactionDetail = () => {
   const { transaction, type } = location.state || {};
   const [isExpanded, setIsExpanded] = useState(false);
   const { showToast } = useCustomToast();
+  const {formatDate} = useLocaleFormat();
 
   const networkType = useAppSelector(GlobalSelector.networkType);
 
   if (!transaction) {
     return (
       <LayoutScreenSettings
-        header={<UX.TextHeader text="Transaction Detail" />}
+        header={<UX.TextHeader textKey="activity.transactionDetail" />}
         body={
           <UX.Box layout="column_center" spacing="xl" style={{ padding: '40px 20px' }}>
             <UX.Text
-              title="Transaction not found"
+              titleKey="activity.transactionNotFound"
               styleType="body_14_normal"
               customStyles={{ color: colors.white }}
             />
@@ -48,15 +51,13 @@ const TransactionDetail = () => {
   // Format date
   const getFormattedDate = () => {
     const date = new Date(transaction.timestamp * 1000);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const period = date.getHours() >= 12 ? 'pm' : 'am';
-    const displayHours = date.getHours() % 12 || 12;
-    return `${month} ${day}, ${year} at ${displayHours}:${minutes} ${period}`;
+    return formatDate(date, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   };
 
   // Get icon background color
@@ -66,9 +67,9 @@ const TransactionDetail = () => {
   };
 
   // Get title
-  const getTitle = () => {
-    if (isContract) return 'Contract interaction';
-    return isSent ? 'Sent' : 'Received';
+  const getTitleKey = () => {
+    if (isContract) return 'activity.contractInteraction';
+    return isSent ? 'activity.sent' : 'activity.received';
   };
 
   // Get amount display
@@ -82,9 +83,17 @@ const TransactionDetail = () => {
 
   // Get status text and color
   const getStatusColor = () => {
-    if (transaction.status === 'confirmed') return colors.green_500;
-    if (transaction.status === 'pending') return colors.yellow_500;
-    return colors.red_500;
+    const normalizedStatus = String(
+      transaction.status || (transaction.isConfirmed ? 'confirmed' : 'pending'),
+    ).toLowerCase();
+
+    if (['confirmed', 'completed', 'complete', 'success'].includes(normalizedStatus)) {
+      return colors.green_500;
+    }
+    if (['failed', 'error', 'cancelled', 'canceled', 'rejected', 'expired'].includes(normalizedStatus)) {
+      return colors.red_500;
+    }
+    return colors.yellow_500;
   };
 
   // View on explorer
@@ -111,10 +120,14 @@ const TransactionDetail = () => {
     copyToClipboard(text).then(() => {
       showToast({
         type: 'copied',
-        title: 'Copied',
+        titleKey: 'common.copied',
       });
     });
   };
+
+  const statusText = getActivityStatusText(
+    transaction.status || (transaction.isConfirmed ? 'confirmed' : 'pending'),
+  );
 
   return (
     <div style={{ position: 'relative' }}>
@@ -128,7 +141,7 @@ const TransactionDetail = () => {
           header={
             <UX.Box style={{ padding: '0 24px' }}>
               <UX.TextHeader
-                text={getTitle()}
+                textKey={getTitleKey()}
                 onBackClick={() => navigate(-1)}
               />
             </UX.Box>
@@ -181,7 +194,7 @@ const TransactionDetail = () => {
             {/* Date */}
             <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
               <UX.Text
-                title="Date"
+                titleKey="activity.date"
                 styleType="body_14_normal"
                 customStyles={{ color: '#9E9E9E' }}
               />
@@ -195,12 +208,13 @@ const TransactionDetail = () => {
             {/* Status */}
             <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
               <UX.Text
-                title="Status"
+                titleKey="activity.status"
                 styleType="body_14_normal"
                 customStyles={{ color: '#9E9E9E' }}
               />
               <UX.Text
-                title={transaction.isConfirmed ? 'Confirmed' : 'Processing'}
+                titleKey={statusText.titleKey}
+                titleParams={statusText.titleParams}
                 styleType="body_14_normal"
                 customStyles={{ color: getStatusColor(), textAlign: 'right' }}
               />
@@ -209,7 +223,7 @@ const TransactionDetail = () => {
             {/* Network Fee */}
             <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
               <UX.Text
-                title="Network Fee"
+                titleKey="transaction.networkFee"
                 styleType="body_14_normal"
                 customStyles={{ color: '#9E9E9E' }}
               />
@@ -228,7 +242,7 @@ const TransactionDetail = () => {
             {isTrac && (
               <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
                 <UX.Text
-                  title="Total"
+                  titleKey="transaction.total"
                   styleType="body_14_normal"
                   customStyles={{ color: '#9E9E9E' }}
                 />
@@ -250,7 +264,7 @@ const TransactionDetail = () => {
             {/* Transaction ID */}
             <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
               <UX.Text
-                title="Transaction ID"
+                titleKey="transaction.id"
                 styleType="body_14_normal"
                 customStyles={{ color: '#9E9E9E', flex: '0 0 auto' }}
               />
@@ -280,7 +294,7 @@ const TransactionDetail = () => {
             {isTrac && isContract && (transaction.rawData?.bs || transaction.bs) && (
               <UX.Box layout="row_between" spacing="xs" style={{ marginTop: '16px' }}>
                 <UX.Text
-                  title="Subnet"
+                  titleKey="activity.subnet"
                   styleType="body_14_normal"
                   customStyles={{ color: '#9E9E9E', flex: '0 0 auto' }}
                 />
@@ -323,12 +337,12 @@ const TransactionDetail = () => {
               {/* Header with Expand button */}
               <UX.Box layout="row_between" spacing="xs" style={{ alignItems: 'center' }}>
                 <UX.Text
-                  title="Transaction Data"
+                  titleKey="transaction.data"
                   styleType="body_14_bold"
                   customStyles={{ color: colors.white }}
                 />
                 <UX.Text
-                  title={isExpanded ? 'Collapse' : 'Expand'}
+                  titleKey={isExpanded ? 'common.collapse' : 'common.expand'}
                   styleType="body_12_normal"
                   customStyles={{
                     color: colors.green_500,
@@ -370,7 +384,7 @@ const TransactionDetail = () => {
           {/* View on Explorer Button */}
           <UX.Box layout="column_center" spacing="xs" style={{ marginTop: '24px', width: '100%' }}>
             <UX.Button
-              title="View on block explorer"
+              titleKey="transaction.viewOnBlockExplorer"
               onClick={handleViewExplorer}
               styleType="white"
               customStyles={{

@@ -13,6 +13,7 @@ import AccountUpdater from './hook/account-updater';
 import eventBus from '../gateway/event-bus';
 import {EVENTS} from '../wallet-instance';
 import {AppDimensions} from './component/responsive';
+import {DEFAULT_LANGUAGE, I18nProvider} from './i18n';
 
 const portMessageChannel = new PortMessage();
 
@@ -50,10 +51,12 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
         <WalletProvider walletProvider={wallet as any}>
-          <AppDimensions>
-            <App />
-            <AccountUpdater />
-          </AppDimensions>
+          <I18nProvider initialLanguage={DEFAULT_LANGUAGE}>
+            <AppDimensions>
+              <App />
+              <AccountUpdater />
+            </AppDimensions>
+          </I18nProvider>
           <ToastContainer autoClose={600} />
         </WalletProvider>
     </Provider>

@@ -119,7 +119,7 @@ const InscriptionDetail = () => {
             </UX.Box>
             <UX.Text
               styleType="body_14_bold"
-              title="This inscription shares the same utxo with some other inscriptions. If you send this inscription, other inscriptions with same utxo will be sent along with it"
+              titleKey="inscription.sharedUtxoWarning"
               customStyles={{
                 color: colors.yellowRgba60,
                 marginTop: 0,
@@ -130,22 +130,22 @@ const InscriptionDetail = () => {
           </UX.Box>
         ) : null}
         <UX.Box layout="box" spacing="xl" style={{margin: '16px'}}>
-          <UX.Section title="ID" value={inscriptionInfo?.inscriptionId} />
-          <UX.Section title="Address" value={inscriptionInfo?.address} />
+          <UX.Section titleKey="common.id" value={inscriptionInfo?.inscriptionId} />
+          <UX.Section titleKey="common.address" value={inscriptionInfo?.address} />
           <UX.Section
-            title="Output value"
+            titleKey="transaction.outputValue"
             value={inscriptionInfo?.outputValue.toString()}
           />
           <UX.Section
-            title="Content length"
+            titleKey="inscription.contentLength"
             value={inscriptionInfo?.contentLength.toString()}
           />
           <UX.Section
-            title="Content type"
+            titleKey="inscription.contentType"
             value={inscriptionInfo?.contentType}
           />
           <UX.Section
-            title="Timestamp"
+            titleKey="inscription.timestamp"
             value={
               isUnconfirmed
                 ? 'unconfirmed'
@@ -153,17 +153,17 @@ const InscriptionDetail = () => {
             }
           />
           <UX.Section
-            title="Genesis transaction"
+            titleKey="inscription.genesisTransaction"
             value={getTxIdUrl(inscriptionInfo?.genesisTransaction, network)}
             link={getTxIdUrl(inscriptionInfo?.genesisTransaction, network)}
           />
           <UX.Section
-            title="Preview"
+            titleKey="transaction.preview"
             value={getInsUrl(inscriptionInfo?.inscriptionId, network)}
             link={getInsUrl(inscriptionInfo?.inscriptionId, network)}
           />
           {dmtCollectibleMap[inscriptionInfo?.inscriptionId]? (
-            <UX.Section title="Details" value={`${linkDetail}/${inscriptionInfo.inscriptionId}`} link={`${linkDetail}/${inscriptionInfo.inscriptionId}`} />
+            <UX.Section titleKey="common.details" value={`${linkDetail}/${inscriptionInfo.inscriptionId}`} link={`${linkDetail}/${inscriptionInfo.inscriptionId}`} />
           ) : null}
         </UX.Box>
       </UX.Box>
@@ -182,7 +182,7 @@ const InscriptionDetail = () => {
               customStyles={{
                 margin: '0 24px',
               }}
-              title={'Send'}
+              titleKey="common.send"
               onClick={() =>
                 navigate('/home/send-inscription', {
                   state: {inscriptions: inscriptions},

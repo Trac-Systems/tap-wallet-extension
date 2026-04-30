@@ -8,10 +8,13 @@ import { colors } from '@/src/ui/themes/color';
 import TransactionGroup from './transaction-group';
 import { useTracHistory } from '../../hooks/use-trac-history';
 import { useActiveTracAddress } from '../../hook';
+import {useI18n, useLocaleFormat} from '@/src/ui/i18n';
 
 const TracHistory = () => {
   // Get active Trac address
   const tracAddress = useActiveTracAddress();
+  const {t} = useI18n();
+  const {formatDate} = useLocaleFormat();
 
   // Fetch history using custom hook
   const { transactions, loading, loadingMore, error, hasMore, loadMore } = useTracHistory(tracAddress);
@@ -34,16 +37,17 @@ const TracHistory = () => {
       let sortKey: number;
 
       if (txDay.getTime() === today.getTime()) {
-        label = 'Today';
+        label = t('activity.today');
         sortKey = today.getTime();
       } else if (txDay.getTime() === yesterday.getTime()) {
-        label = 'Yesterday';
+        label = t('activity.yesterday');
         sortKey = yesterday.getTime();
       } else {
-        const day = String(txDate.getDate()).padStart(2, '0');
-        const month = String(txDate.getMonth() + 1).padStart(2, '0');
-        const year = txDate.getFullYear();
-        label = `${day}/${month}/${year}`;
+        label = formatDate(txDate, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
         sortKey = txDay.getTime();
       }
 
@@ -69,7 +73,7 @@ const TracHistory = () => {
     return (
       <UX.Box layout="column_center" spacing="xl" style={{ padding: '40px 20px' }}>
         <UX.Text
-          title="Loading transactions..."
+          titleKey="activity.loadingTransactions"
           styleType="body_14_normal"
           customStyles={{ color: colors.white, opacity: 0.6 }}
         />
@@ -82,7 +86,7 @@ const TracHistory = () => {
     return (
       <UX.Box layout="column_center" spacing="xl" style={{ padding: '40px 20px' }}>
         <UX.Text
-          title="Failed to load transactions"
+          titleKey="activity.failedLoadTransactions"
           styleType="body_14_normal"
           customStyles={{ color: colors.red_500 }}
         />
@@ -95,7 +99,7 @@ const TracHistory = () => {
     return (
       <UX.Box layout="column_center" spacing="xl" style={{ padding: '40px 20px' }}>
         <UX.Text
-          title="No transactions yet"
+          titleKey="activity.noTransactions"
           styleType="body_14_normal"
           customStyles={{ color: colors.white, opacity: 0.6 }}
         />
@@ -119,7 +123,7 @@ const TracHistory = () => {
       {hasMore && !loading && transactions.length > 0 && (
         <UX.Box layout="column_center" spacing="sm" style={{ padding: '16px 0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <UX.Button
-            title={loadingMore ? 'Loading...' : 'Load More'}
+            titleKey={loadingMore ? 'common.loading' : 'activity.loadMore'}
             onClick={loadMore}
             isDisable={loadingMore}
             styleType="white"

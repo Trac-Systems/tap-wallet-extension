@@ -20,6 +20,7 @@ import {useWalletProvider} from '../../gateway/wallet-provider';
 import {useReloadAccounts} from '../home-flow/hook';
 import {satoshisToAmount} from '@/src/shared/utils/btc-helper';
 import {AccountActions} from '../../redux/reducer/account/slice';
+import {useI18n} from '../../i18n';
 
 type LedgerPathOption = {
   label: string;
@@ -46,11 +47,12 @@ const ChooseLedgerAddress = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const wallet = useWalletProvider();
   const reloadAccounts = useReloadAccounts();
   const networkType = useAppSelector(GlobalSelector.networkType);
   const activeNetwork =
-    networkType === 'TESTNET' ? Network.TESTNET : Network.MAINNET;
+    networkType === Network.TESTNET ? Network.TESTNET : Network.MAINNET;
   const [isCreating, setIsCreating] = useState(false);
   const options = useMemo<LedgerPathOption[]>(() => {
     const result: LedgerPathOption[] = [];
@@ -526,7 +528,7 @@ const ChooseLedgerAddress = () => {
       navigate('/home');
     } catch (error: any) {
       showToast({
-        title: error?.message || 'Failed to create wallet from Ledger',
+        title: error?.message || t('ledger.failedCreateWallet'),
         type: 'error',
       });
     } finally {
@@ -547,17 +549,18 @@ const ChooseLedgerAddress = () => {
           style={{width: '100%', minHeight: '70vh'}}>
           <SVG.BitcoinIcon width={80} height={80} />
           <UX.Text
-            title={`Open the ${getExpectedAppName(activeNetwork)} app on your Ledger`}
+            titleKey="ledger.openAppOnDevice"
+            titleParams={{appName: getExpectedAppName(activeNetwork)}}
             styleType="heading_20"
             customStyles={{textAlign: 'center', color: 'white', marginTop: '16px'}}
           />
           <UX.Text
-            title="Make sure your device is unlocked."
+            titleKey="ledger.makeSureUnlocked"
             styleType="body_14_normal"
             customStyles={{textAlign: 'center', color: colors.gray, marginTop: '8px'}}
           />
           <UX.Text
-            title="Trac Network app will be available soon via Ledger Connect"
+            titleKey="ledger.tracAppSoon"
             styleType="body_14_normal"
             customStyles={{textAlign: 'center', color: colors.gray, marginTop: '8px'}}
           />
@@ -577,12 +580,12 @@ const ChooseLedgerAddress = () => {
             <span />
           </div>
           <UX.Text
-            title="Connecting your accounts..."
+            titleKey="ledger.connectingAccounts"
             styleType="heading_20"
             customStyles={{textAlign: 'center', color: 'white', marginTop: '16px'}}
           />
           <UX.Text
-            title="Finding your accounts..."
+            titleKey="ledger.findingAccounts"
             styleType="body_14_normal"
             customStyles={{textAlign: 'center', color: colors.gray, marginTop: '8px'}}
           />
@@ -596,12 +599,12 @@ const ChooseLedgerAddress = () => {
         <UX.Box layout="column_center" spacing="xxl">
           <SVG.WalletIcon />
           <UX.Text
-            title="Choose your Bitcoin address type"
+            titleKey="ledger.chooseBitcoinAddressType"
             styleType="heading_24"
             customStyles={{textAlign: 'center', marginTop: '8px'}}
           />
           <UX.Text
-            title="Trac Network app will be available soon via Ledger Connect"
+            titleKey="ledger.tracAppSoon"
             styleType="body_14_normal"
             customStyles={{
               textAlign: 'center',
@@ -624,7 +627,7 @@ const ChooseLedgerAddress = () => {
                   isActive={selectedIndex === index}
                   nameCardAddress={item.label}
                   path={`${item.derivationPath.replace(/\/$/, '')}/0`}
-                  address={addressMap[key] || 'Fetching address…'}
+                  address={addressMap[key] || t('ledger.fetchingAddress')}
                   hasVault={!!hasBalanceData}
                   assets={
                     hasBalanceData
@@ -649,7 +652,7 @@ const ChooseLedgerAddress = () => {
 
   return (
     <LayoutScreenImport
-      header={<UX.TextHeader text="Connect Ledger" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="ledger.connectLedger" onBackClick={handleGoBack} />}
       body={renderBody()}
       footer={
         <UX.Box
@@ -660,7 +663,7 @@ const ChooseLedgerAddress = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={isCreating ? 'Creating wallet...' : 'Continue'}
+            titleKey={isCreating ? 'wallet.creating' : 'common.continue'}
             onClick={handleContinue}
             isDisable={!options.length || isCreating || screenStep !== 'ready'}
           />
@@ -671,4 +674,3 @@ const ChooseLedgerAddress = () => {
 };
 
 export default ChooseLedgerAddress;
-

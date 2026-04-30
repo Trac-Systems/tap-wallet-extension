@@ -18,14 +18,14 @@ const SignatureRequest = ({params: {session}}: Props) => {
       header={<WebsiteBar session={session} />}
       body={
         <UX.Box layout="column_center" spacing="xl">
-          <UX.Text title="Signature request" styleType="heading_14" />
+          <UX.Text titleKey="approval.signatureRequest.title" styleType="heading_14" />
           <UX.Text
-            title="Only sign this message if you fully understand the content and trust the requesting site"
+            titleKey="approval.signatureRequest.warning"
             styleType="body_14_normal"
           />
-          <UX.Text title="You are signing" styleType="body_14_normal" />
+          <UX.Text titleKey="approval.signatureRequest.youAreSigning" styleType="body_14_normal" />
           <UX.Text
-            title="You are signing"
+            titleKey="approval.signatureRequest.youAreSigning"
             styleType="body_14_bold"
             customStyles={{color: 'white', width: '100%', textAlign: 'start'}}
           />
@@ -33,9 +33,9 @@ const SignatureRequest = ({params: {session}}: Props) => {
       }
       footer={
         <UX.Box layout="row_center" spacing="sm">
-          <UX.Button title="Reject" styleType="dark" customStyles={{flex: 1}} />
+          <UX.Button titleKey="common.reject" styleType="dark" customStyles={{flex: 1}} />
           <UX.Button
-            title="Sign"
+            titleKey="common.sign"
             styleType="primary"
             customStyles={{flex: 1}}
           />

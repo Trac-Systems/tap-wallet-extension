@@ -33,7 +33,7 @@ export default function ModalReceive(props: ModalReceiveProps) {
   const onCopy = async (addr?: string) => {
     try {
       await copyToClipboard(addr || account.address || '');
-      showToast({type: 'copied', title: 'Copied'});
+      showToast({type: 'copied', titleKey: 'common.copied'});
     } catch {}
   };
 
@@ -77,13 +77,13 @@ export default function ModalReceive(props: ModalReceiveProps) {
             >
               <SVG.ArrowBackIcon width={20} height={20} />
             </UX.Box>
-            <UX.Text title="QR Code" styleType="heading_20" />
+            <UX.Text titleKey="send.qrCode" styleType="heading_20" />
           </UX.Box>
           
           <UX.Box layout="column_center" spacing="xl">
             <UX.Box layout="column_center" spacing="sm">
               <UX.Text
-                title="Scan QR code to receive"
+                titleKey="send.scanQrToReceive"
                 styleType="body_14_normal"
                 customStyles={{color: '#888', textAlign: 'center'}}
               />
@@ -124,7 +124,7 @@ export default function ModalReceive(props: ModalReceiveProps) {
         </>
       ) : (
         <>
-          <UX.Text title="Receive" styleType="heading_20" />
+          <UX.Text titleKey="send.receive" styleType="heading_20" />
 
           <UX.Box spacing="xl">
             {isTracSingle ? null : (
@@ -153,7 +153,7 @@ export default function ModalReceive(props: ModalReceiveProps) {
                       handleShowQRCode(account.address);
                     }}
                   >
-                    <UX.Text title="QR CODE" styleType="body_12_normal" customStyles={{color: '#888'}} />
+                    <UX.Text titleKey="send.qrCode" styleType="body_12_normal" customStyles={{color: '#888'}} />
                   </UX.Box>
                 </UX.Box>
               </UX.Box>
@@ -167,7 +167,7 @@ export default function ModalReceive(props: ModalReceiveProps) {
               >
                 <UX.Box layout="row_center" spacing="xs">
                   <SVG.TracIcon width={28} height={28} />
-                  <UX.Text title="Trac Network" styleType="body_16_bold" />
+                  <UX.Text titleKey="network.tracNetwork" styleType="body_16_bold" />
                 </UX.Box>
                 <UX.Box layout="row_between" spacing="xs">
                   <UX.Box layout="row_center" spacing="xs">
@@ -183,18 +183,17 @@ export default function ModalReceive(props: ModalReceiveProps) {
                       handleShowQRCode(tracAddress);
                     }}
                   >
-                    <UX.Text title="QR CODE" styleType="body_12_normal" customStyles={{color: '#888'}} />
+                    <UX.Text titleKey="send.qrCode" styleType="body_12_normal" customStyles={{color: '#888'}} />
                   </UX.Box>
                 </UX.Box>
               </UX.Box>
             ) : null}
           </UX.Box>
 
-          <UX.Button styleType="dark" title="Close" onClick={handleModalClose} />
+          <UX.Button styleType="dark" titleKey="common.close" onClick={handleModalClose} />
         </>
       )}
     </UX.Box>
   );
 }
-
 

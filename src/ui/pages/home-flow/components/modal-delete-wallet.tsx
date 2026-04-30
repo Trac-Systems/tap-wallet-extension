@@ -25,7 +25,7 @@ const ModalDeleteWallet = (props: IModalDeleteWalletProps) => {
     const wallets = await wallet.getWallets();
     if (wallets.length === 1) {
       showToast({
-        title: 'Removing the last wallet is not allowed',
+        titleKey: 'wallet.cannotRemoveLast',
         type: 'error',
       });
       handleCloseModal();
@@ -43,12 +43,12 @@ const ModalDeleteWallet = (props: IModalDeleteWalletProps) => {
       }
       handleCloseDrawerEdit();
       showToast({
-        title: 'Delete wallet successfully',
+        titleKey: 'wallet.deletedSuccessfully',
         type: 'success',
       });
     } catch {
       showToast({
-        title: 'Delete wallet failed',
+        titleKey: 'wallet.deleteFailed',
         type: 'error',
       });
     } finally {
@@ -59,27 +59,28 @@ const ModalDeleteWallet = (props: IModalDeleteWalletProps) => {
   //! Render
   return (
     <UX.Box layout="column_center" spacing="xl">
-      <UX.Text title="Remove Wallet" styleType="body_20_extra_bold" />
+      <UX.Text titleKey="wallet.remove" styleType="body_20_extra_bold" />
       <UX.Button
         styleType="isIcon"
         isIcon
         svgIcon={<SVG.DeleteWalletIcon width={24} height={24} color="white" />}
       />
       <UX.Text
-        title={`Are you sure you want to remove ${walletName}`}
+        titleKey="wallet.removeConfirm"
+        titleParams={{walletName}}
         styleType="body_16_normal"
         customStyles={{textAlign: 'center'}}
       />
       <UX.Box layout="row_between" spacing="xl" style={{width: '100%'}}>
         <UX.Button
           styleType="dark"
-          title="Cancel"
+          titleKey="common.cancel"
           customStyles={{width: '100%'}}
           onClick={handleCloseModal}
         />
         <UX.Button
           styleType="primary"
-          title="Remove"
+          titleKey="common.remove"
           customStyles={{width: '100%'}}
           onClick={handleDeleteWallet}
         />

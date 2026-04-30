@@ -19,7 +19,7 @@ export default function TracSignMessage({ params }) {
     <LayoutApprove
       header={
         <UX.TextHeader
-          text="Sign Message"
+          textKey="approval.signMessage.title"
           onBackClick={handleCancel}
         />
       }
@@ -30,7 +30,7 @@ export default function TracSignMessage({ params }) {
             <UX.Box layout="box_border">
               <UX.Box spacing="sm">
                 <UX.Text
-                  title="Website"
+                  titleKey="approval.website"
                   styleType="body_12_normal"
                   customStyles={{ color: '#888' }}
                 />
@@ -46,7 +46,7 @@ export default function TracSignMessage({ params }) {
           {/* Message to sign */}
           <UX.Box spacing="sm">
             <UX.Text
-              title="Message to sign:"
+              titleKey="approval.signMessage.messageToSign"
               styleType="body_14_bold"
               customStyles={{ color: 'white' }}
             />
@@ -81,12 +81,12 @@ export default function TracSignMessage({ params }) {
           >
             <UX.Box spacing="sm">
               <UX.Text
-                title="⚠️ WARNING"
+                titleKey="approval.warning"
                 styleType="body_14_bold"
                 customStyles={{ color: '#ff6b6b' }}
               />
               <UX.Text
-                title="Only sign messages from trusted websites. Malicious signatures can compromise your account."
+                titleKey="approval.signMessage.warning"
                 styleType="body_12_normal"
                 customStyles={{ color: '#ffaaaa' }}
               />
@@ -98,13 +98,13 @@ export default function TracSignMessage({ params }) {
         <UX.Box layout="row_between" style={{ margin: '0 24px 24px' }}>
           <UX.Button
             styleType="default"
-            title="Cancel"
+            titleKey="common.cancel"
             onClick={handleCancel}
             customStyles={{ flex: 1, marginRight: '8px' }}
           />
           <UX.Button
             styleType="primary"
-            title="Sign Message"
+            titleKey="approval.signMessage.title"
             onClick={handleSign}
             customStyles={{ flex: 1, marginLeft: '8px' }}
           />

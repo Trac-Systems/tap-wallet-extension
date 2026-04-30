@@ -5,21 +5,22 @@ import Navbar from '../home-flow/components/navbar-navigate';
 import {SVG} from '../../svg';
 import {useAppSelector} from '../../utils';
 import {GlobalSelector} from '../../redux/reducer/global/selector';
-import {useCustomToast} from '../../component/toast-custom';
 import {useReloadAccounts, useIsTracSingleWallet} from '../home-flow/hook';
 import {Network} from '@/src/wallet-instance';
 import {useChangeNetworkCallback} from './hooks';
 import {useWalletProvider} from '@/src/ui/gateway/wallet-provider';
+import {useI18n, useTranslatedToast} from '../../i18n';
 
 const NetWorkType = () => {
   //! State
   const navigate = useNavigate();
   const networkType = useAppSelector(GlobalSelector.networkType);
   const changeNetworkType = useChangeNetworkCallback();
-  const {showToast} = useCustomToast();
+  const {showTranslatedToast} = useTranslatedToast();
   const reloadAccounts = useReloadAccounts();
   const walletProvider = useWalletProvider();
   const isTracSingleWallet = useIsTracSingleWallet();
+  const {t} = useI18n();
 
   //! Function
   const handleChangeNetwork = async (network: Network) => {
@@ -32,8 +33,8 @@ const NetWorkType = () => {
 
       const remainingWallets = await walletProvider.getWallets();
 
-      showToast({
-        title: 'Network changed successfully',
+      showTranslatedToast({
+        titleKey: 'settings.network.changedSuccessfully',
         type: 'success',
       });
 
@@ -46,8 +47,8 @@ const NetWorkType = () => {
       // Otherwise navigate to home
       navigate('/home');
     } catch {
-      showToast({
-        title: 'Something went wrong',
+      showTranslatedToast({
+        titleKey: 'common.somethingWentWrong',
         type: 'error',
       });
     }
@@ -59,7 +60,7 @@ const NetWorkType = () => {
       header={
         <UX.Box style={{padding: '0 24px'}}>
           <UX.TextHeader
-            text="NetWork Type"
+            text={t('settings.network.typeTitle')}
             onBackClick={() => navigate('/setting')}
           />
         </UX.Box>
@@ -90,7 +91,7 @@ const NetWorkType = () => {
           </UX.Box>
           {isTracSingleWallet && (
             <UX.Text
-              title="Network switching is disabled for TRAC-only wallets imported with private key."
+              title={t('settings.network.tracOnlyDisabled')}
               styleType="body_12_normal"
               customStyles={{color: '#888', textAlign: 'center'}}
             />

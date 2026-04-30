@@ -7,13 +7,14 @@ import { useNavigate } from 'react-router-dom';
 import { UX } from '@/src/ui/component';
 import { SVG } from '@/src/ui/svg';
 import { colors } from '@/src/ui/themes/color';
+import {getActivityStatusText, getActivityTypeTitleKey} from './activity-labels';
 
 interface TransactionItemProps {
   type: 'sent' | 'received' | 'contract';
   address: string;
   amount: string;
   currency: string;
-  status: 'confirmed' | 'pending' | 'failed';
+  status: string;
   txid?: string;
   transaction: any; // Full transaction object
   transactionType?: 'bitcoin' | 'trac'; // To know which type of transaction
@@ -54,15 +55,14 @@ const TransactionItem = ({
   };
 
   const getStatusColor = () => {
-    if (status === 'confirmed') return colors.green_500;
-    if (status === 'failed') return colors.red_500;
-    return colors.yellow; // pending
-  };
-
-  const getStatusText = () => {
-    if (status === 'confirmed') return 'Confirmed';
-    if (status === 'failed') return 'Failed';
-    return 'Processing';
+    const normalizedStatus = String(status || '').toLowerCase();
+    if (['confirmed', 'completed', 'complete', 'success'].includes(normalizedStatus)) {
+      return colors.green_500;
+    }
+    if (['failed', 'error', 'cancelled', 'canceled', 'rejected', 'expired'].includes(normalizedStatus)) {
+      return colors.red_500;
+    }
+    return colors.yellow;
   };
 
   const truncateAddress = (addr: string) => {
@@ -78,6 +78,8 @@ const TransactionItem = ({
       }
     });
   };
+
+  const statusText = getActivityStatusText(status);
 
   return (
     <UX.Box
@@ -95,13 +97,7 @@ const TransactionItem = ({
         {getIcon()}
         <UX.Box spacing="xss" style={{ marginLeft: '8px' }}>
           <UX.Text
-            title={
-              type === 'sent'
-                ? 'Sent'
-                : type === 'contract'
-                ? 'Contract interaction'
-                : 'Received'
-            }
+            titleKey={getActivityTypeTitleKey(type)}
             styleType="body_16_bold"
             customStyles={{ color: colors.white }}
           />
@@ -129,7 +125,8 @@ const TransactionItem = ({
           customStyles={{ color: getAmountColor() }}
         />
         <UX.Text
-          title={getStatusText()}
+          titleKey={statusText.titleKey}
+          titleParams={statusText.titleParams}
           styleType="body_12_normal"
           customStyles={{ color: getStatusColor() }}
         />

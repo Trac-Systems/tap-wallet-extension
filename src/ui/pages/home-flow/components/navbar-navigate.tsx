@@ -19,7 +19,7 @@ const Navbar = (props: INavbar) => {
         style={{cursor: 'pointer'}}>
         <SVG.HomeIcon fillColor={isActive === 'home' ? '#D16B7C' : 'white'} />
         <UX.Text
-          title="Home"
+          titleKey="nav.home"
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'home' ? colors.main_500 : colors.white,
@@ -33,7 +33,7 @@ const Navbar = (props: INavbar) => {
         style={{cursor: 'pointer'}}>
         <SVG.DappIcon fillColor={isActive === 'dapp' ? '#D16B7C' : 'white'} />
         <UX.Text
-          title="Dapps"
+          titleKey="dapp.title"
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'dapp' ? colors.main_500 : colors.white,
@@ -47,7 +47,7 @@ const Navbar = (props: INavbar) => {
         style={{cursor: 'pointer'}}>
         <SVG.ActivityIcon fillColor={isActive === 'activity' ? '#D16B7C' : 'white'} />
         <UX.Text
-          title="Activity"
+          titleKey="activity.title"
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'activity' ? colors.main_500 : colors.white,
@@ -63,7 +63,7 @@ const Navbar = (props: INavbar) => {
           color={isActive === 'setting' ? '#D16B7C' : 'white'}
         />
         <UX.Text
-          title="Settings"
+          titleKey="settings.title"
           styleType="body_12_normal"
           customStyles={{
             color: isActive === 'setting' ? colors.main_500 : colors.white,

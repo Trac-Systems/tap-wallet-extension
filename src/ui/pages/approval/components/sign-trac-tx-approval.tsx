@@ -79,12 +79,16 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
         <UX.Box spacing="sm" style={{ flex: 1, padding: '0 20px' }}>
           <UX.Box spacing="xs">
             <UX.Text
-              title="Sign Transaction"
+              titleKey="approval.signTransaction.title"
               styleType="heading_18"
               customStyles={{ color: 'white', textAlign: 'center' }}
             />
             <UX.Text
-              title={isLoading ? "Building transaction..." : "Review the transaction details below"}
+              titleKey={
+                isLoading
+                  ? 'approval.signTransaction.building'
+                  : 'approval.signTransaction.reviewDetails'
+              }
               styleType="body_14_normal"
               customStyles={{ color: '#888', textAlign: 'center' }}
             />
@@ -93,7 +97,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
           {isLoading ? (
             <UX.Box style={{ marginTop: '40px', textAlign: 'center' }}>
               <UX.Text
-                title="⏳ Loading..."
+                titleKey="common.loading"
                 styleType="body_14_normal"
                 customStyles={{ color: '#888' }}
               />
@@ -105,7 +109,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
               layout="box_border"
               style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
             >
-              <UX.Text title="From" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+              <UX.Text titleKey="transaction.from" styleType="body_12_bold" customStyles={{ color: '#888' }} />
               <UX.Text
                 title={txData?.from || 'Unknown'}
                 styleType="body_12_normal"
@@ -118,7 +122,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
               layout="box_border"
               style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
             >
-              <UX.Text title="To" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+              <UX.Text titleKey="transaction.to" styleType="body_12_bold" customStyles={{ color: '#888' }} />
               <UX.Text
                 title={txData?.to || 'Unknown'}
                 styleType="body_12_normal"
@@ -129,7 +133,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
             {/* Amount Section */}
             <UX.Box layout="box_border">
               <UX.Box layout="row_between" style={{ width: '100%' }}>
-                <UX.Text title="Amount" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                <UX.Text titleKey="transaction.amount" styleType="body_12_bold" customStyles={{ color: '#888' }} />
                 <UX.Text
                   title={`${displayAmount} TNK`}
                   styleType="body_14_bold"
@@ -141,7 +145,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
             {/* Network Fee Section */}
             <UX.Box layout="box_border">
               <UX.Box layout="row_between" style={{ width: '100%' }}>
-                <UX.Text title="Network fee" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                <UX.Text titleKey="transaction.networkFee" styleType="body_12_bold" customStyles={{ color: '#888' }} />
                 <UX.Text
                   title={`${fee} TNK`}
                   styleType="body_14_normal"
@@ -154,7 +158,7 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
             {txData?.networkId && (
               <UX.Box layout="box_border">
                 <UX.Box layout="row_between" style={{ width: '100%' }}>
-                  <UX.Text title="Network" styleType="body_12_bold" customStyles={{ color: '#888' }} />
+                  <UX.Text titleKey="settings.network.title" styleType="body_12_bold" customStyles={{ color: '#888' }} />
                   <UX.Text
                     title={txData.networkId === 918 ? Network.MAINNET : Network.TESTNET}
                     styleType="body_12_normal"
@@ -178,12 +182,12 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
             >
               <UX.Box spacing="xs">
                 <UX.Text
-                  title="⚠️ Security Warning"
+                  titleKey="approval.securityWarning"
                   styleType="body_12_bold"
                   customStyles={{ color: '#ff6b6b' }}
                 />
                 <UX.Text
-                  title="Verify all details carefully. Once signed, the transaction can be broadcast to the network."
+                  titleKey="approval.signTransaction.securityWarning"
                   styleType="body_12_normal"
                   customStyles={{ color: 'rgba(255, 255, 255, 0.6)' }}
                 />
@@ -196,13 +200,13 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
         <UX.Box layout="row" spacing="sm" style={{ padding: '0 20px 20px' }}>
           <UX.Button
             styleType="dark"
-            title="Cancel"
+            titleKey="common.cancel"
             onClick={handleCancel}
             customStyles={{ flex: 1 }}
           />
           <UX.Button
             styleType="primary"
-            title={isLoading ? "Building..." : "Sign"}
+            titleKey={isLoading ? 'approval.signTransaction.buildingShort' : 'common.sign'}
             onClick={handleApprove}
             customStyles={{ flex: 1, opacity: isLoading ? 0.5 : 1 }}
             isDisable={isLoading}
@@ -212,4 +216,3 @@ export default function SignTracTxApproval({ params: { session, data, _builtTxDa
     />
   );
 }
-

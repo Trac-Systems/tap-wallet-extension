@@ -81,17 +81,17 @@ export default function Connect({params: {session}}: Props) {
       body={
         <UX.Box spacing="sm" style={{flex: 1}}>
           <UX.Text
-            title="Connect with Tap Wallet"
+            titleKey="approval.connect.tapWallet"
             customStyles={{textAlign: 'center', color: 'white'}}
             styleType="body_14_normal"
           />
           <UX.Text
-            title="Select the account to use on this site"
+            titleKey="approval.connect.selectAccount"
             customStyles={{textAlign: 'center'}}
             styleType="body_14_normal"
           />
           <UX.Text
-            title="Only connect with sites you trust."
+            titleKey="approval.connect.trustOnly"
             customStyles={{textAlign: 'center'}}
             styleType="body_14_normal"
           />
@@ -132,13 +132,13 @@ export default function Connect({params: {session}}: Props) {
       footer={
         <UX.Box layout="row" spacing="sm">
           <UX.Button
-            title="Cancel"
+            titleKey="common.cancel"
             styleType="dark"
             customStyles={{flex: 1}}
             onClick={handleCancel}
           />
           <UX.Button
-            title="Connect"
+            titleKey="common.connect"
             styleType="primary"
             customStyles={{flex: 1}}
             onClick={handleConnect}

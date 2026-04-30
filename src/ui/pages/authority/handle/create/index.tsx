@@ -87,12 +87,12 @@ const HandleCreateAuthority = () => {
   return (
     <LayoutSendReceive
       header={
-        <UX.TextHeader text="Create Authority" onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="authority.create" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box layout="column" spacing="xxl" style={{width: '100%'}}>
           <UX.Box layout="column" spacing="xss">
-            <UX.Text styleType="body_16_bold" title={'Preview'} />
+            <UX.Text styleType="body_16_bold" titleKey="transaction.preview" />
             <div
               style={{
                 wordBreak: 'break-all',
@@ -109,7 +109,7 @@ const HandleCreateAuthority = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Fee rate"
+              titleKey="transaction.feeRate"
             />
             <FeeRateBar onChange={handleUpdateFeeRate} />
           </UX.Box>
@@ -124,7 +124,7 @@ const HandleCreateAuthority = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title={'Next'}
+            titleKey="common.next"
             onClick={handleNavigate}
             isDisable={loadStatus === LoadStatus.LOADING && orderPreview === ''}
           />

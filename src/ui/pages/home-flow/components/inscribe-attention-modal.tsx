@@ -22,13 +22,13 @@ const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
           <SVG.CloseIcon />
         </UX.Box>
         <UX.Text
-          title="May be use at your own risk"
+          titleKey="inscription.useAtOwnRisk"
           styleType="heading_16"
           customStyles={{color: colors.orange, textAlign: 'center'}}
         />
 
         <UX.Text
-          title="Please make sure the previous transaction has been confirmed!"
+          titleKey="inscription.previousTxConfirmed"
           styleType="body_14_normal"
           customStyles={{color: colors.white}}
         />
@@ -53,7 +53,7 @@ const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
             onChange={() => setUnderstand(!isUnderstand)}
           />
           <UX.Text
-            title="I understand and I accept the risk"
+            titleKey="inscription.acceptRisk"
             styleType="body_12_normal"
             customStyles={{color: colors.white, maxWidth: '80%'}}
           />
@@ -67,7 +67,7 @@ const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
               }}
             />
             <UX.Text
-              title="Do not show this message again"
+              titleKey="common.doNotShowAgain"
               styleType="body_12_normal"
               customStyles={{color: colors.white, maxWidth: '80%'}}
             />
@@ -78,14 +78,14 @@ const InscribeAttentionModal = (props: InscribeAttentionModalProps) => {
           <UX.Button
             styleType="dark"
             onClick={onCancel}
-            title="Cancel"
+            titleKey="common.cancel"
             customStyles={{flex: 1}}
           />
           <UX.Button
             styleType="primary"
             isDisable={!isUnderstand}
             onClick={onNext}
-            title="Continue"
+            titleKey="common.continue"
             customStyles={{flex: 1}}
           />
         </UX.Box>

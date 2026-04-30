@@ -1,9 +1,14 @@
 import React, {forwardRef, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {useOptionalI18n} from '../../i18n/context';
+import type {TranslationParams} from '../../i18n/types';
+import {fontFamilies} from '../../themes/font';
 
 interface AuthInputProps {
   onChange: (value: string) => void;
   onKeyUp?: React.KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
+  placeholderKey?: string;
+  placeholderParams?: TranslationParams;
   type?: 'password' | 'text';
   autoComplete?: string;
   rightSlot?: React.ReactNode;
@@ -33,6 +38,7 @@ const containerStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
+  fontFamily: fontFamilies.main,
   width: '100%',
   border: 'none',
   outline: 'none',
@@ -48,6 +54,8 @@ const AuthInput = forwardRef<AuthInputRef, AuthInputProps>(
       onChange,
       onKeyUp,
       placeholder,
+      placeholderKey,
+      placeholderParams,
       type = 'password',
       autoComplete = 'off',
       rightSlot,
@@ -60,6 +68,7 @@ const AuthInput = forwardRef<AuthInputRef, AuthInputProps>(
     },
     ref,
   ) => {
+    const i18n = useOptionalI18n();
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [value, setValue] = useState('');
     const [show, setShow] = useState(false);
@@ -100,12 +109,12 @@ const AuthInput = forwardRef<AuthInputRef, AuthInputProps>(
 
     const defaultValidators = useMemo(
       () => [
-        {label: 'Length ≥12', valid: (s: string) => s.length >= 12},
-        {label: 'Contains uppercase', valid: (s: string) => /[A-Z]/.test(s)},
-        {label: 'Contains lowercase', valid: (s: string) => /[a-z]/.test(s)},
-        {label: 'Contains special character', valid: (s: string) => /[^a-zA-Z0-9]/.test(s)},
+        {label: i18n?.t('password.lengthAtLeast12') ?? 'Length >= 12', valid: (s: string) => s.length >= 12},
+        {label: i18n?.t('password.containsUppercase') ?? 'Contains uppercase', valid: (s: string) => /[A-Z]/.test(s)},
+        {label: i18n?.t('password.containsLowercase') ?? 'Contains lowercase', valid: (s: string) => /[a-z]/.test(s)},
+        {label: i18n?.t('password.containsSpecial') ?? 'Contains special character', valid: (s: string) => /[^a-zA-Z0-9]/.test(s)},
       ],
-      [],
+      [i18n],
     );
 
     const rules = validators && validators.length > 0 ? validators : defaultValidators;
@@ -126,6 +135,8 @@ const AuthInput = forwardRef<AuthInputRef, AuthInputProps>(
     }, [value, strengthCalc]);
 
     const hasRight = Boolean(effectiveRightSlot);
+    const displayPlaceholder =
+      placeholderKey && i18n ? i18n.t(placeholderKey, placeholderParams) : placeholder;
 
     return (
       <div style={containerStyle}>
@@ -135,7 +146,7 @@ const AuthInput = forwardRef<AuthInputRef, AuthInputProps>(
           maxLength={64}
           onChange={handleChange}
           onKeyUp={onKeyUp}
-          placeholder={placeholder}
+          placeholder={displayPlaceholder}
           style={{
             ...inputStyle,
             paddingRight: hasRight ? 68 : inputStyle.padding,
@@ -179,5 +190,3 @@ const AuthInput = forwardRef<AuthInputRef, AuthInputProps>(
 );
 
 export default AuthInput;
-
-

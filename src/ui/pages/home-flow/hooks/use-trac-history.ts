@@ -7,8 +7,10 @@ import { TracApi } from '@/src/background/requests/trac-api';
 import { processTracTransaction } from '@/src/ui/utils/trac-transaction-processor';
 import { useAppSelector } from '@/src/ui/utils';
 import { GlobalSelector } from '@/src/ui/redux/reducer/global/selector';
+import {useI18n} from '@/src/ui/i18n/context';
 
 export const useTracHistory = (address: string) => {
+  const {t} = useI18n();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -59,7 +61,7 @@ export const useTracHistory = (address: string) => {
       setHasMore(processed.length >= LIMIT);
     } catch (err: any) {
       console.error('[useTracHistory] Error:', err);
-      setError(err.message || 'Failed to load Trac transactions');
+      setError(err.message || t('activity.failedLoadTracTransactions'));
     } finally {
       setLoading(false);
       setLoadingMore(false);

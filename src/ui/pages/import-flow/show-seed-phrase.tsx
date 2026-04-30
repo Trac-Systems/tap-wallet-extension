@@ -47,7 +47,7 @@ const ShowSeedPhrase = () => {
         <UX.Box layout="column_center" spacing="xl">
           <SVG.SeedPhraseIcon />
           <UX.Text
-            title="Your seed phrase"
+            titleKey="onboarding.yourSeedPhrase"
             styleType="heading_24"
             customStyles={{
               marginTop: spaces.xl,
@@ -55,20 +55,20 @@ const ShowSeedPhrase = () => {
             }}
           />
           <UX.Text
-            title="Write these 24 words in exactly that order and store them in a safe place."
+            titleKey="onboarding.writeSeedPhrase"
             styleType="body_16_normal"
             customStyles={{textAlign: 'center', marginBottom: spaces.xl}}
           />
           <UX.BoxShowSeedPhrase mnemonics={mnemonicContext} />
           <UX.Button
             styleType="copy"
-            title="Copy to clipboard"
+            titleKey="settings.showKey.copyToClipboard"
             copy
             onClick={() => {
               copyToClipboard(mnemonicContext);
               showToast({
                 type: 'copied',
-                title: 'Copied',
+                titleKey: 'common.copied',
               });
             }}
           />
@@ -83,7 +83,7 @@ const ShowSeedPhrase = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Okay, I saved them somewhere safe"
+            titleKey="onboarding.savedSeedPhrase"
             onClick={() => handleNavigate()}
           />
         </UX.Box>

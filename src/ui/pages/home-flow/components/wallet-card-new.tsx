@@ -106,7 +106,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                     onClick={handleShowHistoryBTC}
                     styleType="body_14_bold"
                     customStyles={{cursor: 'pointer', color: 'white'}}
-                    title="View BTC History"
+                    titleKey="wallet.viewBtcHistory"
                   />
                 )}
                 {hasTrac && (
@@ -114,7 +114,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                     onClick={handleShowHistoryTRAC}
                     styleType="body_14_bold"
                     customStyles={{cursor: 'pointer', color: 'white'}}
-                    title="View TRAC History"
+                    titleKey="wallet.viewTracHistory"
                   />
                 )}
                 <UX.Text
@@ -131,7 +131,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
                   }}
                   styleType="body_14_bold"
                   customStyles={{cursor: 'pointer', color: 'white'}}
-                  title="Edit Wallet"
+                  titleKey="wallet.edit"
                 />
               </div>
             )}
@@ -185,7 +185,7 @@ const WalletCardNew = (props: IWalletCardNewProps) => {
 
         {/* Confirmed balance section */}
         <UX.Box>
-          <UX.Text styleType="body_12_normal" title="Confirmed balance:"  />
+          <UX.Text styleType="body_12_normal" titleKey="wallet.confirmedBalance"  />
           <UX.Box layout="row_between">
             {isLoadingUtxo ? (
               <UX.Box layout="row_center" style={{ width: '100%'}}>

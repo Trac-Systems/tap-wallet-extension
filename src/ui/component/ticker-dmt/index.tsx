@@ -32,7 +32,7 @@ export const TickerSpendable = (props: IProps) => {
   const {top = 11, left = 11} = props;
   return (
     <Button
-      title="Spendable"
+      titleKey="inscription.spendable"
       styleType="primary"
       customStyles={{
         borderRadius: '24px',

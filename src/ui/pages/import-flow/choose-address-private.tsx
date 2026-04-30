@@ -162,7 +162,7 @@ const ChooseAddressPrivate = () => {
           <UX.Box layout="column_center" spacing="xxl">
             <SVG.WalletIcon />
             <UX.Text
-              title="Choose your Address"
+              titleKey="wallet.chooseAddress"
               styleType="heading_24"
               customStyles={{
                 textAlign: 'center',
@@ -204,7 +204,7 @@ const ChooseAddressPrivate = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleConfirmPress}
           />
         </UX.Box>

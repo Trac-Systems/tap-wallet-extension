@@ -101,7 +101,7 @@ const ConfirmTracAppsModal = ({
           <UX.Text
             styleType="body_16_extra_bold"
             customStyles={{color: colors.white}}
-            title="Are you sure?"
+            titleKey="common.areYouSure"
           />
           <UX.Box
             style={{
@@ -124,13 +124,13 @@ const ConfirmTracAppsModal = ({
             }}>
             <UX.Button
               styleType="secondary"
-              title="No"
+              titleKey="common.no"
               onClick={handleNo}
               customStyles={{flex: 1, marginRight: '8px'}}
             />
             <UX.Button
               styleType="primary"
-              title="Yes"
+              titleKey="common.yes"
               onClick={handleYes}
               customStyles={{flex: 1, marginLeft: '8px'}}
             />
@@ -189,7 +189,7 @@ const ConfirmTracAppsModal = ({
             <UX.Input
               value={modalInputValue}
               onChange={e => setModalInputValue(e.target.value)}
-              placeholder="Enter address"
+              placeholderKey="send.enterAddress"
             />
 
             <button style={{position: 'absolute', top: 14, right: 14, width: 24, height: 24}} onClick={() => onPaste()}>
@@ -198,7 +198,7 @@ const ConfirmTracAppsModal = ({
           </UX.Box>
           
           <Text
-              title="Invalid address"
+              titleKey="send.invalidAddress"
               styleType="body_14_bold"
               customStyles={{ color: colors.red_500, marginTop: '4px', visibility: modalInputValue !== "" && !validateTracAppsAddress(modalInputValue) ? "visible" : "hidden"  }}
           />
@@ -220,14 +220,14 @@ const ConfirmTracAppsModal = ({
                 <UX.Text
                   styleType="body_14_bold"
                   customStyles={{color: colors.white}}
-                  title="Use Saved Address"
+                  titleKey="send.useSavedAddress"
                 />
               </UX.Box>
             </UX.Box>
           ) : null}
           <UX.Button
             styleType="primary"
-            title="Confirm"
+            titleKey="common.confirm"
             onClick={handleMainAction}
             isDisable={!validateTracAppsAddress(modalInputValue)}
             customStyles={{marginTop: '12px'}}

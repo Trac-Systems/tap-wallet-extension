@@ -32,6 +32,7 @@ import {
 } from '../../send-receive/hook';
 import {useApproval} from '../hook';
 import LayoutApprove from '../layouts';
+import {useI18n} from '@/src/ui/i18n';
 interface Props {
   params: {
     data: {
@@ -80,6 +81,7 @@ const SignPsbt = ({
 }: Props) => {
   //! State
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [rawTxInfo, setRawTxInfo] = useState<RawTxInfo>();
@@ -126,7 +128,7 @@ const SignPsbt = ({
         }
 
         // Show message to user to check their Ledger device
-        setLoadingMessage('Please confirm the transaction on your Ledger device');
+        setLoadingMessage('ledger.confirmOnDevice');
 
         // Sign PSBT with Ledger
         finalPsbtHex = await walletProvider.signPsbtFromHex(
@@ -145,7 +147,7 @@ const SignPsbt = ({
       console.error('Error signing PSBT:', error);
       showToast({
         type: 'error',
-        title: error.message || 'Failed to sign transaction with Ledger',
+        title: error.message || t('ledger.failedHardwareSign'),
       });
       setIsLoading(false);
       setLoadingMessage('');
@@ -168,7 +170,7 @@ const SignPsbt = ({
     copyToClipboard(text).then(() => {
       showToast({
         type: 'copied',
-        title: 'Copied',
+        titleKey: 'common.copied',
       });
     });
   };
@@ -246,7 +248,7 @@ const SignPsbt = ({
       } else {
         if (isEmpty(inscriptionIds)) {
           showToast({
-            title: 'Do not have any inscriptions to send',
+            titleKey: 'inscription.noneToSend',
             type: 'error',
           });
 
@@ -400,7 +402,7 @@ const SignPsbt = ({
               <SVG.LoadingIcon />
             </div>
             <UX.Text
-              title={loadingMessage}
+              titleKey={loadingMessage}
               styleType="body_14_normal"
               customStyles={{
                 color: colors.gray,
@@ -434,7 +436,7 @@ const SignPsbt = ({
               <SVG.ArrowUpRight />
             </UX.Box>
             {/* <UX.Text
-              title="Spend Amount"
+              titleKey="transaction.spendAmount"
               styleType="body_16_normal"
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
             /> */}
@@ -450,7 +452,7 @@ const SignPsbt = ({
           {type !== TxType.SIGN_TX && (
             <UX.Box layout="box" spacing="xl">
               <UX.Box layout="row_between">
-                <UX.Text title="From" styleType="body_14_normal" />
+                <UX.Text titleKey="transaction.from" styleType="body_14_normal" />
                 <UX.Text
                   title={formatAddressLongText(activeAccountAddress, 8, 6)}
                   styleType="body_14_normal"
@@ -458,7 +460,7 @@ const SignPsbt = ({
                 />
               </UX.Box>
               <UX.Box layout="row_between">
-                <UX.Text title="To" styleType="body_14_normal" />
+                <UX.Text titleKey="transaction.to" styleType="body_14_normal" />
                 <UX.Text
                   title={formatAddressLongText(toAddress, 8, 6)}
                   styleType="body_14_normal"
@@ -471,7 +473,7 @@ const SignPsbt = ({
             {type !== TxType.SIGN_TX && (
               <>
                 <UX.Box layout="row_between">
-                  <UX.Text title="Network fee" styleType="body_14_normal" />
+                  <UX.Text titleKey="transaction.networkFee" styleType="body_14_normal" />
                   <UX.Text
                     title={`${networkFee} BTC`}
                     styleType="body_14_normal"
@@ -480,7 +482,7 @@ const SignPsbt = ({
                 </UX.Box>
                 <UX.Box layout="row_between">
                   <UX.Text
-                    title="Network fee rate"
+                    titleKey="transaction.networkFeeRate"
                     styleType="body_14_normal"
                   />
                   <UX.Text
@@ -493,7 +495,8 @@ const SignPsbt = ({
             )}
           </UX.Box>
           <UX.Text
-            title={`INPUT (${extractTx?.inputs?.length})`}
+            titleKey="transaction.inputCount"
+            titleParams={{count: extractTx?.inputs?.length ?? 0}}
             styleType="heading_16"
           />
           <UX.Box layout="box" spacing="xl">
@@ -516,7 +519,7 @@ const SignPsbt = ({
                       />
                       {isToSign && (
                         <UX.Text
-                          title="to sign"
+                          titleKey="transaction.toSign"
                           styleType="body_14_normal"
                           customStyles={{
                             color: colors.main_500,
@@ -539,7 +542,8 @@ const SignPsbt = ({
               })}
           </UX.Box>
           <UX.Text
-            title={`OUTPUT (${extractTx?.outputs?.length})`}
+            titleKey="transaction.outputCount"
+            titleParams={{count: extractTx?.outputs?.length ?? 0}}
             styleType="heading_16"
           />
           <UX.Box layout="box" spacing="xl">
@@ -567,7 +571,7 @@ const SignPsbt = ({
                 );
               })}
           </UX.Box>
-          <UX.Text title="PSBT Data" styleType="heading_16" />
+          <UX.Text titleKey="transaction.psbtData" styleType="heading_16" />
           <UX.Box layout="box" spacing="xl">
             <UX.Box layout="row_between">
               <UX.Text
@@ -594,14 +598,14 @@ const SignPsbt = ({
           <UX.Box style={{flex: 1}}>
             {onBackClick ? (
               <UX.Button
-                title="Back"
+                titleKey="common.back"
                 styleType="dark"
                 onClick={onBackClick}
                 customStyles={{flex: 1}}
               />
             ) : (
               <UX.Button
-                title="Reject"
+                titleKey="common.reject"
                 styleType="dark"
                 onClick={handleCancel}
                 customStyles={{flex: 1}}
@@ -609,9 +613,9 @@ const SignPsbt = ({
             )}
           </UX.Box>
           <UX.Box style={{flex: 1}}>
-            <UX.Tooltip isText text={isEnable ? '' : 'No input needs signing'}>
+            <UX.Tooltip isText textKey={isEnable ? undefined : 'approval.noInputNeedsSigning'}>
               <UX.Button
-                title={type === TxType.SIGN_TX ? 'Sign' : 'Sign & Pay'}
+                titleKey={type === TxType.SIGN_TX ? 'common.sign' : 'transaction.signAndPay'}
                 styleType="primary"
                 onClick={handleConfirm}
                 customStyles={{flex: 1}}

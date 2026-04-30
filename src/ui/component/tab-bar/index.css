@@ -81,7 +81,7 @@
   outline: none;
   border: none;
   background: transparent;
-  font-family: 'Exo';
+  font-family: var(--font-main);
   font-size: '16px';
   font-style: 'normal';
   font-weight: 400;

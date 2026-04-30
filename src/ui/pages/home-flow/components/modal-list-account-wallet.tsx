@@ -120,7 +120,7 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
       dispatch(AccountActions.setActiveAccount(_activeAccount));
       setDisplayWallet(_activeWallet);
       showToast({
-        title: 'Account changed',
+        titleKey: 'account.changed',
         type: 'success',
       });
       handleClose?.();
@@ -134,7 +134,7 @@ const ModalListAccountWallet = (props: IModalListAccountWalletProps) => {
       }}
       spacing="xl">
       <UX.Box layout="row_between" style={{marginTop: '16px'}}>
-        <UX.Text title="Select account" styleType="body_20_extra_bold" />
+        <UX.Text titleKey="account.select" styleType="body_20_extra_bold" />
         <UX.Box
           onClick={() => navigate('/home/create-account')}
           style={{cursor: 'pointer'}}>

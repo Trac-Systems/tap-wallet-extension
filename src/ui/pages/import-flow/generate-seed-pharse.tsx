@@ -10,7 +10,7 @@ const GenerateSeedPhrase = () => {
         <UX.Box layout="column_center" spacing="xxl_lg">
           <SVG.SettingIcon />
           <UX.Box layout="column_center">
-            <UX.Text title="Generating your seed phrase..." styleType="heading_24" />
+            <UX.Text titleKey="onboarding.generatingSeedPhrase" styleType="heading_24" />
           </UX.Box>
         </UX.Box>
       }

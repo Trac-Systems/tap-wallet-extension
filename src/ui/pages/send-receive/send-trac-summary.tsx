@@ -16,6 +16,7 @@ import {TracApiService} from '../../../background/service/trac-api.service';
 import {TracApi} from '../../../background/requests/trac-api';
 import {Network} from '../../../wallet-instance';
 import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
+import {useI18n} from '@/src/ui/i18n';
 
 interface TracSummaryData {
   to: string;
@@ -36,6 +37,7 @@ const SendTracSummary = () => {
   const activeAccount = useAppSelector(AccountSelector.activeAccount);
   const networkType = useAppSelector(GlobalSelector.networkType);
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
 
   // Convert fee from hex to decimal (dec 18)
   const formatFee = (feeHex: string) => {
@@ -109,15 +111,15 @@ const SendTracSummary = () => {
       const result = await TracApi.broadcastTransaction(txPayload, networkType);
       if (result.success) {
         const txHash = result.txid || TracApiService.decodePayload(txPayload);
-        showToast({title: 'Transaction sent successfully', type: 'success'});
+        showToast({titleKey: 'transaction.sentSuccessfully', type: 'success'});
         navigate('/home/send-trac-success', { 
           state: { txHash } 
         });
       } else {
-        showToast({title: result.error || 'Transaction failed', type: 'error'});
+        showToast({title: result.error || t('transaction.failed'), type: 'error'});
       }
     } catch (err: any) {
-      showToast({title: err?.message || 'Failed to send transaction', type: 'error'});
+      showToast({title: err?.message || t('transaction.failedToSend'), type: 'error'});
     }
   };
 
@@ -129,7 +131,7 @@ const SendTracSummary = () => {
 
   return (
     <LayoutSendReceive
-      header={<UX.TextHeader text="Summary" onBackClick={handleGoBack} />}
+      header={<UX.TextHeader textKey="transaction.summary" onBackClick={handleGoBack} />}
       body={
         <UX.Box layout="column" spacing="xl" style={{width: '100%'}}>
           <UX.Box layout="column_center">
@@ -143,7 +145,7 @@ const SendTracSummary = () => {
               <SVG.ArrowUpRight />
             </UX.Box>
             <UX.Text
-              title="Spend Amount"
+              titleKey="transaction.spendAmount"
               styleType="body_16_normal"
               customStyles={{marginTop: '24px', marginBottom: '8px'}}
             />
@@ -163,7 +165,7 @@ const SendTracSummary = () => {
           
           <UX.Box layout="box" spacing="xl">
             <UX.Box layout="row_between">
-              <UX.Text title="From" styleType="body_14_normal" />
+              <UX.Text titleKey="transaction.from" styleType="body_14_normal" />
               <UX.Text
                 title={formatAddressLongText(tracAddress || '', 8, 6)}
                 styleType="body_14_normal"
@@ -171,7 +173,7 @@ const SendTracSummary = () => {
               />
             </UX.Box>
             <UX.Box layout="row_between">
-              <UX.Text title="To" styleType="body_14_normal" />
+              <UX.Text titleKey="transaction.to" styleType="body_14_normal" />
               <UX.Text
                 title={formatAddressLongText(summaryData.to, 8, 6)}
                 styleType="body_14_normal"
@@ -182,7 +184,7 @@ const SendTracSummary = () => {
           
           <UX.Box layout="box" spacing="xl">
             <UX.Box layout="row_between" style={{alignItems: 'flex-start'}}>
-              <UX.Text title="Network fee" styleType="body_14_normal" />
+              <UX.Text titleKey="transaction.networkFee" styleType="body_14_normal" />
               <UX.Box layout="column" style={{alignItems: 'flex-end'}}>
                 <UX.Text
                   title={`${formatFee(summaryData.fee)} TNK`}
@@ -208,7 +210,7 @@ const SendTracSummary = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Sign & Pay"
+            titleKey="transaction.signAndPay"
             onClick={handleConfirm}
           />
         </UX.Box>

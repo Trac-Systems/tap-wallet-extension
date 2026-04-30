@@ -18,7 +18,7 @@ export function AddressBar({address, hideCopy}: {address: string; hideCopy?: boo
         copyToClipboard(address).then(() => {
           showToast({
             type: 'copied',
-            title: 'Copied',
+            titleKey: 'common.copied',
           });
         });
       }}>

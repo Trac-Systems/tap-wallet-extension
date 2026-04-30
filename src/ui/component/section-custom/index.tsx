@@ -1,22 +1,29 @@
 import {copyToClipboard} from '../../helper';
+import {useTranslatedToast} from '../../i18n/toast';
+import type {TranslationParams} from '../../i18n/types';
 import Box from '../box-custom';
 import Text from '../text-custom';
-import {useCustomToast} from '../toast-custom';
 
 export function Section({
   value,
   title,
+  titleKey,
+  titleParams,
   link,
 }: {
   value: string | number;
-  title: string;
+  title?: string;
+  titleKey?: string;
+  titleParams?: TranslationParams;
   link?: string;
 }) {
-  const {showToast} = useCustomToast();
+  const {showTranslatedToast} = useTranslatedToast();
   return (
     <Box style={{overflow: 'hidden'}}>
       <Text
         title={title}
+        titleKey={titleKey}
+        titleParams={titleParams}
         styleType="body_14_normal"
         customStyles={{color: 'white'}}
       />
@@ -29,9 +36,9 @@ export function Section({
             window.open(link);
           } else {
             copyToClipboard(value).then(() => {
-              showToast({
+              showTranslatedToast({
                 type: 'copied',
-                title: 'Copied',
+                titleKey: 'common.copied',
               });
             });
           }

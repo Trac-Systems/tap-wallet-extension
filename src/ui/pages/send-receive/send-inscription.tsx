@@ -18,6 +18,7 @@ import {OutputValueBar} from '@/src/ui/pages/send-receive/component/output-value
 import {getUtxoDustThreshold} from '@/src/background/utils';
 import {colors} from '@/src/ui/themes/color';
 import {debounce} from 'lodash';
+import {useI18n} from '@/src/ui/i18n';
 
 const SendInscription = () => {
   //! State
@@ -41,6 +42,7 @@ const SendInscription = () => {
   // to prevent rerender effect to show message error
 
   const {showToast} = useCustomToast();
+  const {t} = useI18n();
 
   const onAddressChange = (address: string) => {
     setToInfo({address: address});
@@ -74,12 +76,12 @@ const SendInscription = () => {
     setError('');
 
     if (feeRate <= 0) {
-      setError('Invalid fee rate');
+      setError(t('fee.invalidRate'));
       return;
     }
 
     if (outputValue < minOutputValue) {
-      setError(`OutputValue must be at least ${minOutputValue}`);
+      setError(t('tap.outputValueMin', {dust: minOutputValue}));
       return;
     }
 
@@ -139,7 +141,7 @@ const SendInscription = () => {
   return (
     <LayoutSendReceive
       header={
-        <UX.TextHeader text="Send Inscription" onBackClick={handleGoBack} />
+        <UX.TextHeader textKey="send.sendInscription" onBackClick={handleGoBack} />
       }
       body={
         <UX.Box spacing="xxl" style={{width: '100%'}}>
@@ -156,7 +158,7 @@ const SendInscription = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Receiver"
+              titleKey="transaction.receiver"
             />
             <UX.AddressInput
               style={{
@@ -177,7 +179,7 @@ const SendInscription = () => {
               <UX.Text
                 styleType="heading_16"
                 customStyles={{color: 'white'}}
-                title="OutputValue"
+                titleKey="transaction.outputValue"
               />
               <OutputValueBar
                 defaultValue={defaultOutputValue}
@@ -192,7 +194,7 @@ const SendInscription = () => {
             <UX.Text
               styleType="heading_16"
               customStyles={{color: 'white'}}
-              title="Fee rate"
+              titleKey="transaction.feeRate"
             />
             <FeeRateBar
               onChange={val => {
@@ -223,7 +225,7 @@ const SendInscription = () => {
           <UX.Button
             styleType="primary"
             isDisable={disabled}
-            title="Continue"
+            titleKey="common.continue"
             onClick={handleNavigate}
           />
         </UX.Box>

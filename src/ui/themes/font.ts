@@ -1,3 +1,10 @@
+export const fontFamilies = {
+  main:
+    "Exo, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif",
+  mono:
+    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace",
+};
+
 export const fontSizes = {
   xxxl: 48,
   xxl: 24,

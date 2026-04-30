@@ -96,8 +96,7 @@ const StartScreen = () => {
         <UX.Box layout="column_center" spacing="xl">
           <img src="./images/logo2.png" width={272} height={56} />
           <UX.Text
-            title=" TAP wallet allows you to make fast and secure blockchain-based
-            payments without intermediaries."
+            titleKey="onboarding.description"
             styleType="body_16_normal"
             customStyles={{textAlign: 'center', marginTop: '16px'}}
           />
@@ -112,17 +111,17 @@ const StartScreen = () => {
           }}>
           <UX.Button
             styleType="primary"
-            title="Create New Wallet"
+            titleKey="wallet.createNew"
             onClick={() => handleCreateWallet('isCreateNew')}
           />
           <UX.Button
             styleType="dark"
-            title="Restore Existing Wallet"
+            titleKey="wallet.restoreExisting"
             onClick={() => handleCreateWallet('isImport')}
           />
           <UX.Button
             styleType="dark"
-            title="Connect Ledger Hardware Wallet"
+            titleKey="ledger.connectHardwareWallet"
             onClick={handleConnectLedger}
           />
         </UX.Box>

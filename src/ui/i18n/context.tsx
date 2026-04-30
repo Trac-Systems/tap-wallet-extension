@@ -38,9 +38,12 @@ export const I18nProvider = ({
   children,
   initialLanguage,
 }: I18nProviderProps) => {
-  const [language, setLanguageState] = useState<Language>(
-    initialLanguage ?? getStoredLanguage(),
-  );
+  const [language, setLanguageState] = useState<Language>(initialLanguage);
+
+  useEffect(() => {
+    const storedLanguage = getStoredLanguage();
+    setLanguageState(storedLanguage);
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;

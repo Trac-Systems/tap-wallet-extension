@@ -11,7 +11,7 @@ import {Provider} from 'react-redux';
 import store from './redux/store';
 import AccountUpdater from './hook/account-updater';
 import eventBus from '../gateway/event-bus';
-import {EVENTS} from '../wallet-instance';
+import {EVENTS, INITIAL_LANGUAGE} from '../wallet-instance';
 import {AppDimensions} from './component/responsive';
 import {I18nProvider} from './i18n';
 
@@ -51,7 +51,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
         <WalletProvider walletProvider={wallet as any}>
-          <I18nProvider>
+          <I18nProvider initialLanguage={INITIAL_LANGUAGE}>
             <AppDimensions>
               <App />
               <AccountUpdater />

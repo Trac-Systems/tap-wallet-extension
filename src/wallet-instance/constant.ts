@@ -1,3 +1,4 @@
+import { Language } from '../ui/i18n'
 import {AddressType, Network} from './types';
 export const COIN_DUST = 1000;
 
@@ -97,3 +98,5 @@ export function adjustDerivationPathForNetwork(path: string, network: Network): 
   }
   return path;
 }
+
+export const INITIAL_LANGUAGE: Language = "en-US"

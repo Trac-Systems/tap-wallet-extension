@@ -28,7 +28,6 @@ import {
 import BigNumber from 'bignumber.js';
 import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import InscriptionPreview from '../../../component/inscription-preview';
 import type {AuthInputRef} from '../../../component/auth-input';
 import type {PinInputRef} from '../../../component/pin-input';
 import {isValidAuthInput} from '@/src/ui/utils';

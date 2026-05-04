@@ -90,7 +90,7 @@ export async function sendInscription({
 
   // 0 inscriptions = nothing to send; >1 would burn the extras.
   if (assetUtxo.inscriptions?.length !== 1) {
-    throw new Error('Unsafe balance: The asset UTXO should exactly contains 1 token.');
+    throw new Error(`Unsafe balance: The asset UTXO should contain exactly 1 inscription. It currently contains ${assetUtxo.inscriptions?.length ?? 0}.`);
   }
 
   const tx = new Transaction({
@@ -135,7 +135,7 @@ export async function sendInscriptions({
 }) {
   assetUtxos.forEach(utxo => {
     if (isEmpty(utxo.inscriptions)) {
-      throw new Error('Unsafe balance: The asset UTXO is empty.');
+      throw new Error('Unsafe balance: The asset UTXO contains no inscriptions.');
     }
   });
 

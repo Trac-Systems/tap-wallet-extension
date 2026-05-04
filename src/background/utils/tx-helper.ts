@@ -34,7 +34,7 @@ export async function sendBTC({
   // Spending an inscribed UTXO as fees would burn the inscription.
   btcUtxos.forEach(utxo => {
     if (!isEmpty(utxo.inscriptions)) {
-      throw new Error('Unsafe balance: The selected UTXO as fees contain tokens.');
+      throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
     }
   });
 
@@ -84,7 +84,7 @@ export async function sendInscription({
   // Spending an inscribed UTXO as fees would burn the inscription.
   btcUtxos.forEach(utxo => {
     if (!isEmpty(utxo.inscriptions)) {
-      throw new Error('Unsafe balance: The selected UTXO as fees contain tokens.');
+      throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
     }
   });
 
@@ -142,7 +142,7 @@ export async function sendInscriptions({
   // Spending an inscribed UTXO as fees would burn the inscription.
   btcUtxos.forEach(utxo => {
     if (!isEmpty(utxo.inscriptions)) {
-      throw new Error('Unsafe balance: The selected UTXO like fee contain tokens.');
+      throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
     }
   });
 

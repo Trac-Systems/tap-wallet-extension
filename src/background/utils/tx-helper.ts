@@ -31,6 +31,13 @@ export async function sendBTC({
   enableRBF?: boolean;
   isHardwareWallet?: boolean;
 }) {
+  // Spending an inscribed UTXO as fees would burn the inscription.
+  btcUtxos.forEach(utxo => {
+    if (!isEmpty(utxo.inscriptions)) {
+      throw new Error('Unsafe balance: The selected UTXO as fees contain tokens.');
+    }
+  });
+
   const tx = new Transaction({
     networkType: networkType,
     fromAddress: fromAddress,
@@ -74,16 +81,18 @@ export async function sendInscription({
   enableRBF?: boolean;
   isHardwareWallet?: boolean;
 }) {
-  // check safe Balance
-  // btcUtxos.forEach(utxo => {
-  //   if (!isEmpty(utxo.inscriptions)) {
-  //     throw new Error('Unsafe balance');
-  //   }
-  // });
+  // Spending an inscribed UTXO as fees would burn the inscription.
+  btcUtxos.forEach(utxo => {
+    if (!isEmpty(utxo.inscriptions)) {
+      throw new Error('Unsafe balance: The selected UTXO as fees contain tokens.');
+    }
+  });
 
-  // if (assetUtxo.inscriptions.length !== 1) {
-  //   throw new Error('Unsafe balance');
-  // }
+  // 0 inscriptions = nothing to send; >1 would burn the extras.
+  if (assetUtxo.inscriptions?.length !== 1) {
+    throw new Error('Unsafe balance: The asset UTXO should exactly contains 1 token.');
+  }
+
   const tx = new Transaction({
     networkType: networkType,
     fromAddress: fromAddress,
@@ -126,7 +135,14 @@ export async function sendInscriptions({
 }) {
   assetUtxos.forEach(utxo => {
     if (isEmpty(utxo.inscriptions)) {
-      throw new Error('Unsafe balance');
+      throw new Error('Unsafe balance: The asset UTXO is empty.');
+    }
+  });
+
+  // Spending an inscribed UTXO as fees would burn the inscription.
+  btcUtxos.forEach(utxo => {
+    if (!isEmpty(utxo.inscriptions)) {
+      throw new Error('Unsafe balance: The selected UTXO like fee contain tokens.');
     }
   });
 
@@ -152,7 +168,6 @@ export async function sendInscriptions({
     }
     tx.addInscriptionInput(assetUtxo);
     tx.addOutput({address: toAddress, value: assetUtxo.satoshi});
-    // inputForSigns.push({index: i, publicKey: pubkey});
   }
 
   const res = await tx.prepareTransaction();

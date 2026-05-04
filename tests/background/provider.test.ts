@@ -1,28 +1,6 @@
 import { describe, it, expect, jest } from '@jest/globals';
 
-// MOCK 1: Global Chrome object
-(global as any).chrome = {
-  storage: {
-    local: { 
-      get: jest.fn().mockImplementation(() => Promise.resolve({})), 
-      set: jest.fn().mockImplementation(() => Promise.resolve()) 
-    },
-  },
-};
-
-// MOCK 2: WebExtension Polyfill
-jest.mock('webextension-polyfill', () => {
-  const mockEvent = { addListener: jest.fn(), removeListener: jest.fn() };
-  return {
-    runtime: { onConnect: mockEvent, onMessage: mockEvent, onInstalled: mockEvent, onStartup: mockEvent, getURL: jest.fn(), getPlatformInfo: jest.fn(), connect: jest.fn() },
-    storage: { local: { get: jest.fn().mockImplementation(() => Promise.resolve({})), set: jest.fn().mockImplementation(() => Promise.resolve()) } },
-    tabs: { onRemoved: mockEvent, create: jest.fn(), query: jest.fn(), sendMessage: jest.fn(), getCurrent: jest.fn() },
-    windows: { onFocusChanged: mockEvent, onRemoved: mockEvent, getCurrent: jest.fn(), create: jest.fn(), remove: jest.fn(), WINDOW_ID_NONE: -1 },
-    alarms: { onAlarm: mockEvent, create: jest.fn(), clear: jest.fn() }
-  };
-});
-
-// MOCK 3: Singleton Services
+// MOCK: Singleton Services
 jest.mock('../../src/background/service/singleton', () => ({
   networkConfig: { getActiveNetwork: jest.fn().mockReturnValue('MAINNET') },
   walletConfig: {},
@@ -34,13 +12,6 @@ jest.mock('../../src/background/service/singleton', () => ({
   notificationService: {},
   permissionService: {},
   sessionService: {},
-}));
-
-// MOCK 4: Bypassing ESM Modules that Jest struggles to parse
-jest.mock('@noble/secp256k1', () => ({
-  signAsync: jest.fn(),
-  verify: jest.fn(),
-  Signature: jest.fn()
 }));
 
 import * as bitcoin from 'bitcoinjs-lib';

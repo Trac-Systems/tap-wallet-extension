@@ -7,24 +7,6 @@
 
 import { describe, it, expect, jest, beforeAll } from '@jest/globals';
 
-// ── Module shims (browser APIs not available in Node.js) ─────────────────────
-(global as any).chrome = {
-  storage: { local: { get: jest.fn(), set: jest.fn() } },
-};
-
-jest.mock('webextension-polyfill', () => {
-  const ev = { addListener: jest.fn(), removeListener: jest.fn() };
-  return {
-    runtime:  { onConnect: ev, onMessage: ev, onInstalled: ev, onStartup: ev, getURL: jest.fn(), getPlatformInfo: jest.fn(), connect: jest.fn() },
-    storage:  { local: { get: jest.fn().mockImplementation(() => Promise.resolve({})), set: jest.fn().mockImplementation(() => Promise.resolve()) } },
-    tabs:     { onRemoved: ev, create: jest.fn(), query: jest.fn(), sendMessage: jest.fn(), getCurrent: jest.fn() },
-    windows:  { onFocusChanged: ev, onRemoved: ev, getCurrent: jest.fn(), create: jest.fn(), remove: jest.fn(), WINDOW_ID_NONE: -1 },
-    alarms:   { onAlarm: ev, create: jest.fn(), clear: jest.fn() },
-  };
-});
-
-jest.mock('@noble/secp256k1', () => ({ signAsync: jest.fn(), verify: jest.fn(), Signature: jest.fn() }));
-
 jest.mock('../../src/background/service/singleton', () => ({
   networkConfig:       { getActiveNetwork: jest.fn().mockReturnValue('TESTNET') },
   walletConfig:        {},

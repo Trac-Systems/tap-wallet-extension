@@ -23,7 +23,7 @@ export class AxiosRequest {
         return config;
       },
       function (error) {
-        return Promise.reject(error);
+        throw error;
       },
     );
 
@@ -32,7 +32,7 @@ export class AxiosRequest {
         return response;
       },
       async function (err) {
-        return Promise.reject(err);
+        throw err;
       },
     );
   }

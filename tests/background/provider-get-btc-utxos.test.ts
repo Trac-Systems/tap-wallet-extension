@@ -56,12 +56,9 @@ const makeUtxo = (txid: string, vout: number) => ({
 
 const ADDRESS = 'bc1qtest';
 
-// Casts the provider to `any` so we can override instance methods with jest mocks
-// without fighting the strict method signatures in tests.
-type AnyProvider = any;
-
 describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
-  let provider: AnyProvider;
+  // Typed as `any` so jest mocks can override instance methods without type conflicts.
+  let provider: any;
 
   beforeEach(() => {
     provider = new Provider();
@@ -121,7 +118,7 @@ describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
 
     // normalUtxo (kept) + inscriptionUtxo (spendable) = 2; natUtxo removed
     expect(result).toHaveLength(2);
-    expect(result.map((u: AnyProvider) => u.txid)).toEqual(['aaaa', 'cccc']);
+    expect(result.map((u: any) => u.txid)).toEqual(['aaaa', 'cccc']);
   });
 
   it('excludes spendable inscriptions listed in ignoreAsset', async () => {

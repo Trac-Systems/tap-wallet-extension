@@ -691,7 +691,7 @@ export class Provider {
     }
 
     const spendableInscriptions =
-      (await this.getAccountSpendableInscriptions(account!)) || [];
+      (await this.getAccountSpendableInscriptions(account)) || [];
     const ignoreAssetMap: { [key: string]: boolean } = {};
     ignoreAsset?.forEach(inscriptionId => {
       ignoreAssetMap[inscriptionId] = true;

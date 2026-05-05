@@ -31,13 +31,10 @@ export async function sendBTC({
   enableRBF?: boolean;
   isHardwareWallet?: boolean;
 }) {
-  // Spending an inscribed UTXO as fees would burn the inscription.
-  // UTXOs the user explicitly marked as spendable (isUserSpendable) are exempt.
-  btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions) && !utxo.isUserSpendable) {
-      throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
-    }
-  });
+  // FILTER INSTEAD OF THROW: Only use clean UTXOs or explicitly marked spendable ones
+  const safeBtcUtxos = btcUtxos.filter(
+    utxo => isEmpty(utxo.inscriptions) || utxo.isUserSpendable
+  );
 
   const tx = new Transaction({
     networkType: networkType,
@@ -52,7 +49,7 @@ export async function sendBTC({
   tos.forEach(v => {
     tx.addOutput({address: v.address, value: v.satoshis});
   });
-  tx.addUtxos(btcUtxos);
+  tx.addUtxos(safeBtcUtxos);
   const {psbt, inputForSigns, outputs, inputs} = await tx.prepareTransaction();
   return {psbt, inputForSigns, outputs, inputs};
 }
@@ -82,13 +79,10 @@ export async function sendInscription({
   enableRBF?: boolean;
   isHardwareWallet?: boolean;
 }) {
-  // Spending an inscribed UTXO as fees would burn the inscription.
-  // UTXOs the user explicitly marked as spendable (isUserSpendable) are exempt.
-  btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions) && !utxo.isUserSpendable) {
-      throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
-    }
-  });
+  // FILTER INSTEAD OF THROW: Only use clean UTXOs or explicitly marked spendable ones
+  const safeBtcUtxos = btcUtxos.filter(
+    utxo => isEmpty(utxo.inscriptions) || utxo.isUserSpendable
+  );
 
   // 0 inscriptions = nothing to send; >1 would burn the extras.
   if (assetUtxo.inscriptions?.length !== 1) {
@@ -104,7 +98,7 @@ export async function sendInscription({
     enableRBF,
     isHardwareWallet,
   });
-  tx.addUtxos(btcUtxos);
+  tx.addUtxos(safeBtcUtxos);
   tx.addInscriptionInput(assetUtxo);
   tx.addOutput({address: toAddress, value: outputValue});
 
@@ -141,13 +135,10 @@ export async function sendInscriptions({
     }
   });
 
-  // Spending an inscribed UTXO as fees would burn the inscription.
-  // UTXOs the user explicitly marked as spendable (isUserSpendable) are exempt.
-  btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions) && !utxo.isUserSpendable) {
-      throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
-    }
-  });
+  // FILTER INSTEAD OF THROW: Only use clean UTXOs or explicitly marked spendable ones
+  const safeBtcUtxos = btcUtxos.filter(
+    utxo => isEmpty(utxo.inscriptions) || utxo.isUserSpendable
+  );
 
   const tx = new Transaction({
     networkType: networkType,
@@ -158,7 +149,8 @@ export async function sendInscriptions({
     enableRBF,
     isHardwareWallet,
   });
-  tx.addUtxos(btcUtxos);
+  
+  tx.addUtxos(safeBtcUtxos);
 
   const inputForSigns: InputForSigning[] = [];
 

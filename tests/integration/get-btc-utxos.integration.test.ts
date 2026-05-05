@@ -2,7 +2,7 @@
  * Integration test — hits real testnet APIs, no mocks on network calls.
  * Run with: yarn test --testPathPatterns=integration --no-coverage --forceExit
  *
- * Address: bc1q8tm78euk6lxf8r9hvvu5ax8lkt688vgz4wucv6 (testnet)
+ * Address: tb1q8tm78euk6lxf8r9hvvu5ax8lkt688vgzlg8thf (testnet)
  */
 
 import { describe, it, expect, jest, beforeAll } from '@jest/globals';
@@ -35,7 +35,7 @@ import { PaidApi } from '../../src/background/requests/paid-api';
 import { TapApi }  from '../../src/background/requests/tap-api';
 
 // ── Test data fetched once ────────────────────────────────────────────────────
-const ADDRESS = 'bc1q8tm78euk6lxf8r9hvvu5ax8lkt688vgz4wucv6';
+const ADDRESS = 'tb1q8tm78euk6lxf8r9hvvu5ax8lkt688vgzlg8thf';
 const TIMEOUT  = 30_000;
 
 let utxos:    UnspentOutput[] = [];

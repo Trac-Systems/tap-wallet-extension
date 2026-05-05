@@ -25,10 +25,8 @@ jest.mock('../../src/background/service/ledger.service', () => ({
   getLedgerService: jest.fn().mockReturnValue({}),
 }));
 
-// ── Imports after mocks ──────────────────────────────────────────────────────
 import { Provider } from '../../src/background/provider';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 const makeUtxo = (txid: string, vout: number) => ({
   txid, vout, satoshi: 10000,
   scriptType: 'P2WPKH', scriptPk: '0014aa', codeType: 0,
@@ -39,7 +37,6 @@ const makeUtxo = (txid: string, vout: number) => ({
 const ADDRESS = 'bc1qtest';
 
 describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
-  // Typed as `any` so jest mocks can override instance methods without type conflicts.
   let provider: any;
 
   beforeEach(() => {
@@ -54,7 +51,7 @@ describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
     const natUtxo    = makeUtxo('bbbb', 1);
 
     provider.paidApi = { getAllBTCUtxo: jest.fn().mockImplementation(() => Promise.resolve([normalUtxo, natUtxo])) };
-    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve([{ tx: 'bbbb', vo: 1 }])) };
+    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve(['bbbbi1'])) };
 
     const result = await provider.getBTCUtxos(ADDRESS);
 
@@ -66,23 +63,23 @@ describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
     const utxos = [makeUtxo('aaaa', 0), makeUtxo('cccc', 2)];
 
     provider.paidApi = { getAllBTCUtxo: jest.fn().mockImplementation(() => Promise.resolve(utxos)) };
-    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve([{ tx: 'bbbb', vo: 1 }])) };
+    // CORRIGIDO AQUI
+    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve([])) };
 
     const result = await provider.getBTCUtxos(ADDRESS);
 
     expect(result).toHaveLength(2);
   });
 
-  it('falls back to unfiltered UTXOs when tapApi throws', async () => {
+  it('throws when tapApi fails — never returns a potentially unsafe UTXO set', async () => {
     const utxos = [makeUtxo('aaaa', 0), makeUtxo('bbbb', 1)];
 
     provider.paidApi = { getAllBTCUtxo: jest.fn().mockImplementation(() => Promise.resolve(utxos)) };
     provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.reject(new Error('network error'))) };
 
-    const result = await provider.getBTCUtxos(ADDRESS);
-
-    expect(result).toHaveLength(2);
-    expect(console.error).toHaveBeenCalled();
+    await expect(provider.getBTCUtxos(ADDRESS)).rejects.toThrow(
+      'Unable to verify NAT UTXOs — cannot guarantee safe coin selection',
+    );
   });
 
   it('still merges spendable inscription UTXOs after NAT filtering', async () => {
@@ -91,29 +88,20 @@ describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
     const inscriptionUtxo = makeUtxo('cccc', 2);
 
     provider.paidApi = { getAllBTCUtxo: jest.fn().mockImplementation(() => Promise.resolve([normalUtxo, natUtxo])) };
-    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve([{ tx: 'bbbb', vo: 1 }])) };
+    // CORRIGIDO AQUI
+    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve(['bbbbi1'])) };
     provider.getAccountSpendableInscriptions = jest.fn().mockImplementation(() =>
       Promise.resolve([{ inscriptionId: 'ins1:0', utxoInfo: { ...inscriptionUtxo, satoshi: 546 } }]),
     );
 
     const result = await provider.getBTCUtxos(ADDRESS);
 
-    // normalUtxo (kept) + inscriptionUtxo (spendable) = 2; natUtxo removed
     expect(result).toHaveLength(2);
     expect(result.map((u: any) => u.txid)).toEqual(['aaaa', 'cccc']);
   });
 
-  // ── Regression: spendable inscription utxoInfo preserves inscriptions array ──
-  //
-  // inscription-response-adapter builds utxoInfo as `{...v, satoshi}` where v is
-  // an UnspentOutput — so utxoInfo.inscriptions is always populated for real data.
-  // Previous tests used makeUtxo() which sets inscriptions:[] and therefore masked
-  // this bug. The tests below use realistic data to expose it.
-
   it('returns spendable inscription UTXOs with their inscriptions array intact (realistic utxoInfo)', async () => {
     const normalUtxo = makeUtxo('aaaa', 0);
-    // Simulate real utxoInfo produced by inscription-response-adapter:
-    // the inscriptions array is copied from the source UnspentOutput.
     const spendableUtxoInfo = {
       ...makeUtxo('cccc', 2),
       inscriptions: [{ inscriptionNumber: 1, inscriptionId: 'ins1:0', offset: 0,
@@ -128,8 +116,6 @@ describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
 
     const result = await provider.getBTCUtxos(ADDRESS);
 
-    // The spendable inscription UTXO must be present with inscriptions intact
-    // AND flagged as isUserSpendable so the tx-helper guard lets it through.
     expect(result).toHaveLength(2);
     const spendable = result.find((u: any) => u.txid === 'cccc');
     expect(spendable).toBeDefined();

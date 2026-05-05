@@ -14,7 +14,7 @@ export class AxiosRequest {
     }
     this.api = axios.create({
       baseURL: options.baseUrl,
-      timeout: 15000,
+      timeout: 15000, // Request timeout in milliseconds
       headers,
     });
 
@@ -23,7 +23,7 @@ export class AxiosRequest {
         return config;
       },
       function (error) {
-        throw error;
+        Promise.reject(error);
       },
     );
 
@@ -32,7 +32,7 @@ export class AxiosRequest {
         return response;
       },
       async function (err) {
-        throw err;
+        Promise.reject(err);
       },
     );
   }

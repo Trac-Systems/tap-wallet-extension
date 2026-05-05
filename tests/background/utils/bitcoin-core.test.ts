@@ -1,4 +1,58 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, jest } from '@jest/globals';
+
+// MOCK 1: Create global 'chrome' object to prevent Node.js ReferenceError
+(global as any).chrome = {
+  storage: {
+    local: { 
+      get: jest.fn().mockImplementation(() => Promise.resolve({})), 
+      set: jest.fn().mockImplementation(() => Promise.resolve()) 
+    },
+  },
+};
+
+// MOCK 2: Complete structure to mock a real extension environment
+jest.mock('webextension-polyfill', () => {
+  const mockEvent = { addListener: jest.fn(), removeListener: jest.fn() };
+  
+  return {
+    runtime: {
+      onConnect: mockEvent,
+      onMessage: mockEvent,
+      onInstalled: mockEvent,
+      onStartup: mockEvent,
+      getURL: jest.fn(),
+      getPlatformInfo: jest.fn(),
+      connect: jest.fn(),
+    },
+    storage: {
+      local: { 
+        // Mocking a Promise return safely for TypeScript
+        get: jest.fn().mockImplementation(() => Promise.resolve({})), 
+        set: jest.fn().mockImplementation(() => Promise.resolve()) 
+      },
+    },
+    tabs: {
+      onRemoved: mockEvent,
+      create: jest.fn(),
+      query: jest.fn(),
+      sendMessage: jest.fn(),
+      getCurrent: jest.fn(),
+    },
+    windows: {
+      onFocusChanged: mockEvent,
+      onRemoved: mockEvent,
+      getCurrent: jest.fn(),
+      create: jest.fn(),
+      remove: jest.fn(),
+      WINDOW_ID_NONE: -1,
+    },
+    alarms: {
+      onAlarm: mockEvent,
+      create: jest.fn(),
+      clear: jest.fn(),
+    }
+  };
+});
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { extractAddressFromScript } from '../../../src/background/utils'; 

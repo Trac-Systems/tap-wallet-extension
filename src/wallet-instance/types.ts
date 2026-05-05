@@ -198,6 +198,7 @@ export interface UnspentOutput {
   idx: number;
   isOpInRBF: boolean;
   isSpent: boolean;
+  isUserSpendable?: boolean;
   inscriptions: {
     inscriptionNumber: number;
     inscriptionId: string;

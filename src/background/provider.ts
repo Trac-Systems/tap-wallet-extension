@@ -699,7 +699,7 @@ export class Provider {
     const spendableUtxoInscriptions = spendableInscriptions?.reduce(
       (acc: any[], v) => {
         if (!ignoreAssetMap[v.inscriptionId] && v.utxoInfo.satoshi > 0) {
-          acc.push(v.utxoInfo);
+          acc.push({...v.utxoInfo, isUserSpendable: true});
         }
         return acc;
       },

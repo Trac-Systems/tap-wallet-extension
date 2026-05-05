@@ -103,6 +103,40 @@ describe('Provider.getBTCUtxos – NAT UTXO filtering', () => {
     expect(result.map((u: any) => u.txid)).toEqual(['aaaa', 'cccc']);
   });
 
+  // ── Regression: spendable inscription utxoInfo preserves inscriptions array ──
+  //
+  // inscription-response-adapter builds utxoInfo as `{...v, satoshi}` where v is
+  // an UnspentOutput — so utxoInfo.inscriptions is always populated for real data.
+  // Previous tests used makeUtxo() which sets inscriptions:[] and therefore masked
+  // this bug. The tests below use realistic data to expose it.
+
+  it('returns spendable inscription UTXOs with their inscriptions array intact (realistic utxoInfo)', async () => {
+    const normalUtxo = makeUtxo('aaaa', 0);
+    // Simulate real utxoInfo produced by inscription-response-adapter:
+    // the inscriptions array is copied from the source UnspentOutput.
+    const spendableUtxoInfo = {
+      ...makeUtxo('cccc', 2),
+      inscriptions: [{ inscriptionNumber: 1, inscriptionId: 'ins1:0', offset: 0,
+        moved: false, sequence: 0, isCursed: false, isVindicate: false, isBRC20: false }],
+    };
+
+    provider.paidApi = { getAllBTCUtxo: jest.fn().mockImplementation(() => Promise.resolve([normalUtxo])) };
+    provider.tapApi  = { getAllAddressDmtMintList: jest.fn().mockImplementation(() => Promise.resolve([])) };
+    provider.getAccountSpendableInscriptions = jest.fn().mockImplementation(() =>
+      Promise.resolve([{ inscriptionId: 'ins1:0', utxoInfo: spendableUtxoInfo }]),
+    );
+
+    const result = await provider.getBTCUtxos(ADDRESS);
+
+    // The spendable inscription UTXO must be present with inscriptions intact
+    // AND flagged as isUserSpendable so the tx-helper guard lets it through.
+    expect(result).toHaveLength(2);
+    const spendable = result.find((u: any) => u.txid === 'cccc');
+    expect(spendable).toBeDefined();
+    expect(spendable.inscriptions).toHaveLength(1);
+    expect(spendable.isUserSpendable).toBe(true);
+  });
+
   it('excludes spendable inscriptions listed in ignoreAsset', async () => {
     const normalUtxo      = makeUtxo('aaaa', 0);
     const inscriptionUtxo = makeUtxo('cccc', 2);

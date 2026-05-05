@@ -146,6 +146,39 @@ describe('sendInscription – inscription guards', () => {
 });
 
 // ──────────────────────────────────────────────
+// sendBTC – spendable inscriptions (regression)
+// ──────────────────────────────────────────────
+describe('sendBTC – user-marked spendable inscription UTXOs', () => {
+  // When a user explicitly marks an inscription as spendable via the UI,
+  // inscription-response-adapter copies the UnspentOutput including its
+  // inscriptions array into utxoInfo. getBTCUtxos then merges those UTXOs
+  // into btcUtxos. The guard must NOT block them — the user already accepted
+  // the risk. These tests currently FAIL because the guard is too broad.
+
+  it('does not throw when btcUtxo has inscriptions the user marked as spendable', async () => {
+    const spendable = {...makeUtxo(true), isUserSpendable: true as const};
+    await expect(
+      sendBTC({
+        ...BASE_PARAMS,
+        btcUtxos: [spendable],
+        tos: [{ address: 'bc1qdest', satoshis: 5000 }],
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it('does not throw when fee list mixes clean UTXOs with a user-marked spendable one', async () => {
+    const spendable = {...makeUtxo(true), isUserSpendable: true as const};
+    await expect(
+      sendBTC({
+        ...BASE_PARAMS,
+        btcUtxos: [makeUtxo(false), spendable],
+        tos: [{ address: 'bc1qdest', satoshis: 5000 }],
+      }),
+    ).resolves.toBeDefined();
+  });
+});
+
+// ──────────────────────────────────────────────
 // sendInscriptions
 // ──────────────────────────────────────────────
 describe('sendInscriptions – inscription guards', () => {

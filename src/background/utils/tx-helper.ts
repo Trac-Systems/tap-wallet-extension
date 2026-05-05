@@ -32,8 +32,9 @@ export async function sendBTC({
   isHardwareWallet?: boolean;
 }) {
   // Spending an inscribed UTXO as fees would burn the inscription.
+  // UTXOs the user explicitly marked as spendable (isUserSpendable) are exempt.
   btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions)) {
+    if (!isEmpty(utxo.inscriptions) && !utxo.isUserSpendable) {
       throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
     }
   });
@@ -82,8 +83,9 @@ export async function sendInscription({
   isHardwareWallet?: boolean;
 }) {
   // Spending an inscribed UTXO as fees would burn the inscription.
+  // UTXOs the user explicitly marked as spendable (isUserSpendable) are exempt.
   btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions)) {
+    if (!isEmpty(utxo.inscriptions) && !utxo.isUserSpendable) {
       throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
     }
   });
@@ -140,8 +142,9 @@ export async function sendInscriptions({
   });
 
   // Spending an inscribed UTXO as fees would burn the inscription.
+  // UTXOs the user explicitly marked as spendable (isUserSpendable) are exempt.
   btcUtxos.forEach(utxo => {
-    if (!isEmpty(utxo.inscriptions)) {
+    if (!isEmpty(utxo.inscriptions) && !utxo.isUserSpendable) {
       throw new Error(`Unsafe balance: The selected UTXO contains inscriptions but was selected as payment: ${utxo.txid}:${utxo.vout}`);
     }
   });

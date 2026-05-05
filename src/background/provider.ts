@@ -679,6 +679,17 @@ export class Provider {
   getBTCUtxos = async (address: string, ignoreAsset?: string[]) => {
     const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
     const account = this.getActiveAccount();
+    
+    // NAT (DMT-minted) UTXOs must not appear as spendable BTC.
+    let safeUtxos = utxosWithoutInscription;
+    try {
+      const dmtMints = await this.tapApi.getAllAddressDmtMintList(address) || [];
+      const natUtxoSet = new Set(dmtMints.map((mint: any) => `${mint.tx}:${mint.vo}`));
+      safeUtxos = utxosWithoutInscription.filter(utxo => !natUtxoSet.has(`${utxo.txid}:${utxo.vout}`));
+    } catch (error) {
+      console.error('Failed to filter NAT UTXOs', error);
+    }
+
     const spendableInscriptions =
       (await this.getAccountSpendableInscriptions(account)) || [];
     const ignoreAssetMap: { [key: string]: boolean } = {};
@@ -686,20 +697,18 @@ export class Provider {
       ignoreAssetMap[inscriptionId] = true;
     });
     const spendableUtxoInscriptions = spendableInscriptions?.reduce(
-      (acc, v) => {
+      (acc: any[], v) => {
         if (!ignoreAssetMap[v.inscriptionId] && v.utxoInfo.satoshi > 0) {
-          acc.push(v.utxoInfo);
+          acc.push({...v.utxoInfo, isUserSpendable: true});
         }
         return acc;
       },
       [],
     );
-
     const finalUtxos =
       spendableUtxoInscriptions.length > 0
-        ? [...utxosWithoutInscription, ...spendableUtxoInscriptions]
-        : utxosWithoutInscription;
-
+        ? [...safeUtxos, ...spendableUtxoInscriptions]
+        : safeUtxos;
     return finalUtxos;
   };
 

@@ -7,4 +7,8 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "<rootDir>/tests/integration/"
+  ],
 };

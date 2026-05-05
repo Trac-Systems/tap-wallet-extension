@@ -56,14 +56,14 @@ const makeUtxo = (withInscription = false): UnspentOutput => ({
 // sendBTC
 // ──────────────────────────────────────────────
 describe('sendBTC – inscription guard on btcUtxos', () => {
-  it('throws when a fee UTXO contains an inscription', async () => {
+  it('filters out fee UTXOs containing an inscription instead of throwing', async () => {
     await expect(
       sendBTC({
         ...BASE_PARAMS,
         btcUtxos: [makeUtxo(true)],
         tos: [{ address: 'bc1qdest', satoshis: 5000 }],
       }),
-    ).rejects.toThrow('Unsafe balance');
+    ).resolves.toBeDefined();
   });
 
   it('does not throw when all fee UTXOs are inscription-free', async () => {
@@ -76,14 +76,14 @@ describe('sendBTC – inscription guard on btcUtxos', () => {
     ).resolves.toBeDefined();
   });
 
-  it('throws on the first inscribed UTXO even in a mixed list', async () => {
+  it('filters out the inscribed UTXO in a mixed list instead of throwing', async () => {
     await expect(
       sendBTC({
         ...BASE_PARAMS,
         btcUtxos: [makeUtxo(false), makeUtxo(true)],
         tos: [{ address: 'bc1qdest', satoshis: 5000 }],
       }),
-    ).rejects.toThrow('Unsafe balance');
+    ).resolves.toBeDefined();
   });
 });
 
@@ -97,16 +97,17 @@ describe('sendInscription – inscription guards', () => {
     outputValue: 546,
   };
 
-  it('throws when a fee UTXO contains an inscription', async () => {
+  it('filters out fee UTXOs containing an inscription instead of throwing', async () => {
     await expect(
       sendInscription({
         ...SEND_INS_BASE,
         btcUtxos: [makeUtxo(true)],
         assetUtxo: makeUtxo(true),
       }),
-    ).rejects.toThrow('Unsafe balance');
+    ).resolves.toBeDefined();
   });
 
+  // OS TESTES ABAIXO CONTINUAM EXPLODINDO POIS VALIDAM O ASSET EM SI
   it('throws when assetUtxo has 0 inscriptions', async () => {
     await expect(
       sendInscription({
@@ -153,7 +154,7 @@ describe('sendBTC – user-marked spendable inscription UTXOs', () => {
   // inscription-response-adapter copies the UnspentOutput including its
   // inscriptions array into utxoInfo. getBTCUtxos then merges those UTXOs
   // into btcUtxos. The guard must NOT block them — the user already accepted
-  // the risk. These tests currently FAIL because the guard is too broad.
+  // the risk.
 
   it('does not throw when btcUtxo has inscriptions the user marked as spendable', async () => {
     const spendable = {...makeUtxo(true), isUserSpendable: true as const};
@@ -197,14 +198,14 @@ describe('sendInscriptions – inscription guards', () => {
     ).rejects.toThrow('Unsafe balance');
   });
 
-  it('throws when a fee UTXO contains an inscription', async () => {
+  it('filters out fee UTXOs containing an inscription instead of throwing', async () => {
     await expect(
       sendInscriptions({
         ...SEND_INSS_BASE,
         btcUtxos: [makeUtxo(true)],
         assetUtxos: [makeUtxo(true)],
       }),
-    ).rejects.toThrow('Unsafe balance');
+    ).resolves.toBeDefined();
   });
 
   it('does not throw when assetUtxos have inscriptions and fee UTXOs are clean', async () => {

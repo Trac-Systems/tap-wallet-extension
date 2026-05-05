@@ -680,14 +680,20 @@ export class Provider {
     const utxosWithoutInscription = await this.paidApi.getAllBTCUtxo(address);
     const account = this.getActiveAccount();
     
-    // NAT (DMT-minted) UTXOs must not appear as spendable BTC.
-    let safeUtxos = utxosWithoutInscription;
+// NAT (DMT-minted) UTXOs must not appear as spendable BTC.
+    let safeUtxos: UnspentOutput[];
     try {
       const dmtMints = await this.tapApi.getAllAddressDmtMintList(address) || [];
-      const natUtxoSet = new Set(dmtMints.map((mint: any) => `${mint.tx}:${mint.vo}`));
+      const natUtxoSet = new Set(
+        dmtMints.map((insId: string) => {
+          // Separate "txid" and "vout" using the 'i' from inscriptionId
+          const [txid, vout] = insId.split('i');
+          return `${txid}:${vout}`;
+        })
+      );
       safeUtxos = utxosWithoutInscription.filter(utxo => !natUtxoSet.has(`${utxo.txid}:${utxo.vout}`));
     } catch (error) {
-      console.error('Failed to filter NAT UTXOs', error);
+      throw new Error(`Unable to verify NAT UTXOs — cannot guarantee safe coin selection`);
     }
 
     const spendableInscriptions =

@@ -54,6 +54,7 @@ export const zhCN: TranslationDictionary = {
   'language.pt-BR': '葡萄牙语 (PT-BR) ',
   'language.es-ES': '西班牙语 (ES)',
   'language.de-DE': '德语 (DE)',
+  'language.fr-FR': '法语 (FR)',
 
   'account.changed': '账户已切换',
   'account.create': '创建账户',

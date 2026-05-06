@@ -6,6 +6,7 @@ export const SUPPORTED_LANGUAGES = [
   'pt-BR',
   'es-ES',
   'de-DE',
+  'fr-FR'
 ] as const;
 
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];

@@ -9,6 +9,17 @@ import {AddressTokenSummary} from '@/src/wallet-instance';
 import React, {useMemo, useRef, useState} from 'react';
 import {useTokenUSDPrice} from '@/src/ui/hook/use-token-usd-price';
 
+const TOKEN_ICONS: Record<string, string> = {
+  'DMT-NAT': '/images/tokens/DMT-NAT.png',
+  'GIB': '/images/tokens/GIB.png',
+  'TAP': '/images/tokens/TAP.png',
+  'TAP-USDT': '/images/tokens/TAP-USDT.svg',
+};
+
+const getTokenIcon = (ticker: string) => {
+  return TOKEN_ICONS[ticker.trim().toUpperCase().replace(/_/g, '-')];
+};
+
 interface TapBalanceItemProps {
   ticker: string;
   overallBalance: string;
@@ -20,6 +31,7 @@ interface TapBalanceItemProps {
 const TapBalanceItem = (props: TapBalanceItemProps) => {
   const wallet = useWalletProvider();
   const {ticker, overallBalance, handleNavigate, tagColor} = props;
+  const tokenIcon = getTokenIcon(ticker);
 
   //! Ref
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -133,18 +145,33 @@ const TapBalanceItem = (props: TapBalanceItemProps) => {
             alignItems: 'center',
             flex: 1,
           }}>
-          <UX.Box
-            layout="row"
-            spacing="xlg"
-            style={{
-              height: '32px',
-              width: '32px',
-              minWidth: '32px',
-              borderRadius: '50%',
-              background: `${tagColor}`,
-              marginRight: '8px',
-            }}
-          />
+          {tokenIcon ? (
+            <img
+              src={tokenIcon}
+              alt={`${formatTicker(ticker)} icon`}
+              style={{
+                height: '32px',
+                width: '32px',
+                minWidth: '32px',
+                borderRadius: '50%',
+                marginRight: '8px',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <UX.Box
+              layout="row"
+              spacing="xlg"
+              style={{
+                height: '32px',
+                width: '32px',
+                minWidth: '32px',
+                borderRadius: '50%',
+                background: `${tagColor}`,
+                marginRight: '8px',
+              }}
+            />
+          )}
           <UX.Tooltip text={formatTicker(ticker)} isText>
             <UX.Text
               title={formatTicker(ticker)}

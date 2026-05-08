@@ -56,6 +56,7 @@ export const ptBR: TranslationDictionary = {
   'language.pt-BR': 'Português (PT-BR)',
   'language.es-ES': 'Espanhol (ES)',
   'language.de-DE': 'Alemão (DE)',
+  'language.fr-FR': 'Francês (FR)',
 
   'account.changed': 'Conta alterada',
   'account.create': 'Criar conta',

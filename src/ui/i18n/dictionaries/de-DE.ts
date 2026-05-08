@@ -56,6 +56,7 @@ export const deDE: TranslationDictionary = {
   'language.pt-BR': 'Portugiesisch (PT-BR)',
   'language.es-ES': 'Spanisch (ES)',
   'language.de-DE': 'Deutsch (DE)',
+  'language.fr-FR': 'Französisch (FR)',
 
   'account.changed': 'Konto geändert',
   'account.create': 'Konto erstellen',
